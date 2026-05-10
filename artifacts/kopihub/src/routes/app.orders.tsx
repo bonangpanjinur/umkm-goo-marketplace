@@ -344,6 +344,15 @@ function DetailDialog({
                 changeDue={Number(order.change_due)}
               />
             </div>
+            <div ref={ticketRef}>
+              <KitchenTicket
+                orderNo={order.order_no}
+                date={new Date(order.created_at)}
+                outletName={outletName}
+                customerName={order.customer_name}
+                items={items}
+              />
+            </div>
           </div>
         </div>
         <DialogFooter className="flex-wrap gap-2 sm:gap-0">
