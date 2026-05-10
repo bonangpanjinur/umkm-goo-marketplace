@@ -29,6 +29,7 @@ import { Route as AppRecipesRouteImport } from './routes/app.recipes'
 import { Route as AppPurchaseOrdersRouteImport } from './routes/app.purchase-orders'
 import { Route as AppPromosRouteImport } from './routes/app.promos'
 import { Route as AppPosRouteImport } from './routes/app.pos'
+import { Route as AppPrintersRouteImport } from './routes/app.printers'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
 import { Route as AppOnlineOrdersRouteImport } from './routes/app.online-orders'
 import { Route as AppMenuRouteImport } from './routes/app.menu'
@@ -160,6 +161,11 @@ const AppPurchaseOrdersRoute = AppPurchaseOrdersRouteImport.update({
 const AppPromosRoute = AppPromosRouteImport.update({
   id: '/promos',
   path: '/promos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPrintersRoute = AppPrintersRouteImport.update({
+  id: '/printers',
+  path: '/printers',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPosRoute = AppPosRouteImport.update({
@@ -387,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/app/online-orders': typeof AppOnlineOrdersRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/pos': typeof AppPosRoute
+  '/app/printers': typeof AppPrintersRoute
   '/app/promos': typeof AppPromosRoute
   '/app/purchase-orders': typeof AppPurchaseOrdersRouteWithChildren
   '/app/recipes': typeof AppRecipesRoute
@@ -444,6 +451,7 @@ export interface FileRoutesByTo {
   '/app/online-orders': typeof AppOnlineOrdersRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/pos': typeof AppPosRoute
+  '/app/printers': typeof AppPrintersRoute
   '/app/promos': typeof AppPromosRoute
   '/app/purchase-orders': typeof AppPurchaseOrdersRouteWithChildren
   '/app/recipes': typeof AppRecipesRoute
@@ -503,6 +511,7 @@ export interface FileRoutesById {
   '/app/online-orders': typeof AppOnlineOrdersRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/pos': typeof AppPosRoute
+  '/app/printers': typeof AppPrintersRoute
   '/app/promos': typeof AppPromosRoute
   '/app/purchase-orders': typeof AppPurchaseOrdersRouteWithChildren
   '/app/recipes': typeof AppRecipesRoute
@@ -564,6 +573,7 @@ export interface FileRouteTypes {
     | '/app/online-orders'
     | '/app/orders'
     | '/app/pos'
+    | '/app/printers'
     | '/app/promos'
     | '/app/purchase-orders'
     | '/app/recipes'
@@ -621,6 +631,7 @@ export interface FileRouteTypes {
     | '/app/online-orders'
     | '/app/orders'
     | '/app/pos'
+    | '/app/printers'
     | '/app/promos'
     | '/app/purchase-orders'
     | '/app/recipes'
@@ -679,6 +690,7 @@ export interface FileRouteTypes {
     | '/app/online-orders'
     | '/app/orders'
     | '/app/pos'
+    | '/app/printers'
     | '/app/promos'
     | '/app/purchase-orders'
     | '/app/recipes'
@@ -850,6 +862,13 @@ declare module '@tanstack/react-router' {
       path: '/promos'
       fullPath: '/app/promos'
       preLoaderRoute: typeof AppPromosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/printers': {
+      id: '/app/printers'
+      path: '/printers'
+      fullPath: '/app/printers'
+      preLoaderRoute: typeof AppPrintersRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/pos': {
@@ -1203,6 +1222,7 @@ interface AppRouteChildren {
   AppOnlineOrdersRoute: typeof AppOnlineOrdersRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppPosRoute: typeof AppPosRoute
+  AppPrintersRoute: typeof AppPrintersRoute
   AppPromosRoute: typeof AppPromosRoute
   AppPurchaseOrdersRoute: typeof AppPurchaseOrdersRouteWithChildren
   AppRecipesRoute: typeof AppRecipesRoute
@@ -1233,6 +1253,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppOnlineOrdersRoute: AppOnlineOrdersRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppPosRoute: AppPosRoute,
+  AppPrintersRoute: AppPrintersRoute,
   AppPromosRoute: AppPromosRoute,
   AppPurchaseOrdersRoute: AppPurchaseOrdersRouteWithChildren,
   AppRecipesRoute: AppRecipesRoute,
