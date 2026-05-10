@@ -17,7 +17,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Receipt } from "@/components/pos/receipt";
+import { KitchenTicket } from "@/components/pos/kitchen-ticket";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
+import { ChefHat } from "lucide-react";
 import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
