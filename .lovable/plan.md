@@ -1,37 +1,60 @@
-## Masalah
+# Rencana: Roadmap Eksekusi Penyelesaian KopiHub
 
-Build di Vercel gagal karena script `build` di root `package.json` memanggil `pnpm -r --if-present run build`, yang menjalankan **semua** workspace termasuk `artifacts/mockup-sandbox`. `mockup-sandbox/vite.config.ts` mewajibkan env `PORT` & `BASE_PATH` (untuk Replit), yang tidak ada di Vercel → build crash.
+## Tujuan
+Membuat **satu file markdown** di `docs/ROADMAP_PENYELESAIAN.md` yang merangkum seluruh pekerjaan tersisa, urutan prioritas, estimasi, dan checklist untuk membawa KopiHub ke status production-ready.
 
-Selain itu, build seharusnya hanya menghasilkan output untuk `kopihub` (aplikasi yang dideploy), bukan semua artifact.
+## Lokasi File
+`docs/ROADMAP_PENYELESAIAN.md`
 
-## Rencana Perbaikan
+## Struktur Isi Markdown
 
-### 1. Ubah script `build` di root `package.json`
-Dari:
-```
-"build": "pnpm run typecheck && pnpm -r --if-present run build"
-```
-Menjadi build khusus kopihub dengan env yang di-inject:
-```
-"build": "cd artifacts/kopihub && PORT=8080 BASE_PATH=/ npx vite build --config vite.config.ts"
-```
+### 1. Ringkasan Status
+- Yang sudah selesai (POS dasar, KDS, tabel, manual payment stub, edge functions dasar)
+- Yang masih bermasalah (auth redirect, payment otomatis, stock opname UI, HPP, printer routing, cron schedule)
 
-Typecheck di-skip dari pipeline build Vercel (sudah dijalankan di CI/dev). Build mockup-sandbox & api-server tidak perlu untuk deploy frontend.
+### 2. Prioritas Eksekusi (4 Sprint)
 
-### 2. Pastikan `vercel.json` di root menunjuk output yang benar
-File `vercel.json` di root sudah ada dari perubahan sebelumnya. Update agar:
-- `buildCommand`: `pnpm run build` (memakai script root yang sudah diperbaiki)
-- `outputDirectory`: `artifacts/kopihub/dist/public`
-- `rewrites`: SPA fallback ke `/index.html`
+**Sprint 1 — Auth & Onboarding (blocker)**
+- Perbaiki Site URL & Redirect URL di Lovable Cloud
+- Tambah Google OAuth login
+- Tambah halaman Forgot/Reset Password
+- Verifikasi flow signup → konfirmasi email → onboarding shop
 
-### 3. Tidak ada perubahan ke `mockup-sandbox/vite.config.ts`
-Biarkan aman — file itu untuk Replit dev sandbox, bukan target deploy.
+**Sprint 2 — POS Inti & Operasional**
+- UI Stock Opname (`/app/inventory/opname`) memakai tabel migrasi yang sudah ada
+- Perhitungan HPP otomatis dari recipe + ingredient cost
+- Refund / Void order workflow
+- Hold bill (parked carts) UI lengkap
+- Manual discount per item & per order
+- Z-report (cashier closing) + cash drawer log
+- Profit/Margin report
 
-## Hasil yang diharapkan
-- `pnpm run build` di Vercel hanya membangun kopihub
-- Output statis di `artifacts/kopihub/dist/public` di-serve oleh Vercel sebagai SPA
-- Dev server lokal tetap jalan (script `dev` tidak diubah)
+**Sprint 3 — Printer & Notifikasi**
+- Integrasi thermal printing 58/80mm (WebUSB / network)
+- Multi-printer routing (`routeItemsToPrinters`) per kategori menu
+- Aktifkan Realtime untuk `orders` & `kds_tickets` (notifikasi staff)
+- Low-stock alert berbasis trigger
 
-## Catatan teknis
-- Env `PORT` & `BASE_PATH` di-inject inline karena `vite.config.ts` kopihub mewajibkan keduanya. Nilai 8080 & `/` aman untuk build statis.
-- Script `build:dev` (yang sebelumnya tidak ada → menyebabkan error #1) sudah ditambahkan dari perbaikan sebelumnya, tetap dipertahankan.
+**Sprint 4 — Payment, Customer, Infra**
+- Integrasi gateway Midtrans/Xendit (ganti stub `create-payment`)
+- Webhook handler `/api/public/payment-webhook` dengan signature verification
+- Loyalty redemption engine + auto-promo di storefront
+- Review/Rating component di `/s/$slug`
+- Schedule `pg_cron` → panggil `cron-maintenance` tiap jam
+- Tombol export Excel/PDF di laporan
+
+### 3. Checklist Detail per Item
+Setiap item berisi: deskripsi, file yang disentuh, tabel/RPC terkait, kriteria selesai (DoD).
+
+### 4. Catatan Teknis
+- Daftar edge functions baru yang akan dibuat: `payment-webhook`, `send-receipt-email`, `printer-bridge` (opsional)
+- Daftar migrasi baru: trigger HPP, trigger low-stock alert, kolom refund di `orders`
+- Daftar secret yang perlu ditambahkan user: `MIDTRANS_SERVER_KEY` / `XENDIT_API_KEY` (saat Sprint 4)
+
+### 5. Pertanyaan Terbuka untuk User
+- Pilih provider payment: Midtrans vs Xendit vs tetap manual?
+- Printer: WebUSB (browser langsung) atau bridge lokal (lebih reliable)?
+- Mau Sprint mana dieksekusi duluan setelah roadmap di-approve?
+
+## Setelah Approval
+Saya buat satu file `docs/ROADMAP_PENYELESAIAN.md` dengan isi di atas — **tanpa** mengubah kode lain. Eksekusi sprint dilakukan terpisah setelah Anda pilih sprint mana yang dimulai.
