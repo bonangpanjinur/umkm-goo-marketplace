@@ -369,7 +369,8 @@ function POSPage() {
         .insert({
           outlet_id: outlet.id,
           shop_id: shop!.id,
-          subtotal: charges.subtotal,
+          subtotal: rawSubtotal,
+          discount: discount,
           service_charge: charges.service_charge,
           tax: charges.tax,
           total: charges.total,
