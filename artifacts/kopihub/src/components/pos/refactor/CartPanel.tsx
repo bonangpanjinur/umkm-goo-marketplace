@@ -151,6 +151,23 @@ export function CartPanel({
             <span className="text-muted-foreground">Subtotal</span>
             <span>{formatIDR(subtotal)}</span>
           </div>
+          {onDiscountChange && (
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <label className="text-muted-foreground flex items-center gap-1">
+                <Percent className="h-3 w-3" /> Diskon
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={subtotal}
+                value={discount || ""}
+                placeholder="0"
+                onChange={(e) => onDiscountChange(Math.max(0, Math.min(subtotal, Number(e.target.value || 0))))}
+                className="h-7 w-24 text-right text-sm"
+                disabled={items.length === 0}
+              />
+            </div>
+          )}
           {serviceCharge > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Service</span>
