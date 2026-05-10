@@ -17,7 +17,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Receipt } from "@/components/pos/receipt";
+import { KitchenTicket } from "@/components/pos/kitchen-ticket";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
+import { ChefHat } from "lucide-react";
 import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
@@ -241,6 +243,7 @@ function DetailDialog({
   onVoided: () => void;
 }) {
   const printRef = useRef<HTMLDivElement>(null);
+  const ticketRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     applyReceiptPaper();
   }, []);
@@ -263,6 +266,10 @@ function DetailDialog({
 
   function handlePrint() {
     printReceiptNode(printRef.current);
+  }
+
+  function handlePrintTicket() {
+    printReceiptNode(ticketRef.current);
   }
 
   async function handleRefund() {
@@ -337,6 +344,15 @@ function DetailDialog({
                 changeDue={Number(order.change_due)}
               />
             </div>
+            <div ref={ticketRef}>
+              <KitchenTicket
+                orderNo={order.order_no}
+                date={new Date(order.created_at)}
+                outletName={outletName}
+                customerName={order.customer_name}
+                items={items}
+              />
+            </div>
           </div>
         </div>
         <DialogFooter className="flex-wrap gap-2 sm:gap-0">
@@ -365,6 +381,9 @@ function DetailDialog({
             </>
           )}
           <ReceiptPaperPicker className="mr-auto" />
+          <Button variant="outline" onClick={handlePrintTicket}>
+            <ChefHat className="mr-2 h-4 w-4" /> Tiket Dapur
+          </Button>
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" /> Cetak ulang
           </Button>
