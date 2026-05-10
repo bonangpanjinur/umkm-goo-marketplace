@@ -1,5 +1,6 @@
 import { ShoppingBag, Trash2, Plus, Minus, StickyNote, Percent, QrCode, Banknote, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatIDR } from "@/lib/format";
 import { cartCount, cartTotal, lineUnitPrice } from "@/lib/cart";
 import type { CartItem } from "@/lib/cart";
