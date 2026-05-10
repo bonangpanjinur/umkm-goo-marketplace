@@ -62,12 +62,13 @@ type LocalCart = {
   parkedId: string | null;
   label: string;
   items: CartItem[];
+  discount: number;
 };
 
 const MAX_CARTS = 6;
 
 function newCart(label = "Cart 1"): LocalCart {
-  return { parkedId: null, label, items: [] };
+  return { parkedId: null, label, items: [], discount: 0 };
 }
 
 function storageKey(outletId: string) {
