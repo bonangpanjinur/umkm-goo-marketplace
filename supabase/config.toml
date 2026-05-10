@@ -1,7 +1,0 @@
-project_id = "gbbbispqqcsabwgmhlls"
-
-[functions.create-payment]
-verify_jwt = false
-
-[functions.cron-maintenance]
-verify_jwt = false

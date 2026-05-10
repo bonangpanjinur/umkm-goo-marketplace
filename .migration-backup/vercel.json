@@ -1,7 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".vercel/output",
-  "framework": "vite",
-  "regions": ["sin1"]
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "artifacts/kopihub/dist/public",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
