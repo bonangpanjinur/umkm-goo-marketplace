@@ -2759,6 +2759,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_profit_report: {
+        Args: { _from: string; _shop_id: string; _to: string }
+        Returns: Json
+      }
+      get_profit_report_daily: {
+        Args: { _from: string; _shop_id: string; _to: string }
+        Returns: {
+          cogs: number
+          day: string
+          gross_profit: number
+          orders: number
+          revenue: number
+        }[]
+      }
       get_shop_entitlements: { Args: { _shop_id: string }; Returns: Json }
       has_outlet_access: {
         Args: { _outlet_id: string; _user_id: string }

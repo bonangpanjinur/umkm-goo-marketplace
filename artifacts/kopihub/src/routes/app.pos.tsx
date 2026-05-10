@@ -62,12 +62,13 @@ type LocalCart = {
   parkedId: string | null;
   label: string;
   items: CartItem[];
+  discount: number;
 };
 
 const MAX_CARTS = 6;
 
 function newCart(label = "Cart 1"): LocalCart {
-  return { parkedId: null, label, items: [] };
+  return { parkedId: null, label, items: [], discount: 0 };
 }
 
 function storageKey(outletId: string) {
@@ -351,7 +352,9 @@ function POSPage() {
     }
   };
 
-  const charges = computeCharges(cartTotal(cart.items), {
+  const rawSubtotal = cartTotal(cart.items);
+  const discount = Math.max(0, Math.min(rawSubtotal, cart.discount || 0));
+  const charges = computeCharges(Math.max(0, rawSubtotal - discount), {
     tax_percent: shop?.tax_percent ?? 0,
     service_charge_percent: shop?.service_charge_percent ?? 0,
     tax_inclusive: shop?.tax_inclusive ?? false,
@@ -366,7 +369,8 @@ function POSPage() {
         .insert({
           outlet_id: outlet.id,
           shop_id: shop!.id,
-          subtotal: charges.subtotal,
+          subtotal: rawSubtotal,
+          discount: discount,
           service_charge: charges.service_charge,
           tax: charges.tax,
           total: charges.total,
@@ -445,6 +449,8 @@ function POSPage() {
       serviceCharge={charges.service_charge}
       tax={charges.tax}
       grandTotal={charges.total}
+      discount={discount}
+      onDiscountChange={(v) => updateCart((c) => ({ ...c, discount: v }))}
       onUpdateQty={(idx, delta) => {
         updateCart((c) => {
           const items = [...c.items];
@@ -455,7 +461,7 @@ function POSPage() {
       onRemove={(idx) => {
         updateCart((c) => ({ ...c, items: c.items.filter((_, i) => i !== idx) }));
       }}
-      onClear={() => updateCart((c) => ({ ...c, items: [] }))}
+      onClear={() => updateCart((c) => ({ ...c, items: [], discount: 0 }))}
       onPark={handleParkClick}
       onCheckout={() => setCheckoutOpen(true)}
     />
