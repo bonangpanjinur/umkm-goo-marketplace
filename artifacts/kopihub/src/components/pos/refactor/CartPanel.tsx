@@ -19,6 +19,8 @@ interface CartPanelProps {
   serviceCharge?: number;
   tax?: number;
   grandTotal?: number;
+  discount?: number;
+  onDiscountChange?: (v: number) => void;
 }
 
 export function CartPanel({
@@ -33,9 +35,11 @@ export function CartPanel({
   serviceCharge = 0,
   tax = 0,
   grandTotal,
+  discount = 0,
+  onDiscountChange,
 }: CartPanelProps) {
   const subtotal = cartTotal(items);
-  const total = grandTotal ?? subtotal + serviceCharge + tax;
+  const total = grandTotal ?? Math.max(0, subtotal - discount + serviceCharge + tax);
   const count = cartCount(items);
   const { can } = usePermissions();
 
