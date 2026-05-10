@@ -449,6 +449,8 @@ function POSPage() {
       serviceCharge={charges.service_charge}
       tax={charges.tax}
       grandTotal={charges.total}
+      discount={discount}
+      onDiscountChange={(v) => updateCart((c) => ({ ...c, discount: v }))}
       onUpdateQty={(idx, delta) => {
         updateCart((c) => {
           const items = [...c.items];
@@ -459,7 +461,7 @@ function POSPage() {
       onRemove={(idx) => {
         updateCart((c) => ({ ...c, items: c.items.filter((_, i) => i !== idx) }));
       }}
-      onClear={() => updateCart((c) => ({ ...c, items: [] }))}
+      onClear={() => updateCart((c) => ({ ...c, items: [], discount: 0 }))}
       onPark={handleParkClick}
       onCheckout={() => setCheckoutOpen(true)}
     />
