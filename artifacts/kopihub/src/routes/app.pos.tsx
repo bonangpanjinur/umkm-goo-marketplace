@@ -352,7 +352,9 @@ function POSPage() {
     }
   };
 
-  const charges = computeCharges(cartTotal(cart.items), {
+  const rawSubtotal = cartTotal(cart.items);
+  const discount = Math.max(0, Math.min(rawSubtotal, cart.discount || 0));
+  const charges = computeCharges(Math.max(0, rawSubtotal - discount), {
     tax_percent: shop?.tax_percent ?? 0,
     service_charge_percent: shop?.service_charge_percent ?? 0,
     tax_inclusive: shop?.tax_inclusive ?? false,
