@@ -63,6 +63,11 @@ function LoginPage() {
         <Input id="password" type="password" autoComplete="current-password" required value={password}
           onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
       </div>
+      <div className="flex justify-end">
+        <Link to="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+          Lupa kata sandi?
+        </Link>
+      </div>
       <Button type="submit" className="h-10 w-full" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Masuk"}
       </Button>
