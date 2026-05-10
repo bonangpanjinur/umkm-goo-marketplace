@@ -381,6 +381,9 @@ function DetailDialog({
             </>
           )}
           <ReceiptPaperPicker className="mr-auto" />
+          <Button variant="outline" onClick={handlePrintTicket}>
+            <ChefHat className="mr-2 h-4 w-4" /> Tiket Dapur
+          </Button>
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" /> Cetak ulang
           </Button>
