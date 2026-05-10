@@ -243,6 +243,7 @@ function DetailDialog({
   onVoided: () => void;
 }) {
   const printRef = useRef<HTMLDivElement>(null);
+  const ticketRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     applyReceiptPaper();
   }, []);
@@ -265,6 +266,10 @@ function DetailDialog({
 
   function handlePrint() {
     printReceiptNode(printRef.current);
+  }
+
+  function handlePrintTicket() {
+    printReceiptNode(ticketRef.current);
   }
 
   async function handleRefund() {
