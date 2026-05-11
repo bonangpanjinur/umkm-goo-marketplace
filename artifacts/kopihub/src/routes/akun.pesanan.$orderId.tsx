@@ -5,9 +5,11 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Star, MessageSquare, Truck } from "lucide-react";
+import { Loader2, ArrowLeft, Star, MessageSquare, Truck, AlertOctagon } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { MarketplaceReviewDialog } from "@/components/marketplace/MarketplaceReviewDialog";
+import { OrderChat } from "@/components/marketplace/OrderChat";
+import { DisputeDialog } from "@/components/marketplace/DisputeDialog";
 
 export const Route = createFileRoute("/akun/pesanan/$orderId")({
   component: OrderDetailPage,
@@ -27,6 +29,8 @@ function OrderDetailPage() {
   const [reviewed, setReviewed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [dispute, setDispute] = useState<any>(null);
 
   const load = async () => {
     if (!user) return;
@@ -42,6 +46,14 @@ function OrderDetailPage() {
       setItems(it || []);
       const { data: rv } = await supabase.from("product_reviews").select("product_id").eq("order_id", o.id).eq("user_id", user.id);
       setReviewed(new Set((rv || []).map((r: any) => r.product_id)));
+      const { data: d } = await supabase
+        .from("order_disputes")
+        .select("id, status, reason, description, resolution, refund_amount, created_at, resolved_at")
+        .eq("order_id", o.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setDispute(d);
     }
     setLoading(false);
   };
@@ -54,6 +66,12 @@ function OrderDetailPage() {
   const canReview = order.status === "completed" || order.status === "delivered";
   const reviewItems = items.filter(it => it.menu_item_id).map(it => ({ product_id: it.menu_item_id, name: it.name }));
   const allReviewed = reviewItems.length > 0 && reviewItems.every(it => reviewed.has(it.product_id));
+  const canDispute = ["ready", "in_delivery", "delivering", "delivered", "completed"].includes(order.status)
+    && (!dispute || dispute.status === "rejected");
+  const disputeStatusLabel: Record<string, string> = {
+    open: "Sedang ditinjau", under_review: "Sedang ditinjau",
+    resolved: "Selesai", rejected: "Ditolak",
+  };
 
   return (
     <div className="space-y-4">
@@ -115,8 +133,50 @@ function OrderDetailPage() {
               </a>
             </Button>
           )}
+          {canDispute && (
+            <Button onClick={() => setDisputeOpen(true)} variant="outline" className="w-full text-destructive hover:text-destructive">
+              <AlertOctagon className="h-4 w-4 mr-2" />Lapor Masalah
+            </Button>
+          )}
         </CardContent>
       </Card>
+
+      {dispute && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertOctagon className="h-4 w-4 text-destructive" /> Sengketa
+              <Badge variant={dispute.status === "resolved" ? "default" : dispute.status === "rejected" ? "secondary" : "destructive"} className="ml-auto">
+                {disputeStatusLabel[dispute.status] ?? dispute.status}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div><span className="text-muted-foreground">Alasan:</span> {dispute.reason}</div>
+            {dispute.description && <div className="rounded-md bg-muted/40 p-2 text-xs">{dispute.description}</div>}
+            {dispute.resolution && (
+              <div className="rounded-md border border-border p-2">
+                <div className="text-xs font-semibold">Tanggapan penjual</div>
+                <div className="mt-1 text-xs">{dispute.resolution}</div>
+                {dispute.refund_amount > 0 && (
+                  <div className="mt-1 text-xs font-semibold text-emerald-700">Refund: {formatIDR(dispute.refund_amount)}</div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {user && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Chat dengan Penjual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OrderChat orderId={order.id} currentUserId={user.id} />
+          </CardContent>
+        </Card>
+      )}
 
       {reviewOpen && user && order.shop?.id && (
         <MarketplaceReviewDialog
@@ -129,6 +189,8 @@ function OrderDetailPage() {
           onSubmitted={load}
         />
       )}
+
+      <DisputeDialog open={disputeOpen} onOpenChange={setDisputeOpen} orderId={order.id} onCreated={load} />
     </div>
   );
 }
