@@ -7,9 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ShoppingCart, Phone, MapPin, RefreshCw } from "lucide-react";
+import { Loader2, ShoppingCart, Phone, MapPin, RefreshCw, AlertOctagon, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import { OrderChat } from "@/components/marketplace/OrderChat";
+import { ResolveDisputeDialog } from "@/components/marketplace/ResolveDisputeDialog";
 
 export const Route = createFileRoute("/pos-app/marketplace-orders")({
   head: () => ({ meta: [{ title: "Pesanan Marketplace" }] }),
@@ -53,15 +55,18 @@ function MarketplaceOrdersPage() {
   const { user } = useAuth();
   const { shop } = useCurrentShop();
   const [orders, setOrders] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>("active");
+  const [chatFor, setChatFor] = useState<string | null>(null);
+  const [resolveFor, setResolveFor] = useState<any>(null);
 
   const load = async () => {
     if (!shop?.id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, items:order_items(id, name, qty, price, total)")
+      .select("id, order_no, status, payment_status, total, subtotal, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, escrow_status, items:order_items(id, name, qty, price, total)")
       .eq("shop_id", shop.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -70,6 +75,18 @@ function MarketplaceOrdersPage() {
       toast.error(error.message);
     } else {
       setOrders(data || []);
+      const ids = (data || []).map((o: any) => o.id);
+      if (ids.length) {
+        const { data: ds } = await supabase
+          .from("order_disputes")
+          .select("id, order_id, status, reason, description, refund_amount, resolution, created_at")
+          .in("order_id", ids);
+        const map: Record<string, any> = {};
+        (ds || []).forEach((d: any) => { map[d.order_id] = d; });
+        setDisputes(map);
+      } else {
+        setDisputes({});
+      }
     }
     setLoading(false);
   };
@@ -145,17 +162,26 @@ function MarketplaceOrdersPage() {
         <Card><CardContent className="py-10 text-center text-muted-foreground">Tidak ada pesanan</CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {filtered.map(o => (
-            <Card key={o.id}>
+          {filtered.map(o => {
+            const dispute = disputes[o.id];
+            const dStatus = dispute?.status as string | undefined;
+            const dActive = dStatus && ["open", "under_review"].includes(dStatus);
+            return (
+            <Card key={o.id} className={dActive ? "border-destructive/60" : ""}>
               <CardHeader className="pb-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <CardTitle className="text-base font-semibold">{o.order_no}</CardTitle>
                     <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString("id-ID")}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">{o.fulfillment}</Badge>
                     <Badge className={`text-xs ${STATUS_COLOR[o.status] || ""}`}>{STATUS_LABEL[o.status] || o.status}</Badge>
+                    {dispute && (
+                      <Badge variant={dActive ? "destructive" : "secondary"} className="text-xs gap-1">
+                        <AlertOctagon className="h-3 w-3" />Sengketa: {dStatus}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -182,6 +208,15 @@ function MarketplaceOrdersPage() {
                   <div><div className="text-muted-foreground">Net</div><div className="font-semibold text-green-700">{formatIDR(o.net_to_shop || 0)}</div></div>
                 </div>
 
+                {dispute && (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-xs space-y-1">
+                    <div><span className="font-semibold">Alasan:</span> {dispute.reason}</div>
+                    {dispute.description && <div className="text-muted-foreground">"{dispute.description}"</div>}
+                    {dispute.resolution && <div><span className="font-semibold">Resolusi:</span> {dispute.resolution}</div>}
+                    {dispute.refund_amount > 0 && <div>Refund: <span className="font-semibold">{formatIDR(dispute.refund_amount)}</span></div>}
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-2 pt-2">
                   {NEXT_STATUS[o.status] && (
                     <Button size="sm" onClick={() => advance(o)}>Lanjut → {STATUS_LABEL[NEXT_STATUS[o.status]!]}</Button>
@@ -189,15 +224,35 @@ function MarketplaceOrdersPage() {
                   {!["completed", "cancelled", "delivered"].includes(o.status) && (
                     <Button size="sm" variant="outline" onClick={() => cancel(o)}>Batalkan</Button>
                   )}
+                  {dActive && (
+                    <Button size="sm" variant="destructive" onClick={() => setResolveFor(dispute)}>
+                      <AlertOctagon className="h-3.5 w-3.5 mr-1" />Tanggapi
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => setChatFor(chatFor === o.id ? null : o.id)}>
+                    <MessageSquare className="h-3.5 w-3.5 mr-1" />Chat
+                  </Button>
                   <Button size="sm" variant="ghost" asChild>
                     <Link to="/pesanan/$orderId" params={{ orderId: o.id }} target="_blank">Lihat publik</Link>
                   </Button>
                 </div>
+
+                {chatFor === o.id && user && (
+                  <OrderChat orderId={o.id} currentUserId={user.id} className="mt-2" />
+                )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      <ResolveDisputeDialog
+        open={!!resolveFor}
+        onOpenChange={(v) => !v && setResolveFor(null)}
+        dispute={resolveFor}
+        onResolved={load}
+      />
     </div>
   );
 }
