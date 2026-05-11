@@ -19,6 +19,8 @@ function CheckoutPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [shipping, setShipping] = useState<Record<string, string>>({}); // shop_id -> zone_id
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,13 +37,25 @@ function CheckoutPage() {
       return;
     }
     listCart()
-      .then((d) => {
+      .then(async (d) => {
         setItems(d);
-        if (d.length === 0) navigate({ to: "/keranjang" });
+        if (d.length === 0) {
+          navigate({ to: "/keranjang" });
+          return;
+        }
+        const shopIds = Array.from(new Set(d.map((i) => i.shop_id)));
+        const zs = await listShopZones(shopIds);
+        setZones(zs);
+        // auto-select cheapest zone per shop
+        const init: Record<string, string> = {};
+        for (const sid of shopIds) {
+          const sz = zs.filter((z) => z.shop_id === sid).sort((a, b) => a.fee - b.fee);
+          if (sz[0]) init[sid] = sz[0].id;
+        }
+        setShipping(init);
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
-    // Prefill recipient name from email local-part
     if (user?.email && !recipientName) {
       setRecipientName(user.email.split("@")[0]);
     }
@@ -51,7 +65,15 @@ function CheckoutPage() {
     (acc[it.shop_id] ||= []).push(it);
     return acc;
   }, {});
-  const total = items.reduce((s, it) => s + Number(it.unit_price) * it.quantity, 0);
+  const itemsTotal = items.reduce((s, it) => s + Number(it.unit_price) * it.quantity, 0);
+  const shippingTotal =
+    fulfillment === "delivery"
+      ? Object.values(shipping).reduce((s, zid) => {
+          const z = zones.find((x) => x.id === zid);
+          return s + (z ? z.fee : 0);
+        }, 0)
+      : 0;
+  const grandTotal = itemsTotal + shippingTotal;
 
   const submit = async () => {
     if (!recipientName.trim() || !phone.trim() || (fulfillment === "delivery" && !address.trim())) {
