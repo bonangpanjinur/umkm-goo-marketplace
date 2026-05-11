@@ -43,6 +43,9 @@ type Product = {
   image_url: string | null;
   slug: string | null;
   rating_avg: number | null;
+  flash_price?: number | null;
+  flash_starts_at?: string | null;
+  flash_ends_at?: string | null;
   shop?: { slug: string; name: string };
 };
 
