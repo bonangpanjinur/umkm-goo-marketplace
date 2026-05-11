@@ -66,6 +66,12 @@ function OrderDetailPage() {
   const canReview = order.status === "completed" || order.status === "delivered";
   const reviewItems = items.filter(it => it.menu_item_id).map(it => ({ product_id: it.menu_item_id, name: it.name }));
   const allReviewed = reviewItems.length > 0 && reviewItems.every(it => reviewed.has(it.product_id));
+  const canDispute = ["ready", "in_delivery", "delivering", "delivered", "completed"].includes(order.status)
+    && (!dispute || dispute.status === "rejected");
+  const disputeStatusLabel: Record<string, string> = {
+    open: "Sedang ditinjau", under_review: "Sedang ditinjau",
+    resolved: "Selesai", rejected: "Ditolak",
+  };
 
   return (
     <div className="space-y-4">
