@@ -62,14 +62,16 @@ function MarketplaceHome() {
           .order("sort_order"),
         supabase
           .from("coffee_shops")
-          .select("id, slug, name, tagline, logo_url, rating_avg, rating_count")
+          .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured")
           .eq("is_active", true)
+          .order("is_featured", { ascending: false })
           .order("rating_avg", { ascending: false, nullsFirst: false })
           .limit(8),
         supabase
           .from("menu_items")
-          .select("id, shop_id, name, price, image_url, slug, rating_avg, shop:coffee_shops(slug, name)")
+          .select("id, shop_id, name, price, image_url, slug, rating_avg, is_featured, shop:coffee_shops(slug, name)")
           .eq("is_available", true)
+          .order("is_featured", { ascending: false })
           .order("rating_avg", { ascending: false, nullsFirst: false })
           .limit(12),
       ]);
