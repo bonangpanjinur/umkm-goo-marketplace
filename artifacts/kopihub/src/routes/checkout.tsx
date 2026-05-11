@@ -245,6 +245,15 @@ function CheckoutPage() {
                             )}
                           </div>
                         )}
+                        <div className="border-t border-border px-3 py-2">
+                          <Label className="text-[11px] uppercase text-muted-foreground">Kode voucher toko</Label>
+                          <Input
+                            className="mt-1 h-8 text-xs"
+                            value={shopVoucherCodes[shopId] ?? ""}
+                            onChange={(e) => setShopVoucherCodes((s) => ({ ...s, [shopId]: e.target.value }))}
+                            placeholder="opsional"
+                          />
+                        </div>
                         <div className="border-t border-border bg-muted/20 px-3 py-2 text-right text-xs space-y-0.5">
                           <div>Subtotal: <span className="font-semibold">Rp {sub.toLocaleString("id-ID")}</span></div>
                           {fulfillment === "delivery" && (
