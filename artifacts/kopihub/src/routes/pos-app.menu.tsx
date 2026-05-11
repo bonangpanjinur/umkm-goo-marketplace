@@ -158,7 +158,18 @@ function MenuPage() {
     setTrackStock(false);
     setRecipeYield("1");
     setImageUrl(null);
+    setFlashPrice("");
+    setFlashStarts("");
+    setFlashEnds("");
     setOpen(true);
+  }
+
+  function toLocalInput(iso: string | null) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off * 60000);
+    return local.toISOString().slice(0, 16);
   }
 
   function openEdit(it: MenuItem) {
@@ -171,6 +182,9 @@ function MenuPage() {
     setTrackStock(Boolean(it.track_stock));
     setRecipeYield(String(it.recipe_yield ?? 1));
     setImageUrl(it.image_url);
+    setFlashPrice(it.flash_price != null ? String(it.flash_price) : "");
+    setFlashStarts(toLocalInput(it.flash_starts_at));
+    setFlashEnds(toLocalInput(it.flash_ends_at));
     setOpen(true);
   }
 
