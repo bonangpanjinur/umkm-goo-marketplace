@@ -3532,6 +3532,7 @@ export type Database = {
           qris_image_url: string
         }[]
       }
+      get_or_create_marketplace_cart: { Args: never; Returns: string }
       get_order_tracking: {
         Args: { _order_id: string }
         Returns: {
@@ -3611,6 +3612,16 @@ export type Database = {
           _shop_id: string
         }
         Returns: string
+      }
+      marketplace_checkout: {
+        Args: {
+          _address: string
+          _fulfillment?: string
+          _notes?: string
+          _phone: string
+          _recipient_name: string
+        }
+        Returns: Json
       }
       next_order_no: { Args: { _outlet_id: string }; Returns: string }
       open_shift: {

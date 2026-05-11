@@ -1,11 +1,25 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ShoppingBag, Store, User } from "lucide-react";
-import { useState } from "react";
+import { Search, ShoppingBag, ShoppingCart, Store, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { cartCount } from "@/lib/marketplace-cart";
+import { supabase } from "@/integrations/supabase/client";
 
 export function MarketplaceHeader() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let mounted = true;
+    const refresh = () => cartCount().then((c) => mounted && setCount(c)).catch(() => {});
+    refresh();
+    const ch = supabase
+      .channel("mp-cart-header")
+      .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_cart_items" }, refresh)
+      .subscribe();
+    return () => { mounted = false; supabase.removeChannel(ch); };
+  }, []);
+
   const [q, setQ] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -37,6 +51,16 @@ export function MarketplaceHeader() {
         </form>
         <Link to="/kategori" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">
           Kategori
+        </Link>
+        <Link to="/keranjang" className="relative" aria-label="Keranjang">
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+          {count > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              {count}
+            </span>
+          )}
         </Link>
         {user ? (
           <Link to="/pos-app">
