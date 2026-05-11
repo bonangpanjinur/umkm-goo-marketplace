@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStaffRole, isModuleAllowed } from "@/lib/use-staff";
