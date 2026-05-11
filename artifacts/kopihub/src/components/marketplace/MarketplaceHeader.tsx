@@ -66,6 +66,7 @@ export function MarketplaceHeader() {
             </span>
           )}
         </Link>
+        {user && <NotificationBell />}
         {user ? (
           <>
             <Link to="/akun">
