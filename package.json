@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "pnpm --filter @workspace/kopihub run dev",
-    "build:dev": "pnpm --filter @workspace/kopihub run build",
-    "build": "pnpm -r --if-present run build",
+    "dev": "cd artifacts/kopihub && vite --config vite.config.ts --host 0.0.0.0",
+    "build:dev": "cd artifacts/kopihub && vite build --config vite.config.ts",
+    "build": "cd artifacts/kopihub && vite build --config vite.config.ts",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
