@@ -273,7 +273,8 @@ function OnlineOrders() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
