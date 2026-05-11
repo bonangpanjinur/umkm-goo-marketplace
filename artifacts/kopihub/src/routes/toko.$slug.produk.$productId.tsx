@@ -8,6 +8,7 @@ import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ProductReviews } from "@/components/marketplace/ProductReviews";
+import { useSeo } from "@/lib/use-seo";
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
   component: ProductDetailPage,
