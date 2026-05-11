@@ -22,7 +22,7 @@ import {
 import { Loader2, Plus, Trash2, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/schedule")({
+export const Route = createFileRoute("/pos-app/schedule")({
   component: SchedulePage,
 });
 

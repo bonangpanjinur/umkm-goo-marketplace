@@ -43,7 +43,7 @@ import {
   type ParkedCart,
 } from "@/lib/parked-carts";
 
-export const Route = createFileRoute("/app/pos")({
+export const Route = createFileRoute("/pos-app/pos")({
   component: POSPage,
 });
 

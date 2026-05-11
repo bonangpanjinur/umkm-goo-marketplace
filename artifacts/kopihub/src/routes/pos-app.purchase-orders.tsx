@@ -14,7 +14,7 @@ import { Loader2, Plus, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/purchase-orders")({ component: POPage });
+export const Route = createFileRoute("/pos-app/purchase-orders")({ component: POPage });
 
 type Supplier = { id: string; name: string };
 type Ingredient = { id: string; name: string; unit: string; cost_per_unit: number };

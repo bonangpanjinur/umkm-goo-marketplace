@@ -12,7 +12,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2, Truck } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/suppliers")({ component: SuppliersPage });
+export const Route = createFileRoute("/pos-app/suppliers")({ component: SuppliersPage });
 
 type Supplier = {
   id: string; name: string; contact_name: string | null; phone: string | null;

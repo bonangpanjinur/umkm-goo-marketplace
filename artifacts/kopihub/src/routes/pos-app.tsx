@@ -48,7 +48,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export const Route = createFileRoute("/app")({
+export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
 });
 

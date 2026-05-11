@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Bike, Loader2, MapPin, Phone, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/courier")({
+export const Route = createFileRoute("/pos-app/courier")({
   component: CourierView,
 });
 

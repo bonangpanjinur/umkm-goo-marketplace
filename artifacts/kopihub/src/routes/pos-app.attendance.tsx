@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Clock, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/attendance")({
+export const Route = createFileRoute("/pos-app/attendance")({
   component: AttendancePage,
 });
 

@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/app/categories")({
+export const Route = createFileRoute("/pos-app/categories")({
   component: CategoriesPage,
 });
 

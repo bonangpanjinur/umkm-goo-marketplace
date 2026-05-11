@@ -15,7 +15,7 @@ import { Loader2, ShoppingBag, Phone, MapPin, Bell, BellOff } from "lucide-react
 import { toast } from "sonner";
 import { ensureNotificationPermission, notifyOrder } from "@/lib/notify";
 
-export const Route = createFileRoute("/app/online-orders")({
+export const Route = createFileRoute("/pos-app/online-orders")({
   component: OnlineOrders,
 });
 

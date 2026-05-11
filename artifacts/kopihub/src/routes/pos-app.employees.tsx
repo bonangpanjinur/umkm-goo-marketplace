@@ -24,7 +24,7 @@ import {
 import { Loader2, Plus, Trash2, Users, Copy, Check, Mail } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/employees")({
+export const Route = createFileRoute("/pos-app/employees")({
   component: EmployeesPage,
 });
 

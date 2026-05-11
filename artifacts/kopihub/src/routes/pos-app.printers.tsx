@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
-export const Route = createFileRoute("/app/printers")({
+export const Route = createFileRoute("/pos-app/printers")({
   component: PrintersPage,
 });
 

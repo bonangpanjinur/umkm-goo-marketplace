@@ -11,7 +11,7 @@ import { Loader2, Upload, Trash2, Store, Phone, MapPin, Clock, Share2, Save, Ima
 import { toast } from "sonner";
 import { NotificationSettings } from "@/components/NotificationSettings";
 
-export const Route = createFileRoute("/app/settings")({
+export const Route = createFileRoute("/pos-app/settings")({
   component: SettingsPage,
 });
 

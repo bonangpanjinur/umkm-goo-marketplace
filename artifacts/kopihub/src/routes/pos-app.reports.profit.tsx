@@ -20,7 +20,7 @@ import {
   Legend,
 } from "recharts";
 
-export const Route = createFileRoute("/app/reports/profit")({
+export const Route = createFileRoute("/pos-app/reports/profit")({
   component: ProfitReportPage,
 });
 

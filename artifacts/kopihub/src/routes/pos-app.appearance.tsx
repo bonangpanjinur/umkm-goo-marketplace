@@ -7,7 +7,7 @@ import { toast } from "sonner";
 // import { setShopTheme } from "@/server/entitlements.functions";
 import { useState } from "react";
 
-export const Route = createFileRoute("/app/appearance")({ component: AppearancePage });
+export const Route = createFileRoute("/pos-app/appearance")({ component: AppearancePage });
 
 function AppearancePage() {
   const { entitlements, themes, activeThemeKey, planCode, monthsActive, loading, reload } = useEntitlements();

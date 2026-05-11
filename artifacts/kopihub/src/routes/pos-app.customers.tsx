@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Search, Download, Users, TrendingUp, ShoppingBag, UserPlus, Tag, X } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/customers")({
+export const Route = createFileRoute("/pos-app/customers")({
   component: CustomersPage,
 });
 

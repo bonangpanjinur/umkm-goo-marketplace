@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, Pencil, Trash2, Bike, Phone, TrendingUp } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/couriers")({
+export const Route = createFileRoute("/pos-app/couriers")({
   component: CouriersPage,
 });
 

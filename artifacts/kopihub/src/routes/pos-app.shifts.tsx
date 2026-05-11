@@ -33,7 +33,7 @@ import {
   addCashMovement,
 } from "@/lib/shift";
 
-export const Route = createFileRoute("/app/shifts")({
+export const Route = createFileRoute("/pos-app/shifts")({
   component: ShiftsPage,
 });
 

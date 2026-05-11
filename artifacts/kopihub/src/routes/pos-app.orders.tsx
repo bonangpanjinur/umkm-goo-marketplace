@@ -24,7 +24,7 @@ import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
 
-export const Route = createFileRoute("/app/orders")({
+export const Route = createFileRoute("/pos-app/orders")({
   component: OrdersPage,
 });
 

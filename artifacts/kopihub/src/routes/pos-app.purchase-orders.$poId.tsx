@@ -14,7 +14,7 @@ import { Loader2, ArrowLeft, CheckCircle2, X, Trash2, Send, Printer, Eye, Save, 
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/purchase-orders/$poId")({
+export const Route = createFileRoute("/pos-app/purchase-orders/$poId")({
   component: PODetailPage,
 });
 

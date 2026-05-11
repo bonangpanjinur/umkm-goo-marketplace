@@ -11,7 +11,7 @@ import { formatIDR } from "@/lib/format";
 import { Loader2, Upload, CheckCircle2, Clock, XCircle, Copy, Eye } from "lucide-react";
 // import { createPlanInvoice, submitPaymentProof, cancelPlanInvoice, getProofSignedUrl } from "@/server/billing.functions";
 
-export const Route = createFileRoute("/app/billing")({
+export const Route = createFileRoute("/pos-app/billing")({
   component: BillingPage,
 });
 

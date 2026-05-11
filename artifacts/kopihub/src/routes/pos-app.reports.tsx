@@ -28,7 +28,7 @@ import { Loader2, Download, TrendingUp, Receipt, Coins, ShoppingBag, FileSpreads
 import { downloadXLSX } from "@/lib/export";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/reports")({
+export const Route = createFileRoute("/pos-app/reports")({
   component: ReportsPage,
 });
 

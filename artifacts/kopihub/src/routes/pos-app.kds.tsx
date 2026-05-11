@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/app/kds")({
+export const Route = createFileRoute("/pos-app/kds")({
   component: KDSPage,
 });
 

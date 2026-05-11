@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Save } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/delivery")({
+export const Route = createFileRoute("/pos-app/delivery")({
   component: DeliveryPage,
 });
 

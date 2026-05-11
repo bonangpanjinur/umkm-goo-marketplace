@@ -22,7 +22,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 
-export const Route = createFileRoute("/app/")({
+export const Route = createFileRoute("/pos-app/")({
   component: Dashboard,
 });
 

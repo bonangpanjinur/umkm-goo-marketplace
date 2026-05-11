@@ -30,7 +30,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, Trash2, Edit2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/tables")({
+export const Route = createFileRoute("/pos-app/tables")({
   component: TablesPage,
 });
 

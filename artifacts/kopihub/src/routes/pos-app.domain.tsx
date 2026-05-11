@@ -15,7 +15,7 @@ import {
   removeCustomDomainBridge,
 } from "@/lib/domain-bridge";
 
-export const Route = createFileRoute("/app/domain")({
+export const Route = createFileRoute("/pos-app/domain")({
   component: DomainPage,
 });
 

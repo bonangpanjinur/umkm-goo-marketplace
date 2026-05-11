@@ -10,7 +10,7 @@ import { Loader2, Award } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/loyalty")({
+export const Route = createFileRoute("/pos-app/loyalty")({
   component: LoyaltyPage,
 });
 

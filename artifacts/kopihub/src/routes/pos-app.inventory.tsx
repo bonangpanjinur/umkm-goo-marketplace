@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { LowStockDialog } from "@/components/inventory/low-stock-dialog";
 
-export const Route = createFileRoute("/app/inventory")({
+export const Route = createFileRoute("/pos-app/inventory")({
   component: InventoryPage,
 });
 

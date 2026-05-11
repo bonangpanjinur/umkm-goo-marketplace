@@ -17,7 +17,7 @@ import { Loader2, Plus, Trash2, ChefHat } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/recipes")({
+export const Route = createFileRoute("/pos-app/recipes")({
   component: RecipesPage,
 });
 

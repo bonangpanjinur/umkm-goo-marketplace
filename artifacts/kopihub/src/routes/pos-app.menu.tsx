@@ -27,7 +27,7 @@ import { ModifierManager } from "@/components/modifier-manager";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/app/menu")({
+export const Route = createFileRoute("/pos-app/menu")({
   component: MenuPage,
 });
 
