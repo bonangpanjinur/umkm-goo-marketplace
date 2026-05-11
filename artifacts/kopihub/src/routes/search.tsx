@@ -51,7 +51,7 @@ function SearchPage() {
       const term = q ? `%${q}%` : "%";
       let prodQ = supabase
         .from("menu_items")
-        .select("id, shop_id, name, price, image_url, slug, rating_avg, shop:coffee_shops!inner(slug, name, is_active, business_category_id)")
+        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id)")
         .ilike("name", term)
         .eq("is_available", true);
       if (typeof min === "number") prodQ = prodQ.gte("price", min);
