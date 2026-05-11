@@ -5,9 +5,11 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Star, MessageSquare, Truck } from "lucide-react";
+import { Loader2, ArrowLeft, Star, MessageSquare, Truck, AlertOctagon } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { MarketplaceReviewDialog } from "@/components/marketplace/MarketplaceReviewDialog";
+import { OrderChat } from "@/components/marketplace/OrderChat";
+import { DisputeDialog } from "@/components/marketplace/DisputeDialog";
 
 export const Route = createFileRoute("/akun/pesanan/$orderId")({
   component: OrderDetailPage,
