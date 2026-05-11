@@ -76,6 +76,7 @@ import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
@@ -430,6 +431,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminActivityRoute = AdminActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -537,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -621,6 +628,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -708,6 +716,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -797,6 +806,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -881,6 +891,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -967,6 +978,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -1534,6 +1546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/activity': {
       id: '/admin/activity'
       path: '/activity'
@@ -1689,6 +1708,7 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
@@ -1705,6 +1725,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
   AdminCatalogRoute: AdminCatalogRoute,
