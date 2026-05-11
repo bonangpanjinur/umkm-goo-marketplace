@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { cartCount } from "@/lib/marketplace-cart";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export function MarketplaceHeader() {
   const [count, setCount] = useState(0);
