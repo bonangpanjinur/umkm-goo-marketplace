@@ -151,6 +151,12 @@ function ProductDetailPage() {
             </div>
           </div>
         ) : null}
+        {product && (
+          <section className="mt-12">
+            <h2 className="text-xl font-semibold mb-4">Ulasan Produk</h2>
+            <ProductReviews productId={product.id} />
+          </section>
+        )}
       </div>
       <MarketplaceFooter />
     </div>
