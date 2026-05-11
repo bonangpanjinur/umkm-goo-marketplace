@@ -50,7 +50,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          "react-vendor": ["react", "react-dom", "react/jsx-runtime"],
           "router-vendor": ["@tanstack/react-router", "@tanstack/react-query"],
           "supabase-vendor": ["@supabase/supabase-js"],
           "charts-vendor": ["recharts"],
