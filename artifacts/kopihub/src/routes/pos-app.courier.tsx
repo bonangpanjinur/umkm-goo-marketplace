@@ -259,9 +259,25 @@ function CourierView() {
                   </Button>
                 )}
                 {o.status === "delivering" && (
-                  <Button size="sm" className="flex-1" onClick={() => update(o.id, "completed")}>
-                    Sudah diantar
-                  </Button>
+                  <label className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90">
+                    {uploadingId === o.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <>📷 Foto bukti & selesaikan</>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      disabled={uploadingId === o.id}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) completeWithProof(o.id, f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
                 )}
               </div>
             </div>
