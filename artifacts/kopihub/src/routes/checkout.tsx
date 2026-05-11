@@ -30,6 +30,9 @@ function CheckoutPage() {
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
   const [notes, setNotes] = useState("");
 
+  const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
+  const [platformVoucherCode, setPlatformVoucherCode] = useState("");
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
