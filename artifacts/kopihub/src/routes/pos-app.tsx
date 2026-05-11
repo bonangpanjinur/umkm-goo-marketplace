@@ -57,42 +57,96 @@ export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
 });
 
-const NAV = [
-  { to: "/pos-app", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/pos-app/pos", label: "POS", icon: ShoppingBag },
-  { to: "/pos-app/orders", label: "Order", icon: ListOrdered },
-  { to: "/pos-app/online-orders", label: "Order Online", icon: Bell },
-  { to: "/pos-app/marketplace-orders", label: "Order Marketplace", icon: ShoppingCart },
-  { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
-  { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
-  { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
-  { to: "/pos-app/reviews", label: "Ulasan", icon: Award },
-  { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
-  { to: "/pos-app/menu", label: "Menu", icon: UtensilsCrossed },
-  { to: "/pos-app/categories", label: "Kategori", icon: Tags },
-  { to: "/pos-app/inventory", label: "Inventori", icon: Package },
-  { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
-  { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },
-  { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
-  { to: "/pos-app/employees", label: "Pegawai", icon: Users },
-  { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
-  { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
-  { to: "/pos-app/delivery", label: "Delivery", icon: Truck },
-  { to: "/pos-app/couriers", label: "Kurir", icon: Bike },
-  { to: "/pos-app/courier", label: "Pengantaran", icon: Navigation },
-  { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
-  { to: "/pos-app/reports", label: "Laporan", icon: BarChart3 },
-  { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
-  { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
-  { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
-  { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
-  { to: "/pos-app/printers", label: "Printer", icon: Printer },
-  { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
-  { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
-  { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
-  { to: "/pos-app/backup", label: "Backup Data", icon: Database },
-  { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },
-] as const;
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string };
+type NavGroup = { id: string; label: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: "dashboard",
+    label: "Utama",
+    items: [
+      { to: "/pos-app", label: "Dashboard", icon: LayoutDashboard, exact: true },
+      { to: "/pos-app/pos", label: "POS Kasir", icon: ShoppingBag },
+    ],
+  },
+  {
+    id: "orders",
+    label: "Pesanan",
+    items: [
+      { to: "/pos-app/orders", label: "Pesanan Kasir", icon: ListOrdered, hint: "Transaksi POS in-store" },
+      { to: "/pos-app/online-orders", label: "Pesanan Web Toko", icon: Bell, hint: "Order dari web toko Anda" },
+      { to: "/pos-app/marketplace-orders", label: "Pesanan Marketplace", icon: ShoppingCart, hint: "Order dari marketplace KopiHub" },
+      { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
+    ],
+  },
+  {
+    id: "catalog",
+    label: "Katalog & Stok",
+    items: [
+      { to: "/pos-app/menu", label: "Menu", icon: UtensilsCrossed },
+      { to: "/pos-app/categories", label: "Kategori", icon: Tags },
+      { to: "/pos-app/inventory", label: "Inventori", icon: Package },
+      { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
+      { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
+      { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },
+    ],
+  },
+  {
+    id: "team",
+    label: "Tim",
+    items: [
+      { to: "/pos-app/employees", label: "Pegawai", icon: Users },
+      { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
+      { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
+      { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
+    ],
+  },
+  {
+    id: "delivery",
+    label: "Pengiriman",
+    items: [
+      { to: "/pos-app/delivery", label: "Delivery", icon: Truck },
+      { to: "/pos-app/couriers", label: "Kurir", icon: Bike },
+      { to: "/pos-app/courier", label: "Pengantaran", icon: Navigation },
+    ],
+  },
+  {
+    id: "customers",
+    label: "Pelanggan",
+    items: [
+      { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
+      { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
+      { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
+      { to: "/pos-app/reviews", label: "Ulasan", icon: Award },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Keuangan & Laporan",
+    items: [
+      { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
+      { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
+      { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
+      { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
+      { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
+      { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Pengaturan Toko",
+    items: [
+      { to: "/pos-app/printers", label: "Printer", icon: Printer },
+      { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
+      { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
+      { to: "/pos-app/backup", label: "Backup Data", icon: Database },
+      { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },
+    ],
+  },
+];
+
+const ALL_NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+
 
 function AppLayout() {
   return (
