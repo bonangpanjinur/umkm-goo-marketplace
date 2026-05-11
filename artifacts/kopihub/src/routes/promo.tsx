@@ -60,10 +60,10 @@ function PromoPage() {
           .limit(36),
         supabase
           .from("platform_vouchers")
-          .select("code, title, description, discount_type, discount_value, min_order, max_discount, ends_at")
+          .select("code, description, discount_type, value, min_order, max_discount, expires_at")
           .eq("is_active", true)
           .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-          .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+          .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
           .order("created_at", { ascending: false })
           .limit(12),
       ]);
