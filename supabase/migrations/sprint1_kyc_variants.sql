@@ -108,7 +108,45 @@ CREATE POLICY "admin_all" ON platform_settings USING (
   EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'super_admin')
 );
 
--- 8. Storage bucket for KYC docs (run once)
+-- 8. Notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipient_user_id   uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  type                text NOT NULL DEFAULT 'system',
+  title               text NOT NULL,
+  body                text,
+  link                text,
+  severity            text NOT NULL DEFAULT 'info',
+  read_at             timestamptz,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON notifications(recipient_user_id, created_at DESC);
+
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_own_notif" ON notifications;
+CREATE POLICY "user_own_notif" ON notifications
+  USING (recipient_user_id = auth.uid())
+  WITH CHECK (recipient_user_id = auth.uid());
+
+-- Helper: mark single notification read
+CREATE OR REPLACE FUNCTION mark_notification_read(_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE notifications SET read_at = now()
+  WHERE id = _id AND recipient_user_id = auth.uid() AND read_at IS NULL;
+END;
+$$;
+
+-- Helper: mark all notifications read for current user
+CREATE OR REPLACE FUNCTION mark_all_notifications_read()
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE notifications SET read_at = now()
+  WHERE recipient_user_id = auth.uid() AND read_at IS NULL;
+END;
+$$;
+
+-- 9. Storage bucket for KYC docs (run once)
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('shop-assets', 'shop-assets', true)
 ON CONFLICT (id) DO NOTHING;

@@ -1,17 +1,19 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Bell, Check } from "lucide-react";
-import { MarketplaceHeader } from "@/components/marketplace/MarketplaceHeader";
+import { toast } from "sonner";
+import {
+  Bell, BellOff, Check, CheckCheck, Loader2,
+  ShoppingBag, Tag, Info, AlertTriangle, Star
+} from "lucide-react";
 
 export const Route = createFileRoute("/akun/notifikasi")({
   component: NotifikasiPage,
 });
 
-type N = {
+type Notification = {
   id: string;
   type: string;
   title: string;
@@ -22,86 +24,256 @@ type N = {
   created_at: string;
 };
 
-const SEV: Record<string, string> = {
-  info: "bg-blue-500",
-  success: "bg-emerald-500",
-  warning: "bg-amber-500",
-  error: "bg-destructive",
-  danger: "bg-destructive",
+type FilterTab = "semua" | "belum" | "pesanan" | "promo" | "sistem";
+
+const TAB_LABELS: { key: FilterTab; label: string }[] = [
+  { key: "semua",   label: "Semua" },
+  { key: "belum",   label: "Belum Dibaca" },
+  { key: "pesanan", label: "Pesanan" },
+  { key: "promo",   label: "Promo" },
+  { key: "sistem",  label: "Sistem" },
+];
+
+const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
+  order:   ShoppingBag,
+  promo:   Tag,
+  review:  Star,
+  warning: AlertTriangle,
+  system:  Info,
 };
+
+const SEV_DOT: Record<string, string> = {
+  success: "bg-emerald-500",
+  info:    "bg-blue-500",
+  warning: "bg-amber-500",
+  error:   "bg-destructive",
+  danger:  "bg-destructive",
+};
+
+function getTypeIcon(type: string) {
+  return TYPE_ICON[type] ?? Bell;
+}
+
+function timeLabel(iso: string) {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60)    return `${diff} detik lalu`;
+  if (diff < 3600)  return `${Math.floor(diff / 60)} menit lalu`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+  if (diff < 86400 * 2) return "Kemarin";
+  return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+}
+
+function dayGroup(iso: string) {
+  const d     = new Date(iso);
+  const today = new Date();
+  const yest  = new Date(today); yest.setDate(today.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return "Hari ini";
+  if (d.toDateString() === yest.toDateString())  return "Kemarin";
+  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function matchTab(n: Notification, tab: FilterTab) {
+  if (tab === "semua")   return true;
+  if (tab === "belum")   return !n.read_at;
+  if (tab === "pesanan") return n.type === "order";
+  if (tab === "promo")   return n.type === "promo";
+  if (tab === "sistem")  return !["order", "promo"].includes(n.type);
+  return true;
+}
 
 function NotifikasiPage() {
   const { user } = useAuth();
-  const [items, setItems] = useState<N[]>([]);
+  const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<FilterTab>("semua");
+  const [markingAll, setMarkingAll] = useState(false);
+  const [tableExists, setTableExists] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("notifications")
       .select("*")
       .eq("recipient_user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100);
-    setItems((data || []) as N[]);
+    if (error) {
+      if (error.message.toLowerCase().includes("does not exist") || error.message.includes("relation")) {
+        setTableExists(false);
+      } else {
+        toast.error(error.message);
+      }
+      setLoading(false);
+      return;
+    }
+    setItems((data || []) as Notification[]);
     setLoading(false);
-  };
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const markAll = async () => {
-    await supabase.rpc("mark_all_notifications_read");
+  useEffect(() => {
+    if (!user) return;
     load();
+    const ch = supabase.channel(`notif-inbox-${user.id}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `recipient_user_id=eq.${user.id}`,
+      }, (payload) => {
+        setItems(prev => [payload.new as Notification, ...prev]);
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "notifications",
+        filter: `recipient_user_id=eq.${user.id}`,
+      }, (payload) => {
+        setItems(prev => prev.map(n => n.id === (payload.new as Notification).id ? payload.new as Notification : n));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, load]);
+
+  const markOne = async (n: Notification) => {
+    if (n.read_at) return;
+    setItems(prev => prev.map(x => x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x));
+    await supabase.rpc("mark_notification_read" as any, { _id: n.id });
   };
 
-  if (!user) {
+  const markAll = async () => {
+    setMarkingAll(true);
+    const now = new Date().toISOString();
+    setItems(prev => prev.map(n => ({ ...n, read_at: n.read_at ?? now })));
+    await supabase.rpc("mark_all_notifications_read" as any);
+    toast.success("Semua notifikasi ditandai dibaca");
+    setMarkingAll(false);
+  };
+
+  if (!tableExists) {
     return (
-      <div className="mx-auto max-w-2xl p-6 text-center">
-        <p className="mb-3 text-sm">Silakan login untuk melihat notifikasi.</p>
-        <Link to="/login"><Button>Login</Button></Link>
+      <div className="flex flex-col items-center gap-3 py-12 text-center text-sm text-muted-foreground">
+        <BellOff className="h-10 w-10 opacity-30" />
+        <p>Fitur notifikasi memerlukan migrasi database.<br />Jalankan SQL dari <code>sprint1_kyc_variants.sql</code>.</p>
       </div>
     );
   }
 
+  const filtered = items.filter(n => matchTab(n, tab));
+  const unread   = items.filter(n => !n.read_at).length;
+
+  const groups: { day: string; notifs: Notification[] }[] = [];
+  for (const n of filtered) {
+    const day  = dayGroup(n.created_at);
+    const last = groups[groups.length - 1];
+    if (last?.day === day) last.notifs.push(n);
+    else groups.push({ day, notifs: [n] });
+  }
+
   return (
-    <>
-      <MarketplaceHeader />
-      <div className="mx-auto max-w-2xl px-4 py-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold flex items-center gap-2"><Bell className="h-5 w-5" /> Notifikasi</h1>
-          <Button size="sm" variant="outline" onClick={markAll}><Check className="h-3 w-3 mr-1" />Tandai semua</Button>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">Notifikasi</h2>
+          {unread > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          )}
         </div>
-        {loading ? (
-          <p className="text-center text-sm text-muted-foreground py-12">Memuat…</p>
-        ) : items.length === 0 ? (
-          <Card className="p-12 text-center text-sm text-muted-foreground">Belum ada notifikasi</Card>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((n) => {
-              const dot = SEV[n.severity] || SEV.info;
-              const content = (
-                <Card className={`flex gap-3 p-3 hover:bg-muted/40 transition ${n.read_at ? "opacity-60" : ""}`}>
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{n.title}</p>
-                    {n.body && <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>}
-                    <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString("id-ID")}</p>
-                  </div>
-                </Card>
-              );
-              return (
-                <li key={n.id}>
-                  {n.link ? <Link to={n.link as any}>{content}</Link> : content}
-                </li>
-              );
-            })}
-          </ul>
+        {unread > 0 && (
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={markAll} disabled={markingAll}>
+            {markingAll
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <CheckCheck className="h-3.5 w-3.5" />}
+            Tandai semua dibaca
+          </Button>
         )}
       </div>
-    </>
+
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {TAB_LABELS.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              tab === t.key
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/70"
+            }`}
+          >
+            {t.label}{t.key === "belum" && unread > 0 ? ` (${unread})` : ""}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <BellOff className="h-10 w-10 text-muted-foreground opacity-30" />
+          <p className="text-sm text-muted-foreground">
+            {tab === "belum" ? "Tidak ada notifikasi yang belum dibaca" : "Belum ada notifikasi"}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {groups.map(g => (
+            <div key={g.day}>
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {g.day}
+              </p>
+              <div className="overflow-hidden rounded-xl border border-border divide-y divide-border">
+                {g.notifs.map(n => {
+                  const Icon = getTypeIcon(n.type);
+                  const dot  = SEV_DOT[n.severity] ?? SEV_DOT.info;
+                  return (
+                    <div
+                      key={n.id}
+                      onClick={() => markOne(n)}
+                      className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/40 ${n.read_at ? "bg-background" : "bg-primary/5"}`}
+                    >
+                      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${n.read_at ? "bg-muted" : "bg-primary/10"}`}>
+                        <Icon className={`h-4 w-4 ${n.read_at ? "text-muted-foreground" : "text-primary"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={`text-sm leading-snug ${n.read_at ? "text-foreground/70" : "font-semibold text-foreground"}`}>
+                            {n.title}
+                          </p>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            {!n.read_at && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
+                            <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                              {timeLabel(n.created_at)}
+                            </span>
+                          </div>
+                        </div>
+                        {n.body && (
+                          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.body}</p>
+                        )}
+                        {n.link && !n.read_at && (
+                          <a
+                            href={n.link}
+                            onClick={e => { e.stopPropagation(); markOne(n); }}
+                            className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                          >
+                            Lihat detail →
+                          </a>
+                        )}
+                      </div>
+                      {n.read_at && (
+                        <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-muted-foreground/30" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
