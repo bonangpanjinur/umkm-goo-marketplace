@@ -1,7 +1,16 @@
 # Rencana Perbaikan Platform Marketplace
 > **Dibuat:** 11 Mei 2026  
+> **Update terakhir:** 11 Mei 2026  
 > **Berdasarkan:** Analisis mendalam kode (`artifacts/kopihub/`) + PRD v2.0  
 > **Status legenda:** ✅ Selesai · 🟡 Ada tapi perlu disempurnakan · 🔴 Belum ada
+
+---
+
+## Log Progress
+
+| Tanggal | Task | Keterangan |
+|---|---|---|
+| 11 Mei 2026 | **Migrasi Vercel → Replit** ✅ | App berjalan di Replit. TanStack Router + Supabase terhubung. 80+ routes aktif. |
 
 ---
 
@@ -9,8 +18,9 @@
 
 Dokumen ini adalah **acuan utama pengembangan**. Setiap sesi kerja:
 1. Pilih item dari bagian yang paling prioritas
-2. Tandai progres dengan mengubah status
-3. Setelah selesai, pindah ke item berikutnya
+2. Tandai progres dengan mengubah status di Bagian 7
+3. Tambahkan baris baru di **Log Progress** di atas dengan tanggal & keterangan singkat
+4. Setelah selesai, pindah ke item berikutnya
 
 Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
