@@ -65,6 +65,7 @@ import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
+import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
@@ -372,6 +373,11 @@ const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
   path: '/withdrawals',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminVouchersRoute = AdminVouchersRouteImport.update({
+  id: '/vouchers',
+  path: '/vouchers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminShopsRoute = AdminShopsRouteImport.update({
   id: '/shops',
   path: '/shops',
@@ -526,6 +532,7 @@ export interface FileRoutesByFullPath {
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
+  '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -607,6 +614,7 @@ export interface FileRoutesByTo {
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
+  '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -691,6 +699,7 @@ export interface FileRoutesById {
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
+  '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -777,6 +786,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/shops'
+    | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/invite/$token'
@@ -858,6 +868,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/shops'
+    | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/invite/$token'
@@ -941,6 +952,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/shops'
+    | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/invite/$token'
@@ -1420,6 +1432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWithdrawalsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/vouchers': {
+      id: '/admin/vouchers'
+      path: '/vouchers'
+      fullPath: '/admin/vouchers'
+      preLoaderRoute: typeof AdminVouchersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/shops': {
       id: '/admin/shops'
       path: '/shops'
@@ -1639,6 +1658,7 @@ interface AdminRouteChildren {
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopsRoute: typeof AdminShopsRouteWithChildren
+  AdminVouchersRoute: typeof AdminVouchersRoute
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1653,6 +1673,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlansRoute: AdminPlansRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopsRoute: AdminShopsRouteWithChildren,
+  AdminVouchersRoute: AdminVouchersRoute,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

@@ -30,6 +30,9 @@ function CheckoutPage() {
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
   const [notes, setNotes] = useState("");
 
+  const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
+  const [platformVoucherCode, setPlatformVoucherCode] = useState("");
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -89,6 +92,10 @@ function CheckoutPage() {
         fulfillment,
         notes: notes.trim() || null,
         shipping: fulfillment === "delivery" ? shipping : {},
+        shop_voucher_codes: Object.fromEntries(
+          Object.entries(shopVoucherCodes).filter(([, v]) => v && v.trim()).map(([k, v]) => [k, v.trim().toUpperCase()])
+        ),
+        platform_voucher_code: platformVoucherCode.trim() ? platformVoucherCode.trim().toUpperCase() : null,
       });
       if (ids.length === 0) {
         toast.error("Gagal membuat pesanan.");
@@ -238,6 +245,15 @@ function CheckoutPage() {
                             )}
                           </div>
                         )}
+                        <div className="border-t border-border px-3 py-2">
+                          <Label className="text-[11px] uppercase text-muted-foreground">Kode voucher toko</Label>
+                          <Input
+                            className="mt-1 h-8 text-xs"
+                            value={shopVoucherCodes[shopId] ?? ""}
+                            onChange={(e) => setShopVoucherCodes((s) => ({ ...s, [shopId]: e.target.value }))}
+                            placeholder="opsional"
+                          />
+                        </div>
                         <div className="border-t border-border bg-muted/20 px-3 py-2 text-right text-xs space-y-0.5">
                           <div>Subtotal: <span className="font-semibold">Rp {sub.toLocaleString("id-ID")}</span></div>
                           {fulfillment === "delivery" && (
@@ -259,13 +275,25 @@ function CheckoutPage() {
                   <span className="text-muted-foreground">Total item</span>
                   <span>Rp {itemsTotal.toLocaleString("id-ID")}</span>
                 </div>
-                <div className="flex justify-between">
+              <div className="flex justify-between">
                   <span className="text-muted-foreground">Ongkir</span>
                   <span>{fulfillment === "delivery" ? `Rp ${shippingTotal.toLocaleString("id-ID")}` : "Pickup"}</span>
                 </div>
               </div>
+              <div className="mt-3 border-t border-border pt-3">
+                <Label className="text-[11px] uppercase text-muted-foreground">Voucher platform</Label>
+                <Input
+                  className="mt-1 h-9"
+                  value={platformVoucherCode}
+                  onChange={(e) => setPlatformVoucherCode(e.target.value)}
+                  placeholder="cth: HEMAT10"
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Diskon dari voucher dihitung saat pesanan dibuat.
+                </p>
+              </div>
               <div className="mt-3 flex justify-between border-t border-border pt-3 text-base font-bold">
-                <span>Total</span>
+                <span>Estimasi Total</span>
                 <span className="text-primary">Rp {grandTotal.toLocaleString("id-ID")}</span>
               </div>
               <p className="mt-3 text-[11px] text-muted-foreground">

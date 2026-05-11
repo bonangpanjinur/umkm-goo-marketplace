@@ -122,6 +122,8 @@ export async function checkout(args: {
   fulfillment?: "delivery" | "pickup";
   notes?: string | null;
   shipping?: Record<string, string>; // shop_id -> zone_id
+  shop_voucher_codes?: Record<string, string>; // shop_id -> code
+  platform_voucher_code?: string | null;
 }): Promise<string[]> {
   const { data, error } = await supabase.rpc("marketplace_checkout", {
     _recipient_name: args.recipient_name,
@@ -130,6 +132,8 @@ export async function checkout(args: {
     _fulfillment: args.fulfillment ?? "delivery",
     _notes: args.notes ?? null,
     _shipping: (args.shipping ?? {}) as any,
+    _shop_voucher_codes: (args.shop_voucher_codes ?? {}) as any,
+    _platform_voucher_code: args.platform_voucher_code ?? null,
   });
   if (error) throw error;
   return ((data as any)?.order_ids as string[]) ?? [];
