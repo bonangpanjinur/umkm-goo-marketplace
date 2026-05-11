@@ -20,6 +20,10 @@ author = "agent"
 task = "workflow.run"
 args = "KopiHub Dev"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "API Server"
+
 [[workflows.workflow]]
 name = "KopiHub Dev"
 author = "agent"
@@ -32,9 +36,22 @@ waitForPort = 8080
 [workflows.workflow.metadata]
 outputType = "webview"
 
+[[workflows.workflow]]
+name = "API Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd artifacts/api-server && PORT=3001 pnpm dev"
+waitForPort = 3001
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [agent]
-stack = "PNPM_WORKSPACE"
+stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
+integrations = ["javascript_database:1.0.0"]
 
 [postMerge]
 path = "scripts/post-merge.sh"
@@ -48,6 +65,10 @@ VITE_SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
 VITE_SUPABASE_PROJECT_ID = "gbbbispqqcsabwgmhlls"
 SUPABASE_URL = "https://gbbbispqqcsabwgmhlls.supabase.co"
 SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdiYmJpc3BxcWNzYWJ3Z21obGxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1ODA5NTAsImV4cCI6MjA5MzE1Njk1MH0.D9cNeyseWSUbKsoT2AZ2EzCN7AOqvE7A2B2mLiGh7mc"
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
 
 [[ports]]
 localPort = 8080

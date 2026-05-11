@@ -1,6 +1,6 @@
 # Rencana Perbaikan Platform Marketplace
 > **Dibuat:** 11 Mei 2026  
-> **Update terakhir:** 11 Mei 2026  
+> **Update terakhir:** 12 Mei 2026  
 > **Berdasarkan:** Analisis mendalam kode (`artifacts/kopihub/`) + PRD v2.0  
 > **Status legenda:** ✅ Selesai · 🟡 Ada tapi perlu disempurnakan · 🔴 Belum ada
 
@@ -26,6 +26,7 @@
 | 11 Mei 2026 | **SQL Migration update** ✅ | Tambah tabel `wishlists`, `shop_follows`, dan `platform_settings` ke `sprint1_kyc_variants.sql`. |
 | 11 Mei 2026 | **Sprint 1 — B-9 Notifikasi In-App** ✅ | `akun.notifikasi.tsx` inbox 100 notif + filter tab + group per hari + mark read realtime. Tabel `notifications` + 2 RPC ditambah ke SQL migration. Nav "Notifikasi" (Bell) di /akun sidebar. |
 | 11 Mei 2026 | **Sprint 2 — B-1 Payment Gateway Checkout** ✅ | `checkout.tsx`: 8 metode bayar (Transfer/COD/QRIS/GoPay/OVO/ShopeePay/DANA/CC) dengan radio-button cards, peringatan COD, dikirim ke RPC. |
+| 12 Mei 2026 | **B-1 Backend Payment Gateway (Midtrans + Xendit)** ✅ | API server Express: `POST /api/payments/initiate` (Midtrans Snap token + Xendit Invoice URL), `POST /api/payments/webhook/midtrans` (SHA-512 signature verification), `POST /api/payments/webhook/xendit` (X-CALLBACK-TOKEN verification), `GET /api/payments/:orderId/status`, `GET /api/payments/webhooks/recent`. Tabel `payment_transactions` + `webhook_logs` di PostgreSQL via Drizzle ORM. Frontend checkout diupdate: metode gateway (GoPay/OVO/ShopeePay/DANA/CC/QRIS) trigger payment initiation otomatis, Midtrans Snap popup, Xendit redirect. Proxy `/api` di Vite ke API server port 3001. |
 | 11 Mei 2026 | **Sprint 2 — O-4 Stok Terpadu / 4.3** ✅ | `pos-app.stok.tsx`: single source of truth dengan sold-by-channel hari ini, ambang rendah, auto-disable, inline edit. |
 | 11 Mei 2026 | **Sprint 2 — B-3 Auto-cancel** ✅ | `admin.auto-cancel.tsx`: konfigurasi deadline + reminder, progress bar per pesanan pending, cancel manual, log ke platform_settings. |
 | 11 Mei 2026 | **Sprint 2 — A-6 Katalog Fitur/Tema** ✅ | `admin.catalog.tsx` sudah full CRUD untuk Fitur & Tema — dikonfirmasi & ditandai selesai. |

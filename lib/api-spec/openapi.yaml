@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: payments
+    description: Payment gateway operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,121 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /payments/initiate:
+    post:
+      operationId: initiatePayment
+      tags: [payments]
+      summary: Inisiasi transaksi pembayaran
+      description: Membuat transaksi pembayaran via Midtrans Snap atau Xendit Invoice. Mengembalikan snap_token (Midtrans) atau payment_url (Xendit) untuk redirect.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiatePaymentRequest"
+      responses:
+        "200":
+          description: Transaksi berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitiatePaymentResponse"
+        "400":
+          description: Input tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Error dari payment gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /payments/{orderId}/status:
+    get:
+      operationId: getPaymentStatus
+      tags: [payments]
+      summary: Cek status pembayaran pesanan
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Status pembayaran
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentStatusResponse"
+        "404":
+          description: Transaksi tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /payments/webhook/midtrans:
+    post:
+      operationId: midtransWebhook
+      tags: [payments]
+      summary: Webhook notifikasi dari Midtrans
+      description: Endpoint ini dipanggil otomatis oleh Midtrans saat status pembayaran berubah. Verifikasi signature dilakukan di server.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Webhook diterima dan diproses
+        "401":
+          description: Signature tidak valid
+
+  /payments/webhook/xendit:
+    post:
+      operationId: xenditWebhook
+      tags: [payments]
+      summary: Webhook notifikasi dari Xendit
+      description: Endpoint ini dipanggil otomatis oleh Xendit saat invoice dibayar. Verifikasi X-CALLBACK-TOKEN dilakukan di server.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Webhook diterima dan diproses
+        "401":
+          description: Token tidak valid
+
+  /payments/webhooks/recent:
+    get:
+      operationId: getRecentWebhooks
+      tags: [payments]
+      summary: Riwayat webhook masuk terbaru (untuk debugging)
+      responses:
+        "200":
+          description: Daftar webhook terbaru
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WebhookLog"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +151,165 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    PaymentItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+      required:
+        - id
+        - name
+        - price
+        - quantity
+
+    InitiatePaymentRequest:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          description: UUID pesanan dari database
+        amount:
+          type: number
+          description: Total pembayaran dalam IDR
+        payment_method:
+          type: string
+          description: "Metode: transfer, cod, qris, gopay, ovo, shopeepay, dana, cc"
+        customer_name:
+          type: string
+        customer_phone:
+          type: string
+        customer_email:
+          type: string
+          format: email
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentItem"
+        success_redirect_url:
+          type: string
+          format: uri
+        failure_redirect_url:
+          type: string
+          format: uri
+      required:
+        - order_id
+        - amount
+        - payment_method
+
+    InitiatePaymentResponse:
+      type: object
+      properties:
+        gateway:
+          type: string
+          enum: [midtrans, xendit, manual]
+        transaction_id:
+          type: string
+          format: uuid
+        snap_token:
+          type: string
+          description: Token Midtrans Snap (hanya untuk gateway midtrans)
+        payment_url:
+          type: string
+          format: uri
+          description: URL redirect pembayaran
+        invoice_id:
+          type: string
+          description: ID invoice Xendit (hanya untuk gateway xendit)
+        status:
+          type: string
+          enum: [pending, paid, failed]
+      required:
+        - gateway
+        - transaction_id
+        - status
+
+    PaymentStatusResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        transaction_id:
+          type: string
+          format: uuid
+        gateway:
+          type: string
+        status:
+          type: string
+          enum: [pending, paid, failed, expired]
+        payment_method:
+          type: string
+        payment_url:
+          type: string
+        snap_token:
+          type: string
+        paid_at:
+          type: string
+          format: date-time
+        amount:
+          type: string
+        currency:
+          type: string
+        all_transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              gateway:
+                type: string
+              status:
+                type: string
+              created_at:
+                type: string
+      required:
+        - order_id
+        - transaction_id
+        - gateway
+        - status
+
+    WebhookLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        gateway:
+          type: string
+        event:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+        processing_error:
+          type: string
+        related_transaction_id:
+          type: string
+          format: uuid
+        received_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - gateway
+        - payload
+        - status
+        - received_at
