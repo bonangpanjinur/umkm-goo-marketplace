@@ -51,7 +51,7 @@ const STATUS_COLOR: Record<string, string> = {
 
 function MarketplaceOrdersPage() {
   const { user } = useAuth();
-  const { shop } = useShop();
+  const { shop } = useCurrentShop();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>("active");
