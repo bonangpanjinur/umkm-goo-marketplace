@@ -46,6 +46,14 @@ function OrderDetailPage() {
       setItems(it || []);
       const { data: rv } = await supabase.from("product_reviews").select("product_id").eq("order_id", o.id).eq("user_id", user.id);
       setReviewed(new Set((rv || []).map((r: any) => r.product_id)));
+      const { data: d } = await supabase
+        .from("order_disputes")
+        .select("id, status, reason, description, resolution, refund_amount, created_at, resolved_at")
+        .eq("order_id", o.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setDispute(d);
     }
     setLoading(false);
   };
