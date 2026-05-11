@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { PWAUpdater } from "@/components/PWAUpdater";
@@ -27,6 +27,16 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: "UTF-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1.0" },
+      { title: "KopiHub Marketplace" },
+      { name: "description", content: "Marketplace multi-kategori untuk produk lokal Indonesia." },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "KopiHub" },
+    ],
+  }),
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
@@ -34,6 +44,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <AuthProvider>
+      <HeadContent />
       <Outlet />
       <PWAUpdater />
       <PushNotificationManager />

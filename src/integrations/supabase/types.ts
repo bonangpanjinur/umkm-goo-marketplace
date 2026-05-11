@@ -385,6 +385,7 @@ export type Database = {
           id: string
           instagram: string | null
           is_active: boolean
+          is_featured: boolean
           last_dns_check_at: string | null
           logo_url: string | null
           marketplace_visible: boolean
@@ -434,6 +435,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           is_active?: boolean
+          is_featured?: boolean
           last_dns_check_at?: string | null
           logo_url?: string | null
           marketplace_visible?: boolean
@@ -483,6 +485,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           is_active?: boolean
+          is_featured?: boolean
           last_dns_check_at?: string | null
           logo_url?: string | null
           marketplace_visible?: boolean

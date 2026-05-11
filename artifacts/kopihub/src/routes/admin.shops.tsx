@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Star } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/shops")({
   component: AdminShops,
@@ -19,6 +21,7 @@ type Shop = {
   custom_domain_verified_at: string | null;
   created_at: string;
   suspended_at: string | null;
+  is_featured: boolean;
 };
 
 type StatusFilter = "all" | "pro_active" | "expiring" | "expired" | "free" | "domain_offline";
@@ -38,9 +41,19 @@ function AdminShops() {
   const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => {
-    supabase.from("coffee_shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at").order("created_at", { ascending: false })
+    supabase.from("coffee_shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at, is_featured").order("is_featured", { ascending: false }).order("created_at", { ascending: false })
       .then(({ data }) => setShops((data as Shop[]) ?? []));
   }, []);
+
+  const toggleFeatured = async (e: React.MouseEvent, s: Shop) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !s.is_featured;
+    const { error } = await supabase.from("coffee_shops").update({ is_featured: next }).eq("id", s.id);
+    if (error) { toast.error(error.message); return; }
+    setShops((prev) => prev.map((x) => x.id === s.id ? { ...x, is_featured: next } : x));
+    toast.success(next ? "Ditandai unggulan" : "Dihapus dari unggulan");
+  };
 
   const filtered = useMemo(() => {
     return shops.filter((s) => {
@@ -108,7 +121,16 @@ function AdminShops() {
                   </div>
                 </div>
                 <div className="text-right space-y-1">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${toneCls}`}>{st.label}</span>
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={(e) => toggleFeatured(e, s)}
+                      title={s.is_featured ? "Hapus dari unggulan" : "Tandai unggulan"}
+                      className={`rounded-md p-1 transition ${s.is_featured ? "text-amber-500 hover:bg-amber-500/10" : "text-muted-foreground hover:bg-muted"}`}
+                    >
+                      <Star className={`h-4 w-4 ${s.is_featured ? "fill-amber-500" : ""}`} />
+                    </button>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${toneCls}`}>{st.label}</span>
+                  </div>
                   {s.plan_expires_at && <div className="text-xs text-muted-foreground">s/d {new Date(s.plan_expires_at).toLocaleDateString("id-ID")}</div>}
                   {domainOffline && <div><Badge variant="destructive" className="text-[10px]">Domain Offline</Badge></div>}
                 </div>

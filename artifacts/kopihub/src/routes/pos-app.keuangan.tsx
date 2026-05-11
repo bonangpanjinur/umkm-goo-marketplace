@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useShop } from "@/lib/use-shop";
+import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Wallet, ArrowDownToLine, TrendingUp, Clock } from "lucide-react";
 
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/pos-app/keuangan")({
 });
 
 function KeuanganPage() {
-  const { shop } = useShop();
+  const { shop } = useCurrentShop();
   const [wallet, setWallet] = useState<any>(null);
   const [txns, setTxns] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);

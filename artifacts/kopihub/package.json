@@ -44,6 +44,7 @@
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@tanstack/router-plugin": "^1.167.35",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
