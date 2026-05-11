@@ -275,13 +275,25 @@ function CheckoutPage() {
                   <span className="text-muted-foreground">Total item</span>
                   <span>Rp {itemsTotal.toLocaleString("id-ID")}</span>
                 </div>
-                <div className="flex justify-between">
+              <div className="flex justify-between">
                   <span className="text-muted-foreground">Ongkir</span>
                   <span>{fulfillment === "delivery" ? `Rp ${shippingTotal.toLocaleString("id-ID")}` : "Pickup"}</span>
                 </div>
               </div>
+              <div className="mt-3 border-t border-border pt-3">
+                <Label className="text-[11px] uppercase text-muted-foreground">Voucher platform</Label>
+                <Input
+                  className="mt-1 h-9"
+                  value={platformVoucherCode}
+                  onChange={(e) => setPlatformVoucherCode(e.target.value)}
+                  placeholder="cth: HEMAT10"
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Diskon dari voucher dihitung saat pesanan dibuat.
+                </p>
+              </div>
               <div className="mt-3 flex justify-between border-t border-border pt-3 text-base font-bold">
-                <span>Total</span>
+                <span>Estimasi Total</span>
                 <span className="text-primary">Rp {grandTotal.toLocaleString("id-ID")}</span>
               </div>
               <p className="mt-3 text-[11px] text-muted-foreground">
