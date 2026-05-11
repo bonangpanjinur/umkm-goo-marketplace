@@ -399,6 +399,8 @@ export type Database = {
           prep_minutes: number
           qris_image_url: string | null
           qris_merchant_name: string | null
+          rating_avg: number | null
+          rating_count: number | null
           receipt_footer: string | null
           receipt_header: string | null
           review_count: number
@@ -446,6 +448,8 @@ export type Database = {
           prep_minutes?: number
           qris_image_url?: string | null
           qris_merchant_name?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
           receipt_footer?: string | null
           receipt_header?: string | null
           review_count?: number
@@ -493,6 +497,8 @@ export type Database = {
           prep_minutes?: number
           qris_image_url?: string | null
           qris_merchant_name?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
           receipt_footer?: string | null
           receipt_header?: string | null
           review_count?: number
@@ -1121,6 +1127,105 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          options: Json | null
+          product_id: string
+          quantity: number
+          shop_id: string
+          unit_price: number
+          updated_at: string
+          variant_id: string | null
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          options?: Json | null
+          product_id: string
+          quantity?: number
+          shop_id: string
+          unit_price: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          options?: Json | null
+          product_id?: string
+          quantity?: number
+          shop_id?: string
+          unit_price?: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "marketplace_cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_cart_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_carts: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       menu_item_option_groups: {
         Row: {
           created_at: string
@@ -1225,6 +1330,8 @@ export type Database = {
           name: string
           pre_order_days: number | null
           price: number
+          rating_avg: number | null
+          rating_count: number | null
           recipe_yield: number
           review_count: number
           shop_id: string
@@ -1264,6 +1371,8 @@ export type Database = {
           name: string
           pre_order_days?: number | null
           price?: number
+          rating_avg?: number | null
+          rating_count?: number | null
           recipe_yield?: number
           review_count?: number
           shop_id: string
@@ -1303,6 +1412,8 @@ export type Database = {
           name?: string
           pre_order_days?: number | null
           price?: number
+          rating_avg?: number | null
+          rating_count?: number | null
           recipe_yield?: number
           review_count?: number
           shop_id?: string
@@ -1501,6 +1612,8 @@ export type Database = {
           cashier_id: string | null
           change_due: number
           channel: Database["public"]["Enums"]["order_channel"]
+          commission_amount: number | null
+          commission_rate: number | null
           courier_id: string | null
           created_at: string
           customer_name: string | null
@@ -1510,8 +1623,12 @@ export type Database = {
           delivery_fee: number
           delivery_zone_id: string | null
           discount: number
+          escrow_released_at: string | null
+          escrow_status: string | null
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id: string
+          marketplace_order: boolean | null
+          net_to_shop: number | null
           note: string | null
           order_no: string
           outlet_id: string
@@ -1541,6 +1658,8 @@ export type Database = {
           cashier_id?: string | null
           change_due?: number
           channel?: Database["public"]["Enums"]["order_channel"]
+          commission_amount?: number | null
+          commission_rate?: number | null
           courier_id?: string | null
           created_at?: string
           customer_name?: string | null
@@ -1550,8 +1669,12 @@ export type Database = {
           delivery_fee?: number
           delivery_zone_id?: string | null
           discount?: number
+          escrow_released_at?: string | null
+          escrow_status?: string | null
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
+          marketplace_order?: boolean | null
+          net_to_shop?: number | null
           note?: string | null
           order_no: string
           outlet_id: string
@@ -1581,6 +1704,8 @@ export type Database = {
           cashier_id?: string | null
           change_due?: number
           channel?: Database["public"]["Enums"]["order_channel"]
+          commission_amount?: number | null
+          commission_rate?: number | null
           courier_id?: string | null
           created_at?: string
           customer_name?: string | null
@@ -1590,8 +1715,12 @@ export type Database = {
           delivery_fee?: number
           delivery_zone_id?: string | null
           discount?: number
+          escrow_released_at?: string | null
+          escrow_status?: string | null
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
+          marketplace_order?: boolean | null
+          net_to_shop?: number | null
           note?: string | null
           order_no?: string
           outlet_id?: string
@@ -1987,6 +2116,93 @@ export type Database = {
           value_encrypted?: string | null
         }
         Relationships: []
+      }
+      product_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          is_hidden: boolean
+          is_verified_purchase: boolean
+          order_id: string | null
+          photos: string[] | null
+          product_id: string
+          rating: number
+          shop_id: string
+          shop_replied_at: string | null
+          shop_reply: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          is_verified_purchase?: boolean
+          order_id?: string | null
+          photos?: string[] | null
+          product_id: string
+          rating: number
+          shop_id: string
+          shop_replied_at?: string | null
+          shop_reply?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          is_verified_purchase?: boolean
+          order_id?: string | null
+          photos?: string[] | null
+          product_id?: string
+          rating?: number
+          shop_id?: string
+          shop_replied_at?: string | null
+          shop_reply?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -2506,6 +2722,47 @@ export type Database = {
           },
         ]
       }
+      shop_wallets: {
+        Row: {
+          available_balance: number
+          created_at: string
+          pending_balance: number
+          shop_id: string
+          total_commission_paid: number
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          pending_balance?: number
+          shop_id: string
+          total_commission_paid?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          pending_balance?: number
+          shop_id?: string
+          total_commission_paid?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_wallets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_invitations: {
         Row: {
           accepted_at: string | null
@@ -2872,6 +3129,134 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          order_id: string | null
+          reference: string | null
+          shop_id: string
+          type: Database["public"]["Enums"]["wallet_txn_type"]
+          withdrawal_id: string | null
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          reference?: string | null
+          shop_id: string
+          type: Database["public"]["Enums"]["wallet_txn_type"]
+          withdrawal_id?: string | null
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          reference?: string | null
+          shop_id?: string
+          type?: Database["public"]["Enums"]["wallet_txn_type"]
+          withdrawal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawal_requests: {
+        Row: {
+          admin_fee: number
+          amount: number
+          bank_account_name: string
+          bank_account_no: string
+          bank_name: string
+          created_at: string
+          id: string
+          net_amount: number
+          notes: string | null
+          paid_at: string | null
+          proof_url: string | null
+          reject_reason: string | null
+          requested_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shop_id: string
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_fee?: number
+          amount: number
+          bank_account_name: string
+          bank_account_no: string
+          bank_name: string
+          created_at?: string
+          id?: string
+          net_amount: number
+          notes?: string | null
+          paid_at?: string | null
+          proof_url?: string | null
+          reject_reason?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_id: string
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_fee?: number
+          amount?: number
+          bank_account_name?: string
+          bank_account_no?: string
+          bank_name?: string
+          created_at?: string
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          proof_url?: string | null
+          reject_reason?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_id?: string
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       menu_hpp_view: {
@@ -3106,6 +3491,10 @@ export type Database = {
         Returns: undefined
       }
       approve_plan_invoice: { Args: { _invoice_id: string }; Returns: Json }
+      approve_withdrawal: {
+        Args: { _id: string; _proof_url?: string }
+        Returns: undefined
+      }
       assign_courier_atomic: {
         Args: { _courier_id: string; _order_id: string }
         Returns: Json
@@ -3118,6 +3507,13 @@ export type Database = {
         Args: { _closing_cash: number; _note?: string; _shift_id: string }
         Returns: Json
       }
+      ensure_shop_wallet: { Args: { _shop_id: string }; Returns: undefined }
+      escrow_hold_order: { Args: { _order_id: string }; Returns: Json }
+      escrow_refund_order: {
+        Args: { _order_id: string; _reason?: string }
+        Returns: Json
+      }
+      escrow_release_order: { Args: { _order_id: string }; Returns: Json }
       expire_overdue_plans: {
         Args: never
         Returns: {
@@ -3235,6 +3631,20 @@ export type Database = {
         Args: { _invoice_id: string; _reason?: string }
         Returns: undefined
       }
+      reject_withdrawal: {
+        Args: { _id: string; _reason: string }
+        Returns: undefined
+      }
+      request_withdrawal: {
+        Args: {
+          _amount: number
+          _bank_account_name: string
+          _bank_account_no: string
+          _bank_name: string
+          _shop_id: string
+        }
+        Returns: string
+      }
       set_custom_domain_verified: {
         Args: { _shop_id: string; _verified: boolean }
         Returns: undefined
@@ -3301,6 +3711,21 @@ export type Database = {
       promo_type: "percent" | "nominal"
       shift_status: "open" | "closed"
       stock_movement_type: "purchase" | "adjustment" | "sale" | "waste"
+      wallet_txn_type:
+        | "sale_pending"
+        | "sale_release"
+        | "commission"
+        | "withdrawal_hold"
+        | "withdrawal_paid"
+        | "withdrawal_refund"
+        | "refund"
+        | "adjustment"
+      withdrawal_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "paid"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3458,6 +3883,23 @@ export const Constants = {
       promo_type: ["percent", "nominal"],
       shift_status: ["open", "closed"],
       stock_movement_type: ["purchase", "adjustment", "sale", "waste"],
+      wallet_txn_type: [
+        "sale_pending",
+        "sale_release",
+        "commission",
+        "withdrawal_hold",
+        "withdrawal_paid",
+        "withdrawal_refund",
+        "refund",
+        "adjustment",
+      ],
+      withdrawal_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "paid",
+        "cancelled",
+      ],
     },
   },
 } as const
