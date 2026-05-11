@@ -14,6 +14,7 @@ const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/shops", label: "Toko", icon: Store },
   { to: "/admin/invoices", label: "Tagihan", icon: FileText },
+  { to: "/admin/withdrawals", label: "Penarikan", icon: Banknote },
   { to: "/admin/plans", label: "Paket", icon: Package },
   { to: "/admin/catalog", label: "Katalog", icon: Blocks },
   { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
