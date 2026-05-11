@@ -27,13 +27,12 @@ type FlashProduct = {
 
 type PlatformVoucher = {
   code: string;
-  title: string | null;
   description: string | null;
   discount_type: string;
-  discount_value: number;
+  value: number;
   min_order: number | null;
   max_discount: number | null;
-  ends_at: string | null;
+  expires_at: string | null;
 };
 
 function PromoPage() {
@@ -61,10 +60,10 @@ function PromoPage() {
           .limit(36),
         supabase
           .from("platform_vouchers")
-          .select("code, title, description, discount_type, discount_value, min_order, max_discount, ends_at")
+          .select("code, description, discount_type, value, min_order, max_discount, expires_at")
           .eq("is_active", true)
           .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-          .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+          .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
           .order("created_at", { ascending: false })
           .limit(12),
       ]);
@@ -114,8 +113,8 @@ function PromoPage() {
             {vouchers.map((v) => {
               const valueLabel =
                 v.discount_type === "percent"
-                  ? `${v.discount_value}%`
-                  : `Rp ${Number(v.discount_value).toLocaleString("id-ID")}`;
+                  ? `${v.value}%`
+                  : `Rp ${Number(v.value).toLocaleString("id-ID")}`;
               return (
                 <div key={v.code} className="flex overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex w-24 flex-col items-center justify-center bg-primary/10 p-3 text-center">
@@ -123,7 +122,7 @@ function PromoPage() {
                     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Diskon</div>
                   </div>
                   <div className="flex-1 p-3">
-                    <div className="text-sm font-semibold">{v.title ?? v.code}</div>
+                    <div className="text-sm font-semibold">{v.code}</div>
                     {v.description && (
                       <div className="line-clamp-2 text-[11px] text-muted-foreground">{v.description}</div>
                     )}
