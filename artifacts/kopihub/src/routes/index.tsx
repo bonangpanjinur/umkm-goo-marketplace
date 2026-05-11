@@ -224,13 +224,42 @@ function MarketplaceHome() {
 
 export function ProductCard({ product }: { product: Product }) {
   const shopSlug = product.shop?.slug ?? "";
+  const now = Date.now();
+  const flashActive = !!(
+    product.flash_price != null &&
+    Number(product.flash_price) > 0 &&
+    Number(product.flash_price) < Number(product.price) &&
+    (!product.flash_starts_at || new Date(product.flash_starts_at).getTime() <= now) &&
+    (!product.flash_ends_at || new Date(product.flash_ends_at).getTime() > now)
+  );
+  const displayPrice = flashActive ? Number(product.flash_price) : Number(product.price);
+  const discountPct = flashActive
+    ? Math.round((1 - displayPrice / Number(product.price)) * 100)
+    : 0;
+  const [remaining, setRemaining] = useState<string>("");
+  useEffect(() => {
+    if (!flashActive || !product.flash_ends_at) return;
+    const end = new Date(product.flash_ends_at).getTime();
+    const tick = () => {
+      const ms = end - Date.now();
+      if (ms <= 0) { setRemaining(""); return; }
+      const h = Math.floor(ms / 3_600_000);
+      const m = Math.floor((ms % 3_600_000) / 60_000);
+      const s = Math.floor((ms % 60_000) / 1000);
+      setRemaining(h > 0 ? `${h}j ${m}m` : `${m}m ${s}d`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [flashActive, product.flash_ends_at]);
+
   return (
     <Link
       to="/toko/$slug/produk/$productId"
       params={{ slug: shopSlug, productId: product.id }}
       className="group rounded-xl border border-border bg-card overflow-hidden transition hover:border-primary/50 hover:shadow-md"
     >
-      <div className="aspect-square w-full bg-muted/40">
+      <div className="relative aspect-square w-full bg-muted/40">
         {product.image_url ? (
           <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition group-hover:scale-105" />
         ) : (
@@ -238,11 +267,28 @@ export function ProductCard({ product }: { product: Product }) {
             <Store className="h-8 w-8" />
           </div>
         )}
+        {flashActive && (
+          <span className="absolute left-2 top-2 rounded-md bg-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-destructive-foreground shadow">
+            -{discountPct}%
+          </span>
+        )}
+        {flashActive && remaining && (
+          <span className="absolute right-2 top-2 rounded-md bg-background/90 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow backdrop-blur">
+            ⚡ {remaining}
+          </span>
+        )}
       </div>
       <div className="p-3">
         <div className="line-clamp-2 text-xs font-medium leading-snug">{product.name}</div>
-        <div className="mt-1.5 text-sm font-semibold text-primary">
-          Rp {Number(product.price).toLocaleString("id-ID")}
+        <div className="mt-1.5 flex items-baseline gap-1.5">
+          <span className={`text-sm font-semibold ${flashActive ? "text-destructive" : "text-primary"}`}>
+            Rp {displayPrice.toLocaleString("id-ID")}
+          </span>
+          {flashActive && (
+            <span className="text-[10px] text-muted-foreground line-through">
+              Rp {Number(product.price).toLocaleString("id-ID")}
+            </span>
+          )}
         </div>
         {product.shop && (
           <div className="mt-1 truncate text-[11px] text-muted-foreground">{product.shop.name}</div>
