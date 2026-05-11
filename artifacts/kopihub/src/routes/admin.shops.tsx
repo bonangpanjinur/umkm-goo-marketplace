@@ -21,6 +21,7 @@ type Shop = {
   custom_domain_verified_at: string | null;
   created_at: string;
   suspended_at: string | null;
+  is_featured: boolean;
 };
 
 type StatusFilter = "all" | "pro_active" | "expiring" | "expired" | "free" | "domain_offline";
