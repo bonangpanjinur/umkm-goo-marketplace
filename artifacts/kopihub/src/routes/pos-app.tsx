@@ -61,6 +61,7 @@ const NAV = [
   { to: "/pos-app/orders", label: "Order", icon: ListOrdered },
   { to: "/pos-app/online-orders", label: "Order Online", icon: Bell },
   { to: "/pos-app/marketplace-orders", label: "Order Marketplace", icon: ShoppingCart },
+  { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
   { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
   { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
   { to: "/pos-app/reviews", label: "Ulasan", icon: Award },
