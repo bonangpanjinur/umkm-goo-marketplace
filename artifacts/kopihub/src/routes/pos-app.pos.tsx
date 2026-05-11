@@ -335,6 +335,7 @@ function POSPage() {
       parkedId: p.id,
       label: p.label,
       items: (p.items ?? []) as CartItem[],
+      discount: 0,
     };
     setCarts((prev) => [...prev, restored]);
     setActiveIdx(carts.length);

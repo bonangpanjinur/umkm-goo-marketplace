@@ -87,6 +87,7 @@ function KDSPage() {
               name: item.name,
               quantity: item.quantity,
               note: item.note,
+              category_id: item.menu_items?.category_id ?? null,
               kds_station: item.menu_items?.categories?.kds_station || "general"
             }));
 
@@ -142,7 +143,8 @@ function KDSPage() {
                       name: item.name,
                       quantity: item.quantity,
                       note: item.note,
-                      kds_station: item.menu_items?.categories?.kds_station || "general"
+                      category_id: item.menu_items?.category_id ?? null,
+              kds_station: item.menu_items?.categories?.kds_station || "general"
                     }));
                     setItems((prev) => ({ ...prev, [newOrder.id]: processed }));
                     

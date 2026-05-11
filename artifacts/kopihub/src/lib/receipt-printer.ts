@@ -54,7 +54,7 @@ export type Printer = {
 };
 
 export async function getOutletPrinters(outletId: string): Promise<Printer[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("printers")
     .select("*")
     .eq("outlet_id", outletId)

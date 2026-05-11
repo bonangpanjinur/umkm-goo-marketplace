@@ -121,7 +121,7 @@ function MarketplaceOrdersPage() {
   const advance = async (o: any) => {
     const next = NEXT_STATUS[o.status];
     if (!next) return;
-    const { error } = await supabase.from("orders").update({ status: next }).eq("id", o.id);
+    const { error } = await supabase.from("orders").update({ status: next as any }).eq("id", o.id);
     if (error) toast.error(error.message);
     else { toast.success(`Status: ${STATUS_LABEL[next]}`); load(); }
   };

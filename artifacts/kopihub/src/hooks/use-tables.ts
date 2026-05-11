@@ -6,7 +6,7 @@ export function useTables(outletId: string) {
   return useQuery({
     queryKey: ["tables", outletId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tables")
         .select("*")
         .eq("outlet_id", outletId);
@@ -22,7 +22,7 @@ export function useTable(tableId: string) {
   return useQuery({
     queryKey: ["table", tableId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tables")
         .select("*")
         .eq("id", tableId)
@@ -54,7 +54,7 @@ export function useCreateTable() {
     ) => {
       const { outletId, shopId, ...tableData } = variables;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tables")
         .insert([
           {
@@ -92,7 +92,7 @@ export function useUpdateTable() {
     ) => {
       const { tableId, outletId, updates } = variables;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tables")
         .update(updates)
         .eq("id", tableId)
@@ -120,7 +120,7 @@ export function useDeleteTable() {
     mutationFn: async (variables: { tableId: string; outletId: string }) => {
       const { tableId, outletId } = variables;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("tables")
         .delete()
         .eq("id", tableId);
@@ -151,7 +151,7 @@ export function useUpdateTableStatus() {
     ) => {
       const { tableId, outletId, status } = variables;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tables")
         .update({ status })
         .eq("id", tableId)
@@ -175,7 +175,7 @@ export function useTableMaps(outletId: string) {
   return useQuery({
     queryKey: ["table-maps", outletId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("table_maps")
         .select("*")
         .eq("outlet_id", outletId);
@@ -191,7 +191,7 @@ export function useTableMap(mapId: string) {
   return useQuery({
     queryKey: ["table-map", mapId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("table_maps")
         .select("*")
         .eq("id", mapId)
@@ -218,7 +218,7 @@ export function useCreateTableMap() {
     ) => {
       const { outletId, shopId, name, layout_data } = variables;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("table_maps")
         .insert([
           {
@@ -257,7 +257,7 @@ export function useUpdateTableMap() {
     ) => {
       const { mapId, outletId, updates } = variables;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("table_maps")
         .update(updates)
         .eq("id", mapId)
@@ -285,7 +285,7 @@ export function useDeleteTableMap() {
     mutationFn: async (variables: { mapId: string; outletId: string }) => {
       const { mapId, outletId } = variables;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("table_maps")
         .delete()
         .eq("id", mapId);

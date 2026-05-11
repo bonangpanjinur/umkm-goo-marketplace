@@ -171,9 +171,9 @@ function TableMapsPage() {
         </div>
       ) : tableMaps && tableMaps.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tableMaps.map((map) => {
+          {tableMaps.map((map: any) => {
             const mapTableCount = tables?.filter(
-              (t) => t.outlet_id === outlet.id
+              (t: any) => t.outlet_id === outlet.id
             ).length || 0;
 
             return (
