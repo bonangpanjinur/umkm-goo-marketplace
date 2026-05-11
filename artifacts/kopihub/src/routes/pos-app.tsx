@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStaffRole, isModuleAllowed } from "@/lib/use-staff";
@@ -56,42 +57,95 @@ export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
 });
 
-const NAV = [
-  { to: "/pos-app", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/pos-app/pos", label: "POS", icon: ShoppingBag },
-  { to: "/pos-app/orders", label: "Order", icon: ListOrdered },
-  { to: "/pos-app/online-orders", label: "Order Online", icon: Bell },
-  { to: "/pos-app/marketplace-orders", label: "Order Marketplace", icon: ShoppingCart },
-  { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
-  { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
-  { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
-  { to: "/pos-app/reviews", label: "Ulasan", icon: Award },
-  { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
-  { to: "/pos-app/menu", label: "Menu", icon: UtensilsCrossed },
-  { to: "/pos-app/categories", label: "Kategori", icon: Tags },
-  { to: "/pos-app/inventory", label: "Inventori", icon: Package },
-  { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
-  { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },
-  { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
-  { to: "/pos-app/employees", label: "Pegawai", icon: Users },
-  { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
-  { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
-  { to: "/pos-app/delivery", label: "Delivery", icon: Truck },
-  { to: "/pos-app/couriers", label: "Kurir", icon: Bike },
-  { to: "/pos-app/courier", label: "Pengantaran", icon: Navigation },
-  { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
-  { to: "/pos-app/reports", label: "Laporan", icon: BarChart3 },
-  { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
-  { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
-  { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
-  { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
-  { to: "/pos-app/printers", label: "Printer", icon: Printer },
-  { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
-  { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
-  { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
-  { to: "/pos-app/backup", label: "Backup Data", icon: Database },
-  { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },
-] as const;
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string };
+type NavGroup = { id: string; label: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: "dashboard",
+    label: "Utama",
+    items: [
+      { to: "/pos-app", label: "Dashboard", icon: LayoutDashboard, exact: true },
+      { to: "/pos-app/pos", label: "POS Kasir", icon: ShoppingBag },
+    ],
+  },
+  {
+    id: "orders",
+    label: "Pesanan",
+    items: [
+      { to: "/pos-app/orders", label: "Pesanan Kasir", icon: ListOrdered, hint: "Transaksi POS in-store" },
+      { to: "/pos-app/online-orders", label: "Pesanan Web Toko", icon: Bell, hint: "Order dari web toko Anda" },
+      { to: "/pos-app/marketplace-orders", label: "Pesanan Marketplace", icon: ShoppingCart, hint: "Order dari marketplace KopiHub" },
+      { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
+    ],
+  },
+  {
+    id: "catalog",
+    label: "Katalog & Stok",
+    items: [
+      { to: "/pos-app/menu", label: "Menu", icon: UtensilsCrossed },
+      { to: "/pos-app/categories", label: "Kategori", icon: Tags },
+      { to: "/pos-app/inventory", label: "Inventori", icon: Package },
+      { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
+      { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
+      { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },
+    ],
+  },
+  {
+    id: "team",
+    label: "Tim",
+    items: [
+      { to: "/pos-app/employees", label: "Pegawai", icon: Users },
+      { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
+      { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
+      { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
+    ],
+  },
+  {
+    id: "delivery",
+    label: "Pengiriman",
+    items: [
+      { to: "/pos-app/delivery", label: "Delivery", icon: Truck },
+      { to: "/pos-app/couriers", label: "Kurir", icon: Bike },
+      { to: "/pos-app/courier", label: "Pengantaran", icon: Navigation },
+    ],
+  },
+  {
+    id: "customers",
+    label: "Pelanggan",
+    items: [
+      { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
+      { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
+      { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
+      { to: "/pos-app/reviews", label: "Ulasan", icon: Award },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Keuangan & Laporan",
+    items: [
+      { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
+      { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
+      { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
+      { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
+      { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
+      { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Pengaturan Toko",
+    items: [
+      { to: "/pos-app/printers", label: "Printer", icon: Printer },
+      { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
+      { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
+      { to: "/pos-app/backup", label: "Backup Data", icon: Database },
+      { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },
+    ],
+  },
+];
+
+
 
 function AppLayout() {
   return (
@@ -153,11 +207,30 @@ function AppLayoutInner() {
     })();
   }, [user, loading, navigate, location.pathname, staff.loading, staff.isStaff, staff.shopId]);
 
-  // Filter nav for staff
-  const visibleNav = useMemo(() => {
-    if (staff.isOwner || !staff.isStaff) return NAV;
-    return NAV.filter((item) => isModuleAllowed(item.to, staff.allowedModules));
+  // Filter nav for staff (per-item allowed modules)
+  const visibleGroups = useMemo(() => {
+    const allowed = (it: NavItem) =>
+      staff.isOwner || !staff.isStaff ? true : isModuleAllowed(it.to, staff.allowedModules);
+    return NAV_GROUPS
+      .map((g) => ({ ...g, items: g.items.filter(allowed) }))
+      .filter((g) => g.items.length > 0);
   }, [staff.isOwner, staff.isStaff, staff.allowedModules]);
+
+  // Track which group is open; auto-open the group that contains the active route
+  const activeGroupId = useMemo(() => {
+    for (const g of visibleGroups) {
+      if (g.items.some((it) => (it.exact ? location.pathname === it.to : location.pathname.startsWith(it.to)))) {
+        return g.id;
+      }
+    }
+    return visibleGroups[0]?.id ?? null;
+  }, [visibleGroups, location.pathname]);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    if (activeGroupId) setOpenGroups((p) => ({ ...p, [activeGroupId]: true }));
+  }, [activeGroupId]);
+
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -195,37 +268,57 @@ function AppLayoutInner() {
 
       <OutletSwitcher shopName={shop?.name} />
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
-        {visibleNav.map((item) => {
-          const active = (item as { exact?: boolean }).exact
-            ? location.pathname === item.to
-            : location.pathname.startsWith(item.to);
-          const Icon = item.icon;
-          const locked = (item as { proOnly?: boolean }).proOnly && !isPro;
+      <nav className="flex-1 overflow-y-auto px-2 py-2">
+        {visibleGroups.map((group) => {
+          const isOpen = openGroups[group.id] ?? group.id === activeGroupId;
           return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="flex-1">{item.label}</span>
-              {(item as { proOnly?: boolean }).proOnly && (
-                <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${isPro ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                  {locked ? <Lock className="h-3 w-3 inline" /> : "PRO"}
-                </span>
+            <div key={group.id} className="mb-1">
+              <button
+                type="button"
+                onClick={() => setOpenGroups((p) => ({ ...p, [group.id]: !isOpen }))}
+                className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors"
+              >
+                <span>{group.label}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
+              </button>
+              {isOpen && (
+                <div className="space-y-0.5 mt-0.5">
+                  {group.items.map((item) => {
+                    const active = item.exact
+                      ? location.pathname === item.to
+                      : location.pathname.startsWith(item.to);
+                    const Icon = item.icon;
+                    const locked = item.proOnly && !isPro;
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        title={item.hint}
+                        className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
+                          active
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="flex-1 truncate">{item.label}</span>
+                        {item.proOnly && (
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${isPro ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                            {locked ? <Lock className="h-3 w-3 inline" /> : "PRO"}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            </Link>
+            </div>
           );
         })}
         {isAdmin && (
           <Link
             to="/admin"
-            className="mt-2 flex items-center gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-sm font-medium text-amber-700 hover:bg-amber-500/20"
+            className="mt-3 flex items-center gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-sm font-medium text-amber-700 hover:bg-amber-500/20"
           >
             <ShieldCheck className="h-4 w-4" /> Super Admin
           </Link>
