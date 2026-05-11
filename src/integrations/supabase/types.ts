@@ -670,6 +670,9 @@ export type Database = {
       customer_profiles: {
         Row: {
           created_at: string
+          default_address: string | null
+          default_city: string | null
+          default_postal_code: string | null
           display_name: string | null
           email: string | null
           id: string
@@ -679,6 +682,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_address?: string | null
+          default_city?: string | null
+          default_postal_code?: string | null
           display_name?: string | null
           email?: string | null
           id?: string
@@ -688,6 +694,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_address?: string | null
+          default_city?: string | null
+          default_postal_code?: string | null
           display_name?: string | null
           email?: string | null
           id?: string
