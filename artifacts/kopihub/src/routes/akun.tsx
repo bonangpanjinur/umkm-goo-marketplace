@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
-import { User, ShoppingBag, MapPin, LogOut, Loader2 } from "lucide-react";
+import { User, ShoppingBag, MapPin, LogOut, Loader2, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/akun")({
 const NAV = [
   { to: "/akun", label: "Profil", icon: User, exact: true },
   { to: "/akun/pesanan", label: "Pesanan", icon: ShoppingBag },
+  { to: "/akun/wishlist", label: "Wishlist", icon: Heart },
   { to: "/akun/alamat", label: "Alamat", icon: MapPin },
 ];
 

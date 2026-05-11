@@ -42,6 +42,7 @@ import {
   Banknote,
   ArrowDownToLine,
   ShoppingCart,
+  SlidersHorizontal,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,8 @@ const NAV_GROUPS: NavGroup[] = [
     id: "catalog",
     label: "Katalog & Stok",
     items: [
-      { to: "/pos-app/menu", label: "Menu", icon: UtensilsCrossed },
+      { to: "/pos-app/menu", label: "Menu / Produk", icon: UtensilsCrossed },
+      { to: "/pos-app/variants", label: "Varian Produk", icon: SlidersHorizontal },
       { to: "/pos-app/categories", label: "Kategori", icon: Tags },
       { to: "/pos-app/inventory", label: "Inventori", icon: Package },
       { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
@@ -128,6 +130,13 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
       { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
       { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
+    ],
+  },
+  {
+    id: "verification",
+    label: "Akun & Verifikasi",
+    items: [
+      { to: "/pos-app/kyc", label: "Verifikasi KTP (KYC)", icon: ShieldCheck },
     ],
   },
   {

@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users } from "lucide-react";
 import { useSeo } from "@/lib/use-seo";
+import { useAuth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/toko/$slug")({
   component: ShopPage,
@@ -22,21 +25,53 @@ type Shop = {
   rating_avg: number | null;
   rating_count: number | null;
   business_category_id: string | null;
+  kyc_status: string | null;
 };
 
 function ShopPage() {
   const { slug } = Route.useParams();
+  const { user } = useAuth();
   const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [followed, setFollowed] = useState(false);
+  const [followCount, setFollowCount] = useState(0);
+  const [followBusy, setFollowBusy] = useState(false);
+
+  const loadFollowStatus = async (shopId: string) => {
+    const [countRes, followedRes] = await Promise.all([
+      supabase.from("shop_follows" as any).select("id", { count: "exact", head: true }).eq("shop_id", shopId),
+      user ? supabase.from("shop_follows" as any).select("id").eq("shop_id", shopId).eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
+    ]);
+    setFollowCount((countRes as any).count ?? 0);
+    setFollowed(!!(followedRes as any).data);
+  };
+
+  const toggleFollow = async () => {
+    if (!shop) return;
+    if (!user) { toast.info("Masuk untuk mengikuti toko"); return; }
+    setFollowBusy(true);
+    if (followed) {
+      await supabase.from("shop_follows" as any).delete().eq("shop_id", shop.id).eq("user_id", user.id);
+      setFollowed(false);
+      setFollowCount(c => Math.max(0, c - 1));
+      toast.success("Berhenti mengikuti toko");
+    } else {
+      await supabase.from("shop_follows" as any).insert({ shop_id: shop.id, user_id: user.id });
+      setFollowed(true);
+      setFollowCount(c => c + 1);
+      toast.success("Mengikuti toko!");
+    }
+    setFollowBusy(false);
+  };
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       const { data: s } = await supabase
         .from("coffee_shops")
-        .select("id, slug, name, tagline, description, logo_url, address, phone, rating_avg, rating_count, business_category_id")
+        .select("id, slug, name, tagline, description, logo_url, address, phone, rating_avg, rating_count, business_category_id, kyc_status")
         .eq("slug", slug)
         .eq("is_active", true)
         .maybeSingle();
@@ -46,6 +81,7 @@ function ShopPage() {
         return;
       }
       setShop(s as Shop);
+      loadFollowStatus((s as any).id);
 
       const { data: prods } = await supabase
         .from("menu_items")
@@ -115,9 +151,16 @@ function ShopPage() {
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                {shop?.name ?? "..."}
-              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                  {shop?.name ?? "..."}
+                </h1>
+                {shop?.kyc_status === "approved" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                    <ShieldCheck className="h-3 w-3" /> Terverifikasi
+                  </span>
+                )}
+              </div>
               {shop?.tagline && (
                 <p className="mt-1 text-muted-foreground">{shop.tagline}</p>
               )}
@@ -127,12 +170,27 @@ function ShopPage() {
                 ) : (
                   <span>Toko baru</span>
                 )}
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-3 w-3" /> {followCount} pengikut
+                </span>
                 {shop?.address && (
                   <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {shop.address}</span>
                 )}
                 {shop?.phone && (
                   <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {shop.phone}</span>
                 )}
+              </div>
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  variant={followed ? "outline" : "default"}
+                  className="gap-1.5"
+                  onClick={toggleFollow}
+                  disabled={followBusy}
+                >
+                  <Heart className={`h-3.5 w-3.5 ${followed ? "fill-current text-red-500" : ""}`} />
+                  {followed ? "Mengikuti" : "Ikuti Toko"}
+                </Button>
               </div>
             </div>
           </div>

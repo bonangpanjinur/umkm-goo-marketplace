@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { cartCount } from "@/lib/marketplace-cart";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
+import { MarketplaceBottomNav } from "./MarketplaceBottomNav";
 
 export function MarketplaceHeader() {
   const [count, setCount] = useState(0);
@@ -99,14 +100,17 @@ export function MarketplaceHeader() {
 
 export function MarketplaceFooter() {
   return (
-    <footer className="mt-16 border-t border-border py-8">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-muted-foreground sm:flex-row">
-        <span>© 2026 Marketplace · Buka toko gratis</span>
-        <div className="flex gap-4">
-          <Link to="/signup" className="hover:text-foreground">Mulai berjualan</Link>
-          <Link to="/pos-app" className="hover:text-foreground">Dashboard toko</Link>
+    <>
+      <footer className="mb-14 mt-16 border-t border-border py-8 sm:mb-0">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-muted-foreground sm:flex-row">
+          <span>© 2026 Marketplace · Buka toko gratis</span>
+          <div className="flex gap-4">
+            <Link to="/signup" className="hover:text-foreground">Mulai berjualan</Link>
+            <Link to="/pos-app" className="hover:text-foreground">Dashboard toko</Link>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+      <MarketplaceBottomNav />
+    </>
   );
 }

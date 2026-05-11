@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart } from "lucide-react";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -195,6 +195,42 @@ function ProductDetailPage() {
   );
 }
 
+function WishlistButton({ productId }: { productId: string }) {
+  const { user } = useAuth();
+  const [wished, setWished] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [wishId, setWishId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("wishlists" as any).select("id").eq("user_id", user.id).eq("menu_item_id", productId).maybeSingle()
+      .then(({ data }) => { if (data) { setWished(true); setWishId((data as any).id); } });
+  }, [user?.id, productId]);
+
+  const toggle = async () => {
+    if (!user) { toast.info("Masuk untuk menyimpan wishlist"); return; }
+    setBusy(true);
+    if (wished && wishId) {
+      await supabase.from("wishlists" as any).delete().eq("id", wishId);
+      setWished(false); setWishId(null);
+      toast.success("Dihapus dari wishlist");
+    } else {
+      const { data } = await supabase.from("wishlists" as any).insert({ user_id: user.id, menu_item_id: productId }).select("id").single();
+      setWished(true); setWishId((data as any)?.id ?? null);
+      toast.success("Ditambahkan ke wishlist");
+    }
+    setBusy(false);
+  };
+
+  return (
+    <Button variant="outline" size="icon" onClick={toggle} disabled={busy}
+      className={`h-11 w-11 shrink-0 ${wished ? "text-red-500 border-red-200 bg-red-50 hover:bg-red-100" : ""}`}
+      title={wished ? "Hapus dari wishlist" : "Simpan ke wishlist"}>
+      <Heart className={`h-5 w-5 ${wished ? "fill-current" : ""}`} />
+    </Button>
+  );
+}
+
 function AddToCartBlock({ product, shopSlug }: { product: Product; shopSlug: string }) {
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -248,7 +284,8 @@ function AddToCartBlock({ product, shopSlug }: { product: Product; shopSlug: str
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex gap-2">
+        <WishlistButton productId={product.id} />
         <Button
           size="lg"
           variant="outline"

@@ -11,6 +11,19 @@
 | Tanggal | Task | Keterangan |
 |---|---|---|
 | 11 Mei 2026 | **Migrasi Vercel → Replit** ✅ | App berjalan di Replit. TanStack Router + Supabase terhubung. 80+ routes aktif. |
+| 11 Mei 2026 | **Sprint 1 — A-1 KYC Admin** ✅ | `admin.kyc.tsx` split-panel queue: list pending/in_review/approved/rejected + photo viewer + approve/reject. Nav ditambah ke sidebar admin. |
+| 11 Mei 2026 | **Sprint 1 — O-1 KYC Owner** ✅ | `pos-app.kyc.tsx` status badge + upload KTP + panduan foto. Nav ditambah ke sidebar owner. |
+| 11 Mei 2026 | **Sprint 1 — O-2 Onboarding Wizard** ✅ | `onboarding.tsx` rewrite jadi 5-step wizard: Profil → Kategori Bisnis → Outlet → Upload KTP → Selesai. Progress bar + kategori grid. |
+| 11 Mei 2026 | **Sprint 1 — O-3 Produk Varian** ✅ | `pos-app.variants.tsx` manajemen varian per produk (nama, SKU, harga, stok). Graceful migration hint jika tabel belum ada. Nav Katalog diupdate. |
+| 11 Mei 2026 | **Sprint 1 — A-2 Payment Gateway Config** ✅ | `admin.payment-config.tsx` switch Midtrans/Xendit/manual transfer/QRIS + key input + sandbox/production toggle. Simpan ke `platform_settings`. |
+| 11 Mei 2026 | **Sprint 1 — A-3 Konfigurasi Komisi** ✅ | `admin.commission.tsx` tarif global + override per kategori bisnis (rate, min/max fee). Free plan vs Pro plan rates terpisah. |
+| 11 Mei 2026 | **Sprint 1 — A-4 Branding Dinamis** ✅ | `admin.branding.tsx` nama platform, logo upload, favicon, warna primer/sekunder, SEO meta, OG image, banner pengumuman. |
+| 11 Mei 2026 | **SQL Migration** ✅ | `supabase/migrations/sprint1_kyc_variants.sql` — kolom KYC di coffee_shops + tabel menu_item_variants + RLS policies + storage bucket. |
+| 11 Mei 2026 | **Sprint 1 — B-10 Bottom Nav Mobile** ✅ | `MarketplaceBottomNav.tsx` — sticky bottom nav 5 tab (Beranda/Cari/Keranjang/Wishlist/Akun) mobile-only sm:hidden, badge keranjang realtime via Supabase channel. Ditempel di `MarketplaceFooter`. |
+| 11 Mei 2026 | **Sprint 1 — B-11 Wishlist Produk** ✅ | `akun.wishlist.tsx` halaman wishlist + `WishlistButton` di product detail — toggle heart, sync ke tabel `wishlists`, nav link Wishlist di /akun sidebar. |
+| 11 Mei 2026 | **Sprint 1 — B-12 Follow Toko** ✅ | Tombol Ikuti/Mengikuti + counter pengikut di `toko.$slug.tsx`, tabel `shop_follows` + RLS di SQL migration. |
+| 11 Mei 2026 | **Sprint 1 — 4.4 Badge Verifikasi** ✅ | Badge "Terverifikasi" (ShieldCheck hijau) muncul di halaman publik toko bila `kyc_status = approved`. Query diupdate include `kyc_status`. |
+| 11 Mei 2026 | **SQL Migration update** ✅ | Tambah tabel `wishlists`, `shop_follows`, dan `platform_settings` ke `sprint1_kyc_variants.sql`. |
 
 ---
 
@@ -765,19 +778,19 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 
 | ID | Fitur | Status | Selesai |
 |---|---|---|---|
-| A-1 | KYC Review Queue | 🔴 Belum | — |
-| A-2 | Konfigurasi Payment Gateway | 🔴 Belum | — |
-| A-3 | Konfigurasi Komisi | 🔴 Belum | — |
-| A-4 | Branding Platform Dinamis | 🔴 Belum | — |
+| A-1 | KYC Review Queue | ✅ Selesai | 11 Mei 2026 |
+| A-2 | Konfigurasi Payment Gateway | ✅ Selesai | 11 Mei 2026 |
+| A-3 | Konfigurasi Komisi | ✅ Selesai | 11 Mei 2026 |
+| A-4 | Branding Platform Dinamis | ✅ Selesai | 11 Mei 2026 |
 | A-5 | Dashboard Admin KPI Lengkap | 🟡 Sebagian | — |
 | A-6 | Manajemen Kategori Bisnis | 🟡 Sebagian | — |
 | A-7 | Konfigurasi Penarikan Dana | 🔴 Belum | — |
 | A-8 | Broadcast Tersegmen | 🟡 Sebagian | — |
 | A-9 | Audit Log Filter & Export | 🟡 Sebagian | — |
 | A-10 | Impersonation Admin | 🔴 Belum | — |
-| O-1 | Status KYC di Dashboard Owner | 🔴 Belum | — |
-| O-2 | Onboarding Wizard 5 Langkah | 🔴 Belum | — |
-| O-3 | Produk Varian | 🔴 Belum | — |
+| O-1 | Status KYC di Dashboard Owner | ✅ Selesai | 11 Mei 2026 |
+| O-2 | Onboarding Wizard 5 Langkah | ✅ Selesai | 11 Mei 2026 |
+| O-3 | Produk Varian | ✅ Selesai | 11 Mei 2026 |
 | O-4 | Stok Terpadu Lintas Channel | 🟡 Sebagian | — |
 | O-5 | Unified Orders Hub | 🟡 Sebagian | — |
 | O-6 | Flash Sale UI Lengkap | 🟡 Sebagian | — |
@@ -799,13 +812,13 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | B-7 | Tracking Lebih Lengkap | 🟡 Sebagian | — |
 | B-8 | Akun Pembeli Lebih Lengkap | 🟡 Sebagian | — |
 | B-9 | Notifikasi Pembeli In-App | 🔴 Belum | — |
-| B-10 | Bottom Nav Mobile | 🔴 Belum | — |
-| B-11 | Wishlist Produk | 🔴 Belum | — |
-| B-12 | Follow Toko | 🔴 Belum | — |
+| B-10 | Bottom Nav Mobile | ✅ Selesai | `MarketplaceBottomNav.tsx` — sticky bottom nav 5 tab (Beranda/Cari/Keranjang/Wishlist/Akun) mobile-only, cart badge realtime |
+| B-11 | Wishlist Produk | ✅ Selesai | `akun.wishlist.tsx` + `WishlistButton` di product detail — toggle & sync Supabase, nav link di /akun |
+| B-12 | Follow Toko | ✅ Selesai | Tombol Ikuti/Mengikuti di `toko.$slug.tsx`, counter pengikut realtime, tabel `shop_follows` + RLS |
 | 4.1 | Order Timeline Tunggal | 🟡 Sebagian | — |
 | 4.2 | Inbox Notifikasi Terpadu | 🟡 Sebagian | — |
 | 4.3 | Stok Single Source of Truth | 🟡 Sebagian | — |
-| 4.4 | Badge Verifikasi di Publik | 🔴 Belum | — |
+| 4.4 | Badge Verifikasi di Publik | ✅ Selesai | Badge "Terverifikasi" (ShieldCheck hijau) di halaman toko publik ketika `kyc_status = approved` |
 | 4.5 | Escrow Transparan Lintas Role | 🟡 Sebagian | — |
 
 ---
