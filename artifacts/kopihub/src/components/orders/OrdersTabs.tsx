@@ -20,7 +20,8 @@ const TABS: Tab[] = [
 
 export function OrdersTabs() {
   const { pathname } = useLocation();
-  const { shopId } = useCurrentShop();
+  const { shop } = useCurrentShop();
+  const shopId = shop?.id;
   const [counts, setCounts] = useState<{ pos: number; online: number; marketplace: number }>({
     pos: 0,
     online: 0,
