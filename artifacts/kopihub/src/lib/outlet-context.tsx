@@ -15,7 +15,7 @@ const OutletContext = createContext<OutletCtx>({ outlets: [], current: null, set
 
 export function useOutletContext() { return useContext(OutletContext); }
 
-const STORAGE_KEY = "kopihub_outlet_id";
+const STORAGE_KEY = "umkmgo_outlet_id";
 
 export function OutletProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();

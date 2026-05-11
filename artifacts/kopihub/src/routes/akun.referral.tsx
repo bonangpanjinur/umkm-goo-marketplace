@@ -44,7 +44,7 @@ export default function ReferralPage() {
   function shareLink() {
     const url = `${window.location.origin}?ref=${referralCode}`;
     if (navigator.share) {
-      navigator.share({ title: "Belanja di KopiHub", text: "Pakai kode referralku dan dapatkan voucher Rp25.000!", url });
+      navigator.share({ title: "Belanja di UMKMgo", text: "Pakai kode referralku dan dapatkan voucher Rp25.000!", url });
     } else {
       navigator.clipboard.writeText(url).then(() => toast.success("Link referral disalin!"));
     }
@@ -148,7 +148,7 @@ export default function ReferralPage() {
           <li>Bagikan kode referralmu ke teman</li>
           <li>Teman daftar menggunakan kodemu → mendapat voucher Rp25.000</li>
           <li>Teman selesai transaksi pertama → kamu mendapat voucher Rp25.000</li>
-          <li>Voucher dapat digunakan untuk transaksi berikutnya di KopiHub</li>
+          <li>Voucher dapat digunakan untuk transaksi berikutnya di UMKMgo</li>
         </ol>
       </Card>
     </div>

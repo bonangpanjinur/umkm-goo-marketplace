@@ -11,7 +11,7 @@ export type CustomerCartItem = {
   options?: SelectedOption[];
 };
 
-const KEY = (slug: string) => `kopihub.cart.${slug}`;
+const KEY = (slug: string) => `umkmgo.cart.${slug}`;
 
 export function readCart(slug: string): CustomerCartItem[] {
   if (typeof window === "undefined") return [];
@@ -26,7 +26,7 @@ export function readCart(slug: string): CustomerCartItem[] {
 export function writeCart(slug: string, items: CustomerCartItem[]) {
   if (typeof window === "undefined") return;
   localStorage.setItem(KEY(slug), JSON.stringify(items));
-  window.dispatchEvent(new CustomEvent("kopihub-cart-change", { detail: { slug } }));
+  window.dispatchEvent(new CustomEvent("umkmgo-cart-change", { detail: { slug } }));
 }
 
 export function clearCart(slug: string) {

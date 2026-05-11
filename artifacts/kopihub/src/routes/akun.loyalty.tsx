@@ -19,11 +19,11 @@ type Transaction = {
 };
 
 const DEMO_TRANSACTIONS: Transaction[] = [
-  { id: "1", description: "Pembelian di KopiHub Pusat", points: 150, type: "earn", created_at: "2026-05-10" },
+  { id: "1", description: "Pembelian di UMKMgo Pusat", points: 150, type: "earn", created_at: "2026-05-10" },
   { id: "2", description: "Tukar poin — Diskon Rp15.000", points: -500, type: "redeem", created_at: "2026-05-05" },
-  { id: "3", description: "Pembelian di KopiHub Selatan", points: 200, type: "earn", created_at: "2026-05-01" },
+  { id: "3", description: "Pembelian di UMKMgo Selatan", points: 200, type: "earn", created_at: "2026-05-01" },
   { id: "4", description: "Bonus ulang tahun", points: 300, type: "earn", created_at: "2026-04-15" },
-  { id: "5", description: "Pembelian di KopiHub Pusat", points: 100, type: "earn", created_at: "2026-04-10" },
+  { id: "5", description: "Pembelian di UMKMgo Pusat", points: 100, type: "earn", created_at: "2026-04-10" },
 ];
 
 const TIERS = [
@@ -58,7 +58,7 @@ export default function LoyaltyPage() {
         <h1 className="text-xl font-bold flex items-center gap-2">
           <Star className="h-5 w-5 text-amber-500 fill-amber-500" /> Poin Loyalty
         </h1>
-        <p className="text-sm text-muted-foreground">Kumpulkan poin dari setiap transaksi di semua toko KopiHub</p>
+        <p className="text-sm text-muted-foreground">Kumpulkan poin dari setiap transaksi di semua toko UMKMgo</p>
       </div>
 
       <Card className="p-5 bg-gradient-to-br from-amber-500/10 to-primary/10 border-primary/20">

@@ -31,16 +31,16 @@ type BrandingConfig = {
 };
 
 const DEFAULTS: BrandingConfig = {
-  platform_name: "KopiHub",
+  platform_name: "UMKMgo",
   platform_tagline: "Marketplace & POS untuk semua bisnis Indonesia",
-  support_email: "support@kopihub.id",
+  support_email: "support@umkmgo.id",
   support_whatsapp: "",
   logo_url: null,
   favicon_url: null,
   primary_color: "#18181b",
   secondary_color: "#f59e0b",
-  footer_text: "© 2026 KopiHub. Semua hak dilindungi.",
-  meta_title: "KopiHub — Marketplace & POS",
+  footer_text: "© 2026 UMKMgo. Semua hak dilindungi.",
+  meta_title: "UMKMgo — Marketplace & POS",
   meta_description: "Platform marketplace dan point-of-sale terpadu untuk bisnis F&B, fashion, digital, dan lebih banyak lagi.",
   og_image_url: null,
   announcement_text: "",
@@ -153,7 +153,7 @@ function AdminBranding() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Nama Platform *</Label>
-            <Input className="mt-1.5" value={cfg.platform_name} onChange={e => set({ platform_name: e.target.value })} placeholder="KopiHub" />
+            <Input className="mt-1.5" value={cfg.platform_name} onChange={e => set({ platform_name: e.target.value })} placeholder="UMKMgo" />
           </div>
           <div>
             <Label>Support Email</Label>

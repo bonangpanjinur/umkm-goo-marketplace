@@ -193,7 +193,7 @@ function OnboardingPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Coffee className="h-4 w-4" />
           </div>
-          <span className="text-sm font-bold tracking-tight">KopiHub</span>
+          <span className="text-sm font-bold tracking-tight">UMKMgo</span>
         </div>
 
         {/* Step indicator */}
@@ -387,7 +387,7 @@ function OnboardingPage() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Toko <span className="text-primary">{shopName}</span> siap!</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Selamat bergabung di KopiHub. Mulai tambahkan produk dan kelola toko Anda dari dashboard.
+                Selamat bergabung di UMKMgo. Mulai tambahkan produk dan kelola toko Anda dari dashboard.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-left">

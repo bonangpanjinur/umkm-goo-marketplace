@@ -302,7 +302,7 @@ function AppLayoutInner() {
             <Coffee className="h-4 w-4" />
           )}
         </div>
-        <span className="text-sm font-semibold">KopiHub</span>
+        <span className="text-sm font-semibold">UMKMgo</span>
       </div>
 
       <OutletSwitcher shopName={shop?.name} />
@@ -410,7 +410,7 @@ function AppLayoutInner() {
                 <Coffee className="h-3.5 w-3.5" />
               )}
             </div>
-            <span className="truncate text-sm font-semibold">{shop?.name ?? "KopiHub"}</span>
+            <span className="truncate text-sm font-semibold">{shop?.name ?? "UMKMgo"}</span>
           </div>
           <div className="ml-auto">
             <NotificationBell />

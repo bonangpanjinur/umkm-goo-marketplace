@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type ReceiptPaper = "58" | "80";
 
-const KEY = "kopihub.receiptPaper";
+const KEY = "umkmgo.receiptPaper";
 
 export function getReceiptPaper(): ReceiptPaper {
   if (typeof window === "undefined") return "58";

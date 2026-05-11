@@ -17,7 +17,7 @@ type BroadcastMsg =
   | { kind: "read_one"; id: string; read_at: string }
   | { kind: "read_all"; read_at: string };
 
-const CHANNEL_NAME = "kopihub:notifications";
+const CHANNEL_NAME = "umkmgo:notifications";
 const MAX_ITEMS = 50;
 
 export function useNotifications() {

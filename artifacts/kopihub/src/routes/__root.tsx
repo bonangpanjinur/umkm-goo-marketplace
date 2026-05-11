@@ -31,10 +31,10 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "UTF-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-      { title: "KopiHub Marketplace" },
+      { title: "UMKMgo Marketplace" },
       { name: "description", content: "Marketplace multi-kategori untuk produk lokal Indonesia." },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "KopiHub" },
+      { property: "og:site_name", content: "UMKMgo" },
     ],
   }),
   component: RootComponent,

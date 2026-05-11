@@ -160,7 +160,7 @@ export default function DownloadPage() {
         {/* Header */}
         <div className="text-center mb-6">
           <Link to="/" className="inline-flex items-center gap-2 text-primary font-bold text-lg mb-2">
-            <ShieldCheck className="h-5 w-5" /> KopiHub
+            <ShieldCheck className="h-5 w-5" /> UMKMgo
           </Link>
           <p className="text-sm text-muted-foreground">Halaman Unduh Produk Digital</p>
         </div>

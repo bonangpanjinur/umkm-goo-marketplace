@@ -25,8 +25,8 @@ export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Pencarian — KopiHub" },
-      { name: "description", content: "Cari produk dan toko di marketplace KopiHub." },
+      { title: "Pencarian — UMKMgo" },
+      { name: "description", content: "Cari produk dan toko di marketplace UMKMgo." },
     ],
   }),
   component: SearchPage,

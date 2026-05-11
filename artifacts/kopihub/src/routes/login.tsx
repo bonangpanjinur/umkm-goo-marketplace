@@ -51,7 +51,7 @@ function LoginPage() {
     navigate({ to: "/pos-app" });
   };
 
-  return <AuthShell title="Masuk ke KopiHub" subtitle="Kelola toko Anda dari mana saja.">
+  return <AuthShell title="Masuk ke UMKMgo" subtitle="Kelola toko Anda dari mana saja.">
     <form onSubmit={onSubmit} className="space-y-3">
       <div>
         <Label htmlFor="email">Email</Label>
@@ -106,7 +106,7 @@ export function AuthShell({
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Coffee className="h-4 w-4" />
             </div>
-            <span className="text-sm font-semibold tracking-tight">KopiHub</span>
+            <span className="text-sm font-semibold tracking-tight">UMKMgo</span>
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
@@ -117,7 +117,7 @@ export function AuthShell({
         <div className="absolute inset-0 flex flex-col justify-end p-10 text-primary-foreground">
           <Coffee className="mb-6 h-10 w-10 opacity-80" />
           <p className="text-2xl font-semibold leading-snug">
-            "Sejak pakai KopiHub, kasir kami selesaikan order rush hour 2× lebih cepat."
+            "Sejak pakai UMKMgo, kasir kami selesaikan order rush hour 2× lebih cepat."
           </p>
           <p className="mt-3 text-sm opacity-80">— Owner, Kopi Senja Bandung</p>
         </div>

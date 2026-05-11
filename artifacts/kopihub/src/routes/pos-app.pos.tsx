@@ -72,7 +72,7 @@ function newCart(label = "Cart 1"): LocalCart {
 }
 
 function storageKey(outletId: string) {
-  return `kopihub.pos.carts.${outletId}`;
+  return `umkmgo.pos.carts.${outletId}`;
 }
 
 function loadFromStorage(outletId: string): { carts: LocalCart[]; activeIdx: number } | null {

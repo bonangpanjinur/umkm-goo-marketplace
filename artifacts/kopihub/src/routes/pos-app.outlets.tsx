@@ -24,8 +24,8 @@ type Outlet = {
 };
 
 const DEMO_OUTLETS: Outlet[] = [
-  { id: "1", name: "KopiHub Pusat", address: "Jl. Sudirman No. 1", city: "Jakarta Pusat", phone: "0811000001", slug: "kopihub-pusat", status: "active", is_primary: true, kyc_status: "approved" },
-  { id: "2", name: "KopiHub Selatan", address: "Jl. Fatmawati No. 20", city: "Jakarta Selatan", phone: "0811000002", slug: "kopihub-selatan", status: "active", is_primary: false, kyc_status: "approved" },
+  { id: "1", name: "UMKMgo Pusat", address: "Jl. Sudirman No. 1", city: "Jakarta Pusat", phone: "0811000001", slug: "umkmgo-pusat", status: "active", is_primary: true, kyc_status: "approved" },
+  { id: "2", name: "UMKMgo Selatan", address: "Jl. Fatmawati No. 20", city: "Jakarta Selatan", phone: "0811000002", slug: "umkmgo-selatan", status: "active", is_primary: false, kyc_status: "approved" },
 ];
 
 export default function OutletsPage() {
@@ -136,7 +136,7 @@ export default function OutletsPage() {
           <div className="space-y-3 mt-2">
             <div>
               <Label>Nama Outlet *</Label>
-              <Input className="mt-1" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="cth: KopiHub Bandung" />
+              <Input className="mt-1" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="cth: UMKMgo Bandung" />
             </div>
             <div>
               <Label>Alamat Lengkap *</Label>

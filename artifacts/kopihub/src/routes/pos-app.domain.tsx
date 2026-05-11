@@ -32,7 +32,7 @@ function DomainPage() {
   const [domainInput, setDomainInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [audit, setAudit] = useState<Array<{ id: string; action: string; new_domain: string | null; created_at: string }>>([]);
-  const [cnameTarget, setCnameTarget] = useState<string>("tenants.kopihub.app");
+  const [cnameTarget, setCnameTarget] = useState<string>("tenants.umkmgo.app");
   const [lastCheck, setLastCheck] = useState<{ verified: boolean; cnameOk: boolean; sslOk?: boolean; sslError?: string | null; txtValues: string[] } | null>(null);
 
   const reload = async () => {
@@ -109,7 +109,7 @@ function DomainPage() {
 
   const copy = (t: string) => { navigator.clipboard.writeText(t); toast.success("Disalin"); };
   const verified = !!state?.custom_domain_verified_at;
-  const txtName = state?.custom_domain ? `_kopihub-verify.${state.custom_domain}` : "";
+  const txtName = state?.custom_domain ? `_umkmgo-verify.${state.custom_domain}` : "";
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">

@@ -146,7 +146,7 @@ export default function NotificationTemplates() {
     const samples: Record<string, string> = {
       customer_name: "Budi Santoso", owner_name: "Budi Santoso", shop_name: "Toko Saya",
       order_id: "ORD-001234", total_amount: "Rp 250.000", payment_method: "Transfer BCA",
-      tracking_url: "https://platform.com/track/ORD-001234", platform_name: "KopiHub",
+      tracking_url: "https://platform.com/track/ORD-001234", platform_name: "UMKMgo",
       courier_name: "JNE", tracking_number: "JNE001234567", courier_tracking_url: "https://jne.co.id",
       estimated_arrival: "13–15 Mei 2026", reject_reason: "Foto KTP buram, silakan upload ulang",
       amount: "Rp 500.000", bank_name: "BCA", account_number: "1234567890",

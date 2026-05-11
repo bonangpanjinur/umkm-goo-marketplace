@@ -24,8 +24,8 @@ function CartPage() {
   useEffect(() => {
     setItems(readCart(slug));
     const handler = () => setItems(readCart(slug));
-    window.addEventListener("kopihub-cart-change", handler);
-    return () => window.removeEventListener("kopihub-cart-change", handler);
+    window.addEventListener("umkmgo-cart-change", handler);
+    return () => window.removeEventListener("umkmgo-cart-change", handler);
   }, [slug]);
 
   const total = cartTotal(items);

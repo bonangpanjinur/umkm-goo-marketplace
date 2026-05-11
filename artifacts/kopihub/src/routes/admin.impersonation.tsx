@@ -11,7 +11,7 @@ import { UserCog, Search, Store, ExternalLink, LogOut, ShieldAlert, RefreshCw } 
 
 export const Route = createFileRoute("/admin/impersonation")({ component: AdminImpersonation });
 
-const IMPERSONATE_KEY = "kopihub_impersonate_shop_id";
+const IMPERSONATE_KEY = "umkmgo_impersonate_shop_id";
 
 type Shop = { id: string; name: string; slug: string; plan: string; owner_email: string | null };
 

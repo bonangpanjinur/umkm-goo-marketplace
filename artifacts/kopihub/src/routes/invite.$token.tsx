@@ -85,7 +85,7 @@ function AcceptInvitationPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Coffee className="h-5 w-5" />
           </div>
-          <span className="text-sm font-semibold">KopiHub</span>
+          <span className="text-sm font-semibold">UMKMgo</span>
         </div>
 
         {error || !inv ? (

@@ -63,7 +63,7 @@ export function NotificationSettings({ shopId }: { shopId?: string | null }) {
         }
       }
 
-      notifyOrder("KopiHub", "Notifikasi berhasil diaktifkan ✓");
+      notifyOrder("UMKMgo", "Notifikasi berhasil diaktifkan ✓");
       toast.success("Notifikasi diaktifkan");
     } finally {
       setBusy(false);

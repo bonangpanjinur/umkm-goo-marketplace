@@ -15,7 +15,7 @@ type Tab = {
 const TABS: Tab[] = [
   { to: "/pos-app/orders", label: "Kasir", hint: "Transaksi POS in-store", icon: ListOrdered, countKey: "pos" },
   { to: "/pos-app/online-orders", label: "Web Toko", hint: "Order dari web toko Anda", icon: Bell, countKey: "online" },
-  { to: "/pos-app/marketplace-orders", label: "Marketplace", hint: "Order dari marketplace KopiHub", icon: ShoppingCart, countKey: "marketplace" },
+  { to: "/pos-app/marketplace-orders", label: "Marketplace", hint: "Order dari marketplace UMKMgo", icon: ShoppingCart, countKey: "marketplace" },
 ];
 
 export function OrdersTabs() {

@@ -65,10 +65,10 @@ function ShopLayout() {
       const detail = (e as CustomEvent).detail;
       if (!detail || detail.slug === slug) update();
     };
-    window.addEventListener("kopihub-cart-change", handler);
+    window.addEventListener("umkmgo-cart-change", handler);
     window.addEventListener("storage", update);
     return () => {
-      window.removeEventListener("kopihub-cart-change", handler);
+      window.removeEventListener("umkmgo-cart-change", handler);
       window.removeEventListener("storage", update);
     };
   }, [slug]);

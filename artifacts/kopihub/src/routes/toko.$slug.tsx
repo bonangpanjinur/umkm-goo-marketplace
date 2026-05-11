@@ -101,8 +101,8 @@ function ShopPage() {
   }, [slug]);
 
   useSeo({
-    title: shop ? `${shop.name} — KopiHub` : "Toko",
-    description: shop?.tagline ?? shop?.description ?? (shop ? `Belanja produk dari ${shop.name} di KopiHub.` : undefined),
+    title: shop ? `${shop.name} — UMKMgo` : "Toko",
+    description: shop?.tagline ?? shop?.description ?? (shop ? `Belanja produk dari ${shop.name} di UMKMgo.` : undefined),
     image: shop?.logo_url ?? undefined,
     type: "website",
     jsonLd: shop ? {

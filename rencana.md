@@ -128,7 +128,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 ---
 
 #### A-4. Konfigurasi Nama & Branding Platform
-**Kenapa penting:** Saat ini "KopiHub" hardcoded di mana-mana. Platform harus bisa dipakai untuk klien berbeda.
+**Kenapa penting:** Saat ini "UMKMgo" hardcoded di mana-mana. Platform harus bisa dipakai untuk klien berbeda.
 
 **Yang perlu dibangun:**
 - Halaman `/admin/platform` tab "Branding"
@@ -861,7 +861,7 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | O-24 | Label Pengiriman | ✅ Selesai | `pos-app.shipping-labels.tsx`: daftar pesanan delivery aktif, pilih satu/semua, generate label cetak via window.open + print — format label (pengirim + penerima + nomor resi + total). Nav di grup Pengiriman Lanjutan. |
 | B-16 | Share Produk | ✅ Selesai | `toko.$slug.produk.$productId.tsx`: tombol Share di samping Wishlist — Web Share API (mobile) + fallback copy URL, toast konfirmasi, ikon Check animasi 2 detik. |
 | B-17 | Referral Program | ✅ Selesai | `akun.referral.tsx`: kode referral unik per user, share via Web Share API, statistik (total diajak/reward diterima/menunggu), riwayat referral dengan status label, mekanisme 3 tahap, penjelasan cara kerja. Nav ditambah ke /akun. |
-| B-18 | Loyalty Lintas Platform | ✅ Selesai | `akun.loyalty.tsx`: poin dari semua toko KopiHub, 4 tier (Bronze/Silver/Gold/Platinum) dengan perks berbeda, tukar poin ke voucher/gratis ongkir, progress bar ke tier berikutnya, riwayat earn/redeem/expire. Nav ditambah ke /akun. |
+| B-18 | Loyalty Lintas Platform | ✅ Selesai | `akun.loyalty.tsx`: poin dari semua toko UMKMgo, 4 tier (Bronze/Silver/Gold/Platinum) dengan perks berbeda, tukar poin ke voucher/gratis ongkir, progress bar ke tier berikutnya, riwayat earn/redeem/expire. Nav ditambah ke /akun. |
 | B-19 | Chat Toko per Pesanan | ✅ Selesai | `pesanan.$orderId.chat.tsx`: chat in-app per pesanan — realtime via Supabase channel, bubble chat pembeli/penjual/system, sistem pesan pertama otomatis, auto-scroll ke bawah. |
 | B-20 | Map Toko | ✅ Selesai | `toko.$slug.map.tsx`: halaman peta toko — embed OpenStreetMap via iframe (jika koordinat ada), info alamat/phone/jam operasional, tombol Lokasiku (Geolocation API) + Google Maps + Petunjuk Arah. |
 

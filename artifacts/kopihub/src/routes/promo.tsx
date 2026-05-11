@@ -42,8 +42,8 @@ function PromoPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   useSeo({
-    title: "Promo & Flash Sale — KopiHub",
-    description: "Promo terbaru, flash sale produk pilihan, dan voucher hemat dari KopiHub.",
+    title: "Promo & Flash Sale — UMKMgo",
+    description: "Promo terbaru, flash sale produk pilihan, dan voucher hemat dari UMKMgo.",
   });
 
   useEffect(() => {
@@ -104,7 +104,7 @@ function PromoPage() {
       <section className="mx-auto max-w-7xl px-4 py-10">
         <div className="mb-4 flex items-center gap-2">
           <Ticket className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold tracking-tight">Voucher KopiHub</h2>
+          <h2 className="text-xl font-bold tracking-tight">Voucher UMKMgo</h2>
         </div>
         {vouchers.length === 0 ? (
           <p className="text-sm text-muted-foreground">Belum ada voucher aktif.</p>
