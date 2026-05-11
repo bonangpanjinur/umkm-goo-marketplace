@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus } from "lucide-react";
+import { addToCart } from "@/lib/marketplace-cart";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
   component: ProductDetailPage,
