@@ -206,10 +206,12 @@ function OnlineOrders() {
   }));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-      <div className="mb-4 flex items-center gap-2">
-        <ShoppingBag className="h-5 w-5" />
-        <h1 className="text-xl font-semibold">Order Online</h1>
+    <>
+      <OrdersTabs />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="mb-4 flex items-center gap-2">
+          <ShoppingBag className="h-5 w-5" />
+          <h2 className="text-base font-semibold text-muted-foreground">Order Web Toko</h2>
         <Button
           size="sm"
           variant={notifPerm === "granted" ? "secondary" : "outline"}
