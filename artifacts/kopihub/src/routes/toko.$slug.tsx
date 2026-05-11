@@ -64,6 +64,29 @@ function ShopPage() {
     })();
   }, [slug]);
 
+  useSeo({
+    title: shop ? `${shop.name} — KopiHub` : "Toko",
+    description: shop?.tagline ?? shop?.description ?? (shop ? `Belanja produk dari ${shop.name} di KopiHub.` : undefined),
+    image: shop?.logo_url ?? undefined,
+    type: "website",
+    jsonLd: shop ? {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      name: shop.name,
+      description: shop.description ?? shop.tagline ?? undefined,
+      image: shop.logo_url ?? undefined,
+      address: shop.address ?? undefined,
+      telephone: shop.phone ?? undefined,
+      ...(shop.rating_avg && shop.rating_count ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: shop.rating_avg,
+          reviewCount: shop.rating_count,
+        },
+      } : {}),
+    } : null,
+  });
+
   if (notFound) {
     return (
       <div className="min-h-screen bg-background">
