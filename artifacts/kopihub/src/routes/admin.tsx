@@ -34,7 +34,7 @@ function AdminLayout() {
   useEffect(() => {
     if (loading || roleLoading) return;
     if (!user) { navigate({ to: "/login" }); return; }
-    if (!isAdmin) { navigate({ to: "/app" }); return; }
+    if (!isAdmin) { navigate({ to: "/pos-app" }); return; }
     setReady(true);
   }, [user, loading, isAdmin, roleLoading, navigate]);
 
@@ -63,7 +63,7 @@ function AdminLayout() {
         })}
       </nav>
       <div className="border-t border-sidebar-border p-3">
-        <Link to="/app" className="flex items-center gap-2 text-sm text-sidebar-foreground/80 hover:text-sidebar-foreground">
+        <Link to="/pos-app" className="flex items-center gap-2 text-sm text-sidebar-foreground/80 hover:text-sidebar-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali ke App
         </Link>
       </div>

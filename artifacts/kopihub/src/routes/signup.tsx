@@ -38,7 +38,7 @@ function SignupPage() {
       password,
       options: {
         data: { display_name: name },
-        emailRedirectTo: window.location.origin + "/app",
+        emailRedirectTo: window.location.origin + "/pos-app",
       },
     });
     setBusy(false);
