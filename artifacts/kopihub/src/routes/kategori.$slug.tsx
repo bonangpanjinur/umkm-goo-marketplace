@@ -72,7 +72,7 @@ function CategoryPage() {
       if (shopIds.length > 0) {
         const { data: prods } = await supabase
           .from("menu_items")
-          .select("id, shop_id, name, price, image_url, slug, rating_avg, shop:coffee_shops(slug, name)")
+          .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)")
           .in("shop_id", shopIds)
           .eq("is_available", true)
           .order("rating_avg", { ascending: false, nullsFirst: false })
