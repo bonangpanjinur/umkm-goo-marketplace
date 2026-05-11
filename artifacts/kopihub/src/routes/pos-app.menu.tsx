@@ -96,6 +96,9 @@ function MenuPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [flashPrice, setFlashPrice] = useState<string>("");
+  const [flashStarts, setFlashStarts] = useState<string>("");
+  const [flashEnds, setFlashEnds] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
 
