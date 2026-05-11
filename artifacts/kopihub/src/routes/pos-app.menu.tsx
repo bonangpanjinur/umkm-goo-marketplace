@@ -42,6 +42,9 @@ type MenuItem = {
   category_id: string | null;
   track_stock: boolean;
   recipe_yield: number;
+  flash_price: number | null;
+  flash_starts_at: string | null;
+  flash_ends_at: string | null;
 };
 
 type HPPRow = {
