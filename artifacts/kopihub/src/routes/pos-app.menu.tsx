@@ -42,6 +42,9 @@ type MenuItem = {
   category_id: string | null;
   track_stock: boolean;
   recipe_yield: number;
+  flash_price: number | null;
+  flash_starts_at: string | null;
+  flash_ends_at: string | null;
 };
 
 type HPPRow = {
@@ -93,6 +96,9 @@ function MenuPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [flashPrice, setFlashPrice] = useState<string>("");
+  const [flashStarts, setFlashStarts] = useState<string>("");
+  const [flashEnds, setFlashEnds] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
 
@@ -107,7 +113,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -152,7 +158,18 @@ function MenuPage() {
     setTrackStock(false);
     setRecipeYield("1");
     setImageUrl(null);
+    setFlashPrice("");
+    setFlashStarts("");
+    setFlashEnds("");
     setOpen(true);
+  }
+
+  function toLocalInput(iso: string | null) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off * 60000);
+    return local.toISOString().slice(0, 16);
   }
 
   function openEdit(it: MenuItem) {
@@ -165,6 +182,9 @@ function MenuPage() {
     setTrackStock(Boolean(it.track_stock));
     setRecipeYield(String(it.recipe_yield ?? 1));
     setImageUrl(it.image_url);
+    setFlashPrice(it.flash_price != null ? String(it.flash_price) : "");
+    setFlashStarts(toLocalInput(it.flash_starts_at));
+    setFlashEnds(toLocalInput(it.flash_ends_at));
     setOpen(true);
   }
 
@@ -201,6 +221,12 @@ function MenuPage() {
     }
     setSaving(true);
     const yieldNum = Math.max(1, Number(recipeYield) || 1);
+    const fpNum = flashPrice.trim() === "" ? null : Number(flashPrice);
+    if (fpNum != null && (isNaN(fpNum) || fpNum < 0 || fpNum >= priceNum)) {
+      toast.error("Harga flash harus lebih kecil dari harga normal");
+      setSaving(false);
+      return;
+    }
     const payload = {
       shop_id: shop.id,
       name: name.trim(),
@@ -211,6 +237,9 @@ function MenuPage() {
       category_id: categoryId === NO_CATEGORY ? null : categoryId,
       track_stock: trackStock,
       recipe_yield: yieldNum,
+      flash_price: fpNum,
+      flash_starts_at: fpNum != null && flashStarts ? new Date(flashStarts).toISOString() : null,
+      flash_ends_at: fpNum != null && flashEnds ? new Date(flashEnds).toISOString() : null,
     };
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
@@ -394,6 +423,40 @@ function MenuPage() {
                   <p className="text-[11px] text-muted-foreground">
                     Mis. 1 batch sirup → 20 porsi. HPP per porsi = total bahan ÷ yield.
                   </p>
+                </div>
+
+                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold">Flash sale</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Set harga diskon dengan jadwal mulai & berakhir.
+                      </div>
+                    </div>
+                    {flashPrice && (
+                      <button type="button" onClick={() => { setFlashPrice(""); setFlashStarts(""); setFlashEnds(""); }}
+                        className="text-[11px] text-muted-foreground hover:text-destructive">
+                        Hapus
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-[11px]">Harga flash</Label>
+                      <Input type="number" inputMode="numeric" value={flashPrice}
+                        onChange={(e) => setFlashPrice(e.target.value)} placeholder="20000" />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Mulai</Label>
+                      <Input type="datetime-local" value={flashStarts}
+                        onChange={(e) => setFlashStarts(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Berakhir</Label>
+                      <Input type="datetime-local" value={flashEnds}
+                        onChange={(e) => setFlashEnds(e.target.value)} />
+                    </div>
+                  </div>
                 </div>
 
                 {editing && (() => {
