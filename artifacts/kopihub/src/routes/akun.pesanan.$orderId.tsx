@@ -94,6 +94,14 @@ function OrderDetailPage() {
             <span>Total</span><span>{formatIDR(order.total)}</span>
           </div>
 
+          {order.fulfillment === "delivery" && (
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/track/$orderId" params={{ orderId: order.id }}>
+                <Truck className="h-4 w-4 mr-2" />Lacak Pengantaran
+              </Link>
+            </Button>
+          )}
+
           {canReview && reviewItems.length > 0 && (
             <Button onClick={() => setReviewOpen(true)} className="w-full" variant={allReviewed ? "outline" : "default"}>
               <Star className="h-4 w-4 mr-2" />{allReviewed ? "Edit Ulasan" : "Beri Ulasan"}
