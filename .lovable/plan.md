@@ -1,32 +1,64 @@
-## Fase 5 — Notifikasi & Re-engagement
+## Hasil Analisis
 
-Pengerjaan dibagi 2 batch berurutan agar tiap batch selesai utuh + bisa dites sebelum lanjut.
+Saya jalankan typecheck (`tsc --noEmit`), Vite build production, dan Supabase linter di seluruh project. **Tidak ada compile error / build error tersisa** — `dist-check` sudah lulus (output ke `artifacts/kopihub/dist/public/index.html`, 3551 modul ter-transform sukses dalam 11s).
 
-### Batch A (loop ini)
-**1. In-app Notifications (bell + realtime)**
-- Migrasi: tabel `notifications` (recipient_user_id, shop_id, type, title, body, link, severity, read_at, dedupe_key) + RLS user-only.
-- RPC `mark_notification_read(_id)`, `mark_all_notifications_read()`.
-- Trigger otomatis di event kunci:
-  - Order baru masuk (marketplace) → notif ke owner shop
-  - Status order berubah → notif ke customer
-  - Sengketa dibuka → notif ke owner; sengketa diselesaikan → notif ke customer
-  - Payout disetujui/ditolak → notif ke owner
-- Komponen `NotificationBell.tsx` (dropdown + badge unread + realtime channel) dipasang di header customer & owner.
-- Halaman `/akun/notifikasi` (list lengkap + mark all read).
+Tapi audit menemukan **4 kategori utang teknis** yang perlu dirapikan agar app stabil & aman menjelang produksi.
 
-**2. Email Transaksional via Lovable Emails**
-- Setup email infra (otomatis via tool) → template React Email untuk: order created, status updated, dispute opened, dispute resolved, payout approved.
-- Server route enqueue dipanggil dari trigger DB via `pg_net` (atau dari client setelah aksi sukses).
-- Domain: pakai `notify.<lovable-domain>` default (bisa custom nanti).
+### Temuan
 
-### Batch B (next loop)
-**3. Re-engagement** — cron harian:
-- Cart abandonment: cari `marketplace_carts` >24h tanpa order → kirim email + notif "Lanjutkan belanja".
-- Promo blast: untuk promo `is_active` baru, kirim ke customer follower toko.
+**1. Type-safety dilewati di 16 file (78 cast `supabase as any`)**
+Banyak query menggunakan cast karena `src/integrations/supabase/types.ts` tertinggal dari schema (mis. tabel `tables`, `printers`, beberapa RPC baru). Risiko: nama kolom salah → silent failure di runtime, tidak tertangkap typecheck. File terdampak antara lain:
+- `hooks/use-tables.ts`, `lib/loyalty-enhanced.ts`, `lib/reservations.ts`, `lib/receipt-printer.ts`, `lib/parked-carts.ts`, `lib/third-party-api.ts`
+- `routes/pos-app.categories.tsx`, `pos-app.printers.tsx`, `pos-app.pos.tsx`, `pos-app.inventory.tsx`, `pos-app.reports.profit.tsx`, `pos-app.marketplace-analytics.tsx`, `admin.analytics.tsx`, `s.$slug.menu.$menuId.tsx`
+- `components/EnhancedOpenBill.tsx`, `components/customer/ReviewDialog.tsx`
 
-**4. Web Push (PWA)** — opsional, butuh konfirmasi VAPID:
-- Service worker, tabel `push_subscriptions`, edge function `send-push`.
-- Saya akan minta VAPID public/private key saat masuk batch ini.
+**2. Supabase linter: 143 warning keamanan**
+- 1× extension di schema `public`
+- 4× public storage bucket dengan policy listing terlalu luas
+- 137× `SECURITY DEFINER` function bisa di-execute oleh `anon`/`authenticated` tanpa perlu (perlu `REVOKE EXECUTE FROM PUBLIC` selektif)
 
-### Mulai dari Batch A?
-Jika setuju, saya langsung jalankan migrasi notifikasi + setup email infra, lalu lanjut UI bell & template email.
+**3. Bundle JS terlalu besar**
+Main chunk **2.17 MB** (606 KB gzip). Belum ada code-splitting per route. Mengakibatkan TTFB lambat, terutama di mobile.
+
+**4. Sourcemap warning di 5 komponen shadcn**
+`label.tsx`, `select.tsx`, `sheet.tsx`, `dialog.tsx`, `tooltip.tsx` — kosmetik tapi mengganggu log build.
+
+---
+
+## Rencana Perbaikan (4 Batch)
+
+### Batch A — Type Safety (Prioritas tinggi)
+- Regenerasi `types.ts` lewat migration kosong (memicu refresh otomatis), lalu hapus 78 cast `(supabase as any)` satu-per-satu.
+- Verifikasi setiap RPC baru (`mark_notification_read`, `marketplace_checkout`, `escrow_*`, dll.) sudah ada di `Database["public"]["Functions"]`.
+- Untuk tabel legacy yang benar-benar tidak ada (cek: `tables`, `printers`, `kds_stations`, `loyalty_*` enhanced) — putuskan: buat migration tabelnya, atau hapus fitur yang menggantungnya.
+
+### Batch B — Security Hardening
+- `REVOKE EXECUTE ON FUNCTION ... FROM PUBLIC, anon, authenticated` untuk semua SECURITY DEFINER yang hanya dipanggil internal/trigger.
+- Untuk RPC yang memang client-callable (mis. `marketplace_checkout`), pastikan ada validasi `auth.uid()` di body fungsi.
+- Pindahkan extension dari `public` ke schema `extensions`.
+- Persempit policy `storage.objects` pada bucket publik (allow `SELECT` per-prefix, bukan blanket).
+
+### Batch C — Performance Bundle
+- Pecah route besar dengan dynamic import (lazy route components TanStack Router).
+- Tambah `build.rollupOptions.output.manualChunks` untuk vendor (`react`, `recharts`, `@radix-ui/*`, `framer-motion`).
+- Target: main chunk < 800 KB gzip.
+
+### Batch D — Polish (cepat)
+- Tambah `// @ts-nocheck` atau update sourcemap untuk 5 komponen shadcn yang warning.
+- Cek route `/kategori` (yang sedang user buka) — verifikasi data loading, fallback empty-state, SEO meta.
+
+---
+
+## Detail Teknis (untuk developer)
+
+```text
+Build status:  PASS  (vite build → dist/public, 11.42s)
+Typecheck:     PASS  (tsc --noEmit, 0 errors)
+Linter DB:     143 WARN (0 ERROR)
+Bundle main:   2,172 KB raw / 606 KB gzip
+Casts:         78× (supabase as any) di 16 file
+```
+
+Urutan eksekusi yang disarankan: **A → B → C → D**. Batch A & B paling kritis untuk stabilitas; C & D bisa dijalankan paralel setelahnya.
+
+Setujui rencana ini, atau pilih batch tertentu yang mau saya kerjakan duluan?
