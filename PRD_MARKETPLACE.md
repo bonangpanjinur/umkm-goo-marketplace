@@ -2052,3 +2052,39 @@ Semua template notifikasi (email, in-app) dapat diedit oleh Super Admin:
 ---
 
 *PRD ini dibuat berdasarkan analisis mendalam kode repositori FlowPOS/KopiHub yang sudah ada dan telah diperbarui dengan keputusan yang dikonfirmasi oleh pemilik platform. Fondasi teknis yang ada memungkinkan estimasi pengembangan lebih cepat dibandingkan memulai dari nol — perkiraan 60–70% infrastruktur sudah tersedia.*
+
+---
+
+## Status Implementasi (per Sesi 7 + Fase 2)
+
+### ✅ Fase 1 — MVP Marketplace (selesai)
+- **Sesi 1-2 Foundations**: business categories, marketplace toggle, slug-based shop pages (`/toko/$slug`), product detail (`/toko/$slug/produk/$productId`), homepage marketplace, search awal.
+- **Sesi 3 Cart & Checkout**: keranjang multi-toko (`/keranjang`), checkout (`/checkout`), halaman sukses, halaman pesanan (`/pesanan/$orderId`), withdrawal admin (`/admin/withdrawals`), dompet & komisi.
+- **Sesi 4 Owner Marketplace Orders**: `/pos-app/marketplace-orders` untuk konfirmasi, status, escrow.
+- **Sesi 5 Customer Account & Reviews**: `/akun` (profil, alamat, pesanan), upload foto review, ulasan toko + balasan, `MarketplaceReviewDialog`, `ProductReviews`.
+- **Sesi 6 Discovery & SEO**: filter & sort `/search`, JSON-LD (`Product`, `Store`), dynamic head meta, featured shops/produk, partial indexes.
+- **Sesi 7 Pengiriman & Tracking**: zona ongkir per toko di checkout, ongkir otomatis terhitung & masuk total per pesanan, halaman lacak (`/track/$orderId`) realtime, kurir wajib upload **bukti foto pengantaran** (`courier_mark_delivered`), link "Lacak Pengantaran" di akun pelanggan.
+
+### ✅ Fase 2 — Promo & Voucher (selesai sebagian)
+- **Voucher platform** (lintas-toko, dikelola super admin)
+  - Tabel `platform_vouchers` + `platform_voucher_redemptions`
+  - CRUD admin di `/admin/vouchers`: kode, jenis (% / nominal), nilai, min belanja, maks diskon, kuota total & per pengguna, jadwal aktif
+  - Diterapkan di marketplace_checkout secara proporsional ke setiap pesanan toko
+- **Voucher per-toko di marketplace checkout**
+  - Memanfaatkan tabel `promos` lama (channel `online`/`all`)
+  - Input kode voucher di tiap kartu toko di `/checkout`
+- **Flash sale ringan**
+  - Kolom `flash_price`, `flash_starts_at`, `flash_ends_at` pada `menu_items`
+  - `marketplace_checkout` otomatis pakai `flash_price` saat aktif
+- **Tracking diskon** pada `orders`: `shop_voucher_code`, `shop_voucher_discount`, `platform_voucher_code`, `platform_voucher_discount`
+
+### 🔜 Sisa pekerjaan Fase 2 (opsional sesi berikut)
+- UI owner untuk mengatur flash sale di `/pos-app/menu` (set harga + jadwal lewat form)
+- Badge flash sale di kartu produk marketplace + countdown timer
+- Halaman publik `/promo` daftar voucher platform aktif
+- Loyalty points lintas toko (poin marketplace)
+
+### Saran Fase Berikutnya
+- **Fase 3 — Sengketa & Komunikasi**: alur dispute/refund, chat customer↔seller (realtime), auto-release escrow setelah X hari.
+- **Fase 4 — Analitik**: dashboard admin (GMV, take-rate), dashboard owner marketplace (konversi, AOV), export laporan.
+- **Fase 5 — Notifikasi & Re-engagement**: email/WA notif (status order, broadcast promo), push notification PWA.
