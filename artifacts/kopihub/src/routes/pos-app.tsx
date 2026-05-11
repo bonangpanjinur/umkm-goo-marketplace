@@ -50,6 +50,7 @@ import { OwnerReminderBanner } from "@/components/owner-reminder-banner";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
