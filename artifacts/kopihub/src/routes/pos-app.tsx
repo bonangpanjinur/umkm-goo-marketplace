@@ -281,6 +281,9 @@ function AppLayoutInner() {
             </div>
             <span className="truncate text-sm font-semibold">{shop?.name ?? "KopiHub"}</span>
           </div>
+          <div className="ml-auto">
+            <NotificationBell />
+          </div>
         </header>
 
         <main className="flex-1 overflow-auto">
