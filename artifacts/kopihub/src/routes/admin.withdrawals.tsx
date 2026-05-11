@@ -85,7 +85,7 @@ function AdminWithdrawals() {
     const patch: Record<string, unknown> = { status, reviewed_at: new Date().toISOString() };
     if (status === "rejected" && reject_reason) patch.reject_reason = reject_reason;
     if (status === "paid") patch.paid_at = new Date().toISOString();
-    const { error } = await supabase.from("withdrawal_requests").update(patch).eq("id", id);
+    const { error } = await supabase.from("withdrawal_requests").update(patch as any).eq("id", id);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Status diperbarui");

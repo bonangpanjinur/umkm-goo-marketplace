@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { listCart, checkout, listShopZones, type CartItem, type DeliveryZone } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
-import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,6 +40,10 @@ function CheckoutPage() {
   const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
   const [platformVoucherCode, setPlatformVoucherCode] = useState("");
 
+  const [savedAddress, setSavedAddress] = useState("");
+  const [usingSavedAddress, setUsingSavedAddress] = useState(false);
+  const [saveNewAddress, setSaveNewAddress] = useState(false);
+
   const [authChoice, setAuthChoice] = useState<AuthChoice>("idle");
   const [signingInAnonymously, setSigningInAnonymously] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
@@ -69,7 +73,12 @@ function CheckoutPage() {
         if (prof.display_name) setRecipientName(prof.display_name);
         if (prof.phone) setPhone(prof.phone);
         if (prof.default_address) {
-          setAddress(prof.default_city ? `${prof.default_address}, ${prof.default_city}` : prof.default_address);
+          const full = prof.default_city
+            ? `${prof.default_address}, ${prof.default_city}`
+            : prof.default_address;
+          setAddress(full);
+          setSavedAddress(full);
+          setUsingSavedAddress(true);
         }
       }
     }
@@ -145,6 +154,21 @@ function CheckoutPage() {
         return;
       }
       toast.success(`${ids.length} pesanan berhasil dibuat`);
+
+      if (saveNewAddress && user && !isGuest && address.trim()) {
+        try {
+          const trimmed = address.trim();
+          const commaIdx = trimmed.lastIndexOf(",");
+          const [addr, city] = commaIdx > -1
+            ? [trimmed.slice(0, commaIdx).trim(), trimmed.slice(commaIdx + 1).trim()]
+            : [trimmed, ""];
+          await supabase.from("customer_profiles").upsert(
+            { user_id: user.id, default_address: addr, default_city: city },
+            { onConflict: "user_id" }
+          );
+        } catch (_) {}
+      }
+
       navigate({ to: "/checkout/sukses/$orderId", params: { orderId: ids[0] }, search: { all: ids.join(",") } as any });
     } catch (e: any) {
       toast.error(e.message ?? "Checkout gagal");
@@ -257,13 +281,56 @@ function CheckoutPage() {
                 </div>
                 {fulfillment === "delivery" && (
                   <div className="mt-4">
-                    <Label>Alamat lengkap *</Label>
-                    <Textarea
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Jl. ... No. ..., Kel/Kec, Kota"
-                      rows={3}
-                    />
+                    <Label>Alamat pengantaran *</Label>
+                    {usingSavedAddress && savedAddress ? (
+                      <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                            <p className="text-sm text-emerald-800 leading-snug">{savedAddress}</p>
+                          </div>
+                          <button
+                            type="button"
+                            className="shrink-0 text-xs text-primary underline underline-offset-2"
+                            onClick={() => { setUsingSavedAddress(false); setAddress(""); }}
+                          >
+                            Ganti
+                          </button>
+                        </div>
+                        <p className="mt-1.5 text-xs text-emerald-600 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Menggunakan alamat tersimpan
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-1 space-y-2">
+                        <Textarea
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          placeholder="Jl. ... No. ..., Kel/Kec, Kota"
+                          rows={3}
+                        />
+                        {savedAddress && (
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => { setAddress(savedAddress); setUsingSavedAddress(true); }}
+                          >
+                            ← Gunakan alamat tersimpan
+                          </button>
+                        )}
+                        {!isGuest && (
+                          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={saveNewAddress}
+                              onChange={(e) => setSaveNewAddress(e.target.checked)}
+                              className="rounded"
+                            />
+                            Simpan alamat ini untuk checkout berikutnya
+                          </label>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="mt-4">

@@ -91,7 +91,7 @@ function VariantsPage() {
     } else {
       setTableExists(true);
       const map: Record<string, Variant[]> = {};
-      ((varData ?? []) as Variant[]).forEach(v => {
+      ((varData ?? []) as unknown as Variant[]).forEach(v => {
         if (!map[v.menu_item_id]) map[v.menu_item_id] = [];
         map[v.menu_item_id].push(v);
       });

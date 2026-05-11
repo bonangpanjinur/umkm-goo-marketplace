@@ -49,7 +49,7 @@ export default function DownloadPage() {
       }
 
       // Fetch order
-      const { data: order } = await supabase
+      const { data: order } = await (supabase as any)
         .from("orders")
         .select("id, order_number, payment_status, created_at, total_price, coffee_shops(name)")
         .eq("id", orderId)
@@ -63,7 +63,7 @@ export default function DownloadPage() {
       }
 
       // Fetch product
-      const { data: product } = await supabase
+      const { data: product } = await (supabase as any)
         .from("menu_items")
         .select("id, name, description, price, download_url, download_limit, download_expires_hours, file_type, file_size_kb")
         .eq("id", productId)

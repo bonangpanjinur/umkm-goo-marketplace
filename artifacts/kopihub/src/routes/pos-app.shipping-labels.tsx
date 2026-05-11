@@ -59,7 +59,7 @@ export default function ShippingLabelsPage() {
       .from("orders")
       .select("id, order_number, recipient_name, phone, address, total_price, status, payment_method, created_at, tracking_number")
       .eq("shop_id", shopId)
-      .in("status", ["confirmed", "processing", "shipped"])
+      .in("status", ["confirmed", "processing", "shipped"] as any[])
       .eq("fulfillment", "delivery")
       .order("created_at", { ascending: false })
       .limit(100)

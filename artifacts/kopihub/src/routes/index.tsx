@@ -89,6 +89,7 @@ function MarketplaceHome() {
   const [newShops,    setNewShops]    = useState<Shop[]>([]);
   const [products,    setProducts]    = useState<Product[]>([]);
   const [flashProds,  setFlashProds]  = useState<Product[]>([]);
+  const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [stats,       setStats]       = useState({ shops: 0, products: 0 });
   const [loading,     setLoading]     = useState(true);
 
@@ -97,8 +98,8 @@ function MarketplaceHome() {
       const now = new Date().toISOString();
       const [cats, shopsRes, newShopsRes, prodRes, flashRes, shopCount, prodCount] = await Promise.all([
         supabase.from("business_categories").select("id, slug, name, description, icon_url").eq("is_active", true).order("sort_order"),
-        supabase.from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured, kyc_status").eq("is_active", true).eq("is_featured", true).order("rating_avg", { ascending: false, nullsFirst: false }).limit(8),
-        supabase.from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status").eq("is_active", true).order("created_at", { ascending: false }).limit(6),
+        (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured, kyc_status").eq("is_active", true).eq("is_featured", true).order("rating_avg", { ascending: false, nullsFirst: false }).limit(8),
+        (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status").eq("is_active", true).order("created_at", { ascending: false }).limit(6),
         supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").eq("is_available", true).order("is_featured", { ascending: false }).order("rating_avg", { ascending: false, nullsFirst: false }).limit(12),
         supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").eq("is_available", true).not("flash_price", "is", null).lt("flash_starts_at", now).gt("flash_ends_at", now).order("flash_ends_at", { ascending: true }).limit(8),
         supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("is_active", true),
@@ -112,6 +113,32 @@ function MarketplaceHome() {
       setProducts((prodRes.data as any) ?? []);
       setFlashProds((flashRes.data as any) ?? []);
       setStats({ shops: shopCount.count ?? 0, products: prodCount.count ?? 0 });
+
+      // Produk Terlaris — query order_items 7 hari terakhir
+      try {
+        const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
+        const { data: recentItems } = await supabase
+          .from("order_items")
+          .select("menu_item_id, quantity")
+          .gte("created_at", weekAgo)
+          .not("menu_item_id", "is", null);
+        const countMap: Record<string, number> = {};
+        for (const item of (recentItems ?? [])) {
+          if (item.menu_item_id) {
+            countMap[item.menu_item_id] = (countMap[item.menu_item_id] ?? 0) + Number(item.quantity);
+          }
+        }
+        const topIds = Object.entries(countMap).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([id]) => id);
+        if (topIds.length > 0) {
+          const { data: bestData } = await supabase
+            .from("menu_items")
+            .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)")
+            .in("id", topIds)
+            .eq("is_available", true);
+          setBestsellers((bestData as any) ?? []);
+        }
+      } catch (_) {}
+
       setLoading(false);
     })();
   }, []);
@@ -249,6 +276,37 @@ function MarketplaceHome() {
             )
         }
       </section>
+
+      {/* Produk Terlaris */}
+      {(loading || bestsellers.length > 0) && (
+        <section className="mx-auto max-w-7xl px-4 py-10 border-t border-border">
+          <div className="mb-5 flex items-end justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-rose-500" />
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">Produk Terlaris Minggu Ini</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">Paling banyak dibeli dalam 7 hari terakhir.</p>
+              </div>
+            </div>
+          </div>
+          {loading ? (
+            <SkeletonGrid cols={4} count={8} />
+          ) : (
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              {bestsellers.map((p, i) => (
+                <div key={p.id} className="relative">
+                  {i < 3 && (
+                    <div className={`absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-md ${i === 0 ? "bg-amber-500" : i === 1 ? "bg-slate-400" : "bg-amber-700"}`}>
+                      {i + 1}
+                    </div>
+                  )}
+                  <ProductCard product={p} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* New Shops */}
       {(loading || newShops.length > 0) && (

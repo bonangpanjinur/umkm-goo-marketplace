@@ -33,6 +33,10 @@ function AdminDashboard() {
     gmvToday: 0,
     newShopsWeek: 0,
     suspended: 0,
+    escrowHeld: 0,
+    activeDisputes: 0,
+    webhookFailures: 0,
+    totalEscrowHeldIDR: 0,
   });
   const [trend, setTrend] = useState<DayStat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +70,7 @@ function AdminDashboard() {
       supabase.from("plan_invoices").select("amount_idr").eq("status", "paid").gte("paid_at", monthStart.toISOString()),
       supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", sevenDays),
       supabase.from("coffee_shops").select("id", { count: "exact", head: true }).not("custom_domain", "is", null).is("custom_domain_verified_at", null),
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("kyc_status", "pending"),
+      (supabase as any).from("coffee_shops").select("id", { count: "exact", head: true }).eq("kyc_status", "pending"),
       supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("orders").select("id, total").gte("created_at", todayISO).eq("status", "completed"),
       supabase.from("coffee_shops").select("id", { count: "exact", head: true }).gte("created_at", weekStart),
@@ -75,6 +79,19 @@ function AdminDashboard() {
 
     const mrr = (paidThisMonth ?? []).reduce((s: number, r: { amount_idr: number }) => s + Number(r.amount_idr), 0);
     const gmvToday = (todayOrders ?? []).reduce((s: number, r: { total: number }) => s + Number(r.total), 0);
+
+    // Marketplace KPIs
+    const [
+      { data: escrowData },
+      { count: activeDisputes },
+      { count: webhookFailures },
+    ] = await Promise.all([
+      supabase.from("orders").select("net_to_shop").eq("escrow_status", "held"),
+      (supabase as any).from("disputes").select("id", { count: "exact", head: true }).in("status", ["open", "under_review"]),
+      (supabase as any).from("webhook_logs").select("id", { count: "exact", head: true }).neq("status", "processed").gte("created_at", new Date(Date.now() - 86_400_000).toISOString()),
+    ]);
+    const totalEscrowHeldIDR = (escrowData ?? []).reduce((s: number, r: any) => s + Number(r.net_to_shop ?? 0), 0);
+    const escrowHeld = (escrowData ?? []).length;
 
     setStats({
       shops:              shops ?? 0,
@@ -89,6 +106,10 @@ function AdminDashboard() {
       gmvToday,
       newShopsWeek:       newShopsWeek ?? 0,
       suspended:          suspended ?? 0,
+      escrowHeld,
+      activeDisputes:     activeDisputes ?? 0,
+      webhookFailures:    webhookFailures ?? 0,
+      totalEscrowHeldIDR,
     });
 
     // Build 14-day revenue trend from paid invoices
@@ -195,6 +216,17 @@ function AdminDashboard() {
           <Kpi icon={UserX}      label="Toko Suspend"       value={String(stats.suspended)}     link="/admin/shops"     tone={stats.suspended > 0 ? "bad" : undefined} />
           <Kpi icon={ShoppingCart} label="Pesanan Selesai Hari Ini" value={String(stats.ordersToday)} />
           <Kpi icon={Activity}   label="Toko Baru (7 hari)" value={String(stats.newShopsWeek)} />
+        </div>
+      </div>
+
+      {/* KPI row 4 — Marketplace */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Marketplace & Escrow</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Kpi icon={Coins}        label="Dana Escrow Ditahan"   value={formatIDR(stats.totalEscrowHeldIDR)} sub={`${stats.escrowHeld} pesanan menunggu rilis`} />
+          <Kpi icon={AlertTriangle} label="Sengketa Aktif"       value={String(stats.activeDisputes)}        link="/admin/disputes"  tone={stats.activeDisputes > 0 ? "warn" : undefined} />
+          <Kpi icon={Activity}     label="Webhook Gagal (24j)"   value={String(stats.webhookFailures)}       tone={stats.webhookFailures > 0 ? "bad" : undefined} sub="dari tabel webhook_logs" />
+          <Kpi icon={TrendingUp}   label="GMV Hari Ini"          value={formatIDR(stats.gmvToday)}          sub={`${stats.ordersToday} pesanan selesai`} />
         </div>
       </div>
 

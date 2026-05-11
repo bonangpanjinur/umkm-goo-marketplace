@@ -80,7 +80,7 @@ function WishlistPage() {
   const addCart = async (item: WishlistItem) => {
     if (!item.product || !user) return;
     try {
-      await addToCart({ menuItemId: item.product.id, shopId: item.product.shop_id, qty: 1 });
+      await addToCart({ product_id: item.product.id, shop_id: item.product.shop_id, unit_price: Number(item.product.price ?? 0), quantity: 1 });
       toast.success("Ditambahkan ke keranjang");
     } catch (e: any) {
       toast.error(e.message ?? "Gagal menambah ke keranjang");

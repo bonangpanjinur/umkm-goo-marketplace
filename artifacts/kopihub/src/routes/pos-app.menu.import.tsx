@@ -271,7 +271,7 @@ function MenuImportPage() {
                     <td className="px-3 py-2 text-center">
                       {r.valid
                         ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
-                        : <XCircle className="h-4 w-4 text-destructive mx-auto" title={r.errors.join(", ")} />
+                        : <XCircle className="h-4 w-4 text-destructive mx-auto" aria-label={r.errors.join(", ")} />
                       }
                     </td>
                   </tr>

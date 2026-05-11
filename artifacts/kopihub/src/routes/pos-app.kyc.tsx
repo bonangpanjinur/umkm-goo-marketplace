@@ -80,7 +80,7 @@ function KycPage() {
   const load = async () => {
     if (!shop) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("coffee_shops")
       .select("kyc_status, kyc_document_url, kyc_submitted_at, kyc_reviewed_at, kyc_reject_reason")
       .eq("id", shop.id)
@@ -119,7 +119,7 @@ function KycPage() {
           kyc_status: "pending",
           kyc_submitted_at: new Date().toISOString(),
           kyc_reject_reason: null,
-        })
+        } as any)
         .eq("id", shop.id);
       if (dbErr) throw dbErr;
 

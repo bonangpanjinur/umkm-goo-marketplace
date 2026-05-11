@@ -140,6 +140,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
       { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
+      { to: "/pos-app/rekening-bank", label: "Rekening Bank", icon: Building2 },
       { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
       { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
       { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },

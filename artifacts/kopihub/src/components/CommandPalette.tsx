@@ -23,13 +23,14 @@ type CmdItem = {
 };
 
 export function CommandPalette({ open, onClose, role }: { open: boolean; onClose: () => void; role: "admin" | "owner" }) {
-  const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigate = (useNavigate as any)();
   const [query, setQuery] = useState("");
   const [shopResults, setShopResults] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [productResults, setProductResults] = useState<{ id: string; name: string; shop_id: string }[]>([]);
   const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Navigation items for admin
   const adminItems: CmdItem[] = [

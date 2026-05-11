@@ -49,7 +49,7 @@ export default function WishlistAnalyticsPage() {
 
       if (!items || items.length === 0) { setProducts([]); setLoading(false); return; }
 
-      const { data: wishlistCounts } = await supabase
+      const { data: wishlistCounts } = await (supabase as any)
         .from("wishlists")
         .select("menu_item_id")
         .in("menu_item_id", items.map((i: any) => i.id));

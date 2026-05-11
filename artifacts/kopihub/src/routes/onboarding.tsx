@@ -113,8 +113,8 @@ function OnboardingPage() {
           name: shopName.trim(),
           slug,
           description: description.trim() || null,
-          business_category: categoryId,
-        })
+          business_category_id: categoryId,
+        } as any)
         .select("id")
         .single();
       if (shopErr || !shop) throw shopErr ?? new Error("Gagal membuat toko");
@@ -158,7 +158,7 @@ function OnboardingPage() {
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("shop-assets").getPublicUrl(path);
 
-      await supabase.from("coffee_shops").update({
+      await (supabase as any).from("coffee_shops").update({
         kyc_document_url: urlData.publicUrl,
         kyc_status: "pending",
         kyc_submitted_at: new Date().toISOString(),

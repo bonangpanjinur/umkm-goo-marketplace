@@ -179,7 +179,7 @@ function ProductDetailPage() {
                   {product.description}
                 </p>
               )}
-              <AddToCartBlock product={product} shopSlug={shop.slug} />
+              <AddToCartBlock product={product} shopSlug={shop.slug} shop={shop} />
             </div>
           </div>
         ) : null}
@@ -255,11 +255,12 @@ function WishlistButton({ productId }: { productId: string }) {
   );
 }
 
-function AddToCartBlock({ product, shopSlug }: { product: Product; shopSlug: string }) {
+function AddToCartBlock({ product, shopSlug, shop }: { product: Product; shopSlug: string; shop?: Shop | null }) {
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
-  const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigate = (useNavigate as any)();
   const outOfStock = product.track_stock && (product.stock ?? 0) <= 0;
 
   const onAdd = async (goCheckout = false) => {
@@ -310,7 +311,7 @@ function AddToCartBlock({ product, shopSlug }: { product: Product; shopSlug: str
       </div>
       <div className="flex gap-2">
         <WishlistButton productId={product.id} />
-        <ShareButton product={product} shop={shop} />
+        {shop && <ShareButton product={product} shop={shop as Shop} />}
         <Button
           size="lg"
           variant="outline"

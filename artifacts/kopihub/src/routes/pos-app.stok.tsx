@@ -59,6 +59,7 @@ function StokTerpadu() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      // @ts-ignore - Supabase join type depth
       const { data: orderItems } = await supabase
         .from("order_items" as any)
         .select("product_id, quantity, orders!inner(channel, created_at, shop_id)")
@@ -98,7 +99,7 @@ function StokTerpadu() {
         low_stock_threshold: item.low_stock_threshold,
         auto_disable_on_empty: item.auto_disable_on_empty,
         is_available: item.is_available,
-      })
+      } as any)
       .eq("id", item.id);
     setSaving(null);
     if (error) toast.error(error.message);

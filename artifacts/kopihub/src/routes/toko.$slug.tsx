@@ -70,7 +70,7 @@ function ShopPage() {
     (async () => {
       setLoading(true);
       const { data: s } = await supabase
-        .from("coffee_shops")
+        .from("coffee_shops" as any)
         .select("id, slug, name, tagline, description, logo_url, address, phone, rating_avg, rating_count, business_category_id, kyc_status")
         .eq("slug", slug)
         .eq("is_active", true)
@@ -80,7 +80,7 @@ function ShopPage() {
         setLoading(false);
         return;
       }
-      setShop(s as Shop);
+      setShop(s as unknown as Shop);
       loadFollowStatus((s as any).id);
 
       const { data: prods } = await supabase

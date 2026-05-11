@@ -45,7 +45,7 @@ export default function OrderChatPage() {
       setStatus((order as any).status ?? "");
       setShopName((order as any).coffee_shops?.name ?? "Toko");
 
-      const { data: msgs } = await supabase
+      const { data: msgs } = await (supabase as any)
         .from("order_messages")
         .select("*")
         .eq("order_id", orderId)
@@ -90,7 +90,7 @@ export default function OrderChatPage() {
       sender_type: "buyer",
       sender_id: user.id,
     };
-    const { error } = await supabase.from("order_messages").insert(newMsg);
+    const { error } = await (supabase as any).from("order_messages").insert(newMsg);
     if (error) {
       setMessages(m => [...m, {
         id: `local-${Date.now()}`,

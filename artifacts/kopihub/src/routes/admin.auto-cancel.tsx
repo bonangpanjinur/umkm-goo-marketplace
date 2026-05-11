@@ -68,7 +68,7 @@ function AdminAutoCancel() {
           coffee_shops!inner(name),
           customer_profiles(display_name)
         `)
-        .in("status", ["pending", "awaiting_payment"])
+        .in("status", ["pending", "awaiting_payment"] as any[])
         .order("created_at", { ascending: true })
         .limit(50) as any;
       if (error) throw error;

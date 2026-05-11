@@ -63,7 +63,7 @@ function AdminKycPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("coffee_shops")
       .select("id, name, slug, owner_id, kyc_status, kyc_document_url, kyc_submitted_at, kyc_reviewed_at, kyc_reviewer_id, kyc_reject_reason, created_at")
       .not("kyc_status", "is", null)
@@ -107,7 +107,7 @@ function AdminKycPage() {
     setBusy(true);
     const { error } = await supabase
       .from("coffee_shops")
-      .update({ kyc_status: "in_review", kyc_reviewer_id: user?.id ?? null })
+      .update({ kyc_status: "in_review", kyc_reviewer_id: user?.id ?? null } as any)
       .eq("id", entry.id);
     if (error) { toast.error(error.message); setBusy(false); return; }
     toast.success("Status diubah ke 'Sedang Ditinjau'");
@@ -126,7 +126,7 @@ function AdminKycPage() {
         kyc_reviewed_at: now,
         kyc_reviewer_id: user?.id ?? null,
         kyc_reject_reason: null,
-      })
+      } as any)
       .eq("id", entry.id);
     if (error) { toast.error(error.message); setBusy(false); return; }
     toast.success("KYC disetujui");
@@ -146,7 +146,7 @@ function AdminKycPage() {
         kyc_reviewed_at: now,
         kyc_reviewer_id: user?.id ?? null,
         kyc_reject_reason: rejectReason.trim(),
-      })
+      } as any)
       .eq("id", entry.id);
     if (error) { toast.error(error.message); setBusy(false); return; }
     toast.success("KYC ditolak");

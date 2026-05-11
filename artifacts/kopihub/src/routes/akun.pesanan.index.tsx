@@ -1,10 +1,34 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+
+function OrderCountdownBadge({ createdAt }: { createdAt: string }) {
+  const [label, setLabel] = useState("");
+  const idRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    const deadline = new Date(createdAt).getTime() + 24 * 60 * 60 * 1000;
+    const tick = () => {
+      const ms = deadline - Date.now();
+      if (ms <= 0) { setLabel("Kadaluarsa"); if (idRef.current) clearInterval(idRef.current); return; }
+      const h = Math.floor(ms / 3_600_000);
+      const m = Math.floor((ms % 3_600_000) / 60_000);
+      setLabel(h > 0 ? `Bayar dalam ${h}j ${m}m` : `Bayar dalam ${m}m`);
+    };
+    tick();
+    idRef.current = setInterval(tick, 30_000);
+    return () => { if (idRef.current) clearInterval(idRef.current); };
+  }, [createdAt]);
+  if (!label) return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+      <Timer className="h-2.5 w-2.5" /> {label}
+    </span>
+  );
+}
 
 export const Route = createFileRoute("/akun/pesanan/")({
   component: OrdersListPage,
@@ -61,7 +85,7 @@ function OrdersListPage() {
     if (!user) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, order_no, status, total, created_at, updated_at, fulfillment, shop:coffee_shops(name, slug, logo_url)")
+      .select("id, order_no, status, payment_status, total, created_at, updated_at, fulfillment, shop:coffee_shops(name, slug, logo_url)")
       .eq("customer_user_id", user.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -158,10 +182,13 @@ function OrdersListPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {o.order_no} · {new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
-                    <div className="mt-1.5 flex items-center gap-2">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${colorCls}`}>
                         {STATUS_LABEL[o.status] ?? o.status}
                       </span>
+                      {o.status === "pending" && o.payment_status === "unpaid" && (
+                        <OrderCountdownBadge createdAt={o.created_at} />
+                      )}
                       <span className="text-sm font-semibold">{formatIDR(o.total)}</span>
                     </div>
                   </div>

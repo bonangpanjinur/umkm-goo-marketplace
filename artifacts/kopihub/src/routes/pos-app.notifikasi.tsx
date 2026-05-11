@@ -98,7 +98,7 @@ function OwnerNotifikasiPage() {
       .eq("recipient_shop_id", shop.id)
       .order("created_at", { ascending: false })
       .limit(150);
-    setNotifs((data as Notif[]) ?? []);
+    setNotifs((data as unknown as Notif[]) ?? []);
     setLoading(false);
   }, [shop?.id]);
 

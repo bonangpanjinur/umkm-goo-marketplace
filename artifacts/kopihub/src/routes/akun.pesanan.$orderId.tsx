@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Loader2, ArrowLeft, Star, MessageSquare, Truck, AlertOctagon,
   Check, Clock, Package, PackageCheck, PackageX, Bike, Store,
-  ShieldCheck, RefreshCw,
+  ShieldCheck, RefreshCw, Timer, CreditCard, AlertTriangle,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { MarketplaceReviewDialog } from "@/components/marketplace/MarketplaceReviewDialog";
@@ -63,6 +63,48 @@ const STEPS_PICKUP = [
 ];
 
 type StatusLog = { status: string; created_at: string; note: string | null };
+
+function PaymentCountdownBanner({ deadlineMs, orderId }: { deadlineMs: number; orderId: string }) {
+  const [remaining, setRemaining] = useState("");
+  useEffect(() => {
+    const tick = () => {
+      const ms = deadlineMs - Date.now();
+      if (ms <= 0) { setRemaining(""); return; }
+      const h = Math.floor(ms / 3_600_000);
+      const m = Math.floor((ms % 3_600_000) / 60_000);
+      const s = Math.floor((ms % 60_000) / 1000);
+      setRemaining(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [deadlineMs]);
+
+  if (!remaining) return (
+    <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-center gap-3">
+      <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
+      <div>
+        <p className="font-semibold text-red-900 text-sm">Waktu bayar habis</p>
+        <p className="text-xs text-red-700 mt-0.5">Pesanan otomatis dibatalkan karena melewati batas waktu pembayaran.</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+      <div className="flex items-start gap-3">
+        <Timer className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="font-semibold text-amber-900 text-sm">Selesaikan pembayaran segera</p>
+          <p className="text-xs text-amber-700 mt-0.5">Pesanan akan dibatalkan otomatis jika belum dibayar dalam:</p>
+          <div className="mt-2 inline-flex items-center rounded-lg bg-amber-100 px-3 py-1.5 font-mono text-lg font-bold tabular-nums text-amber-900 tracking-wider">
+            <CreditCard className="h-4 w-4 mr-2" /> {remaining}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function getStepIndex(steps: typeof STEPS_DELIVERY, status: string) {
   const idx = steps.findIndex(s => s.key === status ||
@@ -230,9 +272,12 @@ function OrderDetailPage() {
     resolved: "Selesai", rejected: "Ditolak",
   };
   const isActive = ["pending", "confirmed", "preparing", "ready", "in_delivery", "delivering"].includes(order.status);
+  const needsPayment = order.status === "pending" && ["unpaid", "awaiting_gateway"].includes(order.payment_status ?? "");
+  const payDeadlineMs = new Date(order.created_at).getTime() + 24 * 60 * 60 * 1000;
 
   return (
     <div className="space-y-4">
+      {needsPayment && <PaymentCountdownBanner deadlineMs={payDeadlineMs} orderId={order.id} />}
       <div className="flex items-center justify-between">
         <Link to="/akun/pesanan" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
@@ -292,6 +337,28 @@ function OrderDetailPage() {
       </Card>
 
       <OrderTimeline order={order} logs={logs} />
+
+      {canReview && !allReviewed && reviewItems.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+              <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-amber-900">Yuk kasih ulasan!</p>
+              <p className="mt-0.5 text-xs text-amber-700 leading-relaxed">
+                Pesananmu sudah selesai. Bantu pembeli lain dengan memberikan ulasan untuk produk dari <strong>{order.shop?.name}</strong>.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setReviewOpen(true)}
+            className="mt-3 w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white border-0"
+          >
+            <Star className="h-4 w-4 fill-white" /> Tulis Ulasan Sekarang
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-2 sm:grid-cols-2">
         {order.fulfillment === "delivery" && (
