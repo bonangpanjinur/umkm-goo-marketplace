@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "cd artifacts/kopihub && npm install --no-audit --no-fund --legacy-peer-deps && npx vite build --config vite.config.ts",
+  "outputDirectory": "artifacts/kopihub/dist/public",
+  "installCommand": "echo skip",
+  "rewrites": [
+    { "source": "/((?!assets/|.*\\..*).*)", "destination": "/index.html" }
+  ],
+  "regions": ["sin1"]
+}
