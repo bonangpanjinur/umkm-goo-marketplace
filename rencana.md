@@ -25,6 +25,7 @@
 | 11 Mei 2026 | **Sprint 1 — 4.4 Badge Verifikasi** ✅ | Badge "Terverifikasi" (ShieldCheck hijau) muncul di halaman publik toko bila `kyc_status = approved`. Query diupdate include `kyc_status`. |
 | 11 Mei 2026 | **SQL Migration update** ✅ | Tambah tabel `wishlists`, `shop_follows`, dan `platform_settings` ke `sprint1_kyc_variants.sql`. |
 | 11 Mei 2026 | **Sprint 1 — B-9 Notifikasi In-App** ✅ | `akun.notifikasi.tsx` inbox 100 notif + filter tab + group per hari + mark read realtime. Tabel `notifications` + 2 RPC ditambah ke SQL migration. Nav "Notifikasi" (Bell) di /akun sidebar. |
+| 11 Mei 2026 | **Sprint 1 — B-7 Tracking Pesanan** ✅ | `akun.pesanan.index.tsx`: filter tab + colored badge + pulsing indicator berlangsung + realtime update. `akun.pesanan.$orderId.tsx`: `OrderTimeline` component — step-by-step visual (animated active, checkmark done, connecting line, timestamp per step dari `order_status_logs`), realtime channel. Tabel `order_status_logs` + RLS di SQL migration. |
 
 ---
 
@@ -810,7 +811,7 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | B-4 | Marketplace Home Lebih Hidup | 🟡 Sebagian | — |
 | B-5 | Search Lebih Canggih | 🟡 Sebagian | — |
 | B-6 | Alur Review Lebih Jelas | 🟡 Sebagian | — |
-| B-7 | Tracking Lebih Lengkap | 🟡 Sebagian | — |
+| B-7 | Tracking Lebih Lengkap | ✅ Selesai | Timeline visual per-step embedded di order detail (animated pulsing active step, checkmark done, connecting line, timestamp). Filter tab Semua/Berlangsung/Selesai/Dibatalkan di list. Realtime via Supabase channel. Tabel `order_status_logs` + RLS di SQL migration. |
 | B-8 | Akun Pembeli Lebih Lengkap | 🟡 Sebagian | — |
 | B-9 | Notifikasi Pembeli In-App | ✅ Selesai | `akun.notifikasi.tsx` inbox lengkap: filter Semua/Belum Dibaca/Pesanan/Promo/Sistem, group per hari, mark one/all read realtime, graceful fallback. SQL: tabel `notifications` + RPC `mark_notification_read` + `mark_all_notifications_read`. |
 | B-10 | Bottom Nav Mobile | ✅ Selesai | `MarketplaceBottomNav.tsx` — sticky bottom nav 5 tab (Beranda/Cari/Keranjang/Wishlist/Akun) mobile-only, cart badge realtime |

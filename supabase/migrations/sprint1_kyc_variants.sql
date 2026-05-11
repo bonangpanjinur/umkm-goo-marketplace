@@ -146,7 +146,30 @@ BEGIN
 END;
 $$;
 
--- 9. Storage bucket for KYC docs (run once)
+-- 9. Order status logs (per-step timestamps for buyer tracking timeline)
+CREATE TABLE IF NOT EXISTS order_status_logs (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id   uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  status     text NOT NULL,
+  note       text,
+  actor_id   uuid REFERENCES auth.users(id),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_order_status_logs_order ON order_status_logs(order_id, created_at);
+
+ALTER TABLE order_status_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "buyer_read_own" ON order_status_logs;
+DROP POLICY IF EXISTS "owner_all"      ON order_status_logs;
+CREATE POLICY "buyer_read_own" ON order_status_logs FOR SELECT USING (
+  order_id IN (SELECT id FROM orders WHERE customer_user_id = auth.uid())
+);
+CREATE POLICY "owner_all" ON order_status_logs USING (
+  order_id IN (SELECT o.id FROM orders o JOIN coffee_shops cs ON cs.id = o.shop_id WHERE cs.owner_id = auth.uid())
+) WITH CHECK (
+  order_id IN (SELECT o.id FROM orders o JOIN coffee_shops cs ON cs.id = o.shop_id WHERE cs.owner_id = auth.uid())
+);
+
+-- 10. Storage bucket for KYC docs (run once)
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('shop-assets', 'shop-assets', true)
 ON CONFLICT (id) DO NOTHING;
