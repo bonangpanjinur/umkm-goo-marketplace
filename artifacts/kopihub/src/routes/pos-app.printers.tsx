@@ -56,12 +56,12 @@ function PrintersPage() {
   async function load() {
     if (!outlet) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("printers")
       .select("*")
       .eq("outlet_id", outlet.id)
       .order("created_at", { ascending: true });
-    setPrinters((data ?? []) as Printer[]);
+    setPrinters((data ?? []) as unknown as Printer[]);
     setLoading(false);
   }
 

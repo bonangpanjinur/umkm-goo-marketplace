@@ -87,7 +87,9 @@ function KDSPage() {
               name: item.name,
               quantity: item.quantity,
               note: item.note,
-              kds_station: item.menu_items?.categories?.kds_station || "general"
+              category_id: item.menu_items?.category_id ?? null,
+              category_id: item.menu_items?.category_id ?? null,
+                      kds_station: item.menu_items?.categories?.kds_station || "general"
             }));
 
             const grouped = processedItems.reduce((acc: any, item: any) => {
@@ -142,6 +144,8 @@ function KDSPage() {
                       name: item.name,
                       quantity: item.quantity,
                       note: item.note,
+                      category_id: item.menu_items?.category_id ?? null,
+              category_id: item.menu_items?.category_id ?? null,
                       kds_station: item.menu_items?.categories?.kds_station || "general"
                     }));
                     setItems((prev) => ({ ...prev, [newOrder.id]: processed }));

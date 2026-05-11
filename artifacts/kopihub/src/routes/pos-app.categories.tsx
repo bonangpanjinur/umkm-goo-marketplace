@@ -60,12 +60,12 @@ function CategoriesPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name, sort_order, is_active, kds_station, printer_id")
+      .select("id, name, sort_order, is_active")
       .eq("shop_id", shop.id)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) toast.error(error.message);
-    setItems(data ?? []);
+    setItems(((data ?? []) as any[]).map((c) => ({ ...c, kds_station: null, printer_id: null })));
 
     if (outlet) {
       const { data: pData } = await (supabase as any)
@@ -111,7 +111,7 @@ function CategoriesPage() {
     };
 
     if (editing) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("categories")
         .update(payload)
         .eq("id", editing.id);
@@ -119,7 +119,7 @@ function CategoriesPage() {
       else toast.success("Kategori diperbarui");
     } else {
       const nextOrder = (items[items.length - 1]?.sort_order ?? 0) + 10;
-      const { error } = await supabase.from("categories").insert({
+      const { error } = await (supabase as any).from("categories").insert({
         ...payload,
         shop_id: shop.id,
         sort_order: nextOrder,

@@ -223,7 +223,7 @@ function TablesPage() {
         </div>
       ) : tables && tables.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tables.map((table) => (
+          {tables.map((table: any) => (
             <Card key={table.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

@@ -19,10 +19,10 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
-  head: ({ search }) => ({
+  head: () => ({
     meta: [
-      { title: search.q ? `Hasil "${search.q}" — KopiHub` : "Pencarian — KopiHub" },
-      { name: "description", content: `Cari produk dan toko di marketplace KopiHub${search.q ? `: ${search.q}` : ""}.` },
+      { title: "Pencarian — KopiHub" },
+      { name: "description", content: "Cari produk dan toko di marketplace KopiHub." },
     ],
   }),
   component: SearchPage,
