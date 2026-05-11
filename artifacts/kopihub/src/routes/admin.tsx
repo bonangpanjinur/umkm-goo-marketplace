@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
