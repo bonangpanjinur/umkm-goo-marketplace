@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/kopihub run build",
+  "outputDirectory": "artifacts/kopihub/dist/public",
+  "installCommand": "echo 'install handled in buildCommand'",
+  "rewrites": [
+    { "source": "/((?!assets/|.*\\..*).*)", "destination": "/index.html" }
+  ],
+  "regions": ["sin1"]
+}

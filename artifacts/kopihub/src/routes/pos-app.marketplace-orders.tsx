@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -136,16 +137,17 @@ function MarketplaceOrdersPage() {
   if (!user) return null;
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 max-w-6xl">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" /> Pesanan Marketplace
-          </h1>
-          <p className="text-sm text-muted-foreground">Order yang masuk dari marketplace publik (MKT-*)</p>
+    <>
+      <OrdersTabs />
+      <div className="p-4 sm:p-6 space-y-4 max-w-6xl">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-muted-foreground flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" /> Pesanan Marketplace (MKT-*)
+            </h2>
+          </div>
+          <Button variant="outline" size="sm" onClick={load}><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
         </div>
-        <Button variant="outline" size="sm" onClick={load}><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
-      </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
@@ -253,6 +255,7 @@ function MarketplaceOrdersPage() {
         dispute={resolveFor}
         onResolved={load}
       />
-    </div>
+      </div>
+    </>
   );
 }

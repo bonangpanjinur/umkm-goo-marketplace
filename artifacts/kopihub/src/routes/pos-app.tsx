@@ -57,7 +57,7 @@ export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
 });
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string };
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[] };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
@@ -73,9 +73,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "orders",
     label: "Pesanan",
     items: [
-      { to: "/pos-app/orders", label: "Pesanan Kasir", icon: ListOrdered, hint: "Transaksi POS in-store" },
-      { to: "/pos-app/online-orders", label: "Pesanan Web Toko", icon: Bell, hint: "Order dari web toko Anda" },
-      { to: "/pos-app/marketplace-orders", label: "Pesanan Marketplace", icon: ShoppingCart, hint: "Order dari marketplace KopiHub" },
+      { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
       { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
     ],
   },
@@ -217,14 +215,18 @@ function AppLayoutInner() {
   }, [staff.isOwner, staff.isStaff, staff.allowedModules]);
 
   // Track which group is open; auto-open the group that contains the active route
+  const matchItem = (it: NavItem, path: string) => {
+    if (it.exact) return path === it.to;
+    if (path.startsWith(it.to)) return true;
+    return it.aliases?.some((a) => path.startsWith(a)) ?? false;
+  };
   const activeGroupId = useMemo(() => {
     for (const g of visibleGroups) {
-      if (g.items.some((it) => (it.exact ? location.pathname === it.to : location.pathname.startsWith(it.to)))) {
-        return g.id;
-      }
+      if (g.items.some((it) => matchItem(it, location.pathname))) return g.id;
     }
     return visibleGroups[0]?.id ?? null;
   }, [visibleGroups, location.pathname]);
+
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   useEffect(() => {
@@ -284,9 +286,7 @@ function AppLayoutInner() {
               {isOpen && (
                 <div className="space-y-0.5 mt-0.5">
                   {group.items.map((item) => {
-                    const active = item.exact
-                      ? location.pathname === item.to
-                      : location.pathname.startsWith(item.to);
+                    const active = matchItem(item, location.pathname);
                     const Icon = item.icon;
                     const locked = item.proOnly && !isPro;
                     return (
