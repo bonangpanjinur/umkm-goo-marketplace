@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ShoppingCart, Phone, MapPin, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { fmtIDR } from "@/lib/format";
+import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/marketplace-orders")({
   head: () => ({ meta: [{ title: "Pesanan Marketplace" }] }),
@@ -83,7 +83,7 @@ function MarketplaceOrdersPage() {
         const o: any = payload.new;
         if (o?.order_no?.startsWith("MKT-")) {
           if (payload.eventType === "INSERT") {
-            toast.success(`Pesanan baru: ${o.order_no}`, { description: `${fmtIDR(o.total)}` });
+            toast.success(`Pesanan baru: ${o.order_no}`, { description: `${formatIDR(o.total)}` });
             try { new Audio("/notify.mp3").play().catch(() => {}); } catch {}
           }
           load();
@@ -171,15 +171,15 @@ function MarketplaceOrdersPage() {
                   {(o.items || []).map((it: any) => (
                     <div key={it.id} className="flex justify-between text-sm">
                       <span>{it.qty}× {it.name}</span>
-                      <span>{fmtIDR(it.total)}</span>
+                      <span>{formatIDR(it.total)}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="border-t pt-2 grid grid-cols-3 gap-2 text-xs">
-                  <div><div className="text-muted-foreground">Total</div><div className="font-semibold">{fmtIDR(o.total)}</div></div>
-                  <div><div className="text-muted-foreground">Komisi</div><div className="text-red-600">-{fmtIDR(o.commission_amount || 0)}</div></div>
-                  <div><div className="text-muted-foreground">Net</div><div className="font-semibold text-green-700">{fmtIDR(o.net_to_shop || 0)}</div></div>
+                  <div><div className="text-muted-foreground">Total</div><div className="font-semibold">{formatIDR(o.total)}</div></div>
+                  <div><div className="text-muted-foreground">Komisi</div><div className="text-red-600">-{formatIDR(o.commission_amount || 0)}</div></div>
+                  <div><div className="text-muted-foreground">Net</div><div className="font-semibold text-green-700">{formatIDR(o.net_to_shop || 0)}</div></div>
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
