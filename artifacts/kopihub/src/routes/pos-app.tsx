@@ -269,37 +269,57 @@ function AppLayoutInner() {
 
       <OutletSwitcher shopName={shop?.name} />
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
-        {visibleNav.map((item) => {
-          const active = (item as { exact?: boolean }).exact
-            ? location.pathname === item.to
-            : location.pathname.startsWith(item.to);
-          const Icon = item.icon;
-          const locked = (item as { proOnly?: boolean }).proOnly && !isPro;
+      <nav className="flex-1 overflow-y-auto px-2 py-2">
+        {visibleGroups.map((group) => {
+          const isOpen = openGroups[group.id] ?? group.id === activeGroupId;
           return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="flex-1">{item.label}</span>
-              {(item as { proOnly?: boolean }).proOnly && (
-                <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${isPro ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                  {locked ? <Lock className="h-3 w-3 inline" /> : "PRO"}
-                </span>
+            <div key={group.id} className="mb-1">
+              <button
+                type="button"
+                onClick={() => setOpenGroups((p) => ({ ...p, [group.id]: !isOpen }))}
+                className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors"
+              >
+                <span>{group.label}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
+              </button>
+              {isOpen && (
+                <div className="space-y-0.5 mt-0.5">
+                  {group.items.map((item) => {
+                    const active = item.exact
+                      ? location.pathname === item.to
+                      : location.pathname.startsWith(item.to);
+                    const Icon = item.icon;
+                    const locked = item.proOnly && !isPro;
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        title={item.hint}
+                        className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
+                          active
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="flex-1 truncate">{item.label}</span>
+                        {item.proOnly && (
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${isPro ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                            {locked ? <Lock className="h-3 w-3 inline" /> : "PRO"}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            </Link>
+            </div>
           );
         })}
         {isAdmin && (
           <Link
             to="/admin"
-            className="mt-2 flex items-center gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-sm font-medium text-amber-700 hover:bg-amber-500/20"
+            className="mt-3 flex items-center gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-sm font-medium text-amber-700 hover:bg-amber-500/20"
           >
             <ShieldCheck className="h-4 w-4" /> Super Admin
           </Link>
