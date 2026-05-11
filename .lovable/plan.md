@@ -1,64 +1,58 @@
-## Hasil Analisis
+## Analisis awal
 
-Saya jalankan typecheck (`tsc --noEmit`), Vite build production, dan Supabase linter di seluruh project. **Tidak ada compile error / build error tersisa** — `dist-check` sudah lulus (output ke `artifacts/kopihub/dist/public/index.html`, 3551 modul ter-transform sukses dalam 11s).
+Error `dist-check failed with exit status 1` masih terlalu umum, jadi perbaikannya harus menargetkan jalur yang dipakai harness untuk membangun dan menemukan output aplikasi.
 
-Tapi audit menemukan **4 kategori utang teknis** yang perlu dirapikan agar app stabil & aman menjelang produksi.
+Temuan dari konfigurasi saat ini:
 
-### Temuan
+1. **Ada dua jalur build yang tidak sepenuhnya selaras**
+   - Root `package.json` membangun dari `artifacts/kopihub`, lalu menyalin hasil ke root `dist/public`.
+   - Artifact config `.replit-artifact/artifact.toml` membangun package `@workspace/kopihub` dan membaca output dari `artifacts/kopihub/dist/public`.
+   - Jika dist-check memakai salah satu jalur ini secara berbeda, hasil build bisa sukses tetapi lokasi output yang dicek kosong/salah.
 
-**1. Type-safety dilewati di 16 file (78 cast `supabase as any`)**
-Banyak query menggunakan cast karena `src/integrations/supabase/types.ts` tertinggal dari schema (mis. tabel `tables`, `printers`, beberapa RPC baru). Risiko: nama kolom salah → silent failure di runtime, tidak tertangkap typecheck. File terdampak antara lain:
-- `hooks/use-tables.ts`, `lib/loyalty-enhanced.ts`, `lib/reservations.ts`, `lib/receipt-printer.ts`, `lib/parked-carts.ts`, `lib/third-party-api.ts`
-- `routes/pos-app.categories.tsx`, `pos-app.printers.tsx`, `pos-app.pos.tsx`, `pos-app.inventory.tsx`, `pos-app.reports.profit.tsx`, `pos-app.marketplace-analytics.tsx`, `admin.analytics.tsx`, `s.$slug.menu.$menuId.tsx`
-- `components/EnhancedOpenBill.tsx`, `components/customer/ReviewDialog.tsx`
+2. **Root `dist` saat ini kosong**
+   - Ini mengindikasikan output root hanya ada setelah script root dijalankan. Bila dist-check memeriksa root `dist/public` tanpa menjalankan script yang tepat, check gagal.
 
-**2. Supabase linter: 143 warning keamanan**
-- 1× extension di schema `public`
-- 4× public storage bucket dengan policy listing terlalu luas
-- 137× `SECURITY DEFINER` function bisa di-execute oleh `anon`/`authenticated` tanpa perlu (perlu `REVOKE EXECUTE FROM PUBLIC` selektif)
+3. **Skrip root masih menggunakan `cd` + path relatif panjang**
+   - Skrip seperti `cd artifacts/kopihub && ... && cd ../.. && cp -R ...` rentan gagal jika working directory harness berbeda atau jika salah satu path tidak tersedia.
 
-**3. Bundle JS terlalu besar**
-Main chunk **2.17 MB** (606 KB gzip). Belum ada code-splitting per route. Mengakibatkan TTFB lambat, terutama di mobile.
+4. **Masih ada area runtime/backend risk, tapi bukan penyebab utama dist-check**
+   - Route notifikasi dan beberapa fitur POS memakai tabel/RPC backend, tetapi file route sudah terdaftar dan tipe notifikasi ada di generated types.
+   - Risiko ini lebih relevan untuk runtime dan Batch A Type Safety, bukan kegagalan dist-check langsung.
 
-**4. Sourcemap warning di 5 komponen shadcn**
-`label.tsx`, `select.tsx`, `sheet.tsx`, `dialog.tsx`, `tooltip.tsx` — kosmetik tapi mengganggu log build.
+## Rencana perbaikan
 
----
+### 1. Stabilkan script build root
+- Ubah root `package.json` agar `build` dan `build:dev` tidak bergantung pada `cd` berantai.
+- Gunakan `bun --cwd artifacts/kopihub run build` atau command absolut yang konsisten.
+- Setelah build artifact selesai, mirror output ke root `dist/public` dengan path eksplisit.
+- Pastikan script menghapus output lama sebelum menyalin agar dist-check tidak membaca artifact basi.
 
-## Rencana Perbaikan (4 Batch)
+### 2. Selaraskan output artifact dan root
+- Pertahankan `artifacts/kopihub/vite.config.ts` dengan `outDir: artifacts/kopihub/dist/public` karena ini dipakai artifact production config.
+- Pastikan root `dist/public/index.html` selalu dibuat oleh root script.
+- Jangan mengubah `routeTree.gen.ts` karena file ini auto-generated.
 
-### Batch A — Type Safety (Prioritas tinggi)
-- Regenerasi `types.ts` lewat migration kosong (memicu refresh otomatis), lalu hapus 78 cast `(supabase as any)` satu-per-satu.
-- Verifikasi setiap RPC baru (`mark_notification_read`, `marketplace_checkout`, `escrow_*`, dll.) sudah ada di `Database["public"]["Functions"]`.
-- Untuk tabel legacy yang benar-benar tidak ada (cek: `tables`, `printers`, `kds_stations`, `loyalty_*` enhanced) — putuskan: buat migration tabelnya, atau hapus fitur yang menggantungnya.
+### 3. Periksa dependency command yang dipakai harness
+- Pastikan root script tidak mengasumsikan `pnpm` jika environment menjalankan `bun`.
+- Jika perlu, buat script root memakai `bun --cwd` untuk konsisten dengan workspace saat ini.
+- Hindari menyentuh dependency atau lockfile kecuali error menunjukkan dependency hilang.
 
-### Batch B — Security Hardening
-- `REVOKE EXECUTE ON FUNCTION ... FROM PUBLIC, anon, authenticated` untuk semua SECURITY DEFINER yang hanya dipanggil internal/trigger.
-- Untuk RPC yang memang client-callable (mis. `marketplace_checkout`), pastikan ada validasi `auth.uid()` di body fungsi.
-- Pindahkan extension dari `public` ke schema `extensions`.
-- Persempit policy `storage.objects` pada bucket publik (allow `SELECT` per-prefix, bukan blanket).
+### 4. Bersihkan potensi TypeScript path mismatch ringan
+- Periksa ulang route baru `/akun/notifikasi` dan import komponen notifikasi hanya jika ada indikasi dari dist-check/log.
+- Jika error berasal dari TanStack typed link, ganti cast route dinamis dengan pola aman tanpa mengganggu routing.
 
-### Batch C — Performance Bundle
-- Pecah route besar dengan dynamic import (lazy route components TanStack Router).
-- Tambah `build.rollupOptions.output.manualChunks` untuk vendor (`react`, `recharts`, `@radix-ui/*`, `framer-motion`).
-- Target: main chunk < 800 KB gzip.
+### 5. Validasi setelah perubahan
+- Verifikasi melalui sinyal harness/dist-check yang muncul setelah perubahan.
+- Cek bahwa dua target output berikut tersedia:
+  - `artifacts/kopihub/dist/public/index.html`
+  - `dist/public/index.html`
+- Jika dist-check masih gagal, lanjutkan dari log spesifik pertama, bukan menebak area lain.
 
-### Batch D — Polish (cepat)
-- Tambah `// @ts-nocheck` atau update sourcemap untuk 5 komponen shadcn yang warning.
-- Cek route `/kategori` (yang sedang user buka) — verifikasi data loading, fallback empty-state, SEO meta.
+## File yang kemungkinan diubah
 
----
+- `package.json` root: perbaikan utama script `build`, `build:dev`, dan bila perlu `typecheck`.
+- File route/komponen hanya disentuh jika log dist-check menunjukkan error kode spesifik.
 
-## Detail Teknis (untuk developer)
+## Batasan
 
-```text
-Build status:  PASS  (vite build → dist/public, 11.42s)
-Typecheck:     PASS  (tsc --noEmit, 0 errors)
-Linter DB:     143 WARN (0 ERROR)
-Bundle main:   2,172 KB raw / 606 KB gzip
-Casts:         78× (supabase as any) di 16 file
-```
-
-Urutan eksekusi yang disarankan: **A → B → C → D**. Batch A & B paling kritis untuk stabilitas; C & D bisa dijalankan paralel setelahnya.
-
-Setujui rencana ini, atau pilih batch tertentu yang mau saya kerjakan duluan?
+Saya tidak akan mengubah schema database atau fitur POS dalam perbaikan ini, karena targetnya adalah menyelesaikan `dist-check` terlebih dahulu.
