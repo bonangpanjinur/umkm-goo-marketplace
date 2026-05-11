@@ -1973,6 +1973,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          link: string | null
+          read_at: string | null
+          recipient_user_id: string
+          severity: string
+          shop_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_user_id: string
+          severity?: string
+          shop_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_user_id?: string
+          severity?: string
+          shop_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       parked_carts: {
         Row: {
           created_at: string
