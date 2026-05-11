@@ -52,6 +52,16 @@ export function MarketplaceHeader() {
         <Link to="/kategori" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">
           Kategori
         </Link>
+        <Link to="/keranjang" className="relative" aria-label="Keranjang">
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+          {count > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              {count}
+            </span>
+          )}
+        </Link>
         {user ? (
           <Link to="/pos-app">
             <Button size="sm" variant="outline" className="gap-1.5">
