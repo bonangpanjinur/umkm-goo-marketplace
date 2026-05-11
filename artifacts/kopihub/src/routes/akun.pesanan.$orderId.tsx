@@ -36,7 +36,7 @@ function OrderDetailPage() {
     if (!user) return;
     const { data: o } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, tax_amount, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, shop:coffee_shops(id, name, slug, logo_url, whatsapp, phone)")
+      .select("id, order_no, status, payment_status, total, subtotal, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, shop:coffee_shops(id, name, slug, logo_url, whatsapp, phone)")
       .eq("id", orderId)
       .eq("customer_user_id", user.id)
       .maybeSingle();

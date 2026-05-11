@@ -31,8 +31,8 @@ export function ResolveDisputeDialog({
     const { error } = await supabase.rpc("resolve_dispute", {
       _dispute_id: dispute.id,
       _status: status,
-      _resolution: resolution.trim() || null,
-      _refund_amount: refundNum,
+      _resolution: resolution.trim() || undefined,
+      _refund_amount: refundNum ?? undefined,
     });
     setBusy(null);
     if (error) { toast.error(error.message); return; }

@@ -67,7 +67,7 @@ export function EnhancedOpenBill({
         .eq("outlet_id", outletId);
 
       if (error) throw error;
-      return data as OpenBill[];
+      return (data || []).map((bill: any) => ({ ...bill, table_id: bill.table_id ?? null, items: bill.items ?? [] })) as OpenBill[];
     },
   });
 
@@ -75,7 +75,7 @@ export function EnhancedOpenBill({
   const { data: tables } = useQuery({
     queryKey: ["tables", outletId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tables")
         .select("*")
         .eq("outlet_id", outletId);
@@ -98,7 +98,6 @@ export function EnhancedOpenBill({
             shop_id: shopId,
             outlet_id: outletId,
             label: variables.label,
-            table_id: variables.tableId || null,
             items: [],
             created_by: (await supabase.auth.getUser()).data.user?.id || "",
           },

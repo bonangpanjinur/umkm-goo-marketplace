@@ -68,7 +68,7 @@ function CategoriesPage() {
     setItems(data ?? []);
 
     if (outlet) {
-      const { data: pData } = await supabase
+      const { data: pData } = await (supabase as any)
         .from("printers")
         .select("id, name")
         .eq("outlet_id", outlet.id);

@@ -87,8 +87,8 @@ function PrintersPage() {
     };
 
     const { error } = editing 
-      ? await supabase.from("printers").update(payload).eq("id", editing.id)
-      : await supabase.from("printers").insert([payload]);
+      ? await (supabase as any).from("printers").update(payload).eq("id", editing.id)
+      : await (supabase as any).from("printers").insert([payload]);
 
     if (error) {
       toast.error(error.message);
@@ -103,7 +103,7 @@ function PrintersPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Hapus printer ini?")) return;
-    const { error } = await supabase.from("printers").delete().eq("id", id);
+    const { error } = await (supabase as any).from("printers").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
       toast.success("Printer dihapus");

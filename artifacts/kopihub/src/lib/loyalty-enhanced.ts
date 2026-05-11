@@ -14,7 +14,7 @@ import type {
  * Get loyalty tiers for a shop
  */
 export async function getLoyaltyTiers(shopId: string): Promise<LoyaltyTier[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("loyalty_tiers")
     .select("*")
     .eq("shop_id", shopId)
@@ -36,7 +36,7 @@ export async function getUserLoyaltyTier(
   shopId: string,
   userId: string
 ): Promise<LoyaltyTier | null> {
-  const { data: pointsData } = await supabase
+  const { data: pointsData } = await (supabase as any)
     .from("loyalty_points")
     .select("balance")
     .eq("shop_id", shopId)
@@ -45,7 +45,7 @@ export async function getUserLoyaltyTier(
 
   if (!pointsData) return null;
 
-  const { data: tierData } = await supabase
+  const { data: tierData } = await (supabase as any)
     .from("loyalty_tiers")
     .select("*")
     .eq("shop_id", shopId)
@@ -66,7 +66,7 @@ export async function getAvailableRewards(
 ): Promise<LoyaltyReward[]> {
   const now = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("loyalty_rewards")
     .select("*")
     .eq("shop_id", shopId)
@@ -96,7 +96,7 @@ export async function getRedeemableRewards(
   shopId: string,
   userId: string
 ): Promise<LoyaltyReward[]> {
-  const { data: pointsData } = await supabase
+  const { data: pointsData } = await (supabase as any)
     .from("loyalty_points")
     .select("balance")
     .eq("shop_id", shopId)
@@ -132,7 +132,7 @@ export async function redeemReward(
   rewardId: string,
   orderId?: string
 ): Promise<LoyaltyRedemption | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("loyalty_redemptions")
     .insert({
       shop_id: shopId,
@@ -159,7 +159,7 @@ export async function createLoyaltyReward(
   shopId: string,
   request: CreateLoyaltyRewardRequest
 ): Promise<LoyaltyReward | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("loyalty_rewards")
     .insert({
       shop_id: shopId,
@@ -190,7 +190,7 @@ export async function createLoyaltyReward(
 export async function getReferralPrograms(
   shopId: string
 ): Promise<ReferralProgram[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("referral_programs")
     .select("*")
     .eq("shop_id", shopId)
@@ -212,7 +212,7 @@ export async function createReferralProgram(
   shopId: string,
   request: CreateReferralProgramRequest
 ): Promise<ReferralProgram | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("referral_programs")
     .insert({
       shop_id: shopId,
@@ -245,7 +245,7 @@ export async function generateReferralCode(
   programId: string,
   referrerUserId: string
 ): Promise<Referral | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("referrals")
     .insert({
       shop_id: shopId,
@@ -273,7 +273,7 @@ export async function getUserReferralCode(
   programId: string,
   userId: string
 ): Promise<Referral | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("referrals")
     .select("*")
     .eq("shop_id", shopId)
@@ -298,7 +298,7 @@ export async function redeemReferralCode(
   referralCode: string,
   refereeUserId: string
 ): Promise<Referral | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("referrals")
     .update({
       referee_user_id: refereeUserId,
@@ -322,7 +322,7 @@ export async function redeemReferralCode(
  * Award referral bonus
  */
 export async function awardReferralBonus(referralId: string): Promise<boolean> {
-  const { error } = await supabase.rpc("award_referral_bonus", {
+  const { error } = await (supabase as any).rpc("award_referral_bonus", {
     _referral_id: referralId,
   });
 
@@ -342,7 +342,7 @@ export async function getLoyaltyAnalytics(
   startDate: string,
   endDate: string
 ): Promise<LoyaltyAnalytics[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("loyalty_analytics")
     .select("*")
     .eq("shop_id", shopId)
@@ -369,7 +369,7 @@ export async function getUserReferralStats(
   convertedReferrals: number;
   pendingReferrals: number;
 }> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("referrals")
     .select("status")
     .eq("shop_id", shopId)

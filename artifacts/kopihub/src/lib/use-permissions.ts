@@ -44,7 +44,7 @@ export function usePermissions() {
         .eq("shop_id", shop.id)
         .maybeSingle();
 
-      const userRole = (roleData?.role as AppRole) || (shop.owner_id === user.id ? "owner" : null);
+      const userRole = (roleData?.role as AppRole) || ((shop as any).owner_id === user.id ? "owner" : null);
       setRole(userRole);
 
       // 2. Get granular permissions

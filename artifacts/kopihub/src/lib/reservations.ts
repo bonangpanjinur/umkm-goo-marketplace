@@ -13,7 +13,7 @@ import type {
 export async function getReservationSettings(
   outletId: string
 ): Promise<ReservationSettings | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("reservation_settings")
     .select("*")
     .eq("outlet_id", outletId)
@@ -35,7 +35,7 @@ export async function getAvailableSlots(
   startDate: string,
   endDate: string
 ): Promise<ReservationSlot[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("reservation_slots")
     .select("*")
     .eq("outlet_id", outletId)
@@ -63,7 +63,7 @@ export async function checkTableAvailability(
   partySize: number,
   excludeReservationId?: string
 ): Promise<number> {
-  const { data, error } = await supabase.rpc("check_table_availability", {
+  const { data, error } = await (supabase as any).rpc("check_table_availability", {
     _outlet_id: outletId,
     _reservation_date: reservationDate,
     _reservation_time: reservationTime,
@@ -86,7 +86,7 @@ export async function createReservation(
   shopId: string,
   request: CreateReservationRequest
 ): Promise<Reservation | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("reservations")
     .insert({
       shop_id: shopId,
@@ -133,7 +133,7 @@ export async function updateReservation(
     updateData.cancelled_at = new Date().toISOString();
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("reservations")
     .update(updateData)
     .eq("id", reservationId)
@@ -157,7 +157,7 @@ export async function getReservations(
   startDate?: string,
   endDate?: string
 ): Promise<Reservation[]> {
-  let query = supabase
+  let query = (supabase as any)
     .from("reservations")
     .select("*")
     .eq("outlet_id", outletId)
@@ -192,7 +192,7 @@ export async function getReservations(
 export async function getReservationById(
   reservationId: string
 ): Promise<Reservation | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("reservations")
     .select("*")
     .eq("id", reservationId)
@@ -238,7 +238,7 @@ export async function generateReservationSlots(
   startDate: string,
   endDate: string
 ): Promise<boolean> {
-  const { error } = await supabase.rpc("generate_reservation_slots", {
+  const { error } = await (supabase as any).rpc("generate_reservation_slots", {
     _outlet_id: outletId,
     _start_date: startDate,
     _end_date: endDate,
