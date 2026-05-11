@@ -145,7 +145,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-const ALL_NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 
 function AppLayout() {
