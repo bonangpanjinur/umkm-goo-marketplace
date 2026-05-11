@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
-import { User, ShoppingBag, MapPin, LogOut, Loader2, Heart, Bell, History } from "lucide-react";
+import { User, ShoppingBag, MapPin, LogOut, Loader2, Heart, Bell, History, Gift, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -12,12 +12,14 @@ export const Route = createFileRoute("/akun")({
 });
 
 const NAV = [
-  { to: "/akun",             label: "Profil",      icon: User,      exact: true },
-  { to: "/akun/pesanan",     label: "Pesanan",     icon: ShoppingBag },
-  { to: "/akun/wishlist",    label: "Wishlist",    icon: Heart },
+  { to: "/akun",             label: "Profil",       icon: User,      exact: true },
+  { to: "/akun/pesanan",     label: "Pesanan",      icon: ShoppingBag },
+  { to: "/akun/wishlist",    label: "Wishlist",     icon: Heart },
   { to: "/akun/riwayat",     label: "Baru Dilihat", icon: History },
-  { to: "/akun/notifikasi",  label: "Notifikasi",  icon: Bell },
-  { to: "/akun/alamat",      label: "Alamat",      icon: MapPin },
+  { to: "/akun/loyalty",     label: "Poin Loyalty", icon: Star },
+  { to: "/akun/referral",    label: "Referral",     icon: Gift },
+  { to: "/akun/notifikasi",  label: "Notifikasi",   icon: Bell },
+  { to: "/akun/alamat",      label: "Alamat",       icon: MapPin },
 ];
 
 function AkunLayout() {

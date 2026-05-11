@@ -129,6 +129,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
       { to: "/pos-app/promo-calendar", label: "Kalender Promo", icon: CalendarDays },
       { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
+      { to: "/pos-app/email-marketing", label: "Email Marketing", icon: Bell, proOnly: true },
+      { to: "/pos-app/wishlist-analytics", label: "Analitik Wishlist", icon: Award },
       { to: "/pos-app/reviews", label: "Ulasan Pembeli", icon: Award },
     ],
   },
@@ -146,6 +148,14 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: "delivery_ext",
+    label: "Pengiriman Lanjutan",
+    items: [
+      { to: "/pos-app/rajaongkir", label: "RajaOngkir", icon: Truck },
+      { to: "/pos-app/shipping-labels", label: "Label Pengiriman", icon: Printer },
+    ],
+  },
+  {
     id: "verification",
     label: "Akun & Verifikasi",
     items: [
@@ -159,6 +169,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/pos-app/printers", label: "Printer", icon: Printer },
       { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
+      { to: "/pos-app/storefront-builder", label: "Storefront Builder", icon: LayoutDashboard },
+      { to: "/pos-app/custom-css", label: "Custom CSS", icon: Lock, proOnly: true },
+      { to: "/pos-app/outlets", label: "Multi-Outlet", icon: Building2 },
       { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
       { to: "/pos-app/backup", label: "Backup Data", icon: Database },
       { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },

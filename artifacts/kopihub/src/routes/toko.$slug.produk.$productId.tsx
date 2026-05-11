@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Copy, Check } from "lucide-react";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -195,6 +195,30 @@ function ProductDetailPage() {
   );
 }
 
+function ShareButton({ product, shop }: { product: Product; shop: Shop }) {
+  const [copied, setCopied] = useState(false);
+  const url = window.location.href;
+  const text = `${product.name} — ${shop.name}\nRp ${Number(product.price).toLocaleString("id-ID")}`;
+
+  async function share() {
+    if (navigator.share) {
+      try { await navigator.share({ title: product.name, text, url }); return; } catch {}
+    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast.success("Link produk disalin!");
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Button variant="outline" size="icon" onClick={share}
+      className="h-11 w-11 shrink-0"
+      title="Bagikan produk">
+      {copied ? <Check className="h-5 w-5 text-green-600" /> : <Share2 className="h-5 w-5" />}
+    </Button>
+  );
+}
+
 function WishlistButton({ productId }: { productId: string }) {
   const { user } = useAuth();
   const [wished, setWished] = useState(false);
@@ -286,6 +310,7 @@ function AddToCartBlock({ product, shopSlug }: { product: Product; shopSlug: str
       </div>
       <div className="flex gap-2">
         <WishlistButton productId={product.id} />
+        <ShareButton product={product} shop={shop} />
         <Button
           size="lg"
           variant="outline"

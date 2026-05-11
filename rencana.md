@@ -851,6 +851,26 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | B-13 | Riwayat Lihat Produk | ✅ Selesai | `akun.riwayat.tsx`: localStorage-based, enrich Supabase, hapus per item/semua, timeAgo, link ke produk. Nav "Baru Dilihat" di /akun. |
 | B-14 | Download Produk Digital | ✅ Selesai | `download.$token.tsx`: halaman download publik via token — verifikasi pembayaran, cek expiry, batas unduhan, tombol download + tab baru. |
 | B-15 | Guest Checkout | ✅ Selesai | `checkout.tsx`: halaman pilihan Login/Tamu, `signInAnonymously()`, badge Mode Tamu, banner informasi, field email opsional. |
+| O-18 | Wishlist Analytics | ✅ Selesai | `pos-app.wishlist-analytics.tsx`: daftar produk diurutkan berdasarkan jumlah disimpan ke wishlist — KPI cards total/terfavorit/diminati, search, tampilan ranking dengan ikon trending. Nav ditambah ke grup Pelanggan. |
+| O-19 | Storefront Builder | ✅ Selesai | `pos-app.storefront-builder.tsx`: drag & drop section (hero banner, produk unggulan, teks promo, kategori, testimonial) — add/remove/reorder/toggle aktif, edit properties per section, preview mode langsung. Nav ditambah ke Pengaturan Toko. |
+| O-20 | Custom CSS Editor | ✅ Selesai | `pos-app.custom-css.tsx`: editor CSS tema gelap (zinc-950/green-400), snippet siap pakai, validasi panjang, variabel CSS tersedia, badge Pro. Nav ditambah ke Pengaturan Toko. |
+| O-21 | Multi-Outlet | ✅ Selesai | `pos-app.outlets.tsx`: daftar outlet dengan status KYC per outlet, add outlet baru via dialog, badge Utama/Pro/Enterprise, info pengiriman terpisah per outlet. Nav ditambah ke Pengaturan Toko. |
+| O-22 | Email Marketing | ✅ Selesai | `pos-app.email-marketing.tsx`: campaign list + compose — template cepat (promo/menu baru/loyalty), segmen penerima 4 tipe, variabel personalisasi, KPI cards terkirim/open rate/campaign. Nav ditambah ke grup Pelanggan (Pro). |
+| O-23 | RajaOngkir Integration | ✅ Selesai | `pos-app.rajaongkir.tsx`: cek ongkir real-time (demo 8 layanan 4 kurir), toggle kurir aktif, tab Settings (API key + kota asal), highlight ongkir termurah, settings konfig. Nav di grup Pengiriman Lanjutan. |
+| O-24 | Label Pengiriman | ✅ Selesai | `pos-app.shipping-labels.tsx`: daftar pesanan delivery aktif, pilih satu/semua, generate label cetak via window.open + print — format label (pengirim + penerima + nomor resi + total). Nav di grup Pengiriman Lanjutan. |
+| B-16 | Share Produk | ✅ Selesai | `toko.$slug.produk.$productId.tsx`: tombol Share di samping Wishlist — Web Share API (mobile) + fallback copy URL, toast konfirmasi, ikon Check animasi 2 detik. |
+| B-17 | Referral Program | ✅ Selesai | `akun.referral.tsx`: kode referral unik per user, share via Web Share API, statistik (total diajak/reward diterima/menunggu), riwayat referral dengan status label, mekanisme 3 tahap, penjelasan cara kerja. Nav ditambah ke /akun. |
+| B-18 | Loyalty Lintas Platform | ✅ Selesai | `akun.loyalty.tsx`: poin dari semua toko KopiHub, 4 tier (Bronze/Silver/Gold/Platinum) dengan perks berbeda, tukar poin ke voucher/gratis ongkir, progress bar ke tier berikutnya, riwayat earn/redeem/expire. Nav ditambah ke /akun. |
+| B-19 | Chat Toko per Pesanan | ✅ Selesai | `pesanan.$orderId.chat.tsx`: chat in-app per pesanan — realtime via Supabase channel, bubble chat pembeli/penjual/system, sistem pesan pertama otomatis, auto-scroll ke bawah. |
+| B-20 | Map Toko | ✅ Selesai | `toko.$slug.map.tsx`: halaman peta toko — embed OpenStreetMap via iframe (jika koordinat ada), info alamat/phone/jam operasional, tombol Lokasiku (Geolocation API) + Google Maps + Petunjuk Arah. |
+
+---
+
+## LOG PROGRESS — RENDAH
+
+| Sprint | Tanggal | Item Selesai |
+|---|---|---|
+| Rendah-1 | 11 Mei 2026 | O-18, O-19, O-20, O-21, O-22, O-23, O-24, B-16, B-17, B-18, B-19, B-20 |
 
 ---
 
