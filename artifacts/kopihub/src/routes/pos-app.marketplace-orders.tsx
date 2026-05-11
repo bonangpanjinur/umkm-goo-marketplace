@@ -255,6 +255,7 @@ function MarketplaceOrdersPage() {
         dispute={resolveFor}
         onResolved={load}
       />
-    </div>
+      </div>
+    </>
   );
 }
