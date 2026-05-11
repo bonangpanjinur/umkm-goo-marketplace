@@ -1631,8 +1631,10 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           customer_user_id: string | null
+          delivered_at: string | null
           delivery_address: string | null
           delivery_fee: number
+          delivery_proof_url: string | null
           delivery_zone_id: string | null
           discount: number
           escrow_released_at: string | null
@@ -1677,8 +1679,10 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           customer_user_id?: string | null
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number
+          delivery_proof_url?: string | null
           delivery_zone_id?: string | null
           discount?: number
           escrow_released_at?: string | null
@@ -1723,8 +1727,10 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           customer_user_id?: string | null
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number
+          delivery_proof_url?: string | null
           delivery_zone_id?: string | null
           discount?: number
           escrow_released_at?: string | null
@@ -3519,6 +3525,10 @@ export type Database = {
         Args: { _closing_cash: number; _note?: string; _shift_id: string }
         Returns: Json
       }
+      courier_mark_delivered: {
+        Args: { _order_id: string; _proof_url: string }
+        Returns: undefined
+      }
       ensure_shop_wallet: { Args: { _shop_id: string }; Returns: undefined }
       escrow_hold_order: { Args: { _order_id: string }; Returns: Json }
       escrow_refund_order: {
@@ -3554,8 +3564,10 @@ export type Database = {
           courier_plate: string
           created_at: string
           customer_name: string
+          delivered_at: string
           delivery_address: string
           delivery_fee: number
+          delivery_proof_url: string
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id: string
           order_no: string
@@ -3625,16 +3637,28 @@ export type Database = {
         }
         Returns: string
       }
-      marketplace_checkout: {
-        Args: {
-          _address: string
-          _fulfillment?: string
-          _notes?: string
-          _phone: string
-          _recipient_name: string
-        }
-        Returns: Json
-      }
+      marketplace_checkout:
+        | {
+            Args: {
+              _address: string
+              _fulfillment?: string
+              _notes?: string
+              _phone: string
+              _recipient_name: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _address: string
+              _fulfillment?: string
+              _notes?: string
+              _phone: string
+              _recipient_name: string
+              _shipping?: Json
+            }
+            Returns: Json
+          }
       next_order_no: { Args: { _outlet_id: string }; Returns: string }
       open_shift: {
         Args: { _opening_cash: number; _outlet_id: string }

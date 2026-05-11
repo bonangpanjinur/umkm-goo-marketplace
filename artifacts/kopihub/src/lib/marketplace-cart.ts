@@ -95,12 +95,33 @@ export async function cartCount(): Promise<number> {
   return count ?? 0;
 }
 
+export type DeliveryZone = {
+  id: string;
+  shop_id: string;
+  name: string;
+  fee: number;
+  area_note: string | null;
+};
+
+export async function listShopZones(shopIds: string[]): Promise<DeliveryZone[]> {
+  if (shopIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("delivery_zones")
+    .select("id, shop_id, name, fee, area_note")
+    .in("shop_id", shopIds)
+    .eq("is_active", true)
+    .order("sort_order");
+  if (error) throw error;
+  return (data ?? []).map((z: any) => ({ ...z, fee: Number(z.fee) }));
+}
+
 export async function checkout(args: {
   recipient_name: string;
   phone: string;
   address: string;
   fulfillment?: "delivery" | "pickup";
   notes?: string | null;
+  shipping?: Record<string, string>; // shop_id -> zone_id
 }): Promise<string[]> {
   const { data, error } = await supabase.rpc("marketplace_checkout", {
     _recipient_name: args.recipient_name,
@@ -108,6 +129,7 @@ export async function checkout(args: {
     _address: args.address,
     _fulfillment: args.fulfillment ?? "delivery",
     _notes: args.notes ?? null,
+    _shipping: (args.shipping ?? {}) as any,
   });
   if (error) throw error;
   return ((data as any)?.order_ids as string[]) ?? [];

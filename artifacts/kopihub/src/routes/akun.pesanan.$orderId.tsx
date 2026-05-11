@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Star, MessageSquare } from "lucide-react";
+import { Loader2, ArrowLeft, Star, MessageSquare, Truck } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { MarketplaceReviewDialog } from "@/components/marketplace/MarketplaceReviewDialog";
 
@@ -93,6 +93,14 @@ function OrderDetailPage() {
           <div className="flex justify-between border-t pt-3 font-semibold">
             <span>Total</span><span>{formatIDR(order.total)}</span>
           </div>
+
+          {order.fulfillment === "delivery" && (
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/track/$orderId" params={{ orderId: order.id }}>
+                <Truck className="h-4 w-4 mr-2" />Lacak Pengantaran
+              </Link>
+            </Button>
+          )}
 
           {canReview && reviewItems.length > 0 && (
             <Button onClick={() => setReviewOpen(true)} className="w-full" variant={allReviewed ? "outline" : "default"}>

@@ -100,6 +100,30 @@ function CourierView() {
     else toast.success("Status diperbarui");
   };
 
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const completeWithProof = async (orderId: string, file: File) => {
+    setUploadingId(orderId);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${orderId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("delivery-proofs")
+        .upload(path, file, { contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("delivery-proofs").getPublicUrl(path);
+      const { error } = await supabase.rpc("courier_mark_delivered", {
+        _order_id: orderId,
+        _proof_url: pub.publicUrl,
+      });
+      if (error) throw error;
+      toast.success("Pengantaran selesai — bukti tersimpan");
+    } catch (e) {
+      toast.error((e as { message?: string })?.message ?? "Gagal mengunggah bukti");
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
   const claim = async (orderId: string) => {
     if (courierIds.length === 0) return;
     setClaiming(orderId);
@@ -235,9 +259,25 @@ function CourierView() {
                   </Button>
                 )}
                 {o.status === "delivering" && (
-                  <Button size="sm" className="flex-1" onClick={() => update(o.id, "completed")}>
-                    Sudah diantar
-                  </Button>
+                  <label className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90">
+                    {uploadingId === o.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <>📷 Foto bukti & selesaikan</>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      disabled={uploadingId === o.id}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) completeWithProof(o.id, f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
                 )}
               </div>
             </div>
