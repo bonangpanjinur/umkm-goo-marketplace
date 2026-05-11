@@ -1507,6 +1507,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          link: string | null
+          read_at: string | null
+          recipient_user_id: string
+          severity: string
+          shop_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_user_id: string
+          severity?: string
+          shop_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_user_id?: string
+          severity?: string
+          shop_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       open_bills: {
         Row: {
           created_at: string
@@ -3727,6 +3769,19 @@ export type Database = {
         Args: { _order_id: string; _proof_url: string }
         Returns: undefined
       }
+      create_notification: {
+        Args: {
+          _body?: string
+          _dedupe_key?: string
+          _link?: string
+          _recipient: string
+          _severity?: string
+          _shop_id?: string
+          _title: string
+          _type: string
+        }
+        Returns: string
+      }
       ensure_shop_wallet: { Args: { _shop_id: string }; Returns: undefined }
       escrow_hold_order: { Args: { _order_id: string }; Returns: Json }
       escrow_refund_order: {
@@ -3879,6 +3934,8 @@ export type Database = {
         }
         Returns: string
       }
+      mark_all_notifications_read: { Args: never; Returns: number }
+      mark_notification_read: { Args: { _id: string }; Returns: undefined }
       marketplace_checkout: {
         Args: {
           _address: string
