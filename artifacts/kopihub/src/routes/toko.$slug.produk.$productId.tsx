@@ -7,6 +7,7 @@ import { Store, ShoppingCart, Plus, Minus } from "lucide-react";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { ProductReviews } from "@/components/marketplace/ProductReviews";
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
   component: ProductDetailPage,
