@@ -65,6 +65,10 @@ VITE_SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
 VITE_SUPABASE_PROJECT_ID = "gbbbispqqcsabwgmhlls"
 SUPABASE_URL = "https://gbbbispqqcsabwgmhlls.supabase.co"
 SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdiYmJpc3BxcWNzYWJ3Z21obGxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1ODA5NTAsImV4cCI6MjA5MzE1Njk1MH0.D9cNeyseWSUbKsoT2AZ2EzCN7AOqvE7A2B2mLiGh7mc"
+API_PORT = "3001"
+NODE_ENV = "development"
+LOG_LEVEL = "info"
+PORT = "8080"
 
 [[ports]]
 localPort = 3001
