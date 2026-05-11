@@ -286,9 +286,7 @@ function AppLayoutInner() {
               {isOpen && (
                 <div className="space-y-0.5 mt-0.5">
                   {group.items.map((item) => {
-                    const active = item.exact
-                      ? location.pathname === item.to
-                      : location.pathname.startsWith(item.to);
+                    const active = matchItem(item, location.pathname);
                     const Icon = item.icon;
                     const locked = item.proOnly && !isPro;
                     return (
