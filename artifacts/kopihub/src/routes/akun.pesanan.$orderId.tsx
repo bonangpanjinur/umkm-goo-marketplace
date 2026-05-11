@@ -133,8 +133,50 @@ function OrderDetailPage() {
               </a>
             </Button>
           )}
+          {canDispute && (
+            <Button onClick={() => setDisputeOpen(true)} variant="outline" className="w-full text-destructive hover:text-destructive">
+              <AlertOctagon className="h-4 w-4 mr-2" />Lapor Masalah
+            </Button>
+          )}
         </CardContent>
       </Card>
+
+      {dispute && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertOctagon className="h-4 w-4 text-destructive" /> Sengketa
+              <Badge variant={dispute.status === "resolved" ? "default" : dispute.status === "rejected" ? "secondary" : "destructive"} className="ml-auto">
+                {disputeStatusLabel[dispute.status] ?? dispute.status}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div><span className="text-muted-foreground">Alasan:</span> {dispute.reason}</div>
+            {dispute.description && <div className="rounded-md bg-muted/40 p-2 text-xs">{dispute.description}</div>}
+            {dispute.resolution && (
+              <div className="rounded-md border border-border p-2">
+                <div className="text-xs font-semibold">Tanggapan penjual</div>
+                <div className="mt-1 text-xs">{dispute.resolution}</div>
+                {dispute.refund_amount > 0 && (
+                  <div className="mt-1 text-xs font-semibold text-emerald-700">Refund: {formatIDR(dispute.refund_amount)}</div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {user && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Chat dengan Penjual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OrderChat orderId={order.id} currentUserId={user.id} />
+          </CardContent>
+        </Card>
+      )}
 
       {reviewOpen && user && order.shop?.id && (
         <MarketplaceReviewDialog
@@ -147,6 +189,8 @@ function OrderDetailPage() {
           onSubmitted={load}
         />
       )}
+
+      <DisputeDialog open={disputeOpen} onOpenChange={setDisputeOpen} orderId={order.id} onCreated={load} />
     </div>
   );
 }
