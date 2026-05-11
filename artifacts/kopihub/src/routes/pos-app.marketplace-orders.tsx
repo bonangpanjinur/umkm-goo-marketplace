@@ -7,9 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ShoppingCart, Phone, MapPin, RefreshCw } from "lucide-react";
+import { Loader2, ShoppingCart, Phone, MapPin, RefreshCw, AlertOctagon, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import { OrderChat } from "@/components/marketplace/OrderChat";
+import { ResolveDisputeDialog } from "@/components/marketplace/ResolveDisputeDialog";
 
 export const Route = createFileRoute("/pos-app/marketplace-orders")({
   head: () => ({ meta: [{ title: "Pesanan Marketplace" }] }),
