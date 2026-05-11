@@ -24,6 +24,8 @@ type Tracking = {
   courier_name: string | null;
   courier_phone: string | null;
   courier_plate: string | null;
+  delivery_proof_url: string | null;
+  delivered_at: string | null;
 };
 
 const STEPS_DELIVERY = [
