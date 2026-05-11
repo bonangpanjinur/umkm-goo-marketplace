@@ -29,6 +29,8 @@ function OrderDetailPage() {
   const [reviewed, setReviewed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [dispute, setDispute] = useState<any>(null);
 
   const load = async () => {
     if (!user) return;
