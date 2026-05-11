@@ -15,6 +15,7 @@ const NAV = [
   { to: "/admin/shops", label: "Toko", icon: Store },
   { to: "/admin/invoices", label: "Tagihan", icon: FileText },
   { to: "/admin/withdrawals", label: "Penarikan", icon: Banknote },
+  { to: "/admin/vouchers", label: "Voucher", icon: Ticket },
   { to: "/admin/plans", label: "Paket", icon: Package },
   { to: "/admin/catalog", label: "Katalog", icon: Blocks },
   { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
