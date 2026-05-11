@@ -1561,6 +1561,57 @@ export type Database = {
           },
         ]
       }
+      order_disputes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          opened_by: string
+          order_id: string
+          photos: Json
+          reason: string
+          refund_amount: number | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          shop_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          opened_by: string
+          order_id: string
+          photos?: Json
+          reason: string
+          refund_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shop_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          opened_by?: string
+          order_id?: string
+          photos?: Json
+          reason?: string
+          refund_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shop_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -1625,6 +1676,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_messages: {
+        Row: {
+          attachment_url: string | null
+          body: string
+          created_at: string
+          id: string
+          order_id: string
+          read_at: string | null
+          sender_id: string
+          sender_role: string
+          shop_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          order_id: string
+          read_at?: string | null
+          sender_id: string
+          sender_role: string
+          shop_id: string
+        }
+        Update: {
+          attachment_url?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_role?: string
+          shop_id?: string
+        }
+        Relationships: []
       }
       orders: {
         Row: {
@@ -3627,6 +3714,7 @@ export type Database = {
         Args: { _courier_id: string; _order_id: string }
         Returns: Json
       }
+      auto_release_escrow: { Args: never; Returns: Json }
       auto_unverify_domain: {
         Args: { _reason: string; _shop_id: string }
         Returns: undefined
@@ -3761,6 +3849,15 @@ export type Database = {
         Returns: Json
       }
       next_order_no: { Args: { _outlet_id: string }; Returns: string }
+      open_dispute: {
+        Args: {
+          _description?: string
+          _order_id: string
+          _photos?: Json
+          _reason: string
+        }
+        Returns: string
+      }
       open_shift: {
         Args: { _opening_cash: number; _outlet_id: string }
         Returns: string
@@ -3791,6 +3888,19 @@ export type Database = {
           _bank_name: string
           _shop_id: string
         }
+        Returns: string
+      }
+      resolve_dispute: {
+        Args: {
+          _dispute_id: string
+          _refund_amount?: number
+          _resolution?: string
+          _status: string
+        }
+        Returns: Json
+      }
+      send_order_message: {
+        Args: { _attachment_url?: string; _body: string; _order_id: string }
         Returns: string
       }
       set_custom_domain_verified: {
