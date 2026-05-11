@@ -66,6 +66,36 @@ function ProductDetailPage() {
     })();
   }, [slug, productId]);
 
+  useSeo({
+    title: product && shop ? `${product.name} — ${shop.name}` : "Produk",
+    description: product?.description ?? (product ? `${product.name} di ${shop?.name ?? "toko"}.` : undefined),
+    image: product?.image_url ?? undefined,
+    type: "product",
+    jsonLd: product && shop ? {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.description ?? undefined,
+      image: product.image_url ?? undefined,
+      brand: { "@type": "Brand", name: shop.name },
+      offers: {
+        "@type": "Offer",
+        price: product.price,
+        priceCurrency: "IDR",
+        availability: product.track_stock && (product.stock ?? 0) <= 0
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+      },
+      ...(product.rating_avg && product.rating_count ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: product.rating_avg,
+          reviewCount: product.rating_count,
+        },
+      } : {}),
+    } : null,
+  });
+
   if (notFound) {
     return (
       <div className="min-h-screen bg-background">
