@@ -35,6 +35,16 @@
 | 11 Mei 2026 | **Sprint 2 — O-16 Atribut Produk** ✅ | `pos-app.atribut.tsx`: field custom per kategori, 4 preset industri, 5 field types, CRUD + filter kategori. |
 | 11 Mei 2026 | **Sprint 2 — O-17 Booking Jadwal** ✅ | `pos-app.booking.tsx`: slot per hari + booking masuk konfirmasi/tolak/selesai + tambah booking manual. |
 | 11 Mei 2026 | **Sprint 1 — B-7 Tracking Pesanan** ✅ | `akun.pesanan.index.tsx`: filter tab + colored badge + pulsing indicator berlangsung + realtime update. `akun.pesanan.$orderId.tsx`: `OrderTimeline` component — step-by-step visual (animated active, checkmark done, connecting line, timestamp per step dari `order_status_logs`), realtime channel. Tabel `order_status_logs` + RLS di SQL migration. |
+| 11 Mei 2026 | **O-14 Kalender Promo** ✅ | `pos-app.promo-calendar.tsx`: tampilan kalender bulanan promo & flash sale aktif — grid 7 kolom, event dot per hari, event list highlight per hari dipilih, highlight hari ini, KPI cards (Flash Aktif/Promo/Voucher/Booking). |
+| 11 Mei 2026 | **O-15 Invoice PDF** ✅ | `pos-app.invoice.tsx`: generator invoice & invoice sewa — tab Pesanan/Tagihan Sewa, preview invoice profesional (header toko, detail item, subtotal/ongkir/total), tombol Print/Download PDF, info kontak toko, kode QR simulasi. |
+| 11 Mei 2026 | **A-11 Fee Simulator** ✅ | `admin.fee-simulator.tsx`: simulator proyeksi pendapatan — slider GMV + rate komisi, skenario perbandingan 3 plan (Free/Starter/Pro), grafik batang proyeksi tahunan (Recharts), breakdown per bulan, export CSV. |
+| 11 Mei 2026 | **A-12 Feature Flags** ✅ | `admin.feature-flags.tsx`: manajemen feature flag per toko/paket — CRUD flag (key/nama/deskripsi/aktif), override per toko individual (search toko, toggle per flag), filter per status. |
+| 11 Mei 2026 | **A-13 Template Notifikasi** ✅ | `admin.notification-templates.tsx`: edit template email/notifikasi in-app — daftar template (order_confirmed/shipped/review_request dll), editor subject + body dengan variabel dinamis, preview live, badge tipe (Email/In-App/Both). |
+| 11 Mei 2026 | **A-14 Rekonsiliasi Gateway** ✅ | `admin.reconciliation.tsx`: rekonsiliasi data platform vs gateway — KPI selisih, tabel transaksi matched/selisih/belum dikonfirmasi, filter gateway+status, export CSV, detail per transaksi. |
+| 11 Mei 2026 | **A-15 Command Palette (⌘K)** ✅ | `CommandPalette.tsx`: palette lintas modul — search toko/invoice/broadcast/pengaturan, keyboard shortcut ⌘K/Ctrl+K, navigasi arrow key, kategori grouped result, escape untuk tutup. Diintegrasikan di admin.tsx dan pos-app.tsx. |
+| 11 Mei 2026 | **B-13 Riwayat Lihat Produk** ✅ | `akun.riwayat.tsx`: halaman "Baru Kamu Lihat" — localStorage-based, enrich dari Supabase (nama/harga/stok fresh), hapus per item/hapus semua, timeAgo display, link ke produk. Nav "Baru Dilihat" di /akun sidebar. |
+| 11 Mei 2026 | **B-14 Download Produk Digital** ✅ | `download.$token.tsx`: halaman download publik via token (base64 orderId:productId) — verifikasi payment_status paid, cek expiry, batas unduhan via localStorage, tombol Download + buka di tab baru, info file (tipe/ukuran/sisa unduhan/kadaluarsa). |
+| 11 Mei 2026 | **B-15 Guest Checkout** ✅ | `checkout.tsx`: flow guest checkout — halaman pilihan Login/Lanjut sebagai Tamu, `supabase.auth.signInAnonymously()` untuk buat session tamu, badge "Mode Tamu" di header checkout, banner informasi simpan nomor pesanan, field email opsional untuk konfirmasi. |
 
 ---
 
@@ -831,6 +841,16 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | 4.3 | Stok Single Source of Truth | ✅ Selesai | `pos-app.stok.tsx`: stok terpadu lintas channel — sold-by-channel hari ini (POS/Online/Marketplace), ambang batas rendah, auto-disable on empty, inline edit + save per produk, filter low/empty. |
 | 4.4 | Badge Verifikasi di Publik | ✅ Selesai | Badge "Terverifikasi" (ShieldCheck hijau) di halaman toko publik ketika `kyc_status = approved` |
 | 4.5 | Escrow Transparan Lintas Role | ✅ Selesai | O-7 (keuangan.tsx escrow table) + buyer order detail (status badge) — dana escrow terlihat jelas dari sisi owner dan buyer. |
+| O-14 | Kalender Promo | ✅ Selesai | `pos-app.promo-calendar.tsx`: kalender bulanan promo & flash sale — grid 7 kolom, event dot per hari, sidebar event list, highlight hari ini, KPI cards. Nav ditambah ke sidebar owner. |
+| O-15 | Invoice PDF | ✅ Selesai | `pos-app.invoice.tsx`: generator invoice pesanan & sewa — tab Pesanan/Tagihan Sewa, preview profesional (header toko, tabel item, total), tombol Print/Download PDF. Nav ditambah ke sidebar owner. |
+| A-11 | Marketplace Fee Simulator | ✅ Selesai | `admin.fee-simulator.tsx`: input GMV + rate slider, perbandingan 3 plan, grafik proyeksi tahunan (Recharts), export CSV. Nav ditambah ke sidebar admin. |
+| A-12 | Feature Flag | ✅ Selesai | `admin.feature-flags.tsx`: CRUD feature flag global + override per toko individual — search toko, toggle per flag, filter status. Nav ditambah ke sidebar admin. |
+| A-13 | Template Notifikasi | ✅ Selesai | `admin.notification-templates.tsx`: editor template email/in-app — subject + body + variabel dinamis, preview live, badge tipe. Nav ditambah ke sidebar admin. |
+| A-14 | Rekonsiliasi Gateway | ✅ Selesai | `admin.reconciliation.tsx`: rekonsiliasi platform vs gateway — KPI selisih, tabel transaksi matched/selisih/unconfirmed, filter, export CSV. Nav ditambah ke sidebar admin. |
+| A-15 | Command Palette (⌘K) | ✅ Selesai | `CommandPalette.tsx`: search lintas modul ⌘K — toko/invoice/broadcast/pengaturan, navigasi keyboard, kategori grouped. Diintegrasikan di admin.tsx + pos-app.tsx. |
+| B-13 | Riwayat Lihat Produk | ✅ Selesai | `akun.riwayat.tsx`: localStorage-based, enrich Supabase, hapus per item/semua, timeAgo, link ke produk. Nav "Baru Dilihat" di /akun. |
+| B-14 | Download Produk Digital | ✅ Selesai | `download.$token.tsx`: halaman download publik via token — verifikasi pembayaran, cek expiry, batas unduhan, tombol download + tab baru. |
+| B-15 | Guest Checkout | ✅ Selesai | `checkout.tsx`: halaman pilihan Login/Tamu, `signInAnonymously()`, badge Mode Tamu, banner informasi, field email opsional. |
 
 ---
 

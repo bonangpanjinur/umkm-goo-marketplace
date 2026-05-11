@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { listCart, checkout, listShopZones, type CartItem, type DeliveryZone } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
-import { Store, MapPin, CreditCard, Wallet, Banknote, QrCode, Smartphone } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,75 +17,92 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
 });
 
+type AuthChoice = "idle" | "login" | "guest";
+
 function CheckoutPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
   const [zones, setZones] = useState<DeliveryZone[]>([]);
-  const [shipping, setShipping] = useState<Record<string, string>>({}); // shop_id -> zone_id
+  const [shipping, setShipping] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const [recipientName, setRecipientName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
   const [notes, setNotes] = useState("");
-  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const [paymentMethod, setPaymentMethod] = useState("transfer");
   const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
   const [platformVoucherCode, setPlatformVoucherCode] = useState("");
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      navigate({ to: "/login" });
-      return;
-    }
+  const [authChoice, setAuthChoice] = useState<AuthChoice>("idle");
+  const [signingInAnonymously, setSigningInAnonymously] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
-    // Auto-fill from saved customer profile
-    (async () => {
+  async function continueAsGuest() {
+    setSigningInAnonymously(true);
+    try {
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      setIsGuest(true);
+      setAuthChoice("guest");
+    } catch (e: any) {
+      toast.error("Gagal masuk sebagai tamu: " + e.message);
+    } finally {
+      setSigningInAnonymously(false);
+    }
+  }
+
+  async function loadCartAndProfile(uid: string, anonymous: boolean) {
+    if (!anonymous) {
       const { data: prof } = await supabase
         .from("customer_profiles")
         .select("display_name, phone, default_address, default_city")
-        .eq("user_id", user.id)
+        .eq("user_id", uid)
         .maybeSingle();
       if (prof) {
         if (prof.display_name) setRecipientName(prof.display_name);
-        if (prof.phone)        setPhone(prof.phone);
+        if (prof.phone) setPhone(prof.phone);
         if (prof.default_address) {
-          const fullAddr = prof.default_city
-            ? `${prof.default_address}, ${prof.default_city}`
-            : prof.default_address;
-          setAddress(fullAddr);
+          setAddress(prof.default_city ? `${prof.default_address}, ${prof.default_city}` : prof.default_address);
         }
-      } else if (user.email) {
-        setRecipientName(user.email.split("@")[0]);
       }
-      setProfileLoaded(true);
-    })();
+    }
 
-    listCart()
-      .then(async (d) => {
-        setItems(d);
-        if (d.length === 0) {
-          navigate({ to: "/keranjang" });
-          return;
-        }
-        const shopIds = Array.from(new Set(d.map((i) => i.shop_id)));
-        const zs = await listShopZones(shopIds);
-        setZones(zs);
-        // auto-select cheapest zone per shop
-        const init: Record<string, string> = {};
-        for (const sid of shopIds) {
-          const sz = zs.filter((z) => z.shop_id === sid).sort((a, b) => a.fee - b.fee);
-          if (sz[0]) init[sid] = sz[0].id;
-        }
-        setShipping(init);
-      })
-      .catch((e) => toast.error(e.message))
-      .finally(() => setLoading(false));
+    const d = await listCart();
+    setItems(d);
+    if (d.length === 0) {
+      navigate({ to: "/keranjang" });
+      return;
+    }
+    const shopIds = Array.from(new Set(d.map((i) => i.shop_id)));
+    const zs = await listShopZones(shopIds);
+    setZones(zs);
+    const init: Record<string, string> = {};
+    for (const sid of shopIds) {
+      const sz = zs.filter((z) => z.shop_id === sid).sort((a, b) => a.fee - b.fee);
+      if (sz[0]) init[sid] = sz[0].id;
+    }
+    setShipping(init);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    const anonymous = (user as any).is_anonymous === true;
+    setIsGuest(anonymous);
+    loadCartAndProfile(user.id, anonymous).catch((e) => {
+      toast.error(e.message);
+      setLoading(false);
+    });
   }, [user, authLoading]);
 
   const grouped = items.reduce<Record<string, CartItem[]>>((acc, it) => {
@@ -134,11 +152,59 @@ function CheckoutPage() {
     }
   };
 
+  if (!authLoading && !user && !loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MarketplaceHeader />
+        <div className="mx-auto max-w-md px-4 py-16 text-center">
+          <ShieldCheck className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h1 className="text-2xl font-bold">Lanjut ke Checkout</h1>
+          <p className="text-muted-foreground mt-2 mb-8">Masuk ke akun untuk pengalaman belanja lebih baik, atau lanjut sebagai tamu.</p>
+          <div className="space-y-3">
+            <Button className="w-full" size="lg" asChild>
+              <Link to="/login" search={{ redirect: "/checkout" } as any}>
+                <LogIn className="h-4 w-4 mr-2" /> Masuk / Daftar
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              size="lg"
+              disabled={signingInAnonymously}
+              onClick={continueAsGuest}
+            >
+              {signingInAnonymously
+                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</>
+                : <><UserX className="h-4 w-4 mr-2" /> Lanjut sebagai Tamu</>
+              }
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-6">
+            Sebagai tamu, pesananmu tetap bisa dilacak dengan nomor pesanan. Kamu bisa daftar akun kapanpun untuk riwayat lengkap.
+          </p>
+        </div>
+        <MarketplaceFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <MarketplaceHeader />
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="text-2xl font-bold tracking-tight">Checkout</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Checkout</h1>
+          {isGuest && <Badge variant="secondary" className="text-xs"><UserX className="h-3 w-3 mr-1" />Mode Tamu</Badge>}
+        </div>
+        {isGuest && (
+          <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+            <UserX className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              Kamu checkout sebagai <strong>tamu</strong>. Simpan nomor pesananmu setelah checkout.{" "}
+              <Link to="/login" className="font-semibold underline underline-offset-2">Daftar akun</Link> untuk riwayat pesanan lengkap.
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <p className="mt-6 text-sm text-muted-foreground">Memuat…</p>
@@ -147,6 +213,18 @@ function CheckoutPage() {
             <div className="space-y-6">
               <section className="rounded-xl border border-border bg-card p-5">
                 <h2 className="text-sm font-semibold">Data Penerima</h2>
+                {isGuest && (
+                  <div className="mt-3">
+                    <Label>Email (opsional) <span className="text-muted-foreground text-xs">— untuk konfirmasi pesanan</span></Label>
+                    <Input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder="email@contoh.com"
+                      className="mt-1"
+                    />
+                  </div>
+                )}
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div>
                     <Label>Nama penerima *</Label>

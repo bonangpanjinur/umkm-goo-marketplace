@@ -42,6 +42,7 @@ import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
 import { Route as PosAppRecipesRouteImport } from './routes/pos-app.recipes'
 import { Route as PosAppPurchaseOrdersRouteImport } from './routes/pos-app.purchase-orders'
 import { Route as PosAppPromosRouteImport } from './routes/pos-app.promos'
+import { Route as PosAppPromoCalendarRouteImport } from './routes/pos-app.promo-calendar'
 import { Route as PosAppPrintersRouteImport } from './routes/pos-app.printers'
 import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
 import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
@@ -54,6 +55,7 @@ import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppKycRouteImport } from './routes/pos-app.kyc'
 import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
+import { Route as PosAppInvoiceRouteImport } from './routes/pos-app.invoice'
 import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
@@ -72,18 +74,24 @@ import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearanc
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as AkunWishlistRouteImport } from './routes/akun.wishlist'
+import { Route as AkunRiwayatRouteImport } from './routes/akun.riwayat'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
+import { Route as AdminNotificationTemplatesRouteImport } from './routes/admin.notification-templates'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminImpersonationRouteImport } from './routes/admin.impersonation'
+import { Route as AdminFeeSimulatorRouteImport } from './routes/admin.fee-simulator'
+import { Route as AdminFeatureFlagsRouteImport } from './routes/admin.feature-flags'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
@@ -278,6 +286,11 @@ const PosAppPromosRoute = PosAppPromosRouteImport.update({
   path: '/promos',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppPromoCalendarRoute = PosAppPromoCalendarRouteImport.update({
+  id: '/promo-calendar',
+  path: '/promo-calendar',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppPrintersRoute = PosAppPrintersRouteImport.update({
   id: '/printers',
   path: '/printers',
@@ -337,6 +350,11 @@ const PosAppKeuanganRoute = PosAppKeuanganRouteImport.update({
 const PosAppKdsRoute = PosAppKdsRouteImport.update({
   id: '/kds',
   path: '/kds',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppInvoiceRoute = PosAppInvoiceRouteImport.update({
+  id: '/invoice',
+  path: '/invoice',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppInventoryRoute = PosAppInventoryRouteImport.update({
@@ -429,9 +447,19 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DownloadTokenRoute = DownloadTokenRouteImport.update({
+  id: '/download/$token',
+  path: '/download/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AkunWishlistRoute = AkunWishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunRiwayatRoute = AkunRiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
@@ -464,6 +492,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReconciliationRoute = AdminReconciliationRouteImport.update({
+  id: '/reconciliation',
+  path: '/reconciliation',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -474,6 +507,12 @@ const AdminPaymentConfigRoute = AdminPaymentConfigRouteImport.update({
   path: '/payment-config',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNotificationTemplatesRoute =
+  AdminNotificationTemplatesRouteImport.update({
+    id: '/notification-templates',
+    path: '/notification-templates',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminKycRoute = AdminKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -487,6 +526,16 @@ const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
 const AdminImpersonationRoute = AdminImpersonationRouteImport.update({
   id: '/impersonation',
   path: '/impersonation',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFeeSimulatorRoute = AdminFeeSimulatorRouteImport.update({
+  id: '/fee-simulator',
+  path: '/fee-simulator',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFeatureFlagsRoute = AdminFeatureFlagsRouteImport.update({
+  id: '/feature-flags',
+  path: '/feature-flags',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDomainsRoute = AdminDomainsRouteImport.update({
@@ -655,18 +704,24 @@ export interface FileRoutesByFullPath {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/feature-flags': typeof AdminFeatureFlagsRoute
+  '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
+  '/akun/riwayat': typeof AkunRiwayatRoute
   '/akun/wishlist': typeof AkunWishlistRoute
+  '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
@@ -685,6 +740,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
+  '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/kyc': typeof PosAppKycRoute
@@ -697,6 +753,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/pos': typeof PosAppPosRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
   '/pos-app/recipes': typeof PosAppRecipesRoute
@@ -757,18 +814,24 @@ export interface FileRoutesByTo {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/feature-flags': typeof AdminFeatureFlagsRoute
+  '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
+  '/akun/riwayat': typeof AkunRiwayatRoute
   '/akun/wishlist': typeof AkunWishlistRoute
+  '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
@@ -787,6 +850,7 @@ export interface FileRoutesByTo {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
+  '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/kyc': typeof PosAppKycRoute
@@ -799,6 +863,7 @@ export interface FileRoutesByTo {
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/pos': typeof PosAppPosRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
   '/pos-app/recipes': typeof PosAppRecipesRoute
@@ -862,18 +927,24 @@ export interface FileRoutesById {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/feature-flags': typeof AdminFeatureFlagsRoute
+  '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
+  '/akun/riwayat': typeof AkunRiwayatRoute
   '/akun/wishlist': typeof AkunWishlistRoute
+  '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
@@ -892,6 +963,7 @@ export interface FileRoutesById {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
+  '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/kyc': typeof PosAppKycRoute
@@ -904,6 +976,7 @@ export interface FileRoutesById {
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/pos': typeof PosAppPosRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
   '/pos-app/recipes': typeof PosAppRecipesRoute
@@ -969,18 +1042,24 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/feature-flags'
+    | '/admin/fee-simulator'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
+    | '/admin/reconciliation'
     | '/admin/settings'
     | '/admin/shops'
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/akun/notifikasi'
+    | '/akun/riwayat'
     | '/akun/wishlist'
+    | '/download/$token'
     | '/invite/$token'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
@@ -999,6 +1078,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/employees'
     | '/pos-app/inventory'
+    | '/pos-app/invoice'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/kyc'
@@ -1011,6 +1091,7 @@ export interface FileRouteTypes {
     | '/pos-app/orders'
     | '/pos-app/pos'
     | '/pos-app/printers'
+    | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
     | '/pos-app/recipes'
@@ -1071,18 +1152,24 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/feature-flags'
+    | '/admin/fee-simulator'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
+    | '/admin/reconciliation'
     | '/admin/settings'
     | '/admin/shops'
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/akun/notifikasi'
+    | '/akun/riwayat'
     | '/akun/wishlist'
+    | '/download/$token'
     | '/invite/$token'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
@@ -1101,6 +1188,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/employees'
     | '/pos-app/inventory'
+    | '/pos-app/invoice'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/kyc'
@@ -1113,6 +1201,7 @@ export interface FileRouteTypes {
     | '/pos-app/orders'
     | '/pos-app/pos'
     | '/pos-app/printers'
+    | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
     | '/pos-app/recipes'
@@ -1175,18 +1264,24 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/feature-flags'
+    | '/admin/fee-simulator'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
+    | '/admin/reconciliation'
     | '/admin/settings'
     | '/admin/shops'
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/akun/notifikasi'
+    | '/akun/riwayat'
     | '/akun/wishlist'
+    | '/download/$token'
     | '/invite/$token'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
@@ -1205,6 +1300,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/employees'
     | '/pos-app/inventory'
+    | '/pos-app/invoice'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/kyc'
@@ -1217,6 +1313,7 @@ export interface FileRouteTypes {
     | '/pos-app/orders'
     | '/pos-app/pos'
     | '/pos-app/printers'
+    | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
     | '/pos-app/recipes'
@@ -1271,6 +1368,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  DownloadTokenRoute: typeof DownloadTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
   KategoriSlugRoute: typeof KategoriSlugRoute
   PesananOrderIdRoute: typeof PesananOrderIdRoute
@@ -1513,6 +1611,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppPromosRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/promo-calendar': {
+      id: '/pos-app/promo-calendar'
+      path: '/promo-calendar'
+      fullPath: '/pos-app/promo-calendar'
+      preLoaderRoute: typeof PosAppPromoCalendarRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/printers': {
       id: '/pos-app/printers'
       path: '/printers'
@@ -1595,6 +1700,13 @@ declare module '@tanstack/react-router' {
       path: '/kds'
       fullPath: '/pos-app/kds'
       preLoaderRoute: typeof PosAppKdsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/invoice': {
+      id: '/pos-app/invoice'
+      path: '/invoice'
+      fullPath: '/pos-app/invoice'
+      preLoaderRoute: typeof PosAppInvoiceRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/inventory': {
@@ -1723,11 +1835,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/download/$token': {
+      id: '/download/$token'
+      path: '/download/$token'
+      fullPath: '/download/$token'
+      preLoaderRoute: typeof DownloadTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/akun/wishlist': {
       id: '/akun/wishlist'
       path: '/wishlist'
       fullPath: '/akun/wishlist'
       preLoaderRoute: typeof AkunWishlistRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/riwayat': {
+      id: '/akun/riwayat'
+      path: '/riwayat'
+      fullPath: '/akun/riwayat'
+      preLoaderRoute: typeof AkunRiwayatRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/notifikasi': {
@@ -1772,6 +1898,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reconciliation': {
+      id: '/admin/reconciliation'
+      path: '/reconciliation'
+      fullPath: '/admin/reconciliation'
+      preLoaderRoute: typeof AdminReconciliationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/plans': {
       id: '/admin/plans'
       path: '/plans'
@@ -1784,6 +1917,13 @@ declare module '@tanstack/react-router' {
       path: '/payment-config'
       fullPath: '/admin/payment-config'
       preLoaderRoute: typeof AdminPaymentConfigRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notification-templates': {
+      id: '/admin/notification-templates'
+      path: '/notification-templates'
+      fullPath: '/admin/notification-templates'
+      preLoaderRoute: typeof AdminNotificationTemplatesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/kyc': {
@@ -1805,6 +1945,20 @@ declare module '@tanstack/react-router' {
       path: '/impersonation'
       fullPath: '/admin/impersonation'
       preLoaderRoute: typeof AdminImpersonationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/fee-simulator': {
+      id: '/admin/fee-simulator'
+      path: '/fee-simulator'
+      fullPath: '/admin/fee-simulator'
+      preLoaderRoute: typeof AdminFeeSimulatorRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/feature-flags': {
+      id: '/admin/feature-flags'
+      path: '/feature-flags'
+      fullPath: '/admin/feature-flags'
+      preLoaderRoute: typeof AdminFeatureFlagsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/domains': {
@@ -2041,11 +2195,15 @@ interface AdminRouteChildren {
   AdminCommissionRoute: typeof AdminCommissionRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
+  AdminFeatureFlagsRoute: typeof AdminFeatureFlagsRoute
+  AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
   AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
+  AdminNotificationTemplatesRoute: typeof AdminNotificationTemplatesRoute
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
+  AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopsRoute: typeof AdminShopsRouteWithChildren
   AdminVouchersRoute: typeof AdminVouchersRoute
@@ -2064,11 +2222,15 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCommissionRoute: AdminCommissionRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
+  AdminFeatureFlagsRoute: AdminFeatureFlagsRoute,
+  AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
   AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
+  AdminNotificationTemplatesRoute: AdminNotificationTemplatesRoute,
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,
   AdminPlansRoute: AdminPlansRouteWithChildren,
+  AdminReconciliationRoute: AdminReconciliationRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopsRoute: AdminShopsRouteWithChildren,
   AdminVouchersRoute: AdminVouchersRoute,
@@ -2081,6 +2243,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface AkunRouteChildren {
   AkunAlamatRoute: typeof AkunAlamatRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
+  AkunRiwayatRoute: typeof AkunRiwayatRoute
   AkunWishlistRoute: typeof AkunWishlistRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunPesananOrderIdRoute: typeof AkunPesananOrderIdRoute
@@ -2090,6 +2253,7 @@ interface AkunRouteChildren {
 const AkunRouteChildren: AkunRouteChildren = {
   AkunAlamatRoute: AkunAlamatRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
+  AkunRiwayatRoute: AkunRiwayatRoute,
   AkunWishlistRoute: AkunWishlistRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunPesananOrderIdRoute: AkunPesananOrderIdRoute,
@@ -2173,6 +2337,7 @@ interface PosAppRouteChildren {
   PosAppDomainRoute: typeof PosAppDomainRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
   PosAppInventoryRoute: typeof PosAppInventoryRoute
+  PosAppInvoiceRoute: typeof PosAppInvoiceRoute
   PosAppKdsRoute: typeof PosAppKdsRoute
   PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
   PosAppKycRoute: typeof PosAppKycRoute
@@ -2185,6 +2350,7 @@ interface PosAppRouteChildren {
   PosAppOrdersRoute: typeof PosAppOrdersRoute
   PosAppPosRoute: typeof PosAppPosRoute
   PosAppPrintersRoute: typeof PosAppPrintersRoute
+  PosAppPromoCalendarRoute: typeof PosAppPromoCalendarRoute
   PosAppPromosRoute: typeof PosAppPromosRoute
   PosAppPurchaseOrdersRoute: typeof PosAppPurchaseOrdersRouteWithChildren
   PosAppRecipesRoute: typeof PosAppRecipesRoute
@@ -2217,6 +2383,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppDomainRoute: PosAppDomainRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
   PosAppInventoryRoute: PosAppInventoryRoute,
+  PosAppInvoiceRoute: PosAppInvoiceRoute,
   PosAppKdsRoute: PosAppKdsRoute,
   PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
   PosAppKycRoute: PosAppKycRoute,
@@ -2229,6 +2396,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppOrdersRoute: PosAppOrdersRoute,
   PosAppPosRoute: PosAppPosRoute,
   PosAppPrintersRoute: PosAppPrintersRoute,
+  PosAppPromoCalendarRoute: PosAppPromoCalendarRoute,
   PosAppPromosRoute: PosAppPromosRoute,
   PosAppPurchaseOrdersRoute: PosAppPurchaseOrdersRouteWithChildren,
   PosAppRecipesRoute: PosAppRecipesRoute,
@@ -2298,6 +2466,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  DownloadTokenRoute: DownloadTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
   KategoriSlugRoute: KategoriSlugRoute,
   PesananOrderIdRoute: PesananOrderIdRoute,

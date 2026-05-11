@@ -58,6 +58,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/NotificationBell";
+import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 
 export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
@@ -126,6 +127,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
       { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
+      { to: "/pos-app/promo-calendar", label: "Kalender Promo", icon: CalendarDays },
       { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
       { to: "/pos-app/reviews", label: "Ulasan Pembeli", icon: Award },
     ],
@@ -140,6 +142,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
       { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
       { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
+      { to: "/pos-app/invoice", label: "Invoice PDF", icon: FileText },
     ],
   },
   {
@@ -407,8 +410,14 @@ function AppLayoutInner() {
           <Outlet />
         </main>
       </div>
+      <CommandPaletteOwner />
     </div>
   );
+}
+
+function CommandPaletteOwner() {
+  const { open, setOpen } = useCommandPalette();
+  return <CommandPalette open={open} onClose={() => setOpen(false)} role="owner" />;
 }
 
 function OutletSwitcher({ shopName }: { shopName?: string }) {

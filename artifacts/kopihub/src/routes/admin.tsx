@@ -2,9 +2,10 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -31,6 +32,10 @@ const NAV = [
   { to: "/admin/domains", label: "Domain", icon: Globe },
   { to: "/admin/activity", label: "Aktivitas", icon: Activity },
   { to: "/admin/settings", label: "Pengaturan", icon: Settings },
+  { to: "/admin/feature-flags", label: "Feature Flags", icon: Flag },
+  { to: "/admin/fee-simulator", label: "Fee Simulator", icon: Calculator },
+  { to: "/admin/reconciliation", label: "Rekonsiliasi Gateway", icon: GitCompare },
+  { to: "/admin/notification-templates", label: "Template Notifikasi", icon: Mail },
 ] as const;
 
 function AdminLayout() {
@@ -40,6 +45,7 @@ function AdminLayout() {
   const location = useLocation();
   const [ready, setReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { open: cmdOpen, setOpen: setCmdOpen } = useCommandPalette();
 
   useEffect(() => {
     if (loading || roleLoading) return;
@@ -102,10 +108,14 @@ function AdminLayout() {
           </Sheet>
           <ShieldCheck className="h-4 w-4 text-amber-500" />
           <span className="text-sm font-semibold">Super Admin</span>
+          <Button variant="ghost" size="sm" className="ml-auto gap-1.5 text-xs text-muted-foreground" onClick={() => setCmdOpen(true)}>
+            <Search className="h-3.5 w-3.5" /> Cari <kbd className="bg-muted px-1 rounded text-[10px]">⌘K</kbd>
+          </Button>
         </header>
 
         <main className="flex-1 overflow-auto"><Outlet /></main>
       </div>
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} role="admin" />
     </div>
   );
 }
