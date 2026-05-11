@@ -156,3 +156,86 @@ function ProductDetailPage() {
     </div>
   );
 }
+
+function AddToCartBlock({ product, shopSlug }: { product: Product; shopSlug: string }) {
+  const [qty, setQty] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const outOfStock = product.track_stock && (product.stock ?? 0) <= 0;
+
+  const onAdd = async (goCheckout = false) => {
+    if (!user) {
+      toast.info("Silakan masuk untuk berbelanja");
+      navigate({ to: "/login" });
+      return;
+    }
+    setBusy(true);
+    try {
+      await addToCart({
+        shop_id: product.shop_id,
+        product_id: product.id,
+        unit_price: Number(product.price),
+        quantity: qty,
+      });
+      toast.success(`${product.name} ditambahkan ke keranjang`);
+      if (goCheckout) navigate({ to: "/keranjang" });
+    } catch (e: any) {
+      toast.error(e.message ?? "Gagal menambahkan ke keranjang");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-muted-foreground">Jumlah</span>
+        <div className="flex items-center rounded-lg border border-border">
+          <button
+            className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+            onClick={() => setQty(Math.max(1, qty - 1))}
+            disabled={qty <= 1}
+            aria-label="Kurangi"
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          <span className="w-10 text-center text-sm font-medium">{qty}</span>
+          <button
+            className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+            onClick={() => setQty(qty + 1)}
+            aria-label="Tambah"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          size="lg"
+          variant="outline"
+          className="flex-1 gap-2"
+          onClick={() => onAdd(false)}
+          disabled={busy || outOfStock}
+        >
+          <ShoppingCart className="h-4 w-4" /> + Keranjang
+        </Button>
+        <Button
+          size="lg"
+          className="flex-1"
+          onClick={() => onAdd(true)}
+          disabled={busy || outOfStock}
+        >
+          {outOfStock ? "Stok Habis" : "Beli Sekarang"}
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Atau{" "}
+        <Link to="/s/$slug" params={{ slug: shopSlug }} className="text-primary hover:underline">
+          buka etalase toko
+        </Link>{" "}
+        untuk fitur pickup/delivery lengkap.
+      </p>
+    </div>
+  );
+}
