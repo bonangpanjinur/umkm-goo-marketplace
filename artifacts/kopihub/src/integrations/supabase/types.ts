@@ -1973,6 +1973,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          link: string | null
+          read_at: string | null
+          recipient_user_id: string
+          severity: string
+          shop_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_user_id: string
+          severity?: string
+          shop_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_user_id?: string
+          severity?: string
+          shop_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       parked_carts: {
         Row: {
           created_at: string
@@ -3811,6 +3853,8 @@ export type Database = {
         Returns: boolean
       }
       increment_promo_usage: { Args: { _promo_id: string }; Returns: undefined }
+      mark_notification_read: { Args: { _id: string }; Returns: undefined }
+      mark_all_notifications_read: { Args: Record<string, never>; Returns: number }
       list_available_delivery_orders: {
         Args: { _courier_id: string }
         Returns: {

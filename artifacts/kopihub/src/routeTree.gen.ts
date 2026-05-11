@@ -65,6 +65,7 @@ import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearanc
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
@@ -378,6 +379,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunAlamatRoute = AkunAlamatRouteImport.update({
   id: '/alamat',
   path: '/alamat',
@@ -563,6 +569,7 @@ export interface FileRoutesByFullPath {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
@@ -649,6 +656,7 @@ export interface FileRoutesByTo {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
@@ -738,6 +746,7 @@ export interface FileRoutesById {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
@@ -829,6 +838,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
+    | '/akun/notifikasi'
     | '/invite/$token'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
@@ -915,6 +925,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
+    | '/akun/notifikasi'
     | '/invite/$token'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
@@ -1003,6 +1014,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
+    | '/akun/notifikasi'
     | '/invite/$token'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
@@ -1482,6 +1494,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/akun/notifikasi': {
+      id: '/akun/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/akun/notifikasi'
+      preLoaderRoute: typeof AkunNotifikasiRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/alamat': {
       id: '/akun/alamat'
       path: '/alamat'
@@ -1764,6 +1783,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AkunRouteChildren {
   AkunAlamatRoute: typeof AkunAlamatRoute
+  AkunNotifikasiRoute: typeof AkunNotifikasiRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunPesananOrderIdRoute: typeof AkunPesananOrderIdRoute
   AkunPesananIndexRoute: typeof AkunPesananIndexRoute
@@ -1771,6 +1791,7 @@ interface AkunRouteChildren {
 
 const AkunRouteChildren: AkunRouteChildren = {
   AkunAlamatRoute: AkunAlamatRoute,
+  AkunNotifikasiRoute: AkunNotifikasiRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunPesananOrderIdRoute: AkunPesananOrderIdRoute,
   AkunPesananIndexRoute: AkunPesananIndexRoute,
