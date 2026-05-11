@@ -124,13 +124,15 @@ function OrdersPage() {
   const countToday = orders.filter((o) => o.status === "completed").length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Order Hari Ini</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {outlet?.name} · {new Date().toLocaleDateString("id-ID", { dateStyle: "full" })}
-        </p>
-      </div>
+    <>
+      <OrdersTabs />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="mb-6">
+          <h2 className="text-base font-semibold tracking-tight text-muted-foreground">Order Hari Ini</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {outlet?.name} · {new Date().toLocaleDateString("id-ID", { dateStyle: "full" })}
+          </p>
+        </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-border bg-card p-5">
