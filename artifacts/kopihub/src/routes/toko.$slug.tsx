@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
 import { Store, MapPin, Phone } from "lucide-react";
+import { useSeo } from "@/lib/use-seo";
 
 export const Route = createFileRoute("/toko/$slug")({
   component: ShopPage,
