@@ -100,6 +100,30 @@ function CourierView() {
     else toast.success("Status diperbarui");
   };
 
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const completeWithProof = async (orderId: string, file: File) => {
+    setUploadingId(orderId);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${orderId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("delivery-proofs")
+        .upload(path, file, { contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("delivery-proofs").getPublicUrl(path);
+      const { error } = await supabase.rpc("courier_mark_delivered", {
+        _order_id: orderId,
+        _proof_url: pub.publicUrl,
+      });
+      if (error) throw error;
+      toast.success("Pengantaran selesai — bukti tersimpan");
+    } catch (e) {
+      toast.error((e as { message?: string })?.message ?? "Gagal mengunggah bukti");
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
   const claim = async (orderId: string) => {
     if (courierIds.length === 0) return;
     setClaiming(orderId);
