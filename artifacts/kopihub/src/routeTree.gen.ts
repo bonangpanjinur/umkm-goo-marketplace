@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PromoRouteImport } from './routes/promo'
 import { Route as PosAppRouteImport } from './routes/pos-app'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
@@ -106,6 +107,11 @@ const SearchRoute = SearchRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromoRoute = PromoRouteImport.update({
+  id: '/promo',
+  path: '/promo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PosAppRoute = PosAppRouteImport.update({
@@ -520,6 +526,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pos-app': typeof PosAppRouteWithChildren
+  '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -602,6 +609,7 @@ export interface FileRoutesByTo {
   '/keranjang': typeof KeranjangRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -687,6 +695,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pos-app': typeof PosAppRouteWithChildren
+  '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -774,6 +783,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/pos-app'
+    | '/promo'
     | '/reset-password'
     | '/search'
     | '/signup'
@@ -856,6 +866,7 @@ export interface FileRouteTypes {
     | '/keranjang'
     | '/login'
     | '/onboarding'
+    | '/promo'
     | '/reset-password'
     | '/search'
     | '/signup'
@@ -940,6 +951,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/pos-app'
+    | '/promo'
     | '/reset-password'
     | '/search'
     | '/signup'
@@ -1026,6 +1038,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PosAppRoute: typeof PosAppRouteWithChildren
+  PromoRoute: typeof PromoRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
@@ -1059,6 +1072,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promo': {
+      id: '/promo'
+      path: '/promo'
+      fullPath: '/promo'
+      preLoaderRoute: typeof PromoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pos-app': {
@@ -1864,6 +1884,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PosAppRoute: PosAppRouteWithChildren,
+  PromoRoute: PromoRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
