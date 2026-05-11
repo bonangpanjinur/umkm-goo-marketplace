@@ -121,7 +121,16 @@ function AdminShops() {
                   </div>
                 </div>
                 <div className="text-right space-y-1">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${toneCls}`}>{st.label}</span>
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={(e) => toggleFeatured(e, s)}
+                      title={s.is_featured ? "Hapus dari unggulan" : "Tandai unggulan"}
+                      className={`rounded-md p-1 transition ${s.is_featured ? "text-amber-500 hover:bg-amber-500/10" : "text-muted-foreground hover:bg-muted"}`}
+                    >
+                      <Star className={`h-4 w-4 ${s.is_featured ? "fill-amber-500" : ""}`} />
+                    </button>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${toneCls}`}>{st.label}</span>
+                  </div>
                   {s.plan_expires_at && <div className="text-xs text-muted-foreground">s/d {new Date(s.plan_expires_at).toLocaleDateString("id-ID")}</div>}
                   {domainOffline && <div><Badge variant="destructive" className="text-[10px]">Domain Offline</Badge></div>}
                 </div>
