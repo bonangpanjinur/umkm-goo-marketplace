@@ -22,6 +22,27 @@ import {
   buildMidtransConfig,
   buildXenditConfig,
 } from "../lib/gateway-config.js";
+import { supabaseUpdate } from "../lib/supabase-admin.js";
+
+/** If the orderId belongs to an ad payment (format: "ad-{adRequestId}-{ts}"),
+ *  extract and return the ad_request id. */
+function extractAdRequestId(orderId: string): string | null {
+  // Stored as "ad-{uuid}-{timestamp}" or "ad-{uuid}"
+  const m = orderId.match(/^ad-([0-9a-f-]{36})/i);
+  return m ? m[1]! : null;
+}
+
+async function activateAdRequest(adRequestId: string): Promise<void> {
+  try {
+    await supabaseUpdate("ad_requests", adRequestId, {
+      status: "pending",
+      updated_at: new Date().toISOString(),
+    });
+    logger.info({ adRequestId }, "ad_request promoted to pending after payment");
+  } catch (err) {
+    logger.error({ err, adRequestId }, "Failed to activate ad_request after payment");
+  }
+}
 
 const router = Router();
 
@@ -296,6 +317,12 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
         .where(eq(paymentTransactions.id, tx.id));
 
       logger.info({ transaction_id: tx.id, order_id: tx.orderId, status: newStatus }, "Midtrans payment status updated");
+
+      // If this is an ad payment, promote the ad_request to pending
+      if (newStatus === "paid") {
+        const adId = extractAdRequestId(tx.orderId);
+        if (adId) await activateAdRequest(adId);
+      }
     }
 
     await db
@@ -378,6 +405,12 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
         .where(eq(paymentTransactions.id, tx.id));
 
       logger.info({ transaction_id: tx.id, order_id: tx.orderId, status: newStatus }, "Xendit payment status updated");
+
+      // If this is an ad payment, promote the ad_request to pending
+      if (newStatus === "paid") {
+        const adId = extractAdRequestId(tx.orderId);
+        if (adId) await activateAdRequest(adId);
+      }
     }
 
     await db

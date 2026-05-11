@@ -7,14 +7,14 @@ import { toast } from "sonner";
 import {
   Megaphone, CheckCircle2, XCircle, Clock, Search, RefreshCw,
   Eye, Store, Package, ChevronDown, ChevronUp, AlertCircle, BadgeCheck,
-  Calendar, Banknote, MapPin,
+  Calendar, Banknote, MapPin, CreditCard,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/ads")({
   component: AdminAdsPage,
 });
 
-type AdStatus = "pending" | "active" | "rejected" | "expired" | "paused";
+type AdStatus = "payment_pending" | "pending" | "active" | "rejected" | "expired" | "paused";
 type AdPosition = "hero_carousel" | "homepage_middle" | "search_top" | "category_top" | "product_sidebar";
 type AdType = "product" | "shop";
 
@@ -37,14 +37,17 @@ type AdRequest = {
   impressions: number;
   clicks: number;
   created_at: string;
+  payment_method: string | null;
+  payment_tx_id: string | null;
 };
 
 const DEMO_ADS: AdRequest[] = [
-  { id: "ad-1", shop_id: "s1", shop_name: "Batik Nusantara", shop_logo: null, ad_type: "shop", target_id: "s1", target_name: "Batik Nusantara", target_image: null, position: "hero_carousel", budget_idr: 500000, duration_days: 14, starts_at: null, ends_at: null, status: "pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 3600000).toISOString() },
-  { id: "ad-2", shop_id: "s2", shop_name: "Kopi Senja", shop_logo: null, ad_type: "product", target_id: "p1", target_name: "Kopi Arabika Gayo Premium 250g", target_image: null, position: "homepage_middle", budget_idr: 200000, duration_days: 7, starts_at: new Date(Date.now() - 86400000 * 2).toISOString(), ends_at: new Date(Date.now() + 86400000 * 5).toISOString(), status: "active", reject_reason: null, impressions: 1240, clicks: 87, created_at: new Date(Date.now() - 86400000 * 3).toISOString() },
-  { id: "ad-3", shop_id: "s3", shop_name: "Craft Corner", shop_logo: null, ad_type: "product", target_id: "p2", target_name: "Tas Anyam Rotan Premium", target_image: null, position: "search_top", budget_idr: 150000, duration_days: 7, starts_at: null, ends_at: null, status: "pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 7200000).toISOString() },
-  { id: "ad-4", shop_id: "s4", shop_name: "Fashion ID", shop_logo: null, ad_type: "shop", target_id: "s4", target_name: "Fashion ID", target_image: null, position: "category_top", budget_idr: 300000, duration_days: 14, starts_at: new Date(Date.now() - 86400000 * 10).toISOString(), ends_at: new Date(Date.now() - 86400000 * 3).toISOString(), status: "expired", reject_reason: null, impressions: 3200, clicks: 210, created_at: new Date(Date.now() - 86400000 * 15).toISOString() },
-  { id: "ad-5", shop_id: "s5", shop_name: "Digital Hub", shop_logo: null, ad_type: "product", target_id: "p3", target_name: "Template Canva Premium Bundle", target_image: null, position: "product_sidebar", budget_idr: 100000, duration_days: 7, starts_at: null, ends_at: null, status: "rejected", reject_reason: "Konten tidak sesuai dengan kebijakan platform", impressions: 0, clicks: 0, created_at: new Date(Date.now() - 86400000).toISOString() },
+  { id: "ad-0", shop_id: "s0", shop_name: "Warung Mbok Sri", shop_logo: null, ad_type: "product", target_id: "p0", target_name: "Nasi Gudeg Spesial", target_image: null, position: "homepage_middle", budget_idr: 210000, duration_days: 7, starts_at: null, ends_at: null, status: "payment_pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 900000).toISOString(), payment_method: "transfer", payment_tx_id: null },
+  { id: "ad-1", shop_id: "s1", shop_name: "Batik Nusantara", shop_logo: null, ad_type: "shop", target_id: "s1", target_name: "Batik Nusantara", target_image: null, position: "hero_carousel", budget_idr: 500000, duration_days: 14, starts_at: null, ends_at: null, status: "pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 3600000).toISOString(), payment_method: "gopay", payment_tx_id: "txn-abc-001" },
+  { id: "ad-2", shop_id: "s2", shop_name: "Kopi Senja", shop_logo: null, ad_type: "product", target_id: "p1", target_name: "Kopi Arabika Gayo Premium 250g", target_image: null, position: "homepage_middle", budget_idr: 200000, duration_days: 7, starts_at: new Date(Date.now() - 86400000 * 2).toISOString(), ends_at: new Date(Date.now() + 86400000 * 5).toISOString(), status: "active", reject_reason: null, impressions: 1240, clicks: 87, created_at: new Date(Date.now() - 86400000 * 3).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-002" },
+  { id: "ad-3", shop_id: "s3", shop_name: "Craft Corner", shop_logo: null, ad_type: "product", target_id: "p2", target_name: "Tas Anyam Rotan Premium", target_image: null, position: "search_top", budget_idr: 150000, duration_days: 7, starts_at: null, ends_at: null, status: "pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 7200000).toISOString(), payment_method: "qris", payment_tx_id: "txn-abc-003" },
+  { id: "ad-4", shop_id: "s4", shop_name: "Fashion ID", shop_logo: null, ad_type: "shop", target_id: "s4", target_name: "Fashion ID", target_image: null, position: "category_top", budget_idr: 300000, duration_days: 14, starts_at: new Date(Date.now() - 86400000 * 10).toISOString(), ends_at: new Date(Date.now() - 86400000 * 3).toISOString(), status: "expired", reject_reason: null, impressions: 3200, clicks: 210, created_at: new Date(Date.now() - 86400000 * 15).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-004" },
+  { id: "ad-5", shop_id: "s5", shop_name: "Digital Hub", shop_logo: null, ad_type: "product", target_id: "p3", target_name: "Template Canva Premium Bundle", target_image: null, position: "product_sidebar", budget_idr: 100000, duration_days: 7, starts_at: null, ends_at: null, status: "rejected", reject_reason: "Konten tidak sesuai dengan kebijakan platform", impressions: 0, clicks: 0, created_at: new Date(Date.now() - 86400000).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-005" },
 ];
 
 const POSITION_LABELS: Record<AdPosition, string> = {
@@ -56,11 +59,18 @@ const POSITION_LABELS: Record<AdPosition, string> = {
 };
 
 const STATUS_CONFIG: Record<AdStatus, { label: string; color: string; icon: typeof Clock }> = {
-  pending: { label: "Menunggu", color: "bg-amber-100 text-amber-700", icon: Clock },
-  active: { label: "Aktif", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
-  rejected: { label: "Ditolak", color: "bg-red-100 text-red-700", icon: XCircle },
-  expired: { label: "Habis", color: "bg-slate-100 text-slate-600", icon: Calendar },
-  paused: { label: "Dijeda", color: "bg-blue-100 text-blue-700", icon: AlertCircle },
+  payment_pending: { label: "Belum Bayar", color: "bg-orange-100 text-orange-700", icon: Banknote },
+  pending:         { label: "Menunggu",    color: "bg-amber-100 text-amber-700",   icon: Clock },
+  active:          { label: "Aktif",       color: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
+  rejected:        { label: "Ditolak",     color: "bg-red-100 text-red-700",       icon: XCircle },
+  expired:         { label: "Habis",       color: "bg-slate-100 text-slate-600",   icon: Calendar },
+  paused:          { label: "Dijeda",      color: "bg-blue-100 text-blue-700",     icon: AlertCircle },
+};
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  transfer: "Transfer Bank", qris: "QRIS", gopay: "GoPay",
+  ovo: "OVO", shopeepay: "ShopeePay", cc: "Kartu Kredit",
+  xendit_invoice: "Xendit Invoice",
 };
 
 export default function AdminAdsPage() {
@@ -155,6 +165,7 @@ export default function AdminAdsPage() {
     return true;
   });
 
+  const paymentPendingCount = ads.filter(a => a.status === "payment_pending").length;
   const pendingCount = ads.filter(a => a.status === "pending").length;
   const activeCount = ads.filter(a => a.status === "active").length;
 
@@ -179,8 +190,8 @@ export default function AdminAdsPage() {
       </div>
 
       {/* KPI cards */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {(["pending", "active", "expired", "rejected"] as AdStatus[]).map(s => {
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {(["payment_pending", "pending", "active", "expired", "rejected"] as AdStatus[]).map(s => {
           const count = ads.filter(a => a.status === s).length;
           const cfg = STATUS_CONFIG[s];
           const Icon = cfg.icon;
@@ -204,13 +215,13 @@ export default function AdminAdsPage() {
       </div>
 
       {/* Filter & search */}
-      <div className="mb-4 flex gap-2">
-        <div className="relative flex-1">
+      <div className="mb-4 flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Cari nama toko atau produk…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <Button variant={filterStatus === "all" ? "default" : "outline"} size="sm" onClick={() => setFilterStatus("all")}>Semua</Button>
-        {(["pending", "active", "rejected", "expired"] as AdStatus[]).map(s => (
+        {(["payment_pending", "pending", "active", "rejected", "expired"] as AdStatus[]).map(s => (
           <Button key={s} variant={filterStatus === s ? "default" : "outline"} size="sm" onClick={() => setFilterStatus(filterStatus === s ? "all" : s)}>
             {STATUS_CONFIG[s].label}
           </Button>
@@ -283,6 +294,14 @@ export default function AdminAdsPage() {
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             <span><strong className="text-foreground">Periode:</strong> {new Date(ad.starts_at).toLocaleDateString("id-ID")} — {ad.ends_at ? new Date(ad.ends_at).toLocaleDateString("id-ID") : "?"}</span>
+                          </div>
+                        )}
+                        {ad.payment_method && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <CreditCard className="h-4 w-4" />
+                            <span><strong className="text-foreground">Metode bayar:</strong> {PAYMENT_METHOD_LABELS[ad.payment_method] ?? ad.payment_method}</span>
+                            {ad.status === "payment_pending" && <span className="rounded-full bg-orange-100 text-orange-700 px-2 py-0.5 text-[10px] font-semibold">Belum dibayar</span>}
+                            {ad.payment_tx_id && ad.status !== "payment_pending" && <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-[10px] font-semibold">Lunas</span>}
                           </div>
                         )}
                         {ad.reject_reason && (
@@ -359,7 +378,7 @@ export default function AdminAdsPage() {
 
       {usingDemo && (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <p className="font-semibold mb-1">SQL untuk tabel ad_requests:</p>
+          <p className="font-semibold mb-1">SQL untuk tabel ad_requests (jalankan di Supabase SQL Editor):</p>
           <pre className="mt-2 overflow-x-auto rounded bg-amber-100 p-3 text-xs leading-relaxed">{`create table if not exists ad_requests (
   id uuid primary key default gen_random_uuid(),
   shop_id uuid references coffee_shops(id),
@@ -367,18 +386,39 @@ export default function AdminAdsPage() {
   target_id uuid,
   target_name text,
   target_image text,
-  position text check (position in ('hero_carousel','homepage_middle','search_top','category_top','product_sidebar')),
+  position text check (position in (
+    'hero_carousel','homepage_middle','search_top','category_top','product_sidebar'
+  )),
   budget_idr numeric default 0,
   duration_days int default 7,
   starts_at timestamptz,
   ends_at timestamptz,
-  status text check (status in ('pending','active','rejected','expired','paused')) default 'pending',
+  status text check (status in (
+    'payment_pending','pending','active','rejected','expired','paused'
+  )) default 'payment_pending',
   reject_reason text,
+  payment_method text,
+  payment_tx_id text,
   impressions int default 0,
   clicks int default 0,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
-alter table ad_requests enable row level security;`}
+alter table ad_requests enable row level security;
+
+-- Owner bisa buat & lihat iklan milik toko mereka
+create policy "owner insert" on ad_requests for insert
+  with check (shop_id in (
+    select id from coffee_shops where owner_id = auth.uid()
+  ));
+create policy "owner select" on ad_requests for select
+  using (shop_id in (
+    select id from coffee_shops where owner_id = auth.uid()
+  ));
+create policy "owner update payment" on ad_requests for update
+  using (shop_id in (
+    select id from coffee_shops where owner_id = auth.uid()
+  ));`}
           </pre>
         </div>
       )}
