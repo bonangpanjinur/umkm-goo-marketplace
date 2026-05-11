@@ -149,54 +149,6 @@ export type Database = {
         }
         Relationships: []
       }
-      business_categories: {
-        Row: {
-          banner_url: string | null
-          commission_override: number | null
-          created_at: string
-          description: string | null
-          enabled_features: string[]
-          icon_url: string | null
-          id: string
-          is_active: boolean
-          name: string
-          product_attributes: Json
-          slug: string
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          banner_url?: string | null
-          commission_override?: number | null
-          created_at?: string
-          description?: string | null
-          enabled_features?: string[]
-          icon_url?: string | null
-          id?: string
-          is_active?: boolean
-          name: string
-          product_attributes?: Json
-          slug: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          banner_url?: string | null
-          commission_override?: number | null
-          created_at?: string
-          description?: string | null
-          enabled_features?: string[]
-          icon_url?: string | null
-          id?: string
-          is_active?: boolean
-          name?: string
-          product_attributes?: Json
-          slug?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
       campaign_recipients: {
         Row: {
           campaign_id: string
@@ -339,6 +291,8 @@ export type Database = {
           shop_id: string
           sort_order: number
           updated_at: string
+          kds_station: string | null
+          printer_id: string | null
         }
         Insert: {
           created_at?: string
@@ -348,6 +302,8 @@ export type Database = {
           shop_id: string
           sort_order?: number
           updated_at?: string
+          kds_station?: string | null
+          printer_id?: string | null
         }
         Update: {
           created_at?: string
@@ -357,6 +313,8 @@ export type Database = {
           shop_id?: string
           sort_order?: number
           updated_at?: string
+          kds_station?: string | null
+          printer_id?: string | null
         }
         Relationships: [
           {
@@ -372,9 +330,6 @@ export type Database = {
         Row: {
           active_theme_key: string
           address: string | null
-          average_rating: number | null
-          business_category_id: string | null
-          commission_rate_override: number | null
           created_at: string
           currency: string
           custom_domain: string | null
@@ -387,7 +342,6 @@ export type Database = {
           is_active: boolean
           last_dns_check_at: string | null
           logo_url: string | null
-          marketplace_visible: boolean
           name: string
           open_hours: Json
           owner_id: string
@@ -401,7 +355,6 @@ export type Database = {
           qris_merchant_name: string | null
           receipt_footer: string | null
           receipt_header: string | null
-          review_count: number
           service_charge_percent: number
           slug: string
           suspended_at: string | null
@@ -409,19 +362,12 @@ export type Database = {
           tagline: string | null
           tax_inclusive: boolean
           tax_percent: number
-          total_gmv: number
-          total_sales_count: number
           updated_at: string
-          verification_status: string
-          verified_at: string | null
           whatsapp: string | null
         }
         Insert: {
           active_theme_key?: string
           address?: string | null
-          average_rating?: number | null
-          business_category_id?: string | null
-          commission_rate_override?: number | null
           created_at?: string
           currency?: string
           custom_domain?: string | null
@@ -434,7 +380,6 @@ export type Database = {
           is_active?: boolean
           last_dns_check_at?: string | null
           logo_url?: string | null
-          marketplace_visible?: boolean
           name: string
           open_hours?: Json
           owner_id: string
@@ -448,7 +393,6 @@ export type Database = {
           qris_merchant_name?: string | null
           receipt_footer?: string | null
           receipt_header?: string | null
-          review_count?: number
           service_charge_percent?: number
           slug: string
           suspended_at?: string | null
@@ -456,19 +400,12 @@ export type Database = {
           tagline?: string | null
           tax_inclusive?: boolean
           tax_percent?: number
-          total_gmv?: number
-          total_sales_count?: number
           updated_at?: string
-          verification_status?: string
-          verified_at?: string | null
           whatsapp?: string | null
         }
         Update: {
           active_theme_key?: string
           address?: string | null
-          average_rating?: number | null
-          business_category_id?: string | null
-          commission_rate_override?: number | null
           created_at?: string
           currency?: string
           custom_domain?: string | null
@@ -481,7 +418,6 @@ export type Database = {
           is_active?: boolean
           last_dns_check_at?: string | null
           logo_url?: string | null
-          marketplace_visible?: boolean
           name?: string
           open_hours?: Json
           owner_id?: string
@@ -495,7 +431,6 @@ export type Database = {
           qris_merchant_name?: string | null
           receipt_footer?: string | null
           receipt_header?: string | null
-          review_count?: number
           service_charge_percent?: number
           slug?: string
           suspended_at?: string | null
@@ -503,22 +438,10 @@ export type Database = {
           tagline?: string | null
           tax_inclusive?: boolean
           tax_percent?: number
-          total_gmv?: number
-          total_sales_count?: number
           updated_at?: string
-          verification_status?: string
-          verified_at?: string | null
           whatsapp?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "coffee_shops_business_category_id_fkey"
-            columns: ["business_category_id"]
-            isOneToOne: false
-            referencedRelation: "business_categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       couriers: {
         Row: {
@@ -1203,121 +1126,49 @@ export type Database = {
       }
       menu_items: {
         Row: {
-          attributes: Json
-          average_rating: number | null
           category_id: string | null
-          compare_price: number | null
-          cost_price: number | null
           created_at: string
           description: string | null
-          digital_file_name: string | null
-          digital_file_url: string | null
-          height_cm: number | null
           id: string
           image_url: string | null
-          images: Json
           is_available: boolean
-          is_digital: boolean
-          is_featured: boolean
-          is_pre_order: boolean
-          length_cm: number | null
-          low_stock_threshold: number | null
           name: string
-          pre_order_days: number | null
           price: number
           recipe_yield: number
-          review_count: number
           shop_id: string
-          sku: string | null
-          slug: string | null
           sort_order: number
-          stock: number | null
-          tags: string[]
-          total_sold: number
-          total_views: number
           track_stock: boolean
           updated_at: string
-          video_url: string | null
-          weight_grams: number | null
-          width_cm: number | null
         }
         Insert: {
-          attributes?: Json
-          average_rating?: number | null
           category_id?: string | null
-          compare_price?: number | null
-          cost_price?: number | null
           created_at?: string
           description?: string | null
-          digital_file_name?: string | null
-          digital_file_url?: string | null
-          height_cm?: number | null
           id?: string
           image_url?: string | null
-          images?: Json
           is_available?: boolean
-          is_digital?: boolean
-          is_featured?: boolean
-          is_pre_order?: boolean
-          length_cm?: number | null
-          low_stock_threshold?: number | null
           name: string
-          pre_order_days?: number | null
           price?: number
           recipe_yield?: number
-          review_count?: number
           shop_id: string
-          sku?: string | null
-          slug?: string | null
           sort_order?: number
-          stock?: number | null
-          tags?: string[]
-          total_sold?: number
-          total_views?: number
           track_stock?: boolean
           updated_at?: string
-          video_url?: string | null
-          weight_grams?: number | null
-          width_cm?: number | null
         }
         Update: {
-          attributes?: Json
-          average_rating?: number | null
           category_id?: string | null
-          compare_price?: number | null
-          cost_price?: number | null
           created_at?: string
           description?: string | null
-          digital_file_name?: string | null
-          digital_file_url?: string | null
-          height_cm?: number | null
           id?: string
           image_url?: string | null
-          images?: Json
           is_available?: boolean
-          is_digital?: boolean
-          is_featured?: boolean
-          is_pre_order?: boolean
-          length_cm?: number | null
-          low_stock_threshold?: number | null
           name?: string
-          pre_order_days?: number | null
           price?: number
           recipe_yield?: number
-          review_count?: number
           shop_id?: string
-          sku?: string | null
-          slug?: string | null
           sort_order?: number
-          stock?: number | null
-          tags?: string[]
-          total_sold?: number
-          total_views?: number
           track_stock?: boolean
           updated_at?: string
-          video_url?: string | null
-          weight_grams?: number | null
-          width_cm?: number | null
         }
         Relationships: [
           {
@@ -1479,13 +1330,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "order_items_menu_item_id_fkey"
-            columns: ["menu_item_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -1534,6 +1378,7 @@ export type Database = {
           tip_amount: number
           total: number
           updated_at: string
+          table_id: string | null
         }
         Insert: {
           amount_tendered?: number | null
@@ -1560,6 +1405,7 @@ export type Database = {
           payment_proof_url?: string | null
           payment_split?: Json
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          table_id?: string | null
           points_earned?: number
           points_redeemed?: number
           promo_code?: string | null
@@ -1949,42 +1795,6 @@ export type Database = {
           price_idr?: number
           sort_order?: number
           updated_at?: string
-        }
-        Relationships: []
-      }
-      platform_settings: {
-        Row: {
-          category: string
-          description: string | null
-          id: string
-          is_encrypted: boolean
-          key: string
-          updated_at: string
-          updated_by: string | null
-          value: string | null
-          value_encrypted: string | null
-        }
-        Insert: {
-          category?: string
-          description?: string | null
-          id?: string
-          is_encrypted?: boolean
-          key: string
-          updated_at?: string
-          updated_by?: string | null
-          value?: string | null
-          value_encrypted?: string | null
-        }
-        Update: {
-          category?: string
-          description?: string | null
-          id?: string
-          is_encrypted?: boolean
-          key?: string
-          updated_at?: string
-          updated_by?: string | null
-          value?: string | null
-          value_encrypted?: string | null
         }
         Relationships: []
       }
@@ -2441,71 +2251,6 @@ export type Database = {
         }
         Relationships: []
       }
-      shop_verifications: {
-        Row: {
-          business_license_url: string | null
-          created_at: string
-          expires_at: string | null
-          id: string
-          ktp_full_name: string | null
-          ktp_number: string | null
-          ktp_url: string
-          notes: string | null
-          npwp_url: string | null
-          rejection_reason: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          selfie_ktp_url: string | null
-          shop_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          business_license_url?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          ktp_full_name?: string | null
-          ktp_number?: string | null
-          ktp_url: string
-          notes?: string | null
-          npwp_url?: string | null
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          selfie_ktp_url?: string | null
-          shop_id: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          business_license_url?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          ktp_full_name?: string | null
-          ktp_number?: string | null
-          ktp_url?: string
-          notes?: string | null
-          npwp_url?: string | null
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          selfie_ktp_url?: string | null
-          shop_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shop_verifications_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "coffee_shops"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       staff_invitations: {
         Row: {
           accepted_at: string | null
@@ -2896,141 +2641,6 @@ export type Database = {
           },
         ]
       }
-      products: {
-        Row: {
-          attributes: Json | null
-          average_rating: number | null
-          compare_price: number | null
-          cost_price: number | null
-          created_at: string | null
-          description: string | null
-          digital_file_name: string | null
-          digital_file_url: string | null
-          height_cm: number | null
-          id: string | null
-          image_url: string | null
-          images: Json | null
-          is_available: boolean | null
-          is_digital: boolean | null
-          is_featured: boolean | null
-          is_pre_order: boolean | null
-          length_cm: number | null
-          low_stock_threshold: number | null
-          name: string | null
-          pre_order_days: number | null
-          price: number | null
-          product_category_id: string | null
-          recipe_yield: number | null
-          review_count: number | null
-          shop_id: string | null
-          sku: string | null
-          slug: string | null
-          sort_order: number | null
-          stock: number | null
-          tags: string[] | null
-          total_sold: number | null
-          total_views: number | null
-          track_stock: boolean | null
-          updated_at: string | null
-          video_url: string | null
-          weight_grams: number | null
-          width_cm: number | null
-        }
-        Insert: {
-          attributes?: Json | null
-          average_rating?: number | null
-          compare_price?: number | null
-          cost_price?: number | null
-          created_at?: string | null
-          description?: string | null
-          digital_file_name?: string | null
-          digital_file_url?: string | null
-          height_cm?: number | null
-          id?: string | null
-          image_url?: string | null
-          images?: Json | null
-          is_available?: boolean | null
-          is_digital?: boolean | null
-          is_featured?: boolean | null
-          is_pre_order?: boolean | null
-          length_cm?: number | null
-          low_stock_threshold?: number | null
-          name?: string | null
-          pre_order_days?: number | null
-          price?: number | null
-          product_category_id?: string | null
-          recipe_yield?: number | null
-          review_count?: number | null
-          shop_id?: string | null
-          sku?: string | null
-          slug?: string | null
-          sort_order?: number | null
-          stock?: number | null
-          tags?: string[] | null
-          total_sold?: number | null
-          total_views?: number | null
-          track_stock?: boolean | null
-          updated_at?: string | null
-          video_url?: string | null
-          weight_grams?: number | null
-          width_cm?: number | null
-        }
-        Update: {
-          attributes?: Json | null
-          average_rating?: number | null
-          compare_price?: number | null
-          cost_price?: number | null
-          created_at?: string | null
-          description?: string | null
-          digital_file_name?: string | null
-          digital_file_url?: string | null
-          height_cm?: number | null
-          id?: string | null
-          image_url?: string | null
-          images?: Json | null
-          is_available?: boolean | null
-          is_digital?: boolean | null
-          is_featured?: boolean | null
-          is_pre_order?: boolean | null
-          length_cm?: number | null
-          low_stock_threshold?: number | null
-          name?: string | null
-          pre_order_days?: number | null
-          price?: number | null
-          product_category_id?: string | null
-          recipe_yield?: number | null
-          review_count?: number | null
-          shop_id?: string | null
-          sku?: string | null
-          slug?: string | null
-          sort_order?: number | null
-          stock?: number | null
-          tags?: string[] | null
-          total_sold?: number | null
-          total_views?: number | null
-          track_stock?: boolean | null
-          updated_at?: string | null
-          video_url?: string | null
-          weight_grams?: number | null
-          width_cm?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "menu_items_category_id_fkey"
-            columns: ["product_category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "menu_items_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "coffee_shops"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Functions: {
       accept_staff_invitation: { Args: { _token: string }; Returns: Json }
@@ -3155,20 +2765,6 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           total: number
           updated_at: string
-        }[]
-      }
-      get_profit_report: {
-        Args: { _from: string; _shop_id: string; _to: string }
-        Returns: Json
-      }
-      get_profit_report_daily: {
-        Args: { _from: string; _shop_id: string; _to: string }
-        Returns: {
-          cogs: number
-          day: string
-          gross_profit: number
-          orders: number
-          revenue: number
         }[]
       }
       get_shop_entitlements: { Args: { _shop_id: string }; Returns: Json }
