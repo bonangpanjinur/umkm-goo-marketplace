@@ -2084,7 +2084,19 @@ Semua template notifikasi (email, in-app) dapat diedit oleh Super Admin:
 - Halaman publik `/promo` daftar voucher platform aktif
 - Loyalty points lintas toko (poin marketplace)
 
+### ✅ Fase 4 — Analitik (selesai)
+- **Dashboard admin** `/admin/analytics`
+  - KPI: GMV, komisi platform, take rate, jumlah pesanan, AOV, toko aktif, pelanggan unik, net ke toko
+  - Grafik tren harian GMV vs Komisi (line chart)
+  - Top 10 toko berdasarkan GMV + komisi
+  - Filter rentang tanggal & export CSV
+- **Dashboard owner marketplace** `/pos-app/marketplace-analytics`
+  - KPI: penjualan kotor, komisi dibayar, pendapatan bersih, pesanan, AOV, pelanggan unik, status pesanan
+  - Grafik tren harian pendapatan & jumlah pesanan
+  - Top 10 produk marketplace toko
+  - Filter rentang tanggal & export CSV
+- **RPC analytics**: `get_marketplace_admin_stats`, `get_marketplace_admin_daily`, `get_marketplace_admin_top_shops`, `get_shop_marketplace_stats`, `get_shop_marketplace_daily`, `get_shop_marketplace_top_products` (semua dengan otorisasi role/owner)
+
 ### Saran Fase Berikutnya
-- **Fase 3 — Sengketa & Komunikasi**: alur dispute/refund, chat customer↔seller (realtime), auto-release escrow setelah X hari.
-- **Fase 4 — Analitik**: dashboard admin (GMV, take-rate), dashboard owner marketplace (konversi, AOV), export laporan.
 - **Fase 5 — Notifikasi & Re-engagement**: email/WA notif (status order, broadcast promo), push notification PWA.
+- **Fase 6 — Skala & Mobile**: PWA pembeli + owner, public API mitra, multi-bahasa, A/B test.

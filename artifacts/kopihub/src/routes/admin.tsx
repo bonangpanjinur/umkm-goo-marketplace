@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/admin")({
 
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/analytics", label: "Analitik", icon: BarChart3 },
   { to: "/admin/shops", label: "Toko", icon: Store },
   { to: "/admin/invoices", label: "Tagihan", icon: FileText },
   { to: "/admin/withdrawals", label: "Penarikan", icon: Banknote },

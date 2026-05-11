@@ -3752,6 +3752,29 @@ export type Database = {
           qris_image_url: string
         }[]
       }
+      get_marketplace_admin_daily: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          commission: number
+          day: string
+          gmv: number
+          orders: number
+        }[]
+      }
+      get_marketplace_admin_stats: {
+        Args: { _from: string; _to: string }
+        Returns: Json
+      }
+      get_marketplace_admin_top_shops: {
+        Args: { _from: string; _limit?: number; _to: string }
+        Returns: {
+          commission: number
+          gmv: number
+          orders: number
+          shop_id: string
+          shop_name: string
+        }[]
+      }
       get_or_create_marketplace_cart: { Args: never; Returns: string }
       get_order_tracking: {
         Args: { _order_id: string }
@@ -3791,6 +3814,27 @@ export type Database = {
         }[]
       }
       get_shop_entitlements: { Args: { _shop_id: string }; Returns: Json }
+      get_shop_marketplace_daily: {
+        Args: { _from: string; _shop_id: string; _to: string }
+        Returns: {
+          day: string
+          orders: number
+          revenue: number
+        }[]
+      }
+      get_shop_marketplace_stats: {
+        Args: { _from: string; _shop_id: string; _to: string }
+        Returns: Json
+      }
+      get_shop_marketplace_top_products: {
+        Args: { _from: string; _limit?: number; _shop_id: string; _to: string }
+        Returns: {
+          item_name: string
+          menu_item_id: string
+          qty: number
+          revenue: number
+        }[]
+      }
       has_outlet_access: {
         Args: { _outlet_id: string; _user_id: string }
         Returns: boolean

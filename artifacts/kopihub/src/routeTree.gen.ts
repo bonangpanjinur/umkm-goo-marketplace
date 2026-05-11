@@ -46,6 +46,7 @@ import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
 import { Route as PosAppOnlineOrdersRouteImport } from './routes/pos-app.online-orders'
 import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
 import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
+import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
@@ -76,6 +77,7 @@ import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
@@ -280,6 +282,12 @@ const PosAppMarketplaceOrdersRoute = PosAppMarketplaceOrdersRouteImport.update({
   path: '/marketplace-orders',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppMarketplaceAnalyticsRoute =
+  PosAppMarketplaceAnalyticsRouteImport.update({
+    id: '/marketplace-analytics',
+    path: '/marketplace-analytics',
+    getParentRoute: () => PosAppRoute,
+  } as any)
 const PosAppLoyaltyRoute = PosAppLoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
@@ -430,6 +438,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminActivityRoute = AdminActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -537,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -567,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/menu': typeof PosAppMenuRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -621,6 +636,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -651,6 +667,7 @@ export interface FileRoutesByTo {
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/menu': typeof PosAppMenuRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -708,6 +725,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -738,6 +756,7 @@ export interface FileRoutesById {
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/menu': typeof PosAppMenuRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -797,6 +816,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -827,6 +847,7 @@ export interface FileRouteTypes {
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/loyalty'
+    | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/menu'
     | '/pos-app/online-orders'
@@ -881,6 +902,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -911,6 +933,7 @@ export interface FileRouteTypes {
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/loyalty'
+    | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/menu'
     | '/pos-app/online-orders'
@@ -967,6 +990,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -997,6 +1021,7 @@ export interface FileRouteTypes {
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/loyalty'
+    | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/menu'
     | '/pos-app/online-orders'
@@ -1324,6 +1349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppMarketplaceOrdersRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/marketplace-analytics': {
+      id: '/pos-app/marketplace-analytics'
+      path: '/marketplace-analytics'
+      fullPath: '/pos-app/marketplace-analytics'
+      preLoaderRoute: typeof PosAppMarketplaceAnalyticsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/loyalty': {
       id: '/pos-app/loyalty'
       path: '/loyalty'
@@ -1534,6 +1566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/activity': {
       id: '/admin/activity'
       path: '/activity'
@@ -1689,6 +1728,7 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
@@ -1705,6 +1745,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
   AdminCatalogRoute: AdminCatalogRoute,
@@ -1800,6 +1841,7 @@ interface PosAppRouteChildren {
   PosAppKdsRoute: typeof PosAppKdsRoute
   PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
+  PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
   PosAppMenuRoute: typeof PosAppMenuRoute
   PosAppOnlineOrdersRoute: typeof PosAppOnlineOrdersRoute
@@ -1836,6 +1878,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppKdsRoute: PosAppKdsRoute,
   PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
+  PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
   PosAppMenuRoute: PosAppMenuRoute,
   PosAppOnlineOrdersRoute: PosAppOnlineOrdersRoute,
