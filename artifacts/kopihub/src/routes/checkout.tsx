@@ -92,6 +92,10 @@ function CheckoutPage() {
         fulfillment,
         notes: notes.trim() || null,
         shipping: fulfillment === "delivery" ? shipping : {},
+        shop_voucher_codes: Object.fromEntries(
+          Object.entries(shopVoucherCodes).filter(([, v]) => v && v.trim()).map(([k, v]) => [k, v.trim().toUpperCase()])
+        ),
+        platform_voucher_code: platformVoucherCode.trim() ? platformVoucherCode.trim().toUpperCase() : null,
       });
       if (ids.length === 0) {
         toast.error("Gagal membuat pesanan.");
