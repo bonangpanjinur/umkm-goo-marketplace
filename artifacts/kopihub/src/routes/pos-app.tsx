@@ -73,9 +73,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "orders",
     label: "Pesanan",
     items: [
-      { to: "/pos-app/orders", label: "Pesanan Kasir", icon: ListOrdered, hint: "Transaksi POS in-store" },
-      { to: "/pos-app/online-orders", label: "Pesanan Web Toko", icon: Bell, hint: "Order dari web toko Anda" },
-      { to: "/pos-app/marketplace-orders", label: "Pesanan Marketplace", icon: ShoppingCart, hint: "Order dari marketplace KopiHub" },
+      { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori" },
       { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
     ],
   },
