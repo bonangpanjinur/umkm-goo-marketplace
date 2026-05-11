@@ -113,8 +113,8 @@ function PromoPage() {
             {vouchers.map((v) => {
               const valueLabel =
                 v.discount_type === "percent"
-                  ? `${v.discount_value}%`
-                  : `Rp ${Number(v.discount_value).toLocaleString("id-ID")}`;
+                  ? `${v.value}%`
+                  : `Rp ${Number(v.value).toLocaleString("id-ID")}`;
               return (
                 <div key={v.code} className="flex overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex w-24 flex-col items-center justify-center bg-primary/10 p-3 text-center">
@@ -122,7 +122,7 @@ function PromoPage() {
                     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Diskon</div>
                   </div>
                   <div className="flex-1 p-3">
-                    <div className="text-sm font-semibold">{v.title ?? v.code}</div>
+                    <div className="text-sm font-semibold">{v.code}</div>
                     {v.description && (
                       <div className="line-clamp-2 text-[11px] text-muted-foreground">{v.description}</div>
                     )}
