@@ -30,6 +30,8 @@
 17. [Roadmap Pengembangan](#17-roadmap-pengembangan)
 18. [Metrik Keberhasilan](#18-metrik-keberhasilan)
 19. [Risiko & Mitigasi](#19-risiko--mitigasi)
+20. [Feature Gap Matrix (Lintas Role)](#20-feature-gap-matrix-lintas-role--terintegrasi)
+21. [UI/UX Blueprint per Role](#21-uiux-blueprint-per-role-responsif-penuh)
 
 ---
 
