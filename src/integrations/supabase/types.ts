@@ -3564,8 +3564,10 @@ export type Database = {
           courier_plate: string
           created_at: string
           customer_name: string
+          delivered_at: string
           delivery_address: string
           delivery_fee: number
+          delivery_proof_url: string
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id: string
           order_no: string
