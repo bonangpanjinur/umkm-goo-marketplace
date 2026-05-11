@@ -7,6 +7,7 @@ import { Store, ShoppingCart, Plus, Minus } from "lucide-react";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { ProductReviews } from "@/components/marketplace/ProductReviews";
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
   component: ProductDetailPage,
@@ -151,6 +152,12 @@ function ProductDetailPage() {
             </div>
           </div>
         ) : null}
+        {product && (
+          <section className="mt-12">
+            <h2 className="text-xl font-semibold mb-4">Ulasan Produk</h2>
+            <ProductReviews productId={product.id} />
+          </section>
+        )}
       </div>
       <MarketplaceFooter />
     </div>

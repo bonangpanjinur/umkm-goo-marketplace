@@ -63,11 +63,18 @@ export function MarketplaceHeader() {
           )}
         </Link>
         {user ? (
-          <Link to="/pos-app">
-            <Button size="sm" variant="outline" className="gap-1.5">
-              <ShoppingBag className="h-3.5 w-3.5" /> Toko Saya
-            </Button>
-          </Link>
+          <>
+            <Link to="/akun">
+              <Button size="sm" variant="ghost" className="gap-1.5">
+                <User className="h-3.5 w-3.5" /> Akun
+              </Button>
+            </Link>
+            <Link to="/pos-app" className="hidden sm:inline">
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <ShoppingBag className="h-3.5 w-3.5" /> Toko Saya
+              </Button>
+            </Link>
+          </>
         ) : (
           <>
             <Link to="/login">
