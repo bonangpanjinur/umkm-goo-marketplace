@@ -208,11 +208,30 @@ function AppLayoutInner() {
     })();
   }, [user, loading, navigate, location.pathname, staff.loading, staff.isStaff, staff.shopId]);
 
-  // Filter nav for staff
-  const visibleNav = useMemo(() => {
-    if (staff.isOwner || !staff.isStaff) return NAV;
-    return NAV.filter((item) => isModuleAllowed(item.to, staff.allowedModules));
+  // Filter nav for staff (per-item allowed modules)
+  const visibleGroups = useMemo(() => {
+    const allowed = (it: NavItem) =>
+      staff.isOwner || !staff.isStaff ? true : isModuleAllowed(it.to, staff.allowedModules);
+    return NAV_GROUPS
+      .map((g) => ({ ...g, items: g.items.filter(allowed) }))
+      .filter((g) => g.items.length > 0);
   }, [staff.isOwner, staff.isStaff, staff.allowedModules]);
+
+  // Track which group is open; auto-open the group that contains the active route
+  const activeGroupId = useMemo(() => {
+    for (const g of visibleGroups) {
+      if (g.items.some((it) => (it.exact ? location.pathname === it.to : location.pathname.startsWith(it.to)))) {
+        return g.id;
+      }
+    }
+    return visibleGroups[0]?.id ?? null;
+  }, [visibleGroups, location.pathname]);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    if (activeGroupId) setOpenGroups((p) => ({ ...p, [activeGroupId]: true }));
+  }, [activeGroupId]);
+
 
   // Close mobile menu on route change
   useEffect(() => {
