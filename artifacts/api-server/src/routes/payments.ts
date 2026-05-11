@@ -211,7 +211,7 @@ router.post("/payments/initiate", async (req: Request, res: Response) => {
 });
 
 router.get("/payments/:orderId/status", async (req: Request, res: Response) => {
-  const { orderId } = req.params;
+  const orderId = String(req.params.orderId);
   const rows = await db
     .select()
     .from(paymentTransactions)
