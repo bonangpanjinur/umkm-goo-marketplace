@@ -3853,6 +3853,8 @@ export type Database = {
         Returns: boolean
       }
       increment_promo_usage: { Args: { _promo_id: string }; Returns: undefined }
+      mark_notification_read: { Args: { _id: string }; Returns: undefined }
+      mark_all_notifications_read: { Args: Record<string, never>; Returns: number }
       list_available_delivery_orders: {
         Args: { _courier_id: string }
         Returns: {
