@@ -57,7 +57,7 @@ export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
 });
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string };
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[] };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
