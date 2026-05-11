@@ -73,7 +73,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "orders",
     label: "Pesanan",
     items: [
-      { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori" },
+      { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
       { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
     ],
   },
