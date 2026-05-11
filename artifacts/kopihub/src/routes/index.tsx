@@ -72,7 +72,7 @@ function MarketplaceHome() {
           .limit(8),
         supabase
           .from("menu_items")
-          .select("id, shop_id, name, price, image_url, slug, rating_avg, is_featured, shop:coffee_shops(slug, name)")
+          .select("id, shop_id, name, price, image_url, slug, rating_avg, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)")
           .eq("is_available", true)
           .order("is_featured", { ascending: false })
           .order("rating_avg", { ascending: false, nullsFirst: false })
