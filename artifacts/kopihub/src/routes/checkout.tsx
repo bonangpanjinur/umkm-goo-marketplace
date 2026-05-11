@@ -88,6 +88,7 @@ function CheckoutPage() {
         address: fulfillment === "delivery" ? address.trim() : "Pickup di toko",
         fulfillment,
         notes: notes.trim() || null,
+        shipping: fulfillment === "delivery" ? shipping : {},
       });
       if (ids.length === 0) {
         toast.error("Gagal membuat pesanan.");
