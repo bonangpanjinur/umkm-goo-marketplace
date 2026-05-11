@@ -147,16 +147,7 @@ function ProductDetailPage() {
                   {product.description}
                 </p>
               )}
-              <div className="mt-8 flex gap-3">
-                <Link to="/s/$slug" params={{ slug: shop.slug }} className="flex-1">
-                  <Button size="lg" className="w-full gap-2">
-                    <ShoppingCart className="h-4 w-4" /> Pesan di etalase toko
-                  </Button>
-                </Link>
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Pembelian saat ini diarahkan ke etalase toko. Cart marketplace akan tersedia pada pembaruan berikutnya.
-              </p>
+              <AddToCartBlock product={product} shopSlug={shop.slug} />
             </div>
           </div>
         ) : null}
