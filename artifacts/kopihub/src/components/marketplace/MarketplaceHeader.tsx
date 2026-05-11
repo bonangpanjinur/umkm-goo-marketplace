@@ -52,6 +52,9 @@ export function MarketplaceHeader() {
         <Link to="/kategori" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">
           Kategori
         </Link>
+        <Link to="/promo" className="hidden text-sm font-semibold text-destructive hover:opacity-80 md:inline">
+          Promo
+        </Link>
         <Link to="/keranjang" className="relative" aria-label="Keranjang">
           <Button variant="ghost" size="icon" className="h-9 w-9">
             <ShoppingCart className="h-4 w-4" />
