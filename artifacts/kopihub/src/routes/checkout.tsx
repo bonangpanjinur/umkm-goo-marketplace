@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { listCart, checkout, type CartItem } from "@/lib/marketplace-cart";
+import { listCart, checkout, listShopZones, type CartItem, type DeliveryZone } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { Store } from "lucide-react";
 import { toast } from "sonner";
