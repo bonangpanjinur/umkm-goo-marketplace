@@ -27,13 +27,12 @@ type FlashProduct = {
 
 type PlatformVoucher = {
   code: string;
-  title: string | null;
   description: string | null;
   discount_type: string;
-  discount_value: number;
+  value: number;
   min_order: number | null;
   max_discount: number | null;
-  ends_at: string | null;
+  expires_at: string | null;
 };
 
 function PromoPage() {
