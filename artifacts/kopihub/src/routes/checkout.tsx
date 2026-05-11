@@ -168,6 +168,10 @@ function CheckoutPage() {
                   {Object.entries(grouped).map(([shopId, shopItems]) => {
                     const shop = shopItems[0].shop!;
                     const sub = shopItems.reduce((s, i) => s + Number(i.unit_price) * i.quantity, 0);
+                    const shopZones = zones.filter((z) => z.shop_id === shopId);
+                    const selectedZoneId = shipping[shopId];
+                    const selectedZone = shopZones.find((z) => z.id === selectedZoneId);
+                    const ongkir = fulfillment === "delivery" ? selectedZone?.fee ?? 0 : 0;
                     return (
                       <div key={shopId} className="rounded-lg border border-border">
                         <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
@@ -190,8 +194,56 @@ function CheckoutPage() {
                             </li>
                           ))}
                         </ul>
-                        <div className="border-t border-border bg-muted/20 px-3 py-2 text-right text-xs">
-                          Subtotal: <span className="font-semibold">Rp {sub.toLocaleString("id-ID")}</span>
+                        {fulfillment === "delivery" && (
+                          <div className="border-t border-border px-3 py-2">
+                            <p className="mb-1.5 text-[11px] font-medium uppercase text-muted-foreground">
+                              Pilih zona pengantaran
+                            </p>
+                            {shopZones.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">
+                                Toko ini belum mengatur zona ongkir. Ongkir akan dikonfirmasi setelah pesanan dibuat.
+                              </p>
+                            ) : (
+                              <div className="grid gap-1.5">
+                                {shopZones.map((z) => (
+                                  <label
+                                    key={z.id}
+                                    className={`flex cursor-pointer items-start justify-between gap-2 rounded-md border px-2.5 py-1.5 text-xs transition ${
+                                      selectedZoneId === z.id
+                                        ? "border-primary bg-primary/5"
+                                        : "border-border hover:border-primary/50"
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <input
+                                        type="radio"
+                                        name={`zone-${shopId}`}
+                                        checked={selectedZoneId === z.id}
+                                        onChange={() => setShipping((s) => ({ ...s, [shopId]: z.id }))}
+                                        className="mt-0.5"
+                                      />
+                                      <div>
+                                        <p className="font-medium">{z.name}</p>
+                                        {z.area_note && (
+                                          <p className="text-[10px] text-muted-foreground">{z.area_note}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <span className="font-semibold whitespace-nowrap">
+                                      Rp {z.fee.toLocaleString("id-ID")}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="border-t border-border bg-muted/20 px-3 py-2 text-right text-xs space-y-0.5">
+                          <div>Subtotal: <span className="font-semibold">Rp {sub.toLocaleString("id-ID")}</span></div>
+                          {fulfillment === "delivery" && (
+                            <div>Ongkir: <span className="font-semibold">Rp {ongkir.toLocaleString("id-ID")}</span></div>
+                          )}
+                          <div className="text-sm">Total toko: <span className="font-bold text-primary">Rp {(sub + ongkir).toLocaleString("id-ID")}</span></div>
                         </div>
                       </div>
                     );
@@ -205,16 +257,16 @@ function CheckoutPage() {
               <div className="mt-4 space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total item</span>
-                  <span>Rp {total.toLocaleString("id-ID")}</span>
+                  <span>Rp {itemsTotal.toLocaleString("id-ID")}</span>
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Ongkir</span>
-                  <span>Bayar saat tiba</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Ongkir</span>
+                  <span>{fulfillment === "delivery" ? `Rp ${shippingTotal.toLocaleString("id-ID")}` : "Pickup"}</span>
                 </div>
               </div>
               <div className="mt-3 flex justify-between border-t border-border pt-3 text-base font-bold">
                 <span>Total</span>
-                <span className="text-primary">Rp {total.toLocaleString("id-ID")}</span>
+                <span className="text-primary">Rp {grandTotal.toLocaleString("id-ID")}</span>
               </div>
               <p className="mt-3 text-[11px] text-muted-foreground">
                 Pembayaran via transfer manual ke toko. Setelah pesanan dibuat, kamu akan dihubungi toko untuk konfirmasi pembayaran.
