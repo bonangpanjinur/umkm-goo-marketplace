@@ -321,7 +321,7 @@ function PODetailPage() {
     await supabase.from("purchase_order_items").delete().eq("po_id", po.id);
     const { error } = await supabase.from("purchase_orders").delete().eq("id", po.id);
     if (error) { toast.error(error.message); setBusy(false); }
-    else { toast.success("PO dihapus"); nav({ to: "/app/purchase-orders" }); }
+    else { toast.success("PO dihapus"); nav({ to: "/pos-app/purchase-orders" }); }
   }
 
   // Compute fit-to-page zoom: scale paper width to fit available preview area.
@@ -356,7 +356,7 @@ function PODetailPage() {
     <>
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 print:hidden">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <Link to="/app/purchase-orders" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/pos-app/purchase-orders" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-1.5 h-4 w-4" /> Kembali ke daftar PO
         </Link>
         <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ function PODetailPage() {
             <div className="text-xs uppercase tracking-wide text-muted-foreground">Supplier</div>
             {supplier ? (
               <div className="mt-1">
-                <Link to="/app/suppliers" className="font-medium hover:underline">{supplier.name}</Link>
+                <Link to="/pos-app/suppliers" className="font-medium hover:underline">{supplier.name}</Link>
                 {supplier.contact_name && <div className="text-xs text-muted-foreground">{supplier.contact_name}</div>}
                 {supplier.phone && <div className="text-xs text-muted-foreground">{supplier.phone}</div>}
               </div>

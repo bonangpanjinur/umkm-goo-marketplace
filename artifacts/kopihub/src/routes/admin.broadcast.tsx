@@ -106,7 +106,7 @@ function AdminBroadcast() {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Link (opsional)</Label><Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/app/billing" /></div>
+          <div><Label>Link (opsional)</Label><Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/pos-app/billing" /></div>
         </div>
         <Button onClick={send} disabled={sending} className="w-full">
           {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}

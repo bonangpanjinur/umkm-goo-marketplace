@@ -39,7 +39,7 @@ function OnboardingPage() {
         .eq("owner_id", user.id)
         .maybeSingle();
       if (data) {
-        navigate({ to: "/app" });
+        navigate({ to: "/pos-app" });
       } else {
         setChecking(false);
       }
@@ -98,7 +98,7 @@ function OnboardingPage() {
 
     setBusy(false);
     toast.success("Toko Anda siap! Selamat datang di KopiHub.");
-    navigate({ to: "/app" });
+    navigate({ to: "/pos-app" });
   };
 
   if (loading || checking) {

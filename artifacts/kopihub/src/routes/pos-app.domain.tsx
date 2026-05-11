@@ -56,7 +56,7 @@ function DomainPage() {
           <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
           <h1 className="mt-3 text-xl font-bold">Fitur Pro</h1>
           <p className="mt-2 text-sm text-muted-foreground">Custom domain hanya tersedia untuk paket Pro. Hubungkan domain milik Anda sendiri ke etalase publik.</p>
-          <Link to="/app/billing" className="mt-4 inline-block">
+          <Link to="/pos-app/billing" className="mt-4 inline-block">
             <Button>Lihat Paket Pro</Button>
           </Link>
         </Card>

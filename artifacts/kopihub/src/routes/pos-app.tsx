@@ -53,35 +53,35 @@ export const Route = createFileRoute("/pos-app")({
 });
 
 const NAV = [
-  { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/app/pos", label: "POS", icon: ShoppingBag },
-  { to: "/app/orders", label: "Order", icon: ListOrdered },
-  { to: "/app/online-orders", label: "Order Online", icon: Bell },
-  { to: "/app/kds", label: "Kitchen (KDS)", icon: ChefHat },
-  { to: "/app/menu", label: "Menu", icon: UtensilsCrossed },
-  { to: "/app/categories", label: "Kategori", icon: Tags },
-  { to: "/app/inventory", label: "Inventori", icon: Package },
-  { to: "/app/suppliers", label: "Supplier", icon: Building2 },
-  { to: "/app/purchase-orders", label: "Purchase Order", icon: FileText },
-  { to: "/app/recipes", label: "Resep", icon: ChefHat },
-  { to: "/app/employees", label: "Pegawai", icon: Users },
-  { to: "/app/schedule", label: "Jadwal", icon: CalendarDays },
-  { to: "/app/attendance", label: "Absensi", icon: Clock },
-  { to: "/app/delivery", label: "Delivery", icon: Truck },
-  { to: "/app/couriers", label: "Kurir", icon: Bike },
-  { to: "/app/courier", label: "Pengantaran", icon: Navigation },
-  { to: "/app/shifts", label: "Shift Kasir", icon: Wallet },
-  { to: "/app/reports", label: "Laporan", icon: BarChart3 },
-  { to: "/app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
-  { to: "/app/customers", label: "Pelanggan", icon: UserCheck },
-  { to: "/app/promos", label: "Promo", icon: TicketPercent },
-  { to: "/app/loyalty", label: "Loyalty", icon: Award },
-  { to: "/app/printers", label: "Printer", icon: Printer },
-  { to: "/app/billing", label: "Plan & Tagihan", icon: CreditCard },
-  { to: "/app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
-  { to: "/app/appearance", label: "Tampilan Toko", icon: Palette },
-  { to: "/app/backup", label: "Backup Data", icon: Database },
-  { to: "/app/settings", label: "Pengaturan", icon: Settings },
+  { to: "/pos-app", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/pos-app/pos", label: "POS", icon: ShoppingBag },
+  { to: "/pos-app/orders", label: "Order", icon: ListOrdered },
+  { to: "/pos-app/online-orders", label: "Order Online", icon: Bell },
+  { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
+  { to: "/pos-app/menu", label: "Menu", icon: UtensilsCrossed },
+  { to: "/pos-app/categories", label: "Kategori", icon: Tags },
+  { to: "/pos-app/inventory", label: "Inventori", icon: Package },
+  { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
+  { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },
+  { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
+  { to: "/pos-app/employees", label: "Pegawai", icon: Users },
+  { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
+  { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
+  { to: "/pos-app/delivery", label: "Delivery", icon: Truck },
+  { to: "/pos-app/couriers", label: "Kurir", icon: Bike },
+  { to: "/pos-app/courier", label: "Pengantaran", icon: Navigation },
+  { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
+  { to: "/pos-app/reports", label: "Laporan", icon: BarChart3 },
+  { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
+  { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
+  { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
+  { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
+  { to: "/pos-app/printers", label: "Printer", icon: Printer },
+  { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
+  { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
+  { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
+  { to: "/pos-app/backup", label: "Backup Data", icon: Database },
+  { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },
 ] as const;
 
 function AppLayout() {
@@ -119,9 +119,9 @@ function AppLayoutInner() {
       if (data) {
         setShop(data);
         setChecking(false);
-        if (data.suspended_at && location.pathname !== "/app/billing") {
+        if (data.suspended_at && location.pathname !== "/pos-app/billing") {
           toast.error("Toko Anda dinonaktifkan oleh admin. Hubungi admin.");
-          navigate({ to: "/app/billing" });
+          navigate({ to: "/pos-app/billing" });
         }
         return;
       }

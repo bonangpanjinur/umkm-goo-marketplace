@@ -274,7 +274,7 @@ function Dashboard() {
       {shop && <LowStockDialog open={lowOpen} onOpenChange={setLowOpen} shopId={shop.id} />}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Panel title="Menu terlaris hari ini" linkTo="/app/reports" linkLabel="Lihat laporan">
+        <Panel title="Menu terlaris hari ini" linkTo="/pos-app/reports" linkLabel="Lihat laporan">
           {topItems.length === 0 ? (
             <Empty text="Belum ada penjualan" />
           ) : (
@@ -294,7 +294,7 @@ function Dashboard() {
           )}
         </Panel>
 
-        <Panel title="Order terakhir" linkTo="/app/orders" linkLabel="Semua order">
+        <Panel title="Order terakhir" linkTo="/pos-app/orders" linkLabel="Semua order">
           {recent.length === 0 ? (
             <Empty text="Belum ada transaksi hari ini" />
           ) : (
@@ -315,10 +315,10 @@ function Dashboard() {
       <div className="mt-6">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">PINTASAN</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Shortcut to="/app/pos" icon={ShoppingBag} label="Buka POS" />
-          <Shortcut to="/app/menu" icon={UtensilsCrossed} label="Kelola Menu" />
-          <Shortcut to="/app/inventory" icon={Package} label="Inventori" />
-          <Shortcut to="/app/employees" icon={Users} label="Pegawai" />
+          <Shortcut to="/pos-app/pos" icon={ShoppingBag} label="Buka POS" />
+          <Shortcut to="/pos-app/menu" icon={UtensilsCrossed} label="Kelola Menu" />
+          <Shortcut to="/pos-app/inventory" icon={Package} label="Inventori" />
+          <Shortcut to="/pos-app/employees" icon={Users} label="Pegawai" />
         </div>
       </div>
     </div>

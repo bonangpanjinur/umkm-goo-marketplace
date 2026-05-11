@@ -228,7 +228,7 @@ function POPage() {
               {pos.map((p) => {
                 const sup = suppliers.find((s) => s.id === p.supplier_id);
                 return (
-                  <tr key={p.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => nav({ to: "/app/purchase-orders/$poId", params: { poId: p.id } })}>
+                  <tr key={p.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => nav({ to: "/pos-app/purchase-orders/$poId", params: { poId: p.id } })}>
                     <td className="px-4 py-3 font-medium">{p.po_no}</td>
                     <td className="px-4 py-3 text-muted-foreground tabular-nums">{p.order_date}</td>
                     <td className="px-4 py-3">{sup?.name ?? "—"}</td>

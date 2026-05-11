@@ -39,7 +39,7 @@ function AppearancePage() {
           <div className="text-lg font-bold uppercase">{planCode}</div>
           <div className="text-xs text-muted-foreground">{monthsActive.toFixed(1)} bulan berlangganan</div>
         </div>
-        <Link to="/app/billing"><Button variant="outline" size="sm">Upgrade Paket</Button></Link>
+        <Link to="/pos-app/billing"><Button variant="outline" size="sm">Upgrade Paket</Button></Link>
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -63,7 +63,7 @@ function AppearancePage() {
                     {busy === t.key ? <Loader2 className="h-4 w-4 animate-spin" /> : active ? "Sedang dipakai" : "Pakai tema ini"}
                   </Button>
                 ) : (
-                  <Link to="/app/billing"><Button size="sm" variant="outline">Upgrade untuk akses</Button></Link>
+                  <Link to="/pos-app/billing"><Button size="sm" variant="outline">Upgrade untuk akses</Button></Link>
                 )}
               </div>
             </Card>

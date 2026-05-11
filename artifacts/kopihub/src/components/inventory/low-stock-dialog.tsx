@@ -117,7 +117,7 @@ export function LowStockDialog({
     if (itErr) { toast.error(itErr.message); setCreating(null); return; }
     toast.success("Draft PO dibuat — silakan review");
     onOpenChange(false);
-    nav({ to: "/app/purchase-orders/$poId", params: { poId: po.id } });
+    nav({ to: "/pos-app/purchase-orders/$poId", params: { poId: po.id } });
   }
 
   return (
@@ -190,7 +190,7 @@ export function LowStockDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Tutup</Button>
-          <Button variant="outline" onClick={() => { onOpenChange(false); nav({ to: "/app/inventory" }); }}>
+          <Button variant="outline" onClick={() => { onOpenChange(false); nav({ to: "/pos-app/inventory" }); }}>
             Buka Inventori
           </Button>
         </DialogFooter>

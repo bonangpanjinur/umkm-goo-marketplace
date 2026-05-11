@@ -21,7 +21,7 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/app" });
+    if (!loading && user) navigate({ to: "/pos-app" });
   }, [user, loading, navigate]);
 
   const onSubmit = async (e: FormEvent) => {
@@ -34,13 +34,13 @@ function LoginPage() {
       return;
     }
     toast.success("Selamat datang kembali!");
-    navigate({ to: "/app" });
+    navigate({ to: "/pos-app" });
   };
 
   const onGoogle = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/app",
+      redirect_uri: window.location.origin + "/pos-app",
     });
     if (result.error) {
       setBusy(false);
@@ -48,7 +48,7 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/app" });
+    navigate({ to: "/pos-app" });
   };
 
   return <AuthShell title="Masuk ke KopiHub" subtitle="Kelola toko Anda dari mana saja.">
