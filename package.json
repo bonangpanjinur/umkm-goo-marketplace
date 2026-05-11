@@ -4,10 +4,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "cd artifacts/kopihub && ./node_modules/.bin/vite --config vite.config.ts --host 0.0.0.0",
-    "build:dev": "cd artifacts/kopihub && ./node_modules/.bin/vite build --config vite.config.ts",
-    "build": "cd artifacts/kopihub && ./node_modules/.bin/vite build --config vite.config.ts",
+    "build:dev": "cd artifacts/kopihub && ./node_modules/.bin/vite build --config vite.config.ts && cd ../.. && rm -rf dist && mkdir -p dist && cp -R artifacts/kopihub/dist/public dist/public",
+    "build": "cd artifacts/kopihub && ./node_modules/.bin/vite build --config vite.config.ts && cd ../.. && rm -rf dist && mkdir -p dist && cp -R artifacts/kopihub/dist/public dist/public",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "bun run typecheck:libs && (cd artifacts/kopihub && bun run typecheck) && (cd artifacts/api-server && bun run typecheck) && (cd artifacts/mockup-sandbox && bun run typecheck) && (cd scripts && bun run typecheck)"
   },
   "private": true,
   "devDependencies": {
