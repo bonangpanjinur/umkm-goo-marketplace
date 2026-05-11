@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search, Image, Tv2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
@@ -36,6 +36,8 @@ const NAV = [
   { to: "/admin/fee-simulator", label: "Fee Simulator", icon: Calculator },
   { to: "/admin/reconciliation", label: "Rekonsiliasi Gateway", icon: GitCompare },
   { to: "/admin/notification-templates", label: "Template Notifikasi", icon: Mail },
+  { to: "/admin/banners", label: "Banner Carousel", icon: Image },
+  { to: "/admin/ads", label: "Kelola Iklan", icon: Tv2 },
 ] as const;
 
 function AdminLayout() {

@@ -48,6 +48,7 @@ import {
   Download,
   Tag,
   CalendarCheck,
+  Megaphone,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -132,6 +133,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/email-marketing", label: "Email Marketing", icon: Bell, proOnly: true },
       { to: "/pos-app/wishlist-analytics", label: "Analitik Wishlist", icon: Award },
       { to: "/pos-app/reviews", label: "Ulasan Pembeli", icon: Award },
+      { to: "/pos-app/iklan", label: "Iklan & Promosi", icon: Megaphone },
     ],
   },
   {

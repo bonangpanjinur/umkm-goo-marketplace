@@ -63,6 +63,7 @@ import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
 import { Route as PosAppInvoiceRouteImport } from './routes/pos-app.invoice'
 import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
+import { Route as PosAppIklanRouteImport } from './routes/pos-app.iklan'
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppEmailMarketingRouteImport } from './routes/pos-app.email-marketing'
 import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
@@ -108,9 +109,11 @@ import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminBrandingRouteImport } from './routes/admin.branding'
+import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 import { Route as AdminAutoCancelRouteImport } from './routes/admin.auto-cancel'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
@@ -404,6 +407,11 @@ const PosAppInventoryRoute = PosAppInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppIklanRoute = PosAppIklanRouteImport.update({
+  id: '/iklan',
+  path: '/iklan',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppEmployeesRoute = PosAppEmployeesRouteImport.update({
   id: '/employees',
   path: '/employees',
@@ -630,6 +638,11 @@ const AdminBrandingRoute = AdminBrandingRouteImport.update({
   path: '/branding',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBannersRoute = AdminBannersRouteImport.update({
+  id: '/banners',
+  path: '/banners',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAutoCancelRoute = AdminAutoCancelRouteImport.update({
   id: '/auto-cancel',
   path: '/auto-cancel',
@@ -643,6 +656,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdsRoute = AdminAdsRouteImport.update({
+  id: '/ads',
+  path: '/ads',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminActivityRoute = AdminActivityRouteImport.update({
@@ -767,9 +785,11 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
+  '/admin/banners': typeof AdminBannersRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -815,6 +835,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
@@ -889,9 +910,11 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
+  '/admin/banners': typeof AdminBannersRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -937,6 +960,7 @@ export interface FileRoutesByTo {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
@@ -1014,9 +1038,11 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
+  '/admin/banners': typeof AdminBannersRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
@@ -1062,6 +1088,7 @@ export interface FileRoutesById {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
@@ -1141,9 +1168,11 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/ads'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
+    | '/admin/banners'
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -1189,6 +1218,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
+    | '/pos-app/iklan'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
     | '/pos-app/kds'
@@ -1263,9 +1293,11 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/ads'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
+    | '/admin/banners'
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -1311,6 +1343,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
+    | '/pos-app/iklan'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
     | '/pos-app/kds'
@@ -1387,9 +1420,11 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/ads'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
+    | '/admin/banners'
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
@@ -1435,6 +1470,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
+    | '/pos-app/iklan'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
     | '/pos-app/kds'
@@ -1902,6 +1938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppInventoryRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/iklan': {
+      id: '/pos-app/iklan'
+      path: '/iklan'
+      fullPath: '/pos-app/iklan'
+      preLoaderRoute: typeof PosAppIklanRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/employees': {
       id: '/pos-app/employees'
       path: '/employees'
@@ -2217,6 +2260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBrandingRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/banners': {
+      id: '/admin/banners'
+      path: '/banners'
+      fullPath: '/admin/banners'
+      preLoaderRoute: typeof AdminBannersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/auto-cancel': {
       id: '/admin/auto-cancel'
       path: '/auto-cancel'
@@ -2236,6 +2286,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/ads': {
+      id: '/admin/ads'
+      path: '/ads'
+      fullPath: '/admin/ads'
+      preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/activity': {
@@ -2414,9 +2471,11 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
+  AdminAdsRoute: typeof AdminAdsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminAutoCancelRoute: typeof AdminAutoCancelRoute
+  AdminBannersRoute: typeof AdminBannersRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
@@ -2441,9 +2500,11 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
+  AdminAdsRoute: AdminAdsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminAutoCancelRoute: AdminAutoCancelRoute,
+  AdminBannersRoute: AdminBannersRoute,
   AdminBrandingRoute: AdminBrandingRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
   AdminCatalogRoute: AdminCatalogRoute,
@@ -2570,6 +2631,7 @@ interface PosAppRouteChildren {
   PosAppDomainRoute: typeof PosAppDomainRoute
   PosAppEmailMarketingRoute: typeof PosAppEmailMarketingRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
+  PosAppIklanRoute: typeof PosAppIklanRoute
   PosAppInventoryRoute: typeof PosAppInventoryRoute
   PosAppInvoiceRoute: typeof PosAppInvoiceRoute
   PosAppKdsRoute: typeof PosAppKdsRoute
@@ -2624,6 +2686,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppDomainRoute: PosAppDomainRoute,
   PosAppEmailMarketingRoute: PosAppEmailMarketingRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
+  PosAppIklanRoute: PosAppIklanRoute,
   PosAppInventoryRoute: PosAppInventoryRoute,
   PosAppInvoiceRoute: PosAppInvoiceRoute,
   PosAppKdsRoute: PosAppKdsRoute,
