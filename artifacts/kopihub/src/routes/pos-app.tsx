@@ -215,14 +215,18 @@ function AppLayoutInner() {
   }, [staff.isOwner, staff.isStaff, staff.allowedModules]);
 
   // Track which group is open; auto-open the group that contains the active route
+  const matchItem = (it: NavItem, path: string) => {
+    if (it.exact) return path === it.to;
+    if (path.startsWith(it.to)) return true;
+    return it.aliases?.some((a) => path.startsWith(a)) ?? false;
+  };
   const activeGroupId = useMemo(() => {
     for (const g of visibleGroups) {
-      if (g.items.some((it) => (it.exact ? location.pathname === it.to : location.pathname.startsWith(it.to)))) {
-        return g.id;
-      }
+      if (g.items.some((it) => matchItem(it, location.pathname))) return g.id;
     }
     return visibleGroups[0]?.id ?? null;
   }, [visibleGroups, location.pathname]);
+
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   useEffect(() => {
