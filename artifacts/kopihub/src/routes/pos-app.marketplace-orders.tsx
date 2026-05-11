@@ -55,15 +55,18 @@ function MarketplaceOrdersPage() {
   const { user } = useAuth();
   const { shop } = useCurrentShop();
   const [orders, setOrders] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>("active");
+  const [chatFor, setChatFor] = useState<string | null>(null);
+  const [resolveFor, setResolveFor] = useState<any>(null);
 
   const load = async () => {
     if (!shop?.id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, items:order_items(id, name, qty, price, total)")
+      .select("id, order_no, status, payment_status, total, subtotal, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, escrow_status, items:order_items(id, name, qty, price, total)")
       .eq("shop_id", shop.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -72,6 +75,18 @@ function MarketplaceOrdersPage() {
       toast.error(error.message);
     } else {
       setOrders(data || []);
+      const ids = (data || []).map((o: any) => o.id);
+      if (ids.length) {
+        const { data: ds } = await supabase
+          .from("order_disputes")
+          .select("id, order_id, status, reason, description, refund_amount, resolution, created_at")
+          .in("order_id", ids);
+        const map: Record<string, any> = {};
+        (ds || []).forEach((d: any) => { map[d.order_id] = d; });
+        setDisputes(map);
+      } else {
+        setDisputes({});
+      }
     }
     setLoading(false);
   };
