@@ -41,9 +41,19 @@ function AdminShops() {
   const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => {
-    supabase.from("coffee_shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at").order("created_at", { ascending: false })
+    supabase.from("coffee_shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at, is_featured").order("is_featured", { ascending: false }).order("created_at", { ascending: false })
       .then(({ data }) => setShops((data as Shop[]) ?? []));
   }, []);
+
+  const toggleFeatured = async (e: React.MouseEvent, s: Shop) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !s.is_featured;
+    const { error } = await supabase.from("coffee_shops").update({ is_featured: next }).eq("id", s.id);
+    if (error) { toast.error(error.message); return; }
+    setShops((prev) => prev.map((x) => x.id === s.id ? { ...x, is_featured: next } : x));
+    toast.success(next ? "Ditandai unggulan" : "Dihapus dari unggulan");
+  };
 
   const filtered = useMemo(() => {
     return shops.filter((s) => {
