@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollText, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { ScrollText, Search, ChevronLeft, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/audit")({ component: AdminAudit });
@@ -91,11 +91,41 @@ function AdminAudit() {
     }
   };
 
+  const exportCSV = () => {
+    const rows = [
+      ["Waktu", "Sumber", "Event", "Actor ID", "Shop ID", "Notes", "Payload"],
+      ...entries.map(e => [
+        new Date(e.created_at).toLocaleString("id-ID"),
+        e.source,
+        e.event_type,
+        e.actor_id ?? "",
+        e.shop_id ?? "",
+        e.notes ?? "",
+        e.payload ? JSON.stringify(e.payload) : "",
+      ]),
+    ];
+    const csv = rows.map(r => r.map(String).map(v => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `audit_log_${source}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-      <div className="flex items-center gap-2 mb-6">
-        <ScrollText className="h-6 w-6 text-amber-500" />
-        <h1 className="text-2xl font-bold">Audit Log Terpadu</h1>
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <div className="flex items-center gap-2">
+          <ScrollText className="h-6 w-6 text-amber-500" />
+          <h1 className="text-2xl font-bold">Audit Log Terpadu</h1>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => load()} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportCSV} disabled={entries.length === 0}>
+            <Download className="h-4 w-4 mr-1.5" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 mb-4">

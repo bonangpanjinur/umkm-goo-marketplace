@@ -43,6 +43,11 @@ import {
   ArrowDownToLine,
   ShoppingCart,
   SlidersHorizontal,
+  Upload,
+  Layers,
+  Download,
+  Tag,
+  CalendarCheck,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -83,8 +88,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Katalog & Stok",
     items: [
       { to: "/pos-app/menu", label: "Menu / Produk", icon: UtensilsCrossed },
+      { to: "/pos-app/menu/import", label: "Import Menu CSV", icon: Upload },
       { to: "/pos-app/variants", label: "Varian Produk", icon: SlidersHorizontal },
       { to: "/pos-app/categories", label: "Kategori", icon: Tags },
+      { to: "/pos-app/digital", label: "Produk Digital", icon: Download },
+      { to: "/pos-app/atribut", label: "Atribut Produk", icon: Tag },
+      { to: "/pos-app/stok", label: "Stok Terpadu", icon: Layers },
       { to: "/pos-app/inventory", label: "Inventori", icon: Package },
       { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
       { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
@@ -97,6 +106,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/pos-app/employees", label: "Pegawai", icon: Users },
       { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
+      { to: "/pos-app/booking", label: "Booking Jadwal", icon: CalendarCheck },
       { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
       { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
     ],
@@ -117,7 +127,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
       { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
       { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
-      { to: "/pos-app/reviews", label: "Ulasan", icon: Award },
+      { to: "/pos-app/reviews", label: "Ulasan Pembeli", icon: Award },
     ],
   },
   {
@@ -137,6 +147,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Akun & Verifikasi",
     items: [
       { to: "/pos-app/kyc", label: "Verifikasi KTP (KYC)", icon: ShieldCheck },
+      { to: "/pos-app/notifikasi", label: "Notifikasi Toko", icon: Bell },
     ],
   },
   {

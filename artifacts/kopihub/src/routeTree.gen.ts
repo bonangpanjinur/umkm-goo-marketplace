@@ -33,6 +33,7 @@ import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
 import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
+import { Route as PosAppStokRouteImport } from './routes/pos-app.stok'
 import { Route as PosAppShiftsRouteImport } from './routes/pos-app.shifts'
 import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
@@ -45,6 +46,7 @@ import { Route as PosAppPrintersRouteImport } from './routes/pos-app.printers'
 import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
 import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
 import { Route as PosAppOnlineOrdersRouteImport } from './routes/pos-app.online-orders'
+import { Route as PosAppNotifikasiRouteImport } from './routes/pos-app.notifikasi'
 import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
 import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
 import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
@@ -55,14 +57,17 @@ import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
 import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
+import { Route as PosAppDigitalRouteImport } from './routes/pos-app.digital'
 import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
 import { Route as PosAppCustomersRouteImport } from './routes/pos-app.customers'
 import { Route as PosAppCouriersRouteImport } from './routes/pos-app.couriers'
 import { Route as PosAppCourierRouteImport } from './routes/pos-app.courier'
 import { Route as PosAppCategoriesRouteImport } from './routes/pos-app.categories'
+import { Route as PosAppBookingRouteImport } from './routes/pos-app.booking'
 import { Route as PosAppBillingRouteImport } from './routes/pos-app.billing'
 import { Route as PosAppBackupRouteImport } from './routes/pos-app.backup'
 import { Route as PosAppAttendanceRouteImport } from './routes/pos-app.attendance'
+import { Route as PosAppAtributRouteImport } from './routes/pos-app.atribut'
 import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearance'
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
@@ -78,12 +83,14 @@ import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
+import { Route as AdminImpersonationRouteImport } from './routes/admin.impersonation'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminBrandingRouteImport } from './routes/admin.branding'
+import { Route as AdminAutoCancelRouteImport } from './routes/admin.auto-cancel'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
@@ -96,6 +103,7 @@ import { Route as SSlugCheckoutRouteImport } from './routes/s.$slug.checkout'
 import { Route as SSlugCartRouteImport } from './routes/s.$slug.cart'
 import { Route as PosAppReportsProfitRouteImport } from './routes/pos-app.reports.profit'
 import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.purchase-orders.$poId'
+import { Route as PosAppMenuImportRouteImport } from './routes/pos-app.menu.import'
 import { Route as PosAppKeuanganTarikRouteImport } from './routes/pos-app.keuangan.tarik'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
@@ -225,6 +233,11 @@ const PosAppSuppliersRoute = PosAppSuppliersRouteImport.update({
   path: '/suppliers',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppStokRoute = PosAppStokRouteImport.update({
+  id: '/stok',
+  path: '/stok',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppShiftsRoute = PosAppShiftsRouteImport.update({
   id: '/shifts',
   path: '/shifts',
@@ -285,6 +298,11 @@ const PosAppOnlineOrdersRoute = PosAppOnlineOrdersRouteImport.update({
   path: '/online-orders',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppNotifikasiRoute = PosAppNotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppMenuRoute = PosAppMenuRouteImport.update({
   id: '/menu',
   path: '/menu',
@@ -336,6 +354,11 @@ const PosAppDomainRoute = PosAppDomainRouteImport.update({
   path: '/domain',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppDigitalRoute = PosAppDigitalRouteImport.update({
+  id: '/digital',
+  path: '/digital',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppDeliveryRoute = PosAppDeliveryRouteImport.update({
   id: '/delivery',
   path: '/delivery',
@@ -361,6 +384,11 @@ const PosAppCategoriesRoute = PosAppCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppBookingRoute = PosAppBookingRouteImport.update({
+  id: '/booking',
+  path: '/booking',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppBillingRoute = PosAppBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
@@ -374,6 +402,11 @@ const PosAppBackupRoute = PosAppBackupRouteImport.update({
 const PosAppAttendanceRoute = PosAppAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppAtributRoute = PosAppAtributRouteImport.update({
+  id: '/atribut',
+  path: '/atribut',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppAppearanceRoute = PosAppAppearanceRouteImport.update({
@@ -451,6 +484,11 @@ const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
   path: '/invoices',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminImpersonationRoute = AdminImpersonationRouteImport.update({
+  id: '/impersonation',
+  path: '/impersonation',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDomainsRoute = AdminDomainsRouteImport.update({
   id: '/domains',
   path: '/domains',
@@ -479,6 +517,11 @@ const AdminBroadcastRoute = AdminBroadcastRouteImport.update({
 const AdminBrandingRoute = AdminBrandingRouteImport.update({
   id: '/branding',
   path: '/branding',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAutoCancelRoute = AdminAutoCancelRouteImport.update({
+  id: '/auto-cancel',
+  path: '/auto-cancel',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -542,6 +585,11 @@ const PosAppPurchaseOrdersPoIdRoute =
     path: '/$poId',
     getParentRoute: () => PosAppPurchaseOrdersRoute,
   } as any)
+const PosAppMenuImportRoute = PosAppMenuImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => PosAppMenuRoute,
+} as any)
 const PosAppKeuanganTarikRoute = PosAppKeuanganTarikRouteImport.update({
   id: '/tarik',
   path: '/tarik',
@@ -600,12 +648,14 @@ export interface FileRoutesByFullPath {
   '/admin/activity': typeof AdminActivityRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/auto-cancel': typeof AdminAutoCancelRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
@@ -621,14 +671,17 @@ export interface FileRoutesByFullPath {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
+  '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
+  '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/courier': typeof PosAppCourierRoute
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
+  '/pos-app/digital': typeof PosAppDigitalRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
@@ -638,7 +691,8 @@ export interface FileRoutesByFullPath {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
-  '/pos-app/menu': typeof PosAppMenuRoute
+  '/pos-app/menu': typeof PosAppMenuRouteWithChildren
+  '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/pos': typeof PosAppPosRoute
@@ -651,6 +705,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
+  '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/tables': typeof PosAppTablesRoute
@@ -666,6 +721,7 @@ export interface FileRoutesByFullPath {
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/s/$slug/cart': typeof SSlugCartRoute
@@ -694,12 +750,14 @@ export interface FileRoutesByTo {
   '/admin/activity': typeof AdminActivityRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/auto-cancel': typeof AdminAutoCancelRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
@@ -715,14 +773,17 @@ export interface FileRoutesByTo {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
+  '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
+  '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/courier': typeof PosAppCourierRoute
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
+  '/pos-app/digital': typeof PosAppDigitalRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
@@ -732,7 +793,8 @@ export interface FileRoutesByTo {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
-  '/pos-app/menu': typeof PosAppMenuRoute
+  '/pos-app/menu': typeof PosAppMenuRouteWithChildren
+  '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/pos': typeof PosAppPosRoute
@@ -745,6 +807,7 @@ export interface FileRoutesByTo {
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
+  '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/tables': typeof PosAppTablesRoute
@@ -759,6 +822,7 @@ export interface FileRoutesByTo {
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/s/$slug/cart': typeof SSlugCartRoute
@@ -791,12 +855,14 @@ export interface FileRoutesById {
   '/admin/activity': typeof AdminActivityRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/auto-cancel': typeof AdminAutoCancelRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
@@ -812,14 +878,17 @@ export interface FileRoutesById {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
+  '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
+  '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/courier': typeof PosAppCourierRoute
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
+  '/pos-app/digital': typeof PosAppDigitalRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
@@ -829,7 +898,8 @@ export interface FileRoutesById {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
-  '/pos-app/menu': typeof PosAppMenuRoute
+  '/pos-app/menu': typeof PosAppMenuRouteWithChildren
+  '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/pos': typeof PosAppPosRoute
@@ -842,6 +912,7 @@ export interface FileRoutesById {
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
+  '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/tables': typeof PosAppTablesRoute
@@ -857,6 +928,7 @@ export interface FileRoutesById {
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/s/$slug/cart': typeof SSlugCartRoute
@@ -890,12 +962,14 @@ export interface FileRouteTypes {
     | '/admin/activity'
     | '/admin/analytics'
     | '/admin/audit'
+    | '/admin/auto-cancel'
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
     | '/admin/payment-config'
@@ -911,14 +985,17 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/appearance'
+    | '/pos-app/atribut'
     | '/pos-app/attendance'
     | '/pos-app/backup'
     | '/pos-app/billing'
+    | '/pos-app/booking'
     | '/pos-app/categories'
     | '/pos-app/courier'
     | '/pos-app/couriers'
     | '/pos-app/customers'
     | '/pos-app/delivery'
+    | '/pos-app/digital'
     | '/pos-app/domain'
     | '/pos-app/employees'
     | '/pos-app/inventory'
@@ -929,6 +1006,7 @@ export interface FileRouteTypes {
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/menu'
+    | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
     | '/pos-app/orders'
     | '/pos-app/pos'
@@ -941,6 +1019,7 @@ export interface FileRouteTypes {
     | '/pos-app/schedule'
     | '/pos-app/settings'
     | '/pos-app/shifts'
+    | '/pos-app/stok'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/tables'
@@ -956,6 +1035,7 @@ export interface FileRouteTypes {
     | '/akun/pesanan/$orderId'
     | '/checkout/sukses/$orderId'
     | '/pos-app/keuangan/tarik'
+    | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
     | '/s/$slug/cart'
@@ -984,12 +1064,14 @@ export interface FileRouteTypes {
     | '/admin/activity'
     | '/admin/analytics'
     | '/admin/audit'
+    | '/admin/auto-cancel'
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
     | '/admin/payment-config'
@@ -1005,14 +1087,17 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/appearance'
+    | '/pos-app/atribut'
     | '/pos-app/attendance'
     | '/pos-app/backup'
     | '/pos-app/billing'
+    | '/pos-app/booking'
     | '/pos-app/categories'
     | '/pos-app/courier'
     | '/pos-app/couriers'
     | '/pos-app/customers'
     | '/pos-app/delivery'
+    | '/pos-app/digital'
     | '/pos-app/domain'
     | '/pos-app/employees'
     | '/pos-app/inventory'
@@ -1023,6 +1108,7 @@ export interface FileRouteTypes {
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/menu'
+    | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
     | '/pos-app/orders'
     | '/pos-app/pos'
@@ -1035,6 +1121,7 @@ export interface FileRouteTypes {
     | '/pos-app/schedule'
     | '/pos-app/settings'
     | '/pos-app/shifts'
+    | '/pos-app/stok'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/tables'
@@ -1049,6 +1136,7 @@ export interface FileRouteTypes {
     | '/akun/pesanan/$orderId'
     | '/checkout/sukses/$orderId'
     | '/pos-app/keuangan/tarik'
+    | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
     | '/s/$slug/cart'
@@ -1080,12 +1168,14 @@ export interface FileRouteTypes {
     | '/admin/activity'
     | '/admin/analytics'
     | '/admin/audit'
+    | '/admin/auto-cancel'
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
     | '/admin/payment-config'
@@ -1101,14 +1191,17 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/appearance'
+    | '/pos-app/atribut'
     | '/pos-app/attendance'
     | '/pos-app/backup'
     | '/pos-app/billing'
+    | '/pos-app/booking'
     | '/pos-app/categories'
     | '/pos-app/courier'
     | '/pos-app/couriers'
     | '/pos-app/customers'
     | '/pos-app/delivery'
+    | '/pos-app/digital'
     | '/pos-app/domain'
     | '/pos-app/employees'
     | '/pos-app/inventory'
@@ -1119,6 +1212,7 @@ export interface FileRouteTypes {
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/menu'
+    | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
     | '/pos-app/orders'
     | '/pos-app/pos'
@@ -1131,6 +1225,7 @@ export interface FileRouteTypes {
     | '/pos-app/schedule'
     | '/pos-app/settings'
     | '/pos-app/shifts'
+    | '/pos-app/stok'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/tables'
@@ -1146,6 +1241,7 @@ export interface FileRouteTypes {
     | '/akun/pesanan/$orderId'
     | '/checkout/sukses/$orderId'
     | '/pos-app/keuangan/tarik'
+    | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
     | '/s/$slug/cart'
@@ -1354,6 +1450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppSuppliersRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/stok': {
+      id: '/pos-app/stok'
+      path: '/stok'
+      fullPath: '/pos-app/stok'
+      preLoaderRoute: typeof PosAppStokRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/shifts': {
       id: '/pos-app/shifts'
       path: '/shifts'
@@ -1438,6 +1541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppOnlineOrdersRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/notifikasi': {
+      id: '/pos-app/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/pos-app/notifikasi'
+      preLoaderRoute: typeof PosAppNotifikasiRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/menu': {
       id: '/pos-app/menu'
       path: '/menu'
@@ -1508,6 +1618,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppDomainRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/digital': {
+      id: '/pos-app/digital'
+      path: '/digital'
+      fullPath: '/pos-app/digital'
+      preLoaderRoute: typeof PosAppDigitalRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/delivery': {
       id: '/pos-app/delivery'
       path: '/delivery'
@@ -1543,6 +1660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppCategoriesRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/booking': {
+      id: '/pos-app/booking'
+      path: '/booking'
+      fullPath: '/pos-app/booking'
+      preLoaderRoute: typeof PosAppBookingRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/billing': {
       id: '/pos-app/billing'
       path: '/billing'
@@ -1562,6 +1686,13 @@ declare module '@tanstack/react-router' {
       path: '/attendance'
       fullPath: '/pos-app/attendance'
       preLoaderRoute: typeof PosAppAttendanceRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/atribut': {
+      id: '/pos-app/atribut'
+      path: '/atribut'
+      fullPath: '/pos-app/atribut'
+      preLoaderRoute: typeof PosAppAtributRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/appearance': {
@@ -1669,6 +1800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInvoicesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/impersonation': {
+      id: '/admin/impersonation'
+      path: '/impersonation'
+      fullPath: '/admin/impersonation'
+      preLoaderRoute: typeof AdminImpersonationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/domains': {
       id: '/admin/domains'
       path: '/domains'
@@ -1709,6 +1847,13 @@ declare module '@tanstack/react-router' {
       path: '/branding'
       fullPath: '/admin/branding'
       preLoaderRoute: typeof AdminBrandingRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/auto-cancel': {
+      id: '/admin/auto-cancel'
+      path: '/auto-cancel'
+      fullPath: '/admin/auto-cancel'
+      preLoaderRoute: typeof AdminAutoCancelRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/audit': {
@@ -1794,6 +1939,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pos-app/purchase-orders/$poId'
       preLoaderRoute: typeof PosAppPurchaseOrdersPoIdRouteImport
       parentRoute: typeof PosAppPurchaseOrdersRoute
+    }
+    '/pos-app/menu/import': {
+      id: '/pos-app/menu/import'
+      path: '/import'
+      fullPath: '/pos-app/menu/import'
+      preLoaderRoute: typeof PosAppMenuImportRouteImport
+      parentRoute: typeof PosAppMenuRoute
     }
     '/pos-app/keuangan/tarik': {
       id: '/pos-app/keuangan/tarik'
@@ -1882,12 +2034,14 @@ interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminAutoCancelRoute: typeof AdminAutoCancelRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
   AdminCommissionRoute: typeof AdminCommissionRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
+  AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
@@ -1903,12 +2057,14 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminAutoCancelRoute: AdminAutoCancelRoute,
   AdminBrandingRoute: AdminBrandingRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
   AdminCatalogRoute: AdminCatalogRoute,
   AdminCommissionRoute: AdminCommissionRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
+  AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,
@@ -1966,6 +2122,18 @@ const PosAppKeuanganRouteWithChildren = PosAppKeuanganRoute._addFileChildren(
   PosAppKeuanganRouteChildren,
 )
 
+interface PosAppMenuRouteChildren {
+  PosAppMenuImportRoute: typeof PosAppMenuImportRoute
+}
+
+const PosAppMenuRouteChildren: PosAppMenuRouteChildren = {
+  PosAppMenuImportRoute: PosAppMenuImportRoute,
+}
+
+const PosAppMenuRouteWithChildren = PosAppMenuRoute._addFileChildren(
+  PosAppMenuRouteChildren,
+)
+
 interface PosAppPurchaseOrdersRouteChildren {
   PosAppPurchaseOrdersPoIdRoute: typeof PosAppPurchaseOrdersPoIdRoute
 }
@@ -1991,14 +2159,17 @@ const PosAppReportsRouteWithChildren = PosAppReportsRoute._addFileChildren(
 
 interface PosAppRouteChildren {
   PosAppAppearanceRoute: typeof PosAppAppearanceRoute
+  PosAppAtributRoute: typeof PosAppAtributRoute
   PosAppAttendanceRoute: typeof PosAppAttendanceRoute
   PosAppBackupRoute: typeof PosAppBackupRoute
   PosAppBillingRoute: typeof PosAppBillingRoute
+  PosAppBookingRoute: typeof PosAppBookingRoute
   PosAppCategoriesRoute: typeof PosAppCategoriesRoute
   PosAppCourierRoute: typeof PosAppCourierRoute
   PosAppCouriersRoute: typeof PosAppCouriersRoute
   PosAppCustomersRoute: typeof PosAppCustomersRoute
   PosAppDeliveryRoute: typeof PosAppDeliveryRoute
+  PosAppDigitalRoute: typeof PosAppDigitalRoute
   PosAppDomainRoute: typeof PosAppDomainRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
   PosAppInventoryRoute: typeof PosAppInventoryRoute
@@ -2008,7 +2179,8 @@ interface PosAppRouteChildren {
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
-  PosAppMenuRoute: typeof PosAppMenuRoute
+  PosAppMenuRoute: typeof PosAppMenuRouteWithChildren
+  PosAppNotifikasiRoute: typeof PosAppNotifikasiRoute
   PosAppOnlineOrdersRoute: typeof PosAppOnlineOrdersRoute
   PosAppOrdersRoute: typeof PosAppOrdersRoute
   PosAppPosRoute: typeof PosAppPosRoute
@@ -2021,6 +2193,7 @@ interface PosAppRouteChildren {
   PosAppScheduleRoute: typeof PosAppScheduleRoute
   PosAppSettingsRoute: typeof PosAppSettingsRoute
   PosAppShiftsRoute: typeof PosAppShiftsRoute
+  PosAppStokRoute: typeof PosAppStokRoute
   PosAppSuppliersRoute: typeof PosAppSuppliersRoute
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
@@ -2030,14 +2203,17 @@ interface PosAppRouteChildren {
 
 const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppAppearanceRoute: PosAppAppearanceRoute,
+  PosAppAtributRoute: PosAppAtributRoute,
   PosAppAttendanceRoute: PosAppAttendanceRoute,
   PosAppBackupRoute: PosAppBackupRoute,
   PosAppBillingRoute: PosAppBillingRoute,
+  PosAppBookingRoute: PosAppBookingRoute,
   PosAppCategoriesRoute: PosAppCategoriesRoute,
   PosAppCourierRoute: PosAppCourierRoute,
   PosAppCouriersRoute: PosAppCouriersRoute,
   PosAppCustomersRoute: PosAppCustomersRoute,
   PosAppDeliveryRoute: PosAppDeliveryRoute,
+  PosAppDigitalRoute: PosAppDigitalRoute,
   PosAppDomainRoute: PosAppDomainRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
   PosAppInventoryRoute: PosAppInventoryRoute,
@@ -2047,7 +2223,8 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
-  PosAppMenuRoute: PosAppMenuRoute,
+  PosAppMenuRoute: PosAppMenuRouteWithChildren,
+  PosAppNotifikasiRoute: PosAppNotifikasiRoute,
   PosAppOnlineOrdersRoute: PosAppOnlineOrdersRoute,
   PosAppOrdersRoute: PosAppOrdersRoute,
   PosAppPosRoute: PosAppPosRoute,
@@ -2060,6 +2237,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppScheduleRoute: PosAppScheduleRoute,
   PosAppSettingsRoute: PosAppSettingsRoute,
   PosAppShiftsRoute: PosAppShiftsRoute,
+  PosAppStokRoute: PosAppStokRoute,
   PosAppSuppliersRoute: PosAppSuppliersRoute,
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTablesRoute: PosAppTablesRoute,

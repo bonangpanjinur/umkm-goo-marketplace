@@ -33,6 +33,7 @@ export const Route = createFileRoute("/pos-app/reports")({
 });
 
 type Range = "today" | "7d" | "30d" | "month";
+type Channel = "all" | "pos" | "online" | "marketplace";
 
 type Order = {
   id: string;
@@ -88,9 +89,17 @@ function fmtDateISO(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
+const CHANNEL_LABELS: Record<Channel, string> = {
+  all: "Semua Channel",
+  pos: "POS Kasir",
+  online: "Online / Web",
+  marketplace: "Marketplace",
+};
+
 function ReportsPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [range, setRange] = useState<Range>("today");
+  const [range,   setRange]   = useState<Range>("today");
+  const [channel, setChannel] = useState<Channel>("all");
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -104,14 +113,17 @@ function ReportsPage() {
     const start = rangeStart(range);
     const startDate = fmtDateISO(start);
 
+    let ordQ = supabase
+      .from("orders")
+      .select("id, business_date, created_at, total, subtotal, payment_method, cashier_id, status, channel")
+      .eq("shop_id", shop.id)
+      .eq("status", "completed")
+      .gte("business_date", startDate)
+      .order("created_at", { ascending: false });
+    if (channel !== "all") ordQ = (ordQ as any).eq("channel", channel);
+
     const [ordRes, mRes, cRes] = await Promise.all([
-      supabase
-        .from("orders")
-        .select("id, business_date, created_at, total, subtotal, payment_method, cashier_id, status")
-        .eq("shop_id", shop.id)
-        .eq("status", "completed")
-        .gte("business_date", startDate)
-        .order("created_at", { ascending: false }),
+      ordQ,
       supabase.from("menu_items").select("id, name, category_id").eq("shop_id", shop.id),
       supabase.from("categories").select("id, name").eq("shop_id", shop.id),
     ]);
@@ -129,12 +141,16 @@ function ReportsPage() {
         .in("order_id", oids);
       setItems((it ?? []) as OrderItem[]);
 
-      const cashierIds = [...new Set(ords.map((o) => o.cashier_id))];
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", cashierIds);
-      setCashierNames(new Map((profs ?? []).map((p) => [p.id, p.display_name ?? "—"])));
+      const cashierIds = [...new Set(ords.map((o) => o.cashier_id).filter(Boolean))];
+      if (cashierIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", cashierIds);
+        setCashierNames(new Map((profs ?? []).map((p) => [p.id, p.display_name ?? "—"])));
+      } else {
+        setCashierNames(new Map());
+      }
     } else {
       setItems([]);
       setCashierNames(new Map());
@@ -145,7 +161,7 @@ function ReportsPage() {
   useEffect(() => {
     if (shop) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shop?.id, range]);
+  }, [shop?.id, range, channel]);
 
   const summary = useMemo(() => {
     const total = orders.reduce((s, o) => s + Number(o.total), 0);
@@ -270,7 +286,17 @@ function ReportsPage() {
             Ringkasan penjualan, menu favorit, jam ramai, dan kinerja kasir.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={channel} onValueChange={(v) => setChannel(v as Channel)}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(CHANNEL_LABELS) as Channel[]).map((c) => (
+                <SelectItem key={c} value={c}>{CHANNEL_LABELS[c]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={range} onValueChange={(v) => setRange(v as Range)}>
             <SelectTrigger className="w-36">
               <SelectValue />

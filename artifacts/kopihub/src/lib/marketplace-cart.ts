@@ -120,6 +120,7 @@ export async function checkout(args: {
   phone: string;
   address: string;
   fulfillment?: "delivery" | "pickup";
+  payment_method?: string;
   notes?: string | null;
   shipping?: Record<string, string>; // shop_id -> zone_id
   shop_voucher_codes?: Record<string, string>; // shop_id -> code
@@ -130,6 +131,7 @@ export async function checkout(args: {
     _phone: args.phone,
     _address: args.address,
     _fulfillment: args.fulfillment ?? "delivery",
+    _payment_method: args.payment_method ?? "transfer",
     _notes: args.notes ?? undefined,
     _shipping: (args.shipping ?? {}) as any,
     _shop_voucher_codes: (args.shop_voucher_codes ?? {}) as any,

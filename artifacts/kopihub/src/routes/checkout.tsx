@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { listCart, checkout, listShopZones, type CartItem, type DeliveryZone } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
-import { Store } from "lucide-react";
+import { Store, MapPin, CreditCard, Wallet, Banknote, QrCode, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Marketplace" }] }),
@@ -29,7 +30,9 @@ function CheckoutPage() {
   const [address, setAddress] = useState("");
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
   const [notes, setNotes] = useState("");
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
+  const [paymentMethod, setPaymentMethod] = useState("transfer");
   const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
   const [platformVoucherCode, setPlatformVoucherCode] = useState("");
 
@@ -39,6 +42,29 @@ function CheckoutPage() {
       navigate({ to: "/login" });
       return;
     }
+
+    // Auto-fill from saved customer profile
+    (async () => {
+      const { data: prof } = await supabase
+        .from("customer_profiles")
+        .select("display_name, phone, default_address, default_city")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (prof) {
+        if (prof.display_name) setRecipientName(prof.display_name);
+        if (prof.phone)        setPhone(prof.phone);
+        if (prof.default_address) {
+          const fullAddr = prof.default_city
+            ? `${prof.default_address}, ${prof.default_city}`
+            : prof.default_address;
+          setAddress(fullAddr);
+        }
+      } else if (user.email) {
+        setRecipientName(user.email.split("@")[0]);
+      }
+      setProfileLoaded(true);
+    })();
+
     listCart()
       .then(async (d) => {
         setItems(d);
@@ -59,9 +85,6 @@ function CheckoutPage() {
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
-    if (user?.email && !recipientName) {
-      setRecipientName(user.email.split("@")[0]);
-    }
   }, [user, authLoading]);
 
   const grouped = items.reduce<Record<string, CartItem[]>>((acc, it) => {
@@ -90,6 +113,7 @@ function CheckoutPage() {
         phone: phone.trim(),
         address: fulfillment === "delivery" ? address.trim() : "Pickup di toko",
         fulfillment,
+        payment_method: paymentMethod,
         notes: notes.trim() || null,
         shipping: fulfillment === "delivery" ? shipping : {},
         shop_voucher_codes: Object.fromEntries(
@@ -167,6 +191,47 @@ function CheckoutPage() {
                   <Label>Catatan untuk toko</Label>
                   <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Opsional" />
                 </div>
+              </section>
+
+              <section className="rounded-xl border border-border bg-card p-5 space-y-3">
+                <h2 className="text-sm font-semibold">Metode Pembayaran</h2>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {([
+                    { id: "transfer",   label: "Transfer Bank",  sub: "BCA / Mandiri / BNI / BRI", icon: Banknote },
+                    { id: "cod",        label: "COD",            sub: "Bayar saat diterima",       icon: Wallet },
+                    { id: "qris",       label: "QRIS",           sub: "Semua e-wallet via QR",    icon: QrCode },
+                    { id: "gopay",      label: "GoPay",          sub: "via aplikasi Gojek",        icon: Smartphone },
+                    { id: "ovo",        label: "OVO",            sub: "via aplikasi OVO",          icon: Smartphone },
+                    { id: "shopeepay",  label: "ShopeePay",      sub: "via aplikasi Shopee",       icon: CreditCard },
+                    { id: "dana",       label: "DANA",           sub: "via aplikasi DANA",         icon: CreditCard },
+                    { id: "cc",         label: "Kartu Kredit",   sub: "Visa / Mastercard",         icon: CreditCard },
+                  ] as const).map(pm => (
+                    <button
+                      key={pm.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(pm.id)}
+                      className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
+                        paymentMethod === pm.id
+                          ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <pm.icon className={`h-4 w-4 shrink-0 ${paymentMethod === pm.id ? "text-primary" : "text-muted-foreground"}`} />
+                      <div className="min-w-0">
+                        <p className={`text-sm font-medium ${paymentMethod === pm.id ? "text-primary" : ""}`}>{pm.label}</p>
+                        <p className="text-xs text-muted-foreground truncate">{pm.sub}</p>
+                      </div>
+                      {paymentMethod === pm.id && (
+                        <div className="ml-auto h-4 w-4 rounded-full border-2 border-primary bg-primary shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {paymentMethod === "cod" && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                    COD tersedia jika toko mendukung. Konfirmasi akan diberikan setelah pesanan diproses.
+                  </p>
+                )}
               </section>
 
               <section className="rounded-xl border border-border bg-card p-5">

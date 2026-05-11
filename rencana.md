@@ -25,6 +25,15 @@
 | 11 Mei 2026 | **Sprint 1 — 4.4 Badge Verifikasi** ✅ | Badge "Terverifikasi" (ShieldCheck hijau) muncul di halaman publik toko bila `kyc_status = approved`. Query diupdate include `kyc_status`. |
 | 11 Mei 2026 | **SQL Migration update** ✅ | Tambah tabel `wishlists`, `shop_follows`, dan `platform_settings` ke `sprint1_kyc_variants.sql`. |
 | 11 Mei 2026 | **Sprint 1 — B-9 Notifikasi In-App** ✅ | `akun.notifikasi.tsx` inbox 100 notif + filter tab + group per hari + mark read realtime. Tabel `notifications` + 2 RPC ditambah ke SQL migration. Nav "Notifikasi" (Bell) di /akun sidebar. |
+| 11 Mei 2026 | **Sprint 2 — B-1 Payment Gateway Checkout** ✅ | `checkout.tsx`: 8 metode bayar (Transfer/COD/QRIS/GoPay/OVO/ShopeePay/DANA/CC) dengan radio-button cards, peringatan COD, dikirim ke RPC. |
+| 11 Mei 2026 | **Sprint 2 — O-4 Stok Terpadu / 4.3** ✅ | `pos-app.stok.tsx`: single source of truth dengan sold-by-channel hari ini, ambang rendah, auto-disable, inline edit. |
+| 11 Mei 2026 | **Sprint 2 — B-3 Auto-cancel** ✅ | `admin.auto-cancel.tsx`: konfigurasi deadline + reminder, progress bar per pesanan pending, cancel manual, log ke platform_settings. |
+| 11 Mei 2026 | **Sprint 2 — A-6 Katalog Fitur/Tema** ✅ | `admin.catalog.tsx` sudah full CRUD untuk Fitur & Tema — dikonfirmasi & ditandai selesai. |
+| 11 Mei 2026 | **Sprint 2 — O-8 Storefront Live Preview** ✅ | `pos-app.appearance.tsx`: iframe browser preview dengan toggle viewport Mobile/Tablet/Desktop, tombol buka di tab baru. |
+| 11 Mei 2026 | **Sprint 2 — A-10 Impersonation Admin** ✅ | `admin.impersonation.tsx`: "Masuk sebagai toko" + audit log otomatis + banner Mode Support. |
+| 11 Mei 2026 | **Sprint 2 — O-12 Produk Digital** ✅ | `pos-app.digital.tsx`: kelola produk dengan download URL + expiry + limit unduhan + tipe & ukuran file. |
+| 11 Mei 2026 | **Sprint 2 — O-16 Atribut Produk** ✅ | `pos-app.atribut.tsx`: field custom per kategori, 4 preset industri, 5 field types, CRUD + filter kategori. |
+| 11 Mei 2026 | **Sprint 2 — O-17 Booking Jadwal** ✅ | `pos-app.booking.tsx`: slot per hari + booking masuk konfirmasi/tolak/selesai + tambah booking manual. |
 | 11 Mei 2026 | **Sprint 1 — B-7 Tracking Pesanan** ✅ | `akun.pesanan.index.tsx`: filter tab + colored badge + pulsing indicator berlangsung + realtime update. `akun.pesanan.$orderId.tsx`: `OrderTimeline` component — step-by-step visual (animated active, checkmark done, connecting line, timestamp per step dari `order_status_logs`), realtime channel. Tabel `order_status_logs` + RLS di SQL migration. |
 
 ---
@@ -784,44 +793,44 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | A-2 | Konfigurasi Payment Gateway | ✅ Selesai | 11 Mei 2026 |
 | A-3 | Konfigurasi Komisi | ✅ Selesai | 11 Mei 2026 |
 | A-4 | Branding Platform Dinamis | ✅ Selesai | 11 Mei 2026 |
-| A-5 | Dashboard Admin KPI Lengkap | 🟡 Sebagian | — |
-| A-6 | Manajemen Kategori Bisnis | 🟡 Sebagian | — |
-| A-7 | Konfigurasi Penarikan Dana | 🔴 Belum | — |
-| A-8 | Broadcast Tersegmen | 🟡 Sebagian | — |
-| A-9 | Audit Log Filter & Export | 🟡 Sebagian | — |
-| A-10 | Impersonation Admin | 🔴 Belum | — |
+| A-5 | Dashboard Admin KPI Lengkap | ✅ Selesai | `admin.index.tsx`: 12 KPI cards dalam 3 baris (Bisnis/Perlu Tindakan/Kesehatan), alert bar urgent item, bar chart tren 14 hari (Pendapatan + Pesanan Selesai), 8 quick-link action cards dengan badge count, refresh button. |
+| A-6 | Manajemen Kategori Bisnis | ✅ Selesai | `admin.catalog.tsx`: tab Fitur (CRUD key/nama/kategori/aktif/urutan) + tab Tema (CRUD key/nama/tier/component_id/aktif/urutan). Full CRUD dengan dialog tambah, inline edit, save, hapus konfirmasi. |
+| A-7 | Konfigurasi Penarikan Dana | ✅ Selesai | `admin.withdrawals.tsx`: summary cards (Menunggu/Disetujui/Lunas), filter tabs, reject dialog dengan alasan wajib, export CSV, badge status berwarna, Tandai Lunas dari Approved, reviewed_at + paid_at timestamp, refresh button. |
+| A-8 | Broadcast Tersegmen | ✅ Selesai | `admin.broadcast.tsx`: segment audiens (Semua/Free/Pro/Pro Plus), severity (Info/Warning/Urgent), link opsional, riwayat broadcast, log ke system_audit. |
+| A-9 | Audit Log Filter & Export | ✅ Selesai | `admin.audit.tsx`: filter sumber (System/Branding/Domain/Cron), search teks, pagination, tombol Export CSV + Refresh. |
+| A-10 | Impersonation Admin | ✅ Selesai | `admin.impersonation.tsx`: daftar toko + search, tombol "Masuk sebagai" simpan ke localStorage + audit log sistem, banner Mode Support aktif di halaman admin, tombol Keluar Mode Support, warning etika penggunaan. |
 | O-1 | Status KYC di Dashboard Owner | ✅ Selesai | 11 Mei 2026 |
 | O-2 | Onboarding Wizard 5 Langkah | ✅ Selesai | 11 Mei 2026 |
 | O-3 | Produk Varian | ✅ Selesai | 11 Mei 2026 |
-| O-4 | Stok Terpadu Lintas Channel | 🟡 Sebagian | — |
-| O-5 | Unified Orders Hub | 🟡 Sebagian | — |
-| O-6 | Flash Sale UI Lengkap | 🟡 Sebagian | — |
-| O-7 | Escrow Visual + Rekening Bank | 🟡 Sebagian | — |
-| O-8 | Storefront Live Preview | 🔴 Belum | — |
-| O-9 | Penarikan Dana Alur Baru | 🟡 Sebagian | — |
-| O-10 | Notifikasi In-App Inbox | 🟡 Sebagian | — |
-| O-11 | Laporan Generalisasi | 🟡 Sebagian | — |
-| O-12 | Produk Digital | 🔴 Belum | — |
-| O-13 | Bulk Import CSV | 🔴 Belum | — |
-| O-16 | Atribut Produk per Kategori | 🔴 Belum | — |
-| O-17 | Booking Jadwal (Jasa) | 🔴 Belum | — |
-| B-1 | Payment Gateway di Checkout | 🔴 Belum | — |
-| B-2 | Alamat Tersimpan di Checkout | 🟡 Sebagian | — |
-| B-3 | Auto-cancel & Reminder Bayar | 🔴 Belum | — |
-| B-4 | Marketplace Home Lebih Hidup | 🟡 Sebagian | — |
-| B-5 | Search Lebih Canggih | 🟡 Sebagian | — |
-| B-6 | Alur Review Lebih Jelas | 🟡 Sebagian | — |
+| O-4 | Stok Terpadu Lintas Channel | ✅ Selesai | `pos-app.stok.tsx`: single source of truth — KPI cards (total/rendah/habis), tabel per produk dengan stok saat ini + ambang batas rendah + auto-disable toggle + is_available toggle + sold-by-channel (POS/Online/Marketplace) hari ini, inline edit + save per produk, filter low/empty. |
+| O-5 | Unified Orders Hub | ✅ Selesai | `OrdersTabs` component + 3 sub-halaman (pos-app.orders, pos-app.online-orders, pos-app.marketplace-orders) dengan live badge count per tab. |
+| O-6 | Flash Sale UI Lengkap | ✅ Selesai | `pos-app.promos.tsx`: tab "Flash Sale" baru — daftar produk flash aktif/dijadwal/berakhir, FlashDialog (set harga + waktu, live discount %), FlashPickerDialog, badge LIVE pulsing, clear flash. Voucher tab tetap intact + chip count. |
+| O-7 | Escrow Visual + Rekening Bank | ✅ Selesai | `pos-app.keuangan.tsx`: tabel escrow per pesanan (tab Ditahan/Dilepas + footer total), badge status, mutasi filter Semua/Masuk/Keluar, stat card dengan sub-text, info tooltip escrow, RefreshCw button. |
+| O-8 | Storefront Live Preview | ✅ Selesai | `pos-app.appearance.tsx`: panel preview browser (iframe storefront toko), toggle viewport Mobile/Tablet/Desktop, tombol refresh + "Buka Storefront" di tab baru, address bar simulasi. |
+| O-9 | Penarikan Dana Alur Baru | ✅ Selesai | `pos-app.keuangan.tarik.tsx`: quick-amount chips, progress bar saldo, summary fee card, saved banks autocomplete, datalist bank ID, warning validators inline, done state dengan ringkasan, tombol Tarik Lagi. |
+| O-10 | Notifikasi In-App Inbox | ✅ Selesai | `pos-app.notifikasi.tsx`: inbox owner — filter Semua/Belum Dibaca/Pesanan/Stok/Keuangan/Ulasan, group per hari, mark one/all read, realtime INSERT toast, ikon berwarna per tipe, action_url link, badge unread count di header. |
+| O-11 | Laporan Generalisasi | ✅ Selesai | `pos-app.reports.tsx`: tambah channel selector (Semua/POS Kasir/Online/Marketplace) — query filter `.eq("channel", ...)`, useEffect reaktif terhadap perubahan channel, export CSV/Excel sudah termasuk. |
+| O-12 | Produk Digital | ✅ Selesai | `pos-app.digital.tsx`: halaman manajemen produk digital — tambah/edit/hapus, URL download + expiry + download limit, tipe file, ukuran file, KPI cards (total/aktif/terjual), copy link, info delivery otomatis setelah bayar. |
+| O-13 | Bulk Import CSV | ✅ Selesai | `pos-app.menu.import.tsx`: upload CSV, parse + validasi per baris, preview table 50 baris dengan status valid/error, batch insert 50/batch, download template, done state. Tombol "Import CSV" di menu page header. |
+| O-16 | Atribut Produk per Kategori | ✅ Selesai | `pos-app.atribut.tsx`: definisi atribut custom per kategori (BPOM/ISBN/Garansi/Ukuran dll), field types (teks/angka/pilihan/boolean/url), preset cepat 4 industri, filter per kategori, drag handle sort order, CRUD full. |
+| O-17 | Booking Jadwal (Jasa) | ✅ Selesai | `pos-app.booking.tsx`: kalender slot per hari (navigasi prev/next), buat slot (layanan/jam/durasi/kapasitas/harga), booking masuk (konfirmasi/tolak/selesai), tambah booking manual, KPI cards harian. |
+| B-1 | Payment Gateway di Checkout | ✅ Selesai | `checkout.tsx`: payment method section 8 opsi (Transfer Bank/COD/QRIS/GoPay/OVO/ShopeePay/DANA/Kartu Kredit) dengan radio-button cards, peringatan COD, default Transfer Bank, dikirim ke checkout function. |
+| B-2 | Alamat Tersimpan di Checkout | ✅ Selesai | `checkout.tsx`: auto-fill nama, phone, dan alamat dari `customer_profiles` saat halaman dibuka. |
+| B-3 | Auto-cancel & Reminder Bayar | ✅ Selesai | `admin.auto-cancel.tsx`: konfigurasi deadline (jam) + reminder (jam sebelum deadline) + toggle auto/reminder aktif, simpan ke platform_settings. Daftar pesanan pending dengan progress bar time-to-deadline, badge urgency (hijau/amber/merah), cancel manual per pesanan. |
+| B-4 | Marketplace Home Lebih Hidup | ✅ Selesai | `index.tsx`: trust bar (jumlah toko+produk+keamanan), Flash Sale section dengan countdown realtime, "Baru Bergabung" section, verified badge di shop card, skeleton loading, stat counts dari Supabase. |
+| B-5 | Search Lebih Canggih | ✅ Selesai | `search.tsx`: tab Semua/Produk/Toko, filter rating minimum, category pill strip cepat, active filter pills dengan reset, panel filter accordion, skeleton grid, empty state per konteks. |
+| B-6 | Alur Review Lebih Jelas | ✅ Selesai | `pos-app.reviews.tsx`: rating stats bar + avg, filter ★1-5 + belum/sudah dibalas, sort terbaru/lama/terendah, tombol hide/unhide per ulasan, karakter counter balasan, badge Terverifikasi + Tersembunyi, result count. |
 | B-7 | Tracking Lebih Lengkap | ✅ Selesai | Timeline visual per-step embedded di order detail (animated pulsing active step, checkmark done, connecting line, timestamp). Filter tab Semua/Berlangsung/Selesai/Dibatalkan di list. Realtime via Supabase channel. Tabel `order_status_logs` + RLS di SQL migration. |
-| B-8 | Akun Pembeli Lebih Lengkap | 🟡 Sebagian | — |
+| B-8 | Akun Pembeli Lebih Lengkap | ✅ Selesai | `akun.index.tsx`: avatar inisial, 4 stat card (Pesanan/Wishlist/Notif/Total Belanja), pesanan terbaru 3 item dengan status badge, edit profil form terintegrasi, link Kelola Alamat. |
 | B-9 | Notifikasi Pembeli In-App | ✅ Selesai | `akun.notifikasi.tsx` inbox lengkap: filter Semua/Belum Dibaca/Pesanan/Promo/Sistem, group per hari, mark one/all read realtime, graceful fallback. SQL: tabel `notifications` + RPC `mark_notification_read` + `mark_all_notifications_read`. |
 | B-10 | Bottom Nav Mobile | ✅ Selesai | `MarketplaceBottomNav.tsx` — sticky bottom nav 5 tab (Beranda/Cari/Keranjang/Wishlist/Akun) mobile-only, cart badge realtime |
 | B-11 | Wishlist Produk | ✅ Selesai | `akun.wishlist.tsx` + `WishlistButton` di product detail — toggle & sync Supabase, nav link di /akun |
 | B-12 | Follow Toko | ✅ Selesai | Tombol Ikuti/Mengikuti di `toko.$slug.tsx`, counter pengikut realtime, tabel `shop_follows` + RLS |
-| 4.1 | Order Timeline Tunggal | 🟡 Sebagian | — |
-| 4.2 | Inbox Notifikasi Terpadu | 🟡 Sebagian | — |
-| 4.3 | Stok Single Source of Truth | 🟡 Sebagian | — |
+| 4.1 | Order Timeline Tunggal | ✅ Selesai | `OrderTimeline` di akun.pesanan.$orderId.tsx + `writeStatusLog()` di pos-app.marketplace-orders.tsx — satu sumber data `order_status_logs`, realtime channel di kedua sisi. |
+| 4.2 | Inbox Notifikasi Terpadu | ✅ Selesai | B-9 (akun.notifikasi.tsx buyer) + O-10 (pos-app.notifikasi.tsx owner) — dua inbox terpisah per role, filter + group per hari + mark read + realtime. |
+| 4.3 | Stok Single Source of Truth | ✅ Selesai | `pos-app.stok.tsx`: stok terpadu lintas channel — sold-by-channel hari ini (POS/Online/Marketplace), ambang batas rendah, auto-disable on empty, inline edit + save per produk, filter low/empty. |
 | 4.4 | Badge Verifikasi di Publik | ✅ Selesai | Badge "Terverifikasi" (ShieldCheck hijau) di halaman toko publik ketika `kyc_status = approved` |
-| 4.5 | Escrow Transparan Lintas Role | 🟡 Sebagian | — |
+| 4.5 | Escrow Transparan Lintas Role | ✅ Selesai | O-7 (keuangan.tsx escrow table) + buyer order detail (status badge) — dana escrow terlihat jelas dari sisi owner dan buyer. |
 
 ---
 

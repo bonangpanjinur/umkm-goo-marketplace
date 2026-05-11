@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -25,6 +25,8 @@ const NAV = [
   { to: "/admin/payment-config", label: "Payment Gateway", icon: CreditCard },
   { to: "/admin/branding", label: "Branding Platform", icon: Palette },
   { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
+  { to: "/admin/auto-cancel", label: "Auto-cancel", icon: Clock },
+  { to: "/admin/impersonation", label: "Impersonation", icon: UserCog },
   { to: "/admin/audit", label: "Audit Log", icon: ScrollText },
   { to: "/admin/domains", label: "Domain", icon: Globe },
   { to: "/admin/activity", label: "Aktivitas", icon: Activity },
