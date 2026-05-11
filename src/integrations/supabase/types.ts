@@ -1329,6 +1329,9 @@ export type Database = {
           description: string | null
           digital_file_name: string | null
           digital_file_url: string | null
+          flash_ends_at: string | null
+          flash_price: number | null
+          flash_starts_at: string | null
           height_cm: number | null
           id: string
           image_url: string | null
@@ -1370,6 +1373,9 @@ export type Database = {
           description?: string | null
           digital_file_name?: string | null
           digital_file_url?: string | null
+          flash_ends_at?: string | null
+          flash_price?: number | null
+          flash_starts_at?: string | null
           height_cm?: number | null
           id?: string
           image_url?: string | null
@@ -1411,6 +1417,9 @@ export type Database = {
           description?: string | null
           digital_file_name?: string | null
           digital_file_url?: string | null
+          flash_ends_at?: string | null
+          flash_price?: number | null
+          flash_starts_at?: string | null
           height_cm?: number | null
           id?: string
           image_url?: string | null
@@ -1651,6 +1660,8 @@ export type Database = {
           payment_proof_url: string | null
           payment_split: Json
           payment_status: Database["public"]["Enums"]["payment_status"]
+          platform_voucher_code: string | null
+          platform_voucher_discount: number
           points_earned: number
           points_redeemed: number
           promo_code: string | null
@@ -1659,6 +1670,8 @@ export type Database = {
           service_charge: number
           shift_id: string | null
           shop_id: string
+          shop_voucher_code: string | null
+          shop_voucher_discount: number
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           tax: number
@@ -1699,6 +1712,8 @@ export type Database = {
           payment_proof_url?: string | null
           payment_split?: Json
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          platform_voucher_code?: string | null
+          platform_voucher_discount?: number
           points_earned?: number
           points_redeemed?: number
           promo_code?: string | null
@@ -1707,6 +1722,8 @@ export type Database = {
           service_charge?: number
           shift_id?: string | null
           shop_id: string
+          shop_voucher_code?: string | null
+          shop_voucher_discount?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           tax?: number
@@ -1747,6 +1764,8 @@ export type Database = {
           payment_proof_url?: string | null
           payment_split?: Json
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          platform_voucher_code?: string | null
+          platform_voucher_discount?: number
           points_earned?: number
           points_redeemed?: number
           promo_code?: string | null
@@ -1755,6 +1774,8 @@ export type Database = {
           service_charge?: number
           shift_id?: string | null
           shop_id?: string
+          shop_voucher_code?: string | null
+          shop_voucher_discount?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           tax?: number
@@ -2132,6 +2153,95 @@ export type Database = {
           updated_by?: string | null
           value?: string | null
           value_encrypted?: string | null
+        }
+        Relationships: []
+      }
+      platform_voucher_redemptions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          order_ids: string[]
+          user_id: string
+          voucher_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_ids?: string[]
+          user_id: string
+          voucher_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_ids?: string[]
+          user_id?: string
+          voucher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_voucher_redemptions_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "platform_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_vouchers: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_discount: number | null
+          min_order: number
+          per_user_limit: number | null
+          starts_at: string | null
+          updated_at: string
+          usage_count: number
+          usage_limit: number | null
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order?: number
+          per_user_limit?: number | null
+          starts_at?: string | null
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+          value?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order?: number
+          per_user_limit?: number | null
+          starts_at?: string | null
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+          value?: number
         }
         Relationships: []
       }
@@ -3637,28 +3747,19 @@ export type Database = {
         }
         Returns: string
       }
-      marketplace_checkout:
-        | {
-            Args: {
-              _address: string
-              _fulfillment?: string
-              _notes?: string
-              _phone: string
-              _recipient_name: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _address: string
-              _fulfillment?: string
-              _notes?: string
-              _phone: string
-              _recipient_name: string
-              _shipping?: Json
-            }
-            Returns: Json
-          }
+      marketplace_checkout: {
+        Args: {
+          _address: string
+          _fulfillment?: string
+          _notes?: string
+          _phone: string
+          _platform_voucher_code?: string
+          _recipient_name: string
+          _shipping?: Json
+          _shop_voucher_codes?: Json
+        }
+        Returns: Json
+      }
       next_order_no: { Args: { _outlet_id: string }; Returns: string }
       open_shift: {
         Args: { _opening_cash: number; _outlet_id: string }
