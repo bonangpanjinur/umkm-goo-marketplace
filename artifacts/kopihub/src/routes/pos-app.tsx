@@ -38,6 +38,9 @@ import {
   Palette,
   Database,
   Printer,
+  Banknote,
+  ArrowDownToLine,
+  ShoppingCart,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
