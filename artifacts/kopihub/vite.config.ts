@@ -46,6 +46,29 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react/jsx-runtime"],
+          "router-vendor": ["@tanstack/react-router", "@tanstack/react-query"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "charts-vendor": ["recharts"],
+          "motion-vendor": ["framer-motion"],
+          "radix-vendor": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-popover",
+            "@radix-ui/react-select",
+            "@radix-ui/react-tooltip",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-label",
+            "@radix-ui/react-slot",
+          ],
+          "icons-vendor": ["lucide-react"],
+        },
+      },
+    },
   },
   server: {
     port,
