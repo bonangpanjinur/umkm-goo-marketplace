@@ -425,6 +425,40 @@ function MenuPage() {
                   </p>
                 </div>
 
+                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold">Flash sale</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Set harga diskon dengan jadwal mulai & berakhir.
+                      </div>
+                    </div>
+                    {flashPrice && (
+                      <button type="button" onClick={() => { setFlashPrice(""); setFlashStarts(""); setFlashEnds(""); }}
+                        className="text-[11px] text-muted-foreground hover:text-destructive">
+                        Hapus
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-[11px]">Harga flash</Label>
+                      <Input type="number" inputMode="numeric" value={flashPrice}
+                        onChange={(e) => setFlashPrice(e.target.value)} placeholder="20000" />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Mulai</Label>
+                      <Input type="datetime-local" value={flashStarts}
+                        onChange={(e) => setFlashStarts(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Berakhir</Label>
+                      <Input type="datetime-local" value={flashEnds}
+                        onChange={(e) => setFlashEnds(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+
                 {editing && (() => {
                   const h = hpp[editing.id];
                   const rs = recipes.filter((r) => r.menu_item_id === editing.id);
