@@ -69,8 +69,8 @@ export function useStaffRole(): StaffInfo {
 /** Check if a nav path is allowed for the current user */
 export function isModuleAllowed(path: string, allowedModules: string[] | null): boolean {
   if (!allowedModules) return true; // null = all allowed
-  // Extract module from path like /app/pos → pos
-  const segment = path.replace(/^\/app\/?/, "").split("/")[0];
+  // Extract module from path like /pos-app/pos → pos
+  const segment = path.replace(/^\/pos-app\/?/, "").split("/")[0];
   if (!segment) return true; // dashboard always allowed
   return allowedModules.includes(segment);
 }

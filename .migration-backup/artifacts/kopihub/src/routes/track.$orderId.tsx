@@ -24,6 +24,8 @@ type Tracking = {
   courier_name: string | null;
   courier_phone: string | null;
   courier_plate: string | null;
+  delivery_proof_url: string | null;
+  delivered_at: string | null;
 };
 
 const STEPS_DELIVERY = [
@@ -193,6 +195,24 @@ function TrackPage() {
               <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
               {data.delivery_address}
             </p>
+          </div>
+        )}
+
+        {data.delivery_proof_url && (
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h2 className="mb-2 text-sm font-medium">Bukti pengantaran</h2>
+            <a href={data.delivery_proof_url} target="_blank" rel="noreferrer">
+              <img
+                src={data.delivery_proof_url}
+                alt="Bukti pengantaran"
+                className="w-full max-h-80 rounded-lg border border-border object-cover"
+              />
+            </a>
+            {data.delivered_at && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Diantar pada {new Date(data.delivered_at).toLocaleString("id-ID")}
+              </p>
+            )}
           </div>
         )}
       </main>

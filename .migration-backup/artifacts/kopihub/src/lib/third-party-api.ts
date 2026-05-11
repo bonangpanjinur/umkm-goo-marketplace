@@ -22,7 +22,7 @@ export async function createApiKey(
   const keyPrefix = key.substring(0, 10);
   const keyHash = await hashString(key);
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("api_keys")
     .insert({
       shop_id: shopId,
@@ -52,7 +52,7 @@ export async function createApiKey(
  * Get API keys for a shop
  */
 export async function getApiKeys(shopId: string): Promise<ApiKey[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("api_keys")
     .select("*")
     .eq("shop_id", shopId)
@@ -70,7 +70,7 @@ export async function getApiKeys(shopId: string): Promise<ApiKey[]> {
  * Revoke an API key
  */
 export async function revokeApiKey(apiKeyId: string): Promise<boolean> {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from("api_keys")
     .update({ is_active: false })
     .eq("id", apiKeyId);
@@ -94,7 +94,7 @@ export async function recordApiUsage(
   responseTimeMs: number,
   errorMessage?: string
 ): Promise<boolean> {
-  const { error } = await supabase.rpc("record_api_usage", {
+  const { error } = await (supabase as any).rpc("record_api_usage", {
     _api_key_id: apiKeyId,
     _endpoint: endpoint,
     _method: method,
@@ -117,7 +117,7 @@ export async function recordApiUsage(
 export async function checkApiRateLimit(
   apiKeyId: string
 ): Promise<{ allowed: boolean; minuteCount: number; dayCount: number } | null> {
-  const { data, error } = await supabase.rpc("check_api_rate_limit", {
+  const { data, error } = await (supabase as any).rpc("check_api_rate_limit", {
     _api_key_id: apiKeyId,
   });
 
@@ -146,7 +146,7 @@ export async function createIntegration(
   shopId: string,
   request: CreateIntegrationRequest
 ): Promise<ThirdPartyIntegration | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("third_party_integrations")
     .insert({
       shop_id: shopId,
@@ -172,7 +172,7 @@ export async function createIntegration(
  * Get integrations for a shop
  */
 export async function getIntegrations(shopId: string): Promise<ThirdPartyIntegration[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("third_party_integrations")
     .select("*")
     .eq("shop_id", shopId)
@@ -193,7 +193,7 @@ export async function updateIntegration(
   integrationId: string,
   updates: Partial<ThirdPartyIntegration>
 ): Promise<ThirdPartyIntegration | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("third_party_integrations")
     .update(updates)
     .eq("id", integrationId)
@@ -215,7 +215,7 @@ export async function toggleIntegration(
   integrationId: string,
   isActive: boolean
 ): Promise<boolean> {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from("third_party_integrations")
     .update({ is_active: isActive })
     .eq("id", integrationId);
@@ -237,7 +237,7 @@ export async function createWebhook(
   eventType: string,
   webhookUrl: string
 ): Promise<IntegrationWebhook | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("integration_webhooks")
     .insert({
       integration_id: integrationId,
@@ -261,7 +261,7 @@ export async function createWebhook(
  * Get webhooks for integration
  */
 export async function getWebhooks(integrationId: string): Promise<IntegrationWebhook[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("integration_webhooks")
     .select("*")
     .eq("integration_id", integrationId)
@@ -284,7 +284,7 @@ export async function triggerWebhookEvent(
   eventType: string,
   payload: Record<string, any>
 ): Promise<WebhookEvent | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("webhook_events")
     .insert({
       webhook_id: webhookId,
@@ -311,7 +311,7 @@ export async function getWebhookEvents(
   webhookId: string,
   limit: number = 50
 ): Promise<WebhookEvent[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("webhook_events")
     .select("*")
     .eq("webhook_id", webhookId)
@@ -337,7 +337,7 @@ export async function createFieldMapping(
   mappingType: string = "direct",
   mappingConfig?: Record<string, any>
 ): Promise<IntegrationMapping | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("integration_mappings")
     .insert({
       integration_id: integrationId,
@@ -362,7 +362,7 @@ export async function createFieldMapping(
  * Get field mappings for integration
  */
 export async function getFieldMappings(integrationId: string): Promise<IntegrationMapping[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("integration_mappings")
     .select("*")
     .eq("integration_id", integrationId)
@@ -388,7 +388,7 @@ export async function getApiUsageStats(
   failedRequests: number;
   averageResponseTime: number;
 }> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("api_usage")
     .select("*")
     .eq("api_key_id", apiKeyId)

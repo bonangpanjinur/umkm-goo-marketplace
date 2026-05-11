@@ -65,7 +65,7 @@ function AcceptInvitationPage() {
       setError(msg);
     } else {
       toast.success(`Selamat bergabung di ${shopName}`);
-      navigate({ to: "/app" });
+      navigate({ to: "/pos-app" });
     }
     setAccepting(false);
   }

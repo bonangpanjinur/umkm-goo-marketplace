@@ -53,7 +53,7 @@ function ResetPasswordPage() {
       return;
     }
     toast.success("Kata sandi berhasil diperbarui.");
-    navigate({ to: "/app" });
+    navigate({ to: "/pos-app" });
   };
 
   return (

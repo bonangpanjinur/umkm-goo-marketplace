@@ -58,3 +58,5 @@ export function useCurrentShop() {
 
   return { shop, outlet, loading: loading || loadingShop };
 }
+
+export const useShop = useCurrentShop;

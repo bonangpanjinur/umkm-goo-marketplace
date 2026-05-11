@@ -10,60 +10,90 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PromoRouteImport } from './routes/promo'
+import { Route as PosAppRouteImport } from './routes/pos-app'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AppRouteImport } from './routes/app'
+import { Route as KeranjangRouteImport } from './routes/keranjang'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as AkunRouteImport } from './routes/akun'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as PosAppIndexRouteImport } from './routes/pos-app.index'
+import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
+import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
+import { Route as TokoSlugRouteImport } from './routes/toko.$slug'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
+import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
+import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
+import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
+import { Route as PosAppShiftsRouteImport } from './routes/pos-app.shifts'
+import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
+import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
+import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
+import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
+import { Route as PosAppRecipesRouteImport } from './routes/pos-app.recipes'
+import { Route as PosAppPurchaseOrdersRouteImport } from './routes/pos-app.purchase-orders'
+import { Route as PosAppPromosRouteImport } from './routes/pos-app.promos'
+import { Route as PosAppPrintersRouteImport } from './routes/pos-app.printers'
+import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
+import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
+import { Route as PosAppOnlineOrdersRouteImport } from './routes/pos-app.online-orders'
+import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
+import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
+import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
+import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
+import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
+import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
+import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
+import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
+import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
+import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
+import { Route as PosAppCustomersRouteImport } from './routes/pos-app.customers'
+import { Route as PosAppCouriersRouteImport } from './routes/pos-app.couriers'
+import { Route as PosAppCourierRouteImport } from './routes/pos-app.courier'
+import { Route as PosAppCategoriesRouteImport } from './routes/pos-app.categories'
+import { Route as PosAppBillingRouteImport } from './routes/pos-app.billing'
+import { Route as PosAppBackupRouteImport } from './routes/pos-app.backup'
+import { Route as PosAppAttendanceRouteImport } from './routes/pos-app.attendance'
+import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearance'
+import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
+import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
-import { Route as AppSuppliersRouteImport } from './routes/app.suppliers'
-import { Route as AppShiftsRouteImport } from './routes/app.shifts'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppScheduleRouteImport } from './routes/app.schedule'
-import { Route as AppReportsRouteImport } from './routes/app.reports'
-import { Route as AppRecipesRouteImport } from './routes/app.recipes'
-import { Route as AppPurchaseOrdersRouteImport } from './routes/app.purchase-orders'
-import { Route as AppPromosRouteImport } from './routes/app.promos'
-import { Route as AppPosRouteImport } from './routes/app.pos'
-import { Route as AppPrintersRouteImport } from './routes/app.printers'
-import { Route as AppOrdersRouteImport } from './routes/app.orders'
-import { Route as AppOnlineOrdersRouteImport } from './routes/app.online-orders'
-import { Route as AppMenuRouteImport } from './routes/app.menu'
-import { Route as AppLoyaltyRouteImport } from './routes/app.loyalty'
-import { Route as AppKdsRouteImport } from './routes/app.kds'
-import { Route as AppInventoryRouteImport } from './routes/app.inventory'
-import { Route as AppEmployeesRouteImport } from './routes/app.employees'
-import { Route as AppDomainRouteImport } from './routes/app.domain'
-import { Route as AppDeliveryRouteImport } from './routes/app.delivery'
-import { Route as AppCustomersRouteImport } from './routes/app.customers'
-import { Route as AppCouriersRouteImport } from './routes/app.couriers'
-import { Route as AppCourierRouteImport } from './routes/app.courier'
-import { Route as AppCategoriesRouteImport } from './routes/app.categories'
-import { Route as AppBillingRouteImport } from './routes/app.billing'
-import { Route as AppBackupRouteImport } from './routes/app.backup'
-import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
-import { Route as AppAppearanceRouteImport } from './routes/app.appearance'
+import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
+import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
+import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
+import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
+import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
+import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
 import { Route as SSlugOrdersRouteImport } from './routes/s.$slug.orders'
 import { Route as SSlugMeRouteImport } from './routes/s.$slug.me'
 import { Route as SSlugLoginRouteImport } from './routes/s.$slug.login'
 import { Route as SSlugCheckoutRouteImport } from './routes/s.$slug.checkout'
 import { Route as SSlugCartRouteImport } from './routes/s.$slug.cart'
-import { Route as AppPurchaseOrdersPoIdRouteImport } from './routes/app.purchase-orders.$poId'
+import { Route as PosAppReportsProfitRouteImport } from './routes/pos-app.reports.profit'
+import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.purchase-orders.$poId'
+import { Route as PosAppKeuanganTarikRouteImport } from './routes/pos-app.keuangan.tarik'
+import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
+import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
+import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug.produk.$productId'
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
@@ -71,6 +101,26 @@ import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromoRoute = PromoRouteImport.update({
+  id: '/promo',
+  path: '/promo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PosAppRoute = PosAppRouteImport.update({
+  id: '/pos-app',
+  path: '/pos-app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -83,9 +133,24 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
+const KeranjangRoute = KeranjangRouteImport.update({
+  id: '/keranjang',
+  path: '/keranjang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AkunRoute = AkunRouteImport.update({
+  id: '/akun',
+  path: '/akun',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -98,10 +163,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
+const PosAppIndexRoute = PosAppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => PosAppRoute,
+} as any)
+const KategoriIndexRoute = KategoriIndexRouteImport.update({
+  id: '/kategori/',
+  path: '/kategori/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AkunIndexRoute = AkunIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AkunRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -113,9 +188,190 @@ const TrackOrderIdRoute = TrackOrderIdRouteImport.update({
   path: '/track/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TokoSlugRoute = TokoSlugRouteImport.update({
+  id: '/toko/$slug',
+  path: '/toko/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SSlugRoute = SSlugRouteImport.update({
   id: '/s/$slug',
   path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PosAppTablesRoute = PosAppTablesRouteImport.update({
+  id: '/tables',
+  path: '/tables',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppTableMapsRoute = PosAppTableMapsRouteImport.update({
+  id: '/table-maps',
+  path: '/table-maps',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppSuppliersRoute = PosAppSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppShiftsRoute = PosAppShiftsRouteImport.update({
+  id: '/shifts',
+  path: '/shifts',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppSettingsRoute = PosAppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppScheduleRoute = PosAppScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppReviewsRoute = PosAppReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppReportsRoute = PosAppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppRecipesRoute = PosAppRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPurchaseOrdersRoute = PosAppPurchaseOrdersRouteImport.update({
+  id: '/purchase-orders',
+  path: '/purchase-orders',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPromosRoute = PosAppPromosRouteImport.update({
+  id: '/promos',
+  path: '/promos',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPrintersRoute = PosAppPrintersRouteImport.update({
+  id: '/printers',
+  path: '/printers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPosRoute = PosAppPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppOrdersRoute = PosAppOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppOnlineOrdersRoute = PosAppOnlineOrdersRouteImport.update({
+  id: '/online-orders',
+  path: '/online-orders',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppMenuRoute = PosAppMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppMarketplaceOrdersRoute = PosAppMarketplaceOrdersRouteImport.update({
+  id: '/marketplace-orders',
+  path: '/marketplace-orders',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppMarketplaceAnalyticsRoute =
+  PosAppMarketplaceAnalyticsRouteImport.update({
+    id: '/marketplace-analytics',
+    path: '/marketplace-analytics',
+    getParentRoute: () => PosAppRoute,
+  } as any)
+const PosAppLoyaltyRoute = PosAppLoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppKeuanganRoute = PosAppKeuanganRouteImport.update({
+  id: '/keuangan',
+  path: '/keuangan',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppKdsRoute = PosAppKdsRouteImport.update({
+  id: '/kds',
+  path: '/kds',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppInventoryRoute = PosAppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppEmployeesRoute = PosAppEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppDomainRoute = PosAppDomainRouteImport.update({
+  id: '/domain',
+  path: '/domain',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppDeliveryRoute = PosAppDeliveryRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppCustomersRoute = PosAppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppCouriersRoute = PosAppCouriersRouteImport.update({
+  id: '/couriers',
+  path: '/couriers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppCourierRoute = PosAppCourierRouteImport.update({
+  id: '/courier',
+  path: '/courier',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppCategoriesRoute = PosAppCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppBillingRoute = PosAppBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppBackupRoute = PosAppBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppAttendanceRoute = PosAppAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppAppearanceRoute = PosAppAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PesananOrderIdRoute = PesananOrderIdRouteImport.update({
+  id: '/pesanan/$orderId',
+  path: '/pesanan/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KategoriSlugRoute = KategoriSlugRouteImport.update({
+  id: '/kategori/$slug',
+  path: '/kategori/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -123,140 +379,25 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSuppliersRoute = AppSuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
-  getParentRoute: () => AppRoute,
+const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
+  getParentRoute: () => AkunRoute,
 } as any)
-const AppShiftsRoute = AppShiftsRouteImport.update({
-  id: '/shifts',
-  path: '/shifts',
-  getParentRoute: () => AppRoute,
+const AkunAlamatRoute = AkunAlamatRouteImport.update({
+  id: '/alamat',
+  path: '/alamat',
+  getParentRoute: () => AkunRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
+const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
+  id: '/withdrawals',
+  path: '/withdrawals',
+  getParentRoute: () => AdminRoute,
 } as any)
-const AppScheduleRoute = AppScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppRecipesRoute = AppRecipesRouteImport.update({
-  id: '/recipes',
-  path: '/recipes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPurchaseOrdersRoute = AppPurchaseOrdersRouteImport.update({
-  id: '/purchase-orders',
-  path: '/purchase-orders',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPromosRoute = AppPromosRouteImport.update({
-  id: '/promos',
-  path: '/promos',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPrintersRoute = AppPrintersRouteImport.update({
-  id: '/printers',
-  path: '/printers',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPosRoute = AppPosRouteImport.update({
-  id: '/pos',
-  path: '/pos',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppOrdersRoute = AppOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppOnlineOrdersRoute = AppOnlineOrdersRouteImport.update({
-  id: '/online-orders',
-  path: '/online-orders',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMenuRoute = AppMenuRouteImport.update({
-  id: '/menu',
-  path: '/menu',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLoyaltyRoute = AppLoyaltyRouteImport.update({
-  id: '/loyalty',
-  path: '/loyalty',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppKdsRoute = AppKdsRouteImport.update({
-  id: '/kds',
-  path: '/kds',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInventoryRoute = AppInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppEmployeesRoute = AppEmployeesRouteImport.update({
-  id: '/employees',
-  path: '/employees',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDomainRoute = AppDomainRouteImport.update({
-  id: '/domain',
-  path: '/domain',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDeliveryRoute = AppDeliveryRouteImport.update({
-  id: '/delivery',
-  path: '/delivery',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCustomersRoute = AppCustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCouriersRoute = AppCouriersRouteImport.update({
-  id: '/couriers',
-  path: '/couriers',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCourierRoute = AppCourierRouteImport.update({
-  id: '/courier',
-  path: '/courier',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCategoriesRoute = AppCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBillingRoute = AppBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBackupRoute = AppBackupRouteImport.update({
-  id: '/backup',
-  path: '/backup',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAttendanceRoute = AppAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAppearanceRoute = AppAppearanceRouteImport.update({
-  id: '/appearance',
-  path: '/appearance',
-  getParentRoute: () => AppRoute,
+const AdminVouchersRoute = AdminVouchersRouteImport.update({
+  id: '/vouchers',
+  path: '/vouchers',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminShopsRoute = AdminShopsRouteImport.update({
   id: '/shops',
@@ -283,6 +424,11 @@ const AdminDomainsRoute = AdminDomainsRouteImport.update({
   path: '/domains',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDisputesRoute = AdminDisputesRouteImport.update({
+  id: '/disputes',
+  path: '/disputes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCatalogRoute = AdminCatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
@@ -298,6 +444,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminActivityRoute = AdminActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -307,6 +458,11 @@ const SSlugIndexRoute = SSlugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => SSlugRoute,
+} as any)
+const AkunPesananIndexRoute = AkunPesananIndexRouteImport.update({
+  id: '/pesanan/',
+  path: '/pesanan/',
+  getParentRoute: () => AkunRoute,
 } as any)
 const SSlugOrdersRoute = SSlugOrdersRouteImport.update({
   id: '/orders',
@@ -333,15 +489,41 @@ const SSlugCartRoute = SSlugCartRouteImport.update({
   path: '/cart',
   getParentRoute: () => SSlugRoute,
 } as any)
-const AppPurchaseOrdersPoIdRoute = AppPurchaseOrdersPoIdRouteImport.update({
-  id: '/$poId',
-  path: '/$poId',
-  getParentRoute: () => AppPurchaseOrdersRoute,
+const PosAppReportsProfitRoute = PosAppReportsProfitRouteImport.update({
+  id: '/profit',
+  path: '/profit',
+  getParentRoute: () => PosAppReportsRoute,
+} as any)
+const PosAppPurchaseOrdersPoIdRoute =
+  PosAppPurchaseOrdersPoIdRouteImport.update({
+    id: '/$poId',
+    path: '/$poId',
+    getParentRoute: () => PosAppPurchaseOrdersRoute,
+  } as any)
+const PosAppKeuanganTarikRoute = PosAppKeuanganTarikRouteImport.update({
+  id: '/tarik',
+  path: '/tarik',
+  getParentRoute: () => PosAppKeuanganRoute,
+} as any)
+const CheckoutSuksesOrderIdRoute = CheckoutSuksesOrderIdRouteImport.update({
+  id: '/sukses/$orderId',
+  path: '/sukses/$orderId',
+  getParentRoute: () => CheckoutRoute,
+} as any)
+const AkunPesananOrderIdRoute = AkunPesananOrderIdRouteImport.update({
+  id: '/pesanan/$orderId',
+  path: '/pesanan/$orderId',
+  getParentRoute: () => AkunRoute,
 } as any)
 const AdminShopsIdRoute = AdminShopsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AdminShopsRoute,
+} as any)
+const TokoSlugProdukProductIdRoute = TokoSlugProdukProductIdRouteImport.update({
+  id: '/produk/$productId',
+  path: '/produk/$productId',
+  getParentRoute: () => TokoSlugRoute,
 } as any)
 const SSlugPayOrderIdRoute = SSlugPayOrderIdRouteImport.update({
   id: '/pay/$orderId',
@@ -362,371 +544,560 @@ const AdminPlansIdMatrixRoute = AdminPlansIdMatrixRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/app': typeof AppRouteWithChildren
+  '/akun': typeof AkunRouteWithChildren
+  '/checkout': typeof CheckoutRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/keranjang': typeof KeranjangRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/pos-app': typeof PosAppRouteWithChildren
+  '/promo': typeof PromoRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
-  '/app/appearance': typeof AppAppearanceRoute
-  '/app/attendance': typeof AppAttendanceRoute
-  '/app/backup': typeof AppBackupRoute
-  '/app/billing': typeof AppBillingRoute
-  '/app/categories': typeof AppCategoriesRoute
-  '/app/courier': typeof AppCourierRoute
-  '/app/couriers': typeof AppCouriersRoute
-  '/app/customers': typeof AppCustomersRoute
-  '/app/delivery': typeof AppDeliveryRoute
-  '/app/domain': typeof AppDomainRoute
-  '/app/employees': typeof AppEmployeesRoute
-  '/app/inventory': typeof AppInventoryRoute
-  '/app/kds': typeof AppKdsRoute
-  '/app/loyalty': typeof AppLoyaltyRoute
-  '/app/menu': typeof AppMenuRoute
-  '/app/online-orders': typeof AppOnlineOrdersRoute
-  '/app/orders': typeof AppOrdersRoute
-  '/app/pos': typeof AppPosRoute
-  '/app/printers': typeof AppPrintersRoute
-  '/app/promos': typeof AppPromosRoute
-  '/app/purchase-orders': typeof AppPurchaseOrdersRouteWithChildren
-  '/app/recipes': typeof AppRecipesRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/schedule': typeof AppScheduleRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/shifts': typeof AppShiftsRoute
-  '/app/suppliers': typeof AppSuppliersRoute
+  '/admin/vouchers': typeof AdminVouchersRoute
+  '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/kategori/$slug': typeof KategoriSlugRoute
+  '/pesanan/$orderId': typeof PesananOrderIdRoute
+  '/pos-app/appearance': typeof PosAppAppearanceRoute
+  '/pos-app/attendance': typeof PosAppAttendanceRoute
+  '/pos-app/backup': typeof PosAppBackupRoute
+  '/pos-app/billing': typeof PosAppBillingRoute
+  '/pos-app/categories': typeof PosAppCategoriesRoute
+  '/pos-app/courier': typeof PosAppCourierRoute
+  '/pos-app/couriers': typeof PosAppCouriersRoute
+  '/pos-app/customers': typeof PosAppCustomersRoute
+  '/pos-app/delivery': typeof PosAppDeliveryRoute
+  '/pos-app/domain': typeof PosAppDomainRoute
+  '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/inventory': typeof PosAppInventoryRoute
+  '/pos-app/kds': typeof PosAppKdsRoute
+  '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
+  '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
+  '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/menu': typeof PosAppMenuRoute
+  '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
+  '/pos-app/orders': typeof PosAppOrdersRoute
+  '/pos-app/pos': typeof PosAppPosRoute
+  '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/promos': typeof PosAppPromosRoute
+  '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
+  '/pos-app/recipes': typeof PosAppRecipesRoute
+  '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/settings': typeof PosAppSettingsRoute
+  '/pos-app/shifts': typeof PosAppShiftsRoute
+  '/pos-app/suppliers': typeof PosAppSuppliersRoute
+  '/pos-app/table-maps': typeof PosAppTableMapsRoute
+  '/pos-app/tables': typeof PosAppTablesRoute
   '/s/$slug': typeof SSlugRouteWithChildren
+  '/toko/$slug': typeof TokoSlugRouteWithChildren
   '/track/$orderId': typeof TrackOrderIdRoute
   '/admin/': typeof AdminIndexRoute
-  '/app/': typeof AppIndexRoute
+  '/akun/': typeof AkunIndexRoute
+  '/kategori/': typeof KategoriIndexRoute
+  '/pos-app/': typeof PosAppIndexRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
-  '/app/purchase-orders/$poId': typeof AppPurchaseOrdersPoIdRoute
+  '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
+  '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
+  '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checkout': typeof CheckoutRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/keranjang': typeof KeranjangRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/promo': typeof PromoRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
-  '/app/appearance': typeof AppAppearanceRoute
-  '/app/attendance': typeof AppAttendanceRoute
-  '/app/backup': typeof AppBackupRoute
-  '/app/billing': typeof AppBillingRoute
-  '/app/categories': typeof AppCategoriesRoute
-  '/app/courier': typeof AppCourierRoute
-  '/app/couriers': typeof AppCouriersRoute
-  '/app/customers': typeof AppCustomersRoute
-  '/app/delivery': typeof AppDeliveryRoute
-  '/app/domain': typeof AppDomainRoute
-  '/app/employees': typeof AppEmployeesRoute
-  '/app/inventory': typeof AppInventoryRoute
-  '/app/kds': typeof AppKdsRoute
-  '/app/loyalty': typeof AppLoyaltyRoute
-  '/app/menu': typeof AppMenuRoute
-  '/app/online-orders': typeof AppOnlineOrdersRoute
-  '/app/orders': typeof AppOrdersRoute
-  '/app/pos': typeof AppPosRoute
-  '/app/printers': typeof AppPrintersRoute
-  '/app/promos': typeof AppPromosRoute
-  '/app/purchase-orders': typeof AppPurchaseOrdersRouteWithChildren
-  '/app/recipes': typeof AppRecipesRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/schedule': typeof AppScheduleRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/shifts': typeof AppShiftsRoute
-  '/app/suppliers': typeof AppSuppliersRoute
+  '/admin/vouchers': typeof AdminVouchersRoute
+  '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/kategori/$slug': typeof KategoriSlugRoute
+  '/pesanan/$orderId': typeof PesananOrderIdRoute
+  '/pos-app/appearance': typeof PosAppAppearanceRoute
+  '/pos-app/attendance': typeof PosAppAttendanceRoute
+  '/pos-app/backup': typeof PosAppBackupRoute
+  '/pos-app/billing': typeof PosAppBillingRoute
+  '/pos-app/categories': typeof PosAppCategoriesRoute
+  '/pos-app/courier': typeof PosAppCourierRoute
+  '/pos-app/couriers': typeof PosAppCouriersRoute
+  '/pos-app/customers': typeof PosAppCustomersRoute
+  '/pos-app/delivery': typeof PosAppDeliveryRoute
+  '/pos-app/domain': typeof PosAppDomainRoute
+  '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/inventory': typeof PosAppInventoryRoute
+  '/pos-app/kds': typeof PosAppKdsRoute
+  '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
+  '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
+  '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/menu': typeof PosAppMenuRoute
+  '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
+  '/pos-app/orders': typeof PosAppOrdersRoute
+  '/pos-app/pos': typeof PosAppPosRoute
+  '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/promos': typeof PosAppPromosRoute
+  '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
+  '/pos-app/recipes': typeof PosAppRecipesRoute
+  '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/settings': typeof PosAppSettingsRoute
+  '/pos-app/shifts': typeof PosAppShiftsRoute
+  '/pos-app/suppliers': typeof PosAppSuppliersRoute
+  '/pos-app/table-maps': typeof PosAppTableMapsRoute
+  '/pos-app/tables': typeof PosAppTablesRoute
+  '/toko/$slug': typeof TokoSlugRouteWithChildren
   '/track/$orderId': typeof TrackOrderIdRoute
   '/admin': typeof AdminIndexRoute
-  '/app': typeof AppIndexRoute
+  '/akun': typeof AkunIndexRoute
+  '/kategori': typeof KategoriIndexRoute
+  '/pos-app': typeof PosAppIndexRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
-  '/app/purchase-orders/$poId': typeof AppPurchaseOrdersPoIdRoute
+  '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
+  '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/akun/pesanan': typeof AkunPesananIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
+  '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/app': typeof AppRouteWithChildren
+  '/akun': typeof AkunRouteWithChildren
+  '/checkout': typeof CheckoutRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/keranjang': typeof KeranjangRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/pos-app': typeof PosAppRouteWithChildren
+  '/promo': typeof PromoRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
-  '/app/appearance': typeof AppAppearanceRoute
-  '/app/attendance': typeof AppAttendanceRoute
-  '/app/backup': typeof AppBackupRoute
-  '/app/billing': typeof AppBillingRoute
-  '/app/categories': typeof AppCategoriesRoute
-  '/app/courier': typeof AppCourierRoute
-  '/app/couriers': typeof AppCouriersRoute
-  '/app/customers': typeof AppCustomersRoute
-  '/app/delivery': typeof AppDeliveryRoute
-  '/app/domain': typeof AppDomainRoute
-  '/app/employees': typeof AppEmployeesRoute
-  '/app/inventory': typeof AppInventoryRoute
-  '/app/kds': typeof AppKdsRoute
-  '/app/loyalty': typeof AppLoyaltyRoute
-  '/app/menu': typeof AppMenuRoute
-  '/app/online-orders': typeof AppOnlineOrdersRoute
-  '/app/orders': typeof AppOrdersRoute
-  '/app/pos': typeof AppPosRoute
-  '/app/printers': typeof AppPrintersRoute
-  '/app/promos': typeof AppPromosRoute
-  '/app/purchase-orders': typeof AppPurchaseOrdersRouteWithChildren
-  '/app/recipes': typeof AppRecipesRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/schedule': typeof AppScheduleRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/shifts': typeof AppShiftsRoute
-  '/app/suppliers': typeof AppSuppliersRoute
+  '/admin/vouchers': typeof AdminVouchersRoute
+  '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/kategori/$slug': typeof KategoriSlugRoute
+  '/pesanan/$orderId': typeof PesananOrderIdRoute
+  '/pos-app/appearance': typeof PosAppAppearanceRoute
+  '/pos-app/attendance': typeof PosAppAttendanceRoute
+  '/pos-app/backup': typeof PosAppBackupRoute
+  '/pos-app/billing': typeof PosAppBillingRoute
+  '/pos-app/categories': typeof PosAppCategoriesRoute
+  '/pos-app/courier': typeof PosAppCourierRoute
+  '/pos-app/couriers': typeof PosAppCouriersRoute
+  '/pos-app/customers': typeof PosAppCustomersRoute
+  '/pos-app/delivery': typeof PosAppDeliveryRoute
+  '/pos-app/domain': typeof PosAppDomainRoute
+  '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/inventory': typeof PosAppInventoryRoute
+  '/pos-app/kds': typeof PosAppKdsRoute
+  '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
+  '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
+  '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/menu': typeof PosAppMenuRoute
+  '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
+  '/pos-app/orders': typeof PosAppOrdersRoute
+  '/pos-app/pos': typeof PosAppPosRoute
+  '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/promos': typeof PosAppPromosRoute
+  '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
+  '/pos-app/recipes': typeof PosAppRecipesRoute
+  '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/settings': typeof PosAppSettingsRoute
+  '/pos-app/shifts': typeof PosAppShiftsRoute
+  '/pos-app/suppliers': typeof PosAppSuppliersRoute
+  '/pos-app/table-maps': typeof PosAppTableMapsRoute
+  '/pos-app/tables': typeof PosAppTablesRoute
   '/s/$slug': typeof SSlugRouteWithChildren
+  '/toko/$slug': typeof TokoSlugRouteWithChildren
   '/track/$orderId': typeof TrackOrderIdRoute
   '/admin/': typeof AdminIndexRoute
-  '/app/': typeof AppIndexRoute
+  '/akun/': typeof AkunIndexRoute
+  '/kategori/': typeof KategoriIndexRoute
+  '/pos-app/': typeof PosAppIndexRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
-  '/app/purchase-orders/$poId': typeof AppPurchaseOrdersPoIdRoute
+  '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
+  '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
+  '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
-    | '/app'
+    | '/akun'
+    | '/checkout'
+    | '/forgot-password'
+    | '/keranjang'
     | '/login'
     | '/onboarding'
+    | '/pos-app'
+    | '/promo'
+    | '/reset-password'
+    | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
+    | '/admin/disputes'
     | '/admin/domains'
     | '/admin/invoices'
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/shops'
-    | '/app/appearance'
-    | '/app/attendance'
-    | '/app/backup'
-    | '/app/billing'
-    | '/app/categories'
-    | '/app/courier'
-    | '/app/couriers'
-    | '/app/customers'
-    | '/app/delivery'
-    | '/app/domain'
-    | '/app/employees'
-    | '/app/inventory'
-    | '/app/kds'
-    | '/app/loyalty'
-    | '/app/menu'
-    | '/app/online-orders'
-    | '/app/orders'
-    | '/app/pos'
-    | '/app/printers'
-    | '/app/promos'
-    | '/app/purchase-orders'
-    | '/app/recipes'
-    | '/app/reports'
-    | '/app/schedule'
-    | '/app/settings'
-    | '/app/shifts'
-    | '/app/suppliers'
+    | '/admin/vouchers'
+    | '/admin/withdrawals'
+    | '/akun/alamat'
+    | '/akun/notifikasi'
     | '/invite/$token'
+    | '/kategori/$slug'
+    | '/pesanan/$orderId'
+    | '/pos-app/appearance'
+    | '/pos-app/attendance'
+    | '/pos-app/backup'
+    | '/pos-app/billing'
+    | '/pos-app/categories'
+    | '/pos-app/courier'
+    | '/pos-app/couriers'
+    | '/pos-app/customers'
+    | '/pos-app/delivery'
+    | '/pos-app/domain'
+    | '/pos-app/employees'
+    | '/pos-app/inventory'
+    | '/pos-app/kds'
+    | '/pos-app/keuangan'
+    | '/pos-app/loyalty'
+    | '/pos-app/marketplace-analytics'
+    | '/pos-app/marketplace-orders'
+    | '/pos-app/menu'
+    | '/pos-app/online-orders'
+    | '/pos-app/orders'
+    | '/pos-app/pos'
+    | '/pos-app/printers'
+    | '/pos-app/promos'
+    | '/pos-app/purchase-orders'
+    | '/pos-app/recipes'
+    | '/pos-app/reports'
+    | '/pos-app/reviews'
+    | '/pos-app/schedule'
+    | '/pos-app/settings'
+    | '/pos-app/shifts'
+    | '/pos-app/suppliers'
+    | '/pos-app/table-maps'
+    | '/pos-app/tables'
     | '/s/$slug'
+    | '/toko/$slug'
     | '/track/$orderId'
     | '/admin/'
-    | '/app/'
+    | '/akun/'
+    | '/kategori/'
+    | '/pos-app/'
     | '/admin/shops/$id'
-    | '/app/purchase-orders/$poId'
+    | '/akun/pesanan/$orderId'
+    | '/checkout/sukses/$orderId'
+    | '/pos-app/keuangan/tarik'
+    | '/pos-app/purchase-orders/$poId'
+    | '/pos-app/reports/profit'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/akun/pesanan/'
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
+    | '/toko/$slug/produk/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/checkout'
+    | '/forgot-password'
+    | '/keranjang'
     | '/login'
     | '/onboarding'
+    | '/promo'
+    | '/reset-password'
+    | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
+    | '/admin/disputes'
     | '/admin/domains'
     | '/admin/invoices'
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/shops'
-    | '/app/appearance'
-    | '/app/attendance'
-    | '/app/backup'
-    | '/app/billing'
-    | '/app/categories'
-    | '/app/courier'
-    | '/app/couriers'
-    | '/app/customers'
-    | '/app/delivery'
-    | '/app/domain'
-    | '/app/employees'
-    | '/app/inventory'
-    | '/app/kds'
-    | '/app/loyalty'
-    | '/app/menu'
-    | '/app/online-orders'
-    | '/app/orders'
-    | '/app/pos'
-    | '/app/printers'
-    | '/app/promos'
-    | '/app/purchase-orders'
-    | '/app/recipes'
-    | '/app/reports'
-    | '/app/schedule'
-    | '/app/settings'
-    | '/app/shifts'
-    | '/app/suppliers'
+    | '/admin/vouchers'
+    | '/admin/withdrawals'
+    | '/akun/alamat'
+    | '/akun/notifikasi'
     | '/invite/$token'
+    | '/kategori/$slug'
+    | '/pesanan/$orderId'
+    | '/pos-app/appearance'
+    | '/pos-app/attendance'
+    | '/pos-app/backup'
+    | '/pos-app/billing'
+    | '/pos-app/categories'
+    | '/pos-app/courier'
+    | '/pos-app/couriers'
+    | '/pos-app/customers'
+    | '/pos-app/delivery'
+    | '/pos-app/domain'
+    | '/pos-app/employees'
+    | '/pos-app/inventory'
+    | '/pos-app/kds'
+    | '/pos-app/keuangan'
+    | '/pos-app/loyalty'
+    | '/pos-app/marketplace-analytics'
+    | '/pos-app/marketplace-orders'
+    | '/pos-app/menu'
+    | '/pos-app/online-orders'
+    | '/pos-app/orders'
+    | '/pos-app/pos'
+    | '/pos-app/printers'
+    | '/pos-app/promos'
+    | '/pos-app/purchase-orders'
+    | '/pos-app/recipes'
+    | '/pos-app/reports'
+    | '/pos-app/reviews'
+    | '/pos-app/schedule'
+    | '/pos-app/settings'
+    | '/pos-app/shifts'
+    | '/pos-app/suppliers'
+    | '/pos-app/table-maps'
+    | '/pos-app/tables'
+    | '/toko/$slug'
     | '/track/$orderId'
     | '/admin'
-    | '/app'
+    | '/akun'
+    | '/kategori'
+    | '/pos-app'
     | '/admin/shops/$id'
-    | '/app/purchase-orders/$poId'
+    | '/akun/pesanan/$orderId'
+    | '/checkout/sukses/$orderId'
+    | '/pos-app/keuangan/tarik'
+    | '/pos-app/purchase-orders/$poId'
+    | '/pos-app/reports/profit'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/akun/pesanan'
     | '/s/$slug'
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
+    | '/toko/$slug/produk/$productId'
   id:
     | '__root__'
     | '/'
     | '/admin'
-    | '/app'
+    | '/akun'
+    | '/checkout'
+    | '/forgot-password'
+    | '/keranjang'
     | '/login'
     | '/onboarding'
+    | '/pos-app'
+    | '/promo'
+    | '/reset-password'
+    | '/search'
     | '/signup'
     | '/admin/activity'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/broadcast'
     | '/admin/catalog'
+    | '/admin/disputes'
     | '/admin/domains'
     | '/admin/invoices'
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/shops'
-    | '/app/appearance'
-    | '/app/attendance'
-    | '/app/backup'
-    | '/app/billing'
-    | '/app/categories'
-    | '/app/courier'
-    | '/app/couriers'
-    | '/app/customers'
-    | '/app/delivery'
-    | '/app/domain'
-    | '/app/employees'
-    | '/app/inventory'
-    | '/app/kds'
-    | '/app/loyalty'
-    | '/app/menu'
-    | '/app/online-orders'
-    | '/app/orders'
-    | '/app/pos'
-    | '/app/printers'
-    | '/app/promos'
-    | '/app/purchase-orders'
-    | '/app/recipes'
-    | '/app/reports'
-    | '/app/schedule'
-    | '/app/settings'
-    | '/app/shifts'
-    | '/app/suppliers'
+    | '/admin/vouchers'
+    | '/admin/withdrawals'
+    | '/akun/alamat'
+    | '/akun/notifikasi'
     | '/invite/$token'
+    | '/kategori/$slug'
+    | '/pesanan/$orderId'
+    | '/pos-app/appearance'
+    | '/pos-app/attendance'
+    | '/pos-app/backup'
+    | '/pos-app/billing'
+    | '/pos-app/categories'
+    | '/pos-app/courier'
+    | '/pos-app/couriers'
+    | '/pos-app/customers'
+    | '/pos-app/delivery'
+    | '/pos-app/domain'
+    | '/pos-app/employees'
+    | '/pos-app/inventory'
+    | '/pos-app/kds'
+    | '/pos-app/keuangan'
+    | '/pos-app/loyalty'
+    | '/pos-app/marketplace-analytics'
+    | '/pos-app/marketplace-orders'
+    | '/pos-app/menu'
+    | '/pos-app/online-orders'
+    | '/pos-app/orders'
+    | '/pos-app/pos'
+    | '/pos-app/printers'
+    | '/pos-app/promos'
+    | '/pos-app/purchase-orders'
+    | '/pos-app/recipes'
+    | '/pos-app/reports'
+    | '/pos-app/reviews'
+    | '/pos-app/schedule'
+    | '/pos-app/settings'
+    | '/pos-app/shifts'
+    | '/pos-app/suppliers'
+    | '/pos-app/table-maps'
+    | '/pos-app/tables'
     | '/s/$slug'
+    | '/toko/$slug'
     | '/track/$orderId'
     | '/admin/'
-    | '/app/'
+    | '/akun/'
+    | '/kategori/'
+    | '/pos-app/'
     | '/admin/shops/$id'
-    | '/app/purchase-orders/$poId'
+    | '/akun/pesanan/$orderId'
+    | '/checkout/sukses/$orderId'
+    | '/pos-app/keuangan/tarik'
+    | '/pos-app/purchase-orders/$poId'
+    | '/pos-app/reports/profit'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/akun/pesanan/'
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
+    | '/toko/$slug/produk/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  AppRoute: typeof AppRouteWithChildren
+  AkunRoute: typeof AkunRouteWithChildren
+  CheckoutRoute: typeof CheckoutRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  KeranjangRoute: typeof KeranjangRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PosAppRoute: typeof PosAppRouteWithChildren
+  PromoRoute: typeof PromoRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  KategoriSlugRoute: typeof KategoriSlugRoute
+  PesananOrderIdRoute: typeof PesananOrderIdRoute
   SSlugRoute: typeof SSlugRouteWithChildren
+  TokoSlugRoute: typeof TokoSlugRouteWithChildren
   TrackOrderIdRoute: typeof TrackOrderIdRoute
+  KategoriIndexRoute: typeof KategoriIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -736,6 +1107,34 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promo': {
+      id: '/promo'
+      path: '/promo'
+      fullPath: '/promo'
+      preLoaderRoute: typeof PromoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pos-app': {
+      id: '/pos-app'
+      path: '/pos-app'
+      fullPath: '/pos-app'
+      preLoaderRoute: typeof PosAppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -752,11 +1151,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
+    '/keranjang': {
+      id: '/keranjang'
+      path: '/keranjang'
+      fullPath: '/keranjang'
+      preLoaderRoute: typeof KeranjangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/akun': {
+      id: '/akun'
+      path: '/akun'
+      fullPath: '/akun'
+      preLoaderRoute: typeof AkunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -773,12 +1193,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
+    '/pos-app/': {
+      id: '/pos-app/'
       path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/pos-app/'
+      preLoaderRoute: typeof PosAppIndexRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/kategori/': {
+      id: '/kategori/'
+      path: '/kategori'
+      fullPath: '/kategori/'
+      preLoaderRoute: typeof KategoriIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/akun/': {
+      id: '/akun/'
+      path: '/'
+      fullPath: '/akun/'
+      preLoaderRoute: typeof AkunIndexRouteImport
+      parentRoute: typeof AkunRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -794,11 +1228,263 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/toko/$slug': {
+      id: '/toko/$slug'
+      path: '/toko/$slug'
+      fullPath: '/toko/$slug'
+      preLoaderRoute: typeof TokoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/s/$slug': {
       id: '/s/$slug'
       path: '/s/$slug'
       fullPath: '/s/$slug'
       preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pos-app/tables': {
+      id: '/pos-app/tables'
+      path: '/tables'
+      fullPath: '/pos-app/tables'
+      preLoaderRoute: typeof PosAppTablesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/table-maps': {
+      id: '/pos-app/table-maps'
+      path: '/table-maps'
+      fullPath: '/pos-app/table-maps'
+      preLoaderRoute: typeof PosAppTableMapsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/suppliers': {
+      id: '/pos-app/suppliers'
+      path: '/suppliers'
+      fullPath: '/pos-app/suppliers'
+      preLoaderRoute: typeof PosAppSuppliersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/shifts': {
+      id: '/pos-app/shifts'
+      path: '/shifts'
+      fullPath: '/pos-app/shifts'
+      preLoaderRoute: typeof PosAppShiftsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/settings': {
+      id: '/pos-app/settings'
+      path: '/settings'
+      fullPath: '/pos-app/settings'
+      preLoaderRoute: typeof PosAppSettingsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/schedule': {
+      id: '/pos-app/schedule'
+      path: '/schedule'
+      fullPath: '/pos-app/schedule'
+      preLoaderRoute: typeof PosAppScheduleRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/reviews': {
+      id: '/pos-app/reviews'
+      path: '/reviews'
+      fullPath: '/pos-app/reviews'
+      preLoaderRoute: typeof PosAppReviewsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/reports': {
+      id: '/pos-app/reports'
+      path: '/reports'
+      fullPath: '/pos-app/reports'
+      preLoaderRoute: typeof PosAppReportsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/recipes': {
+      id: '/pos-app/recipes'
+      path: '/recipes'
+      fullPath: '/pos-app/recipes'
+      preLoaderRoute: typeof PosAppRecipesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/purchase-orders': {
+      id: '/pos-app/purchase-orders'
+      path: '/purchase-orders'
+      fullPath: '/pos-app/purchase-orders'
+      preLoaderRoute: typeof PosAppPurchaseOrdersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/promos': {
+      id: '/pos-app/promos'
+      path: '/promos'
+      fullPath: '/pos-app/promos'
+      preLoaderRoute: typeof PosAppPromosRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/printers': {
+      id: '/pos-app/printers'
+      path: '/printers'
+      fullPath: '/pos-app/printers'
+      preLoaderRoute: typeof PosAppPrintersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/pos': {
+      id: '/pos-app/pos'
+      path: '/pos'
+      fullPath: '/pos-app/pos'
+      preLoaderRoute: typeof PosAppPosRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/orders': {
+      id: '/pos-app/orders'
+      path: '/orders'
+      fullPath: '/pos-app/orders'
+      preLoaderRoute: typeof PosAppOrdersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/online-orders': {
+      id: '/pos-app/online-orders'
+      path: '/online-orders'
+      fullPath: '/pos-app/online-orders'
+      preLoaderRoute: typeof PosAppOnlineOrdersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/menu': {
+      id: '/pos-app/menu'
+      path: '/menu'
+      fullPath: '/pos-app/menu'
+      preLoaderRoute: typeof PosAppMenuRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/marketplace-orders': {
+      id: '/pos-app/marketplace-orders'
+      path: '/marketplace-orders'
+      fullPath: '/pos-app/marketplace-orders'
+      preLoaderRoute: typeof PosAppMarketplaceOrdersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/marketplace-analytics': {
+      id: '/pos-app/marketplace-analytics'
+      path: '/marketplace-analytics'
+      fullPath: '/pos-app/marketplace-analytics'
+      preLoaderRoute: typeof PosAppMarketplaceAnalyticsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/loyalty': {
+      id: '/pos-app/loyalty'
+      path: '/loyalty'
+      fullPath: '/pos-app/loyalty'
+      preLoaderRoute: typeof PosAppLoyaltyRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/keuangan': {
+      id: '/pos-app/keuangan'
+      path: '/keuangan'
+      fullPath: '/pos-app/keuangan'
+      preLoaderRoute: typeof PosAppKeuanganRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/kds': {
+      id: '/pos-app/kds'
+      path: '/kds'
+      fullPath: '/pos-app/kds'
+      preLoaderRoute: typeof PosAppKdsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/inventory': {
+      id: '/pos-app/inventory'
+      path: '/inventory'
+      fullPath: '/pos-app/inventory'
+      preLoaderRoute: typeof PosAppInventoryRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/employees': {
+      id: '/pos-app/employees'
+      path: '/employees'
+      fullPath: '/pos-app/employees'
+      preLoaderRoute: typeof PosAppEmployeesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/domain': {
+      id: '/pos-app/domain'
+      path: '/domain'
+      fullPath: '/pos-app/domain'
+      preLoaderRoute: typeof PosAppDomainRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/delivery': {
+      id: '/pos-app/delivery'
+      path: '/delivery'
+      fullPath: '/pos-app/delivery'
+      preLoaderRoute: typeof PosAppDeliveryRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/customers': {
+      id: '/pos-app/customers'
+      path: '/customers'
+      fullPath: '/pos-app/customers'
+      preLoaderRoute: typeof PosAppCustomersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/couriers': {
+      id: '/pos-app/couriers'
+      path: '/couriers'
+      fullPath: '/pos-app/couriers'
+      preLoaderRoute: typeof PosAppCouriersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/courier': {
+      id: '/pos-app/courier'
+      path: '/courier'
+      fullPath: '/pos-app/courier'
+      preLoaderRoute: typeof PosAppCourierRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/categories': {
+      id: '/pos-app/categories'
+      path: '/categories'
+      fullPath: '/pos-app/categories'
+      preLoaderRoute: typeof PosAppCategoriesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/billing': {
+      id: '/pos-app/billing'
+      path: '/billing'
+      fullPath: '/pos-app/billing'
+      preLoaderRoute: typeof PosAppBillingRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/backup': {
+      id: '/pos-app/backup'
+      path: '/backup'
+      fullPath: '/pos-app/backup'
+      preLoaderRoute: typeof PosAppBackupRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/attendance': {
+      id: '/pos-app/attendance'
+      path: '/attendance'
+      fullPath: '/pos-app/attendance'
+      preLoaderRoute: typeof PosAppAttendanceRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/appearance': {
+      id: '/pos-app/appearance'
+      path: '/appearance'
+      fullPath: '/pos-app/appearance'
+      preLoaderRoute: typeof PosAppAppearanceRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pesanan/$orderId': {
+      id: '/pesanan/$orderId'
+      path: '/pesanan/$orderId'
+      fullPath: '/pesanan/$orderId'
+      preLoaderRoute: typeof PesananOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kategori/$slug': {
+      id: '/kategori/$slug'
+      path: '/kategori/$slug'
+      fullPath: '/kategori/$slug'
+      preLoaderRoute: typeof KategoriSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -808,194 +1494,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/suppliers': {
-      id: '/app/suppliers'
-      path: '/suppliers'
-      fullPath: '/app/suppliers'
-      preLoaderRoute: typeof AppSuppliersRouteImport
-      parentRoute: typeof AppRoute
+    '/akun/notifikasi': {
+      id: '/akun/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/akun/notifikasi'
+      preLoaderRoute: typeof AkunNotifikasiRouteImport
+      parentRoute: typeof AkunRoute
     }
-    '/app/shifts': {
-      id: '/app/shifts'
-      path: '/shifts'
-      fullPath: '/app/shifts'
-      preLoaderRoute: typeof AppShiftsRouteImport
-      parentRoute: typeof AppRoute
+    '/akun/alamat': {
+      id: '/akun/alamat'
+      path: '/alamat'
+      fullPath: '/akun/alamat'
+      preLoaderRoute: typeof AkunAlamatRouteImport
+      parentRoute: typeof AkunRoute
     }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
+    '/admin/withdrawals': {
+      id: '/admin/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals'
+      preLoaderRoute: typeof AdminWithdrawalsRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/app/schedule': {
-      id: '/app/schedule'
-      path: '/schedule'
-      fullPath: '/app/schedule'
-      preLoaderRoute: typeof AppScheduleRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/reports': {
-      id: '/app/reports'
-      path: '/reports'
-      fullPath: '/app/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/recipes': {
-      id: '/app/recipes'
-      path: '/recipes'
-      fullPath: '/app/recipes'
-      preLoaderRoute: typeof AppRecipesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/purchase-orders': {
-      id: '/app/purchase-orders'
-      path: '/purchase-orders'
-      fullPath: '/app/purchase-orders'
-      preLoaderRoute: typeof AppPurchaseOrdersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/promos': {
-      id: '/app/promos'
-      path: '/promos'
-      fullPath: '/app/promos'
-      preLoaderRoute: typeof AppPromosRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/printers': {
-      id: '/app/printers'
-      path: '/printers'
-      fullPath: '/app/printers'
-      preLoaderRoute: typeof AppPrintersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/pos': {
-      id: '/app/pos'
-      path: '/pos'
-      fullPath: '/app/pos'
-      preLoaderRoute: typeof AppPosRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/orders': {
-      id: '/app/orders'
-      path: '/orders'
-      fullPath: '/app/orders'
-      preLoaderRoute: typeof AppOrdersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/online-orders': {
-      id: '/app/online-orders'
-      path: '/online-orders'
-      fullPath: '/app/online-orders'
-      preLoaderRoute: typeof AppOnlineOrdersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/menu': {
-      id: '/app/menu'
-      path: '/menu'
-      fullPath: '/app/menu'
-      preLoaderRoute: typeof AppMenuRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/loyalty': {
-      id: '/app/loyalty'
-      path: '/loyalty'
-      fullPath: '/app/loyalty'
-      preLoaderRoute: typeof AppLoyaltyRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/kds': {
-      id: '/app/kds'
-      path: '/kds'
-      fullPath: '/app/kds'
-      preLoaderRoute: typeof AppKdsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/inventory': {
-      id: '/app/inventory'
-      path: '/inventory'
-      fullPath: '/app/inventory'
-      preLoaderRoute: typeof AppInventoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/employees': {
-      id: '/app/employees'
-      path: '/employees'
-      fullPath: '/app/employees'
-      preLoaderRoute: typeof AppEmployeesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/domain': {
-      id: '/app/domain'
-      path: '/domain'
-      fullPath: '/app/domain'
-      preLoaderRoute: typeof AppDomainRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/delivery': {
-      id: '/app/delivery'
-      path: '/delivery'
-      fullPath: '/app/delivery'
-      preLoaderRoute: typeof AppDeliveryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/customers': {
-      id: '/app/customers'
-      path: '/customers'
-      fullPath: '/app/customers'
-      preLoaderRoute: typeof AppCustomersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/couriers': {
-      id: '/app/couriers'
-      path: '/couriers'
-      fullPath: '/app/couriers'
-      preLoaderRoute: typeof AppCouriersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/courier': {
-      id: '/app/courier'
-      path: '/courier'
-      fullPath: '/app/courier'
-      preLoaderRoute: typeof AppCourierRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/categories': {
-      id: '/app/categories'
-      path: '/categories'
-      fullPath: '/app/categories'
-      preLoaderRoute: typeof AppCategoriesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/billing': {
-      id: '/app/billing'
-      path: '/billing'
-      fullPath: '/app/billing'
-      preLoaderRoute: typeof AppBillingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/backup': {
-      id: '/app/backup'
-      path: '/backup'
-      fullPath: '/app/backup'
-      preLoaderRoute: typeof AppBackupRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/attendance': {
-      id: '/app/attendance'
-      path: '/attendance'
-      fullPath: '/app/attendance'
-      preLoaderRoute: typeof AppAttendanceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/appearance': {
-      id: '/app/appearance'
-      path: '/appearance'
-      fullPath: '/app/appearance'
-      preLoaderRoute: typeof AppAppearanceRouteImport
-      parentRoute: typeof AppRoute
+    '/admin/vouchers': {
+      id: '/admin/vouchers'
+      path: '/vouchers'
+      fullPath: '/admin/vouchers'
+      preLoaderRoute: typeof AdminVouchersRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/shops': {
       id: '/admin/shops'
@@ -1032,6 +1557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDomainsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/disputes': {
+      id: '/admin/disputes'
+      path: '/disputes'
+      fullPath: '/admin/disputes'
+      preLoaderRoute: typeof AdminDisputesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/catalog': {
       id: '/admin/catalog'
       path: '/catalog'
@@ -1053,6 +1585,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/activity': {
       id: '/admin/activity'
       path: '/activity'
@@ -1066,6 +1605,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/s/$slug/'
       preLoaderRoute: typeof SSlugIndexRouteImport
       parentRoute: typeof SSlugRoute
+    }
+    '/akun/pesanan/': {
+      id: '/akun/pesanan/'
+      path: '/pesanan'
+      fullPath: '/akun/pesanan/'
+      preLoaderRoute: typeof AkunPesananIndexRouteImport
+      parentRoute: typeof AkunRoute
     }
     '/s/$slug/orders': {
       id: '/s/$slug/orders'
@@ -1102,12 +1648,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugCartRouteImport
       parentRoute: typeof SSlugRoute
     }
-    '/app/purchase-orders/$poId': {
-      id: '/app/purchase-orders/$poId'
+    '/pos-app/reports/profit': {
+      id: '/pos-app/reports/profit'
+      path: '/profit'
+      fullPath: '/pos-app/reports/profit'
+      preLoaderRoute: typeof PosAppReportsProfitRouteImport
+      parentRoute: typeof PosAppReportsRoute
+    }
+    '/pos-app/purchase-orders/$poId': {
+      id: '/pos-app/purchase-orders/$poId'
       path: '/$poId'
-      fullPath: '/app/purchase-orders/$poId'
-      preLoaderRoute: typeof AppPurchaseOrdersPoIdRouteImport
-      parentRoute: typeof AppPurchaseOrdersRoute
+      fullPath: '/pos-app/purchase-orders/$poId'
+      preLoaderRoute: typeof PosAppPurchaseOrdersPoIdRouteImport
+      parentRoute: typeof PosAppPurchaseOrdersRoute
+    }
+    '/pos-app/keuangan/tarik': {
+      id: '/pos-app/keuangan/tarik'
+      path: '/tarik'
+      fullPath: '/pos-app/keuangan/tarik'
+      preLoaderRoute: typeof PosAppKeuanganTarikRouteImport
+      parentRoute: typeof PosAppKeuanganRoute
+    }
+    '/checkout/sukses/$orderId': {
+      id: '/checkout/sukses/$orderId'
+      path: '/sukses/$orderId'
+      fullPath: '/checkout/sukses/$orderId'
+      preLoaderRoute: typeof CheckoutSuksesOrderIdRouteImport
+      parentRoute: typeof CheckoutRoute
+    }
+    '/akun/pesanan/$orderId': {
+      id: '/akun/pesanan/$orderId'
+      path: '/pesanan/$orderId'
+      fullPath: '/akun/pesanan/$orderId'
+      preLoaderRoute: typeof AkunPesananOrderIdRouteImport
+      parentRoute: typeof AkunRoute
     }
     '/admin/shops/$id': {
       id: '/admin/shops/$id'
@@ -1115,6 +1689,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/shops/$id'
       preLoaderRoute: typeof AdminShopsIdRouteImport
       parentRoute: typeof AdminShopsRoute
+    }
+    '/toko/$slug/produk/$productId': {
+      id: '/toko/$slug/produk/$productId'
+      path: '/produk/$productId'
+      fullPath: '/toko/$slug/produk/$productId'
+      preLoaderRoute: typeof TokoSlugProdukProductIdRouteImport
+      parentRoute: typeof TokoSlugRoute
     }
     '/s/$slug/pay/$orderId': {
       id: '/s/$slug/pay/$orderId'
@@ -1166,106 +1747,181 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
+  AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopsRoute: typeof AdminShopsRouteWithChildren
+  AdminVouchersRoute: typeof AdminVouchersRoute
+  AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
   AdminCatalogRoute: AdminCatalogRoute,
+  AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminPlansRoute: AdminPlansRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopsRoute: AdminShopsRouteWithChildren,
+  AdminVouchersRoute: AdminVouchersRoute,
+  AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface AppPurchaseOrdersRouteChildren {
-  AppPurchaseOrdersPoIdRoute: typeof AppPurchaseOrdersPoIdRoute
+interface AkunRouteChildren {
+  AkunAlamatRoute: typeof AkunAlamatRoute
+  AkunNotifikasiRoute: typeof AkunNotifikasiRoute
+  AkunIndexRoute: typeof AkunIndexRoute
+  AkunPesananOrderIdRoute: typeof AkunPesananOrderIdRoute
+  AkunPesananIndexRoute: typeof AkunPesananIndexRoute
 }
 
-const AppPurchaseOrdersRouteChildren: AppPurchaseOrdersRouteChildren = {
-  AppPurchaseOrdersPoIdRoute: AppPurchaseOrdersPoIdRoute,
+const AkunRouteChildren: AkunRouteChildren = {
+  AkunAlamatRoute: AkunAlamatRoute,
+  AkunNotifikasiRoute: AkunNotifikasiRoute,
+  AkunIndexRoute: AkunIndexRoute,
+  AkunPesananOrderIdRoute: AkunPesananOrderIdRoute,
+  AkunPesananIndexRoute: AkunPesananIndexRoute,
 }
 
-const AppPurchaseOrdersRouteWithChildren =
-  AppPurchaseOrdersRoute._addFileChildren(AppPurchaseOrdersRouteChildren)
+const AkunRouteWithChildren = AkunRoute._addFileChildren(AkunRouteChildren)
 
-interface AppRouteChildren {
-  AppAppearanceRoute: typeof AppAppearanceRoute
-  AppAttendanceRoute: typeof AppAttendanceRoute
-  AppBackupRoute: typeof AppBackupRoute
-  AppBillingRoute: typeof AppBillingRoute
-  AppCategoriesRoute: typeof AppCategoriesRoute
-  AppCourierRoute: typeof AppCourierRoute
-  AppCouriersRoute: typeof AppCouriersRoute
-  AppCustomersRoute: typeof AppCustomersRoute
-  AppDeliveryRoute: typeof AppDeliveryRoute
-  AppDomainRoute: typeof AppDomainRoute
-  AppEmployeesRoute: typeof AppEmployeesRoute
-  AppInventoryRoute: typeof AppInventoryRoute
-  AppKdsRoute: typeof AppKdsRoute
-  AppLoyaltyRoute: typeof AppLoyaltyRoute
-  AppMenuRoute: typeof AppMenuRoute
-  AppOnlineOrdersRoute: typeof AppOnlineOrdersRoute
-  AppOrdersRoute: typeof AppOrdersRoute
-  AppPosRoute: typeof AppPosRoute
-  AppPrintersRoute: typeof AppPrintersRoute
-  AppPromosRoute: typeof AppPromosRoute
-  AppPurchaseOrdersRoute: typeof AppPurchaseOrdersRouteWithChildren
-  AppRecipesRoute: typeof AppRecipesRoute
-  AppReportsRoute: typeof AppReportsRoute
-  AppScheduleRoute: typeof AppScheduleRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppShiftsRoute: typeof AppShiftsRoute
-  AppSuppliersRoute: typeof AppSuppliersRoute
-  AppIndexRoute: typeof AppIndexRoute
+interface CheckoutRouteChildren {
+  CheckoutSuksesOrderIdRoute: typeof CheckoutSuksesOrderIdRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppAppearanceRoute: AppAppearanceRoute,
-  AppAttendanceRoute: AppAttendanceRoute,
-  AppBackupRoute: AppBackupRoute,
-  AppBillingRoute: AppBillingRoute,
-  AppCategoriesRoute: AppCategoriesRoute,
-  AppCourierRoute: AppCourierRoute,
-  AppCouriersRoute: AppCouriersRoute,
-  AppCustomersRoute: AppCustomersRoute,
-  AppDeliveryRoute: AppDeliveryRoute,
-  AppDomainRoute: AppDomainRoute,
-  AppEmployeesRoute: AppEmployeesRoute,
-  AppInventoryRoute: AppInventoryRoute,
-  AppKdsRoute: AppKdsRoute,
-  AppLoyaltyRoute: AppLoyaltyRoute,
-  AppMenuRoute: AppMenuRoute,
-  AppOnlineOrdersRoute: AppOnlineOrdersRoute,
-  AppOrdersRoute: AppOrdersRoute,
-  AppPosRoute: AppPosRoute,
-  AppPrintersRoute: AppPrintersRoute,
-  AppPromosRoute: AppPromosRoute,
-  AppPurchaseOrdersRoute: AppPurchaseOrdersRouteWithChildren,
-  AppRecipesRoute: AppRecipesRoute,
-  AppReportsRoute: AppReportsRoute,
-  AppScheduleRoute: AppScheduleRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppShiftsRoute: AppShiftsRoute,
-  AppSuppliersRoute: AppSuppliersRoute,
-  AppIndexRoute: AppIndexRoute,
+const CheckoutRouteChildren: CheckoutRouteChildren = {
+  CheckoutSuksesOrderIdRoute: CheckoutSuksesOrderIdRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
+  CheckoutRouteChildren,
+)
+
+interface PosAppKeuanganRouteChildren {
+  PosAppKeuanganTarikRoute: typeof PosAppKeuanganTarikRoute
+}
+
+const PosAppKeuanganRouteChildren: PosAppKeuanganRouteChildren = {
+  PosAppKeuanganTarikRoute: PosAppKeuanganTarikRoute,
+}
+
+const PosAppKeuanganRouteWithChildren = PosAppKeuanganRoute._addFileChildren(
+  PosAppKeuanganRouteChildren,
+)
+
+interface PosAppPurchaseOrdersRouteChildren {
+  PosAppPurchaseOrdersPoIdRoute: typeof PosAppPurchaseOrdersPoIdRoute
+}
+
+const PosAppPurchaseOrdersRouteChildren: PosAppPurchaseOrdersRouteChildren = {
+  PosAppPurchaseOrdersPoIdRoute: PosAppPurchaseOrdersPoIdRoute,
+}
+
+const PosAppPurchaseOrdersRouteWithChildren =
+  PosAppPurchaseOrdersRoute._addFileChildren(PosAppPurchaseOrdersRouteChildren)
+
+interface PosAppReportsRouteChildren {
+  PosAppReportsProfitRoute: typeof PosAppReportsProfitRoute
+}
+
+const PosAppReportsRouteChildren: PosAppReportsRouteChildren = {
+  PosAppReportsProfitRoute: PosAppReportsProfitRoute,
+}
+
+const PosAppReportsRouteWithChildren = PosAppReportsRoute._addFileChildren(
+  PosAppReportsRouteChildren,
+)
+
+interface PosAppRouteChildren {
+  PosAppAppearanceRoute: typeof PosAppAppearanceRoute
+  PosAppAttendanceRoute: typeof PosAppAttendanceRoute
+  PosAppBackupRoute: typeof PosAppBackupRoute
+  PosAppBillingRoute: typeof PosAppBillingRoute
+  PosAppCategoriesRoute: typeof PosAppCategoriesRoute
+  PosAppCourierRoute: typeof PosAppCourierRoute
+  PosAppCouriersRoute: typeof PosAppCouriersRoute
+  PosAppCustomersRoute: typeof PosAppCustomersRoute
+  PosAppDeliveryRoute: typeof PosAppDeliveryRoute
+  PosAppDomainRoute: typeof PosAppDomainRoute
+  PosAppEmployeesRoute: typeof PosAppEmployeesRoute
+  PosAppInventoryRoute: typeof PosAppInventoryRoute
+  PosAppKdsRoute: typeof PosAppKdsRoute
+  PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
+  PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
+  PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
+  PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
+  PosAppMenuRoute: typeof PosAppMenuRoute
+  PosAppOnlineOrdersRoute: typeof PosAppOnlineOrdersRoute
+  PosAppOrdersRoute: typeof PosAppOrdersRoute
+  PosAppPosRoute: typeof PosAppPosRoute
+  PosAppPrintersRoute: typeof PosAppPrintersRoute
+  PosAppPromosRoute: typeof PosAppPromosRoute
+  PosAppPurchaseOrdersRoute: typeof PosAppPurchaseOrdersRouteWithChildren
+  PosAppRecipesRoute: typeof PosAppRecipesRoute
+  PosAppReportsRoute: typeof PosAppReportsRouteWithChildren
+  PosAppReviewsRoute: typeof PosAppReviewsRoute
+  PosAppScheduleRoute: typeof PosAppScheduleRoute
+  PosAppSettingsRoute: typeof PosAppSettingsRoute
+  PosAppShiftsRoute: typeof PosAppShiftsRoute
+  PosAppSuppliersRoute: typeof PosAppSuppliersRoute
+  PosAppTableMapsRoute: typeof PosAppTableMapsRoute
+  PosAppTablesRoute: typeof PosAppTablesRoute
+  PosAppIndexRoute: typeof PosAppIndexRoute
+}
+
+const PosAppRouteChildren: PosAppRouteChildren = {
+  PosAppAppearanceRoute: PosAppAppearanceRoute,
+  PosAppAttendanceRoute: PosAppAttendanceRoute,
+  PosAppBackupRoute: PosAppBackupRoute,
+  PosAppBillingRoute: PosAppBillingRoute,
+  PosAppCategoriesRoute: PosAppCategoriesRoute,
+  PosAppCourierRoute: PosAppCourierRoute,
+  PosAppCouriersRoute: PosAppCouriersRoute,
+  PosAppCustomersRoute: PosAppCustomersRoute,
+  PosAppDeliveryRoute: PosAppDeliveryRoute,
+  PosAppDomainRoute: PosAppDomainRoute,
+  PosAppEmployeesRoute: PosAppEmployeesRoute,
+  PosAppInventoryRoute: PosAppInventoryRoute,
+  PosAppKdsRoute: PosAppKdsRoute,
+  PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
+  PosAppLoyaltyRoute: PosAppLoyaltyRoute,
+  PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
+  PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
+  PosAppMenuRoute: PosAppMenuRoute,
+  PosAppOnlineOrdersRoute: PosAppOnlineOrdersRoute,
+  PosAppOrdersRoute: PosAppOrdersRoute,
+  PosAppPosRoute: PosAppPosRoute,
+  PosAppPrintersRoute: PosAppPrintersRoute,
+  PosAppPromosRoute: PosAppPromosRoute,
+  PosAppPurchaseOrdersRoute: PosAppPurchaseOrdersRouteWithChildren,
+  PosAppRecipesRoute: PosAppRecipesRoute,
+  PosAppReportsRoute: PosAppReportsRouteWithChildren,
+  PosAppReviewsRoute: PosAppReviewsRoute,
+  PosAppScheduleRoute: PosAppScheduleRoute,
+  PosAppSettingsRoute: PosAppSettingsRoute,
+  PosAppShiftsRoute: PosAppShiftsRoute,
+  PosAppSuppliersRoute: PosAppSuppliersRoute,
+  PosAppTableMapsRoute: PosAppTableMapsRoute,
+  PosAppTablesRoute: PosAppTablesRoute,
+  PosAppIndexRoute: PosAppIndexRoute,
+}
+
+const PosAppRouteWithChildren =
+  PosAppRoute._addFileChildren(PosAppRouteChildren)
 
 interface SSlugRouteChildren {
   SSlugCartRoute: typeof SSlugCartRoute
@@ -1291,19 +1947,40 @@ const SSlugRouteChildren: SSlugRouteChildren = {
 
 const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
 
+interface TokoSlugRouteChildren {
+  TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
+}
+
+const TokoSlugRouteChildren: TokoSlugRouteChildren = {
+  TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
+}
+
+const TokoSlugRouteWithChildren = TokoSlugRoute._addFileChildren(
+  TokoSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
-  AppRoute: AppRouteWithChildren,
+  AkunRoute: AkunRouteWithChildren,
+  CheckoutRoute: CheckoutRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  KeranjangRoute: KeranjangRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PosAppRoute: PosAppRouteWithChildren,
+  PromoRoute: PromoRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   InviteTokenRoute: InviteTokenRoute,
+  KategoriSlugRoute: KategoriSlugRoute,
+  PesananOrderIdRoute: PesananOrderIdRoute,
   SSlugRoute: SSlugRouteWithChildren,
+  TokoSlugRoute: TokoSlugRouteWithChildren,
   TrackOrderIdRoute: TrackOrderIdRoute,
+  KategoriIndexRoute: KategoriIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-// Server-side router registration removed for client-only Vite build
