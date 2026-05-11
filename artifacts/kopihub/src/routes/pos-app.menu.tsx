@@ -221,6 +221,12 @@ function MenuPage() {
     }
     setSaving(true);
     const yieldNum = Math.max(1, Number(recipeYield) || 1);
+    const fpNum = flashPrice.trim() === "" ? null : Number(flashPrice);
+    if (fpNum != null && (isNaN(fpNum) || fpNum < 0 || fpNum >= priceNum)) {
+      toast.error("Harga flash harus lebih kecil dari harga normal");
+      setSaving(false);
+      return;
+    }
     const payload = {
       shop_id: shop.id,
       name: name.trim(),
@@ -231,6 +237,9 @@ function MenuPage() {
       category_id: categoryId === NO_CATEGORY ? null : categoryId,
       track_stock: trackStock,
       recipe_yield: yieldNum,
+      flash_price: fpNum,
+      flash_starts_at: fpNum != null && flashStarts ? new Date(flashStarts).toISOString() : null,
+      flash_ends_at: fpNum != null && flashEnds ? new Date(flashEnds).toISOString() : null,
     };
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
