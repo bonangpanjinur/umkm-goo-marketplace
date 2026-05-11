@@ -40,21 +40,23 @@ export function OrdersTabs() {
           .from("orders")
           .select("id", { count: "exact", head: true })
           .eq("shop_id", shopId)
-          .is("source", null)
+          .eq("channel", "pos")
           .gte("created_at", todayIso),
         supabase
           .from("orders")
           .select("id", { count: "exact", head: true })
           .eq("shop_id", shopId)
-          .eq("source", "online")
-          .in("status", ["pending", "confirmed", "preparing"]),
+          .eq("channel", "online")
+          .or("marketplace_order.is.null,marketplace_order.eq.false")
+          .in("status", ["pending", "preparing", "ready"]),
         supabase
           .from("orders")
           .select("id", { count: "exact", head: true })
           .eq("shop_id", shopId)
-          .eq("source", "marketplace")
-          .in("status", ["pending", "confirmed", "preparing", "ready"]),
+          .eq("marketplace_order", true)
+          .in("status", ["pending", "preparing", "ready"]),
       ]);
+
 
       if (!active) return;
       setCounts({
