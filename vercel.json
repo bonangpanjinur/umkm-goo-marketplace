@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "cd artifacts/kopihub && npm install --no-audit --no-fund --legacy-peer-deps && npx vite build --config vite.config.ts",
+  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/kopihub run build",
   "outputDirectory": "artifacts/kopihub/dist/public",
-  "installCommand": "echo skip",
+  "installCommand": "echo 'install handled in buildCommand'",
   "rewrites": [
     { "source": "/((?!assets/|.*\\..*).*)", "destination": "/index.html" }
   ],
