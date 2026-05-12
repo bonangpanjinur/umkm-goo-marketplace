@@ -6,6 +6,7 @@ import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe,
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
+import { useAdminPendingAdCount } from "@/hooks/useAdNotifications";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -48,6 +49,7 @@ function AdminLayout() {
   const [ready, setReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { open: cmdOpen, setOpen: setCmdOpen } = useCommandPalette();
+  const pendingAdCount = useAdminPendingAdCount();
 
   useEffect(() => {
     if (loading || roleLoading) return;
@@ -72,10 +74,17 @@ function AdminLayout() {
         {NAV.map((item) => {
           const active = (item as { exact?: boolean }).exact ? location.pathname === item.to : location.pathname.startsWith(item.to);
           const Icon = item.icon;
+          const badge = item.to === "/admin/ads" && pendingAdCount > 0 ? pendingAdCount : 0;
           return (
             <Link key={item.to} to={item.to}
               className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${active ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}>
-              <Icon className="h-4 w-4" />{item.label}
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {badge > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white">
+                  {badge > 99 ? "99+" : badge}
+                </span>
+              )}
             </Link>
           );
         })}

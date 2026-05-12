@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
+import { useOwnerPaymentPendingCount } from "@/hooks/useAdNotifications";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -199,7 +200,8 @@ function AppLayoutInner() {
   const { isPro } = usePlan();
   const { isAdmin } = useIsSuperAdmin();
   const staff = useStaffRole();
-  const [shop, setShop] = useState<{ name: string; logo_url: string | null; suspended_at?: string | null; suspended_reason?: string | null } | null>(null);
+  const [shop, setShop] = useState<{ id: string; name: string; logo_url: string | null; suspended_at?: string | null; suspended_reason?: string | null } | null>(null);
+  const paymentPendingAdCount = useOwnerPaymentPendingCount(shop?.id ?? null);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -213,7 +215,7 @@ function AppLayoutInner() {
       // Owner flow
       const { data } = await supabase
         .from("coffee_shops")
-        .select("name, logo_url, suspended_at, suspended_reason")
+        .select("id, name, logo_url, suspended_at, suspended_reason")
         .eq("owner_id", user.id)
         .maybeSingle();
       if (data) {
@@ -344,6 +346,11 @@ function AppLayoutInner() {
                         {item.proOnly && (
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${isPro ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
                             {locked ? <Lock className="h-3 w-3 inline" /> : "PRO"}
+                          </span>
+                        )}
+                        {item.to === "/pos-app/iklan" && paymentPendingAdCount > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white">
+                            {paymentPendingAdCount > 9 ? "9+" : paymentPendingAdCount}
                           </span>
                         )}
                       </Link>
