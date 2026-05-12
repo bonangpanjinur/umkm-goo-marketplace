@@ -20,10 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Pencil, Trash2, Package, AlertTriangle, ArrowDownUp, ClipboardCheck, ListChecks, ShoppingCart, Search } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Package, AlertTriangle, ArrowDownUp, ClipboardCheck, ListChecks, ShoppingCart, Search, TrendingDown, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { LowStockDialog } from "@/components/inventory/low-stock-dialog";
+import { useStockForecast, formatDaysRemaining } from "@/hooks/use-stock-forecast";
 
 export const Route = createFileRoute("/pos-app/inventory")({
   component: InventoryPage,
@@ -414,6 +415,16 @@ function InventoryPage() {
 
   const lowStock = items.filter((i) => i.current_stock <= i.min_stock && i.min_stock > 0);
 
+  // F3-5: Stock forecast based on last 7 days of sales
+  const { data: forecastData } = useStockForecast(shop?.id, items);
+
+  // Items predicted to run out within 3 days
+  const urgentForecast = items.filter((i) => {
+    const f = forecastData[i.id];
+    if (!f || f.days_remaining === null) return false;
+    return f.days_remaining <= 3;
+  }).sort((a, b) => (forecastData[a.id]?.days_remaining ?? 99) - (forecastData[b.id]?.days_remaining ?? 99));
+
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -538,6 +549,35 @@ function InventoryPage() {
         </div>
       )}
 
+      {urgentForecast.length > 0 && (
+        <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
+          <div className="mb-2 flex items-center gap-2">
+            <TrendingDown className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-semibold text-destructive">
+              {urgentForecast.length} bahan diprediksi habis dalam ≤ 3 hari
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {urgentForecast.map((i) => {
+              const f = forecastData[i.id];
+              const { label } = formatDaysRemaining(f?.days_remaining ?? null);
+              return (
+                <span
+                  key={i.id}
+                  className="flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive"
+                >
+                  <Clock className="h-3 w-3" />
+                  {i.name} · {label}
+                </span>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Berdasarkan rata-rata pemakaian 7 hari terakhir.
+          </p>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex h-40 items-center justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -560,6 +600,11 @@ function InventoryPage() {
                 <th className="px-4 py-2.5 text-left">Nama</th>
                 <th className="px-4 py-2.5 text-right">Stok</th>
                 <th className="px-4 py-2.5 text-right">Min</th>
+                <th className="px-4 py-2.5 text-right">
+                  <span className="flex items-center justify-end gap-1">
+                    <Clock className="h-3 w-3" /> Estimasi Habis
+                  </span>
+                </th>
                 <th className="px-4 py-2.5 text-right">Harga / unit</th>
                 <th className="px-4 py-2.5"></th>
               </tr>
@@ -567,6 +612,13 @@ function InventoryPage() {
             <tbody className="divide-y divide-border">
               {items.map((i) => {
                 const low = i.current_stock <= i.min_stock && i.min_stock > 0;
+                const forecast = forecastData[i.id];
+                const { label: fLabel, urgency } = formatDaysRemaining(forecast?.days_remaining ?? null);
+                const fColor =
+                  urgency === "empty" || urgency === "critical" ? "text-destructive font-semibold" :
+                  urgency === "warning" ? "text-amber-600 font-medium" :
+                  urgency === "ok" ? "text-emerald-600" :
+                  "text-muted-foreground/50";
                 return (
                   <tr key={i.id} className="hover:bg-muted/30">
                     <td className="px-4 py-3 font-medium">{i.name}</td>
@@ -575,6 +627,9 @@ function InventoryPage() {
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                       {i.min_stock}
+                    </td>
+                    <td className={`px-4 py-3 text-right tabular-nums text-xs ${fColor}`}>
+                      {fLabel}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                       <button 

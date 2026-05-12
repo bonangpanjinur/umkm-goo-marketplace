@@ -71,7 +71,7 @@
 | F3-2 | **Notifikasi stok kritis** | Badge merah + toast di pos-app saat stok ingredient ≤ `min_stock` | ✅ |
 | F3-3 | **Auto non-aktif menu** | Jika semua ingredient utama habis, `is_available = false` otomatis | ✅ |
 | F3-4 | **Bundle Produk / Paket** | 1 kopi + 1 snack = harga paket; stok keduanya berkurang sekaligus | ✅ |
-| F3-5 | **Estimasi stok habis** | "Berdasarkan penjualan 7 hari, kopi susu akan habis dalam ~2 hari" | 🔲 |
+| F3-5 | **Estimasi stok habis** | "Berdasarkan penjualan 7 hari, kopi susu akan habis dalam ~2 hari" | ✅ |
 
 ---
 
