@@ -325,6 +325,42 @@ function AppLayoutInner() {
     return () => { supabase.removeChannel(ch); };
   }, [shop?.id]);
 
+  // Q&A new question subscription — toast on any pos-app page
+  useEffect(() => {
+    if (!shop?.id) return;
+    const ch = supabase
+      .channel(`qa-notify-${shop.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "product_qa", filter: `shop_id=eq.${shop.id}` },
+        async (payload) => {
+          const row = payload.new as { question: string; product_id: string | null };
+          let productName = "";
+          if (row.product_id) {
+            const { data } = await supabase
+              .from("menu_items")
+              .select("name")
+              .eq("id", row.product_id)
+              .maybeSingle();
+            if (data?.name) productName = data.name;
+          }
+          toast.info("💬 Pertanyaan baru masuk!", {
+            duration: 12000,
+            description: [
+              productName ? `Produk: ${productName}` : null,
+              `"${row.question.slice(0, 80)}${row.question.length > 80 ? "…" : ""}"`,
+            ].filter(Boolean).join("\n"),
+            action: {
+              label: "Jawab",
+              onClick: () => navigate({ to: "/pos-app/qa" }),
+            },
+          });
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [shop?.id, navigate]);
+
   // Filter nav for staff (per-item allowed modules)
   const visibleGroups = useMemo(() => {
     const allowed = (it: NavItem) =>
