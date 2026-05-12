@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Loader2, TicketPercent, Zap, RefreshCw, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, TicketPercent, Zap, RefreshCw, X, Bell, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
@@ -376,6 +376,7 @@ function PromosPage() {
       {flashDialog !== undefined && flashDialog !== null && (
         <FlashDialog
           item={flashDialog as FlashItem}
+          shopId={shop!.id}
           onClose={() => setFlashDialog(undefined as any)}
           onSaved={() => { setFlashDialog(undefined as any); load(); }}
         />
@@ -422,11 +423,17 @@ function FlashPickerDialog({ products, onPick, onClose }: { products: FlashItem[
   );
 }
 
-function FlashDialog({ item, onClose, onSaved }: { item: FlashItem; onClose: () => void; onSaved: () => void }) {
+function FlashDialog({ item, shopId, onClose, onSaved }: { item: FlashItem; shopId: string; onClose: () => void; onSaved: () => void }) {
   const [flashPrice, setFlashPrice] = useState(item.flash_price != null ? String(item.flash_price) : "");
   const [starts, setStarts] = useState(toLocalInput(item.flash_starts_at));
   const [ends, setEnds] = useState(toLocalInput(item.flash_ends_at));
   const [saving, setSaving] = useState(false);
+  const [followerCount, setFollowerCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.from("shop_follows" as any).select("id", { count: "exact", head: true }).eq("shop_id", shopId)
+      .then(({ count }) => setFollowerCount(count ?? 0));
+  }, [shopId]);
 
   const fpNum = flashPrice.trim() === "" ? null : Number(flashPrice);
   const disc = fpNum != null && item.price > 0 ? Math.round(((item.price - fpNum) / item.price) * 100) : null;
@@ -482,6 +489,15 @@ function FlashDialog({ item, onClose, onSaved }: { item: FlashItem; onClose: () 
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Jika tidak diisi, flash sale aktif tanpa batas waktu.</p>
+          {item.flash_price == null && followerCount !== null && followerCount > 0 && (
+            <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+              <Bell className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                Notifikasi flash sale akan dikirim ke{" "}
+                <span className="font-semibold">{followerCount} pengikut</span> toko ini.
+              </span>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Batal</Button>
@@ -510,6 +526,19 @@ function PromoDialog({ shopId, editing, onClose, onSaved }: { shopId: string; ed
     is_active: editing?.is_active ?? true,
   });
   const [saving, setSaving] = useState(false);
+  const [followerCount, setFollowerCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.from("shop_follows" as any).select("id", { count: "exact", head: true }).eq("shop_id", shopId)
+      .then(({ count }) => setFollowerCount(count ?? 0));
+  }, [shopId]);
+
+  const willNotifyFollowers =
+    !editing &&
+    form.is_active &&
+    (form.channel === "online" || form.channel === "all") &&
+    followerCount !== null &&
+    followerCount > 0;
 
   async function save() {
     const parsed = schema.safeParse({
@@ -617,6 +646,21 @@ function PromoDialog({ shopId, editing, onClose, onSaved }: { shopId: string; ed
             <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
             <Label className="text-sm">Aktif</Label>
           </div>
+          {willNotifyFollowers && (
+            <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+              <Bell className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                Promo ini akan dinotifikasikan ke{" "}
+                <span className="font-semibold">{followerCount} pengikut</span> toko secara otomatis.
+              </span>
+            </div>
+          )}
+          {!editing && form.is_active && (form.channel === "online" || form.channel === "all") && followerCount === 0 && (
+            <div className="flex items-center gap-2 rounded-lg bg-muted/60 border border-border px-3 py-2 text-xs text-muted-foreground">
+              <Users className="h-3.5 w-3.5 shrink-0" />
+              <span>Toko belum punya pengikut. Promo tetap bisa digunakan pelanggan via kode.</span>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Batal</Button>
