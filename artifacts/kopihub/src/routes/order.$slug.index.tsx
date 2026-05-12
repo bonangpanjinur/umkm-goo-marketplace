@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams, getRouteApi } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { addToCart } from "@/lib/customer-cart";
 import { formatIDR } from "@/lib/format";
@@ -7,13 +7,15 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Coffee, ScanQrCode } from "lucide-react";
+import { Search, Plus, Coffee, ScanQrCode, BellRing, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/order/$slug/")({
   component: DineInMenuPage,
 });
 
 const parentRoute = getRouteApi("/order/$slug");
+
+const COOLDOWN_MS = 3 * 60 * 1000; // 3 menit
 
 type Cat = { id: string; name: string };
 type Item = {
@@ -37,6 +39,83 @@ function DineInMenuPage() {
   const [activeCat, setActiveCat] = useState("all");
   const [q, setQ] = useState("");
   const [adding, setAdding] = useState<string | null>(null);
+
+  // Panggil Pelayan state
+  const [calling, setCalling] = useState(false);
+  const [calledOk, setCalledOk] = useState(false);
+  const [cooldownEnd, setCooldownEnd] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load cooldown from localStorage
+  useEffect(() => {
+    if (!table) return;
+    const key = `umkmgo.call.${slug}.${table}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const end = parseInt(stored, 10);
+      if (end > Date.now()) setCooldownEnd(end);
+      else localStorage.removeItem(key);
+    }
+  }, [slug, table]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!cooldownEnd) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setTimeLeft(0);
+      return;
+    }
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((cooldownEnd - Date.now()) / 1000));
+      setTimeLeft(left);
+      if (left === 0) {
+        setCooldownEnd(null);
+        setCalledOk(false);
+        if (timerRef.current) clearInterval(timerRef.current);
+      }
+    };
+    tick();
+    timerRef.current = setInterval(tick, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [cooldownEnd]);
+
+  async function handleCallWaiter() {
+    if (calling || cooldownEnd || !shop?.id || !table) return;
+    setCalling(true);
+    try {
+      const displayTableName = tableName || `Meja ${table}`;
+      const payload = {
+        id: `${Date.now()}-${table}`,
+        shop_id: shop.id,
+        table_id: table,
+        table_name: displayTableName,
+        called_at: new Date().toISOString(),
+        type: "waiter",
+      };
+
+      const channel = supabase.channel(`service-calls-${shop.id}`);
+      await channel.send({
+        type: "broadcast",
+        event: "service_call",
+        payload,
+      });
+      await supabase.removeChannel(channel);
+
+      const end = Date.now() + COOLDOWN_MS;
+      setCooldownEnd(end);
+      setCalledOk(true);
+      localStorage.setItem(`umkmgo.call.${slug}.${table}`, String(end));
+      toast.success("Pelayan sedang dipanggil!", {
+        description: `${displayTableName} — pelayan akan segera datang`,
+        duration: 4000,
+      });
+    } catch {
+      toast.error("Gagal memanggil pelayan, coba lagi");
+    } finally {
+      setCalling(false);
+    }
+  }
 
   useEffect(() => {
     if (!shop) return;
@@ -82,8 +161,14 @@ function DineInMenuPage() {
 
   const displayTableName = tableName || (table ? `Meja ${table}` : "");
 
+  const formatTimeLeft = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m > 0 ? `${m}:${String(sec).padStart(2, "0")}` : `${sec}d`;
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-28">
       {/* Dine-in info card */}
       {table && (
         <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30 p-3 flex items-start gap-3">
@@ -199,13 +284,43 @@ function DineInMenuPage() {
         </div>
       )}
 
-      {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur p-3 sm:hidden">
-        <div className="max-w-2xl mx-auto">
+      {/* Bottom bar — Cart + Panggil Pelayan */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur p-3">
+        <div className="max-w-2xl mx-auto flex gap-2">
+          {/* Panggil Pelayan — only when at a table */}
+          {table && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleCallWaiter}
+              disabled={calling || !!cooldownEnd}
+              className={`shrink-0 gap-2 transition-all ${
+                calledOk && cooldownEnd
+                  ? "border-green-400 text-green-700 bg-green-50 dark:bg-green-950/30"
+                  : ""
+              }`}
+            >
+              {calledOk && cooldownEnd ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span className="text-xs tabular-nums">{formatTimeLeft(timeLeft)}</span>
+                </>
+              ) : (
+                <>
+                  <BellRing className="h-4 w-4" />
+                  <span className="text-xs whitespace-nowrap">
+                    {calling ? "Memanggil..." : "Panggil Pelayan"}
+                  </span>
+                </>
+              )}
+            </Button>
+          )}
+
           <Link
             to="/order/$slug/cart"
             params={{ slug }}
             search={{ table, tableName }}
+            className="flex-1"
           >
             <Button className="w-full" size="lg">
               Lihat Keranjang & Pesan

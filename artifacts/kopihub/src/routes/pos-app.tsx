@@ -51,6 +51,7 @@ import {
   CalendarCheck,
   Megaphone,
   QrCode,
+  BellRing,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -195,6 +196,15 @@ function AppLayout() {
   );
 }
 
+type ServiceCall = {
+  id: string;
+  shop_id: string;
+  table_id: string;
+  table_name: string;
+  called_at: string;
+  type: string;
+};
+
 function AppLayoutInner() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -206,6 +216,7 @@ function AppLayoutInner() {
   const paymentPendingAdCount = useOwnerPaymentPendingCount(shop?.id ?? null);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
 
   useEffect(() => {
     if (loading) return;
@@ -247,6 +258,39 @@ function AppLayoutInner() {
       navigate({ to: "/onboarding" });
     })();
   }, [user, loading, navigate, location.pathname, staff.loading, staff.isStaff, staff.shopId]);
+
+  // Service call subscription — shows toast on any pos-app page
+  useEffect(() => {
+    if (!shop?.id) return;
+    const ch = supabase
+      .channel(`service-calls-layout-${shop.id}`)
+      .on("broadcast", { event: "service_call" }, ({ payload }) => {
+        const call = payload as ServiceCall;
+        setServiceCalls((prev) => {
+          const existing = prev.findIndex((c) => c.table_id === call.table_id);
+          if (existing >= 0) {
+            const next = [...prev];
+            next[existing] = call;
+            return next;
+          }
+          return [call, ...prev];
+        });
+        new Audio("/notification.mp3").play().catch(() => {});
+        toast.info(`🔔 ${call.table_name} memanggil pelayan!`, {
+          duration: 10000,
+          description: "Segera datangi meja tersebut",
+          action: {
+            label: "Tutup",
+            onClick: () => setServiceCalls((p) => p.filter((c) => c.id !== call.id)),
+          },
+        });
+      })
+      .on("broadcast", { event: "dismiss_call" }, ({ payload }) => {
+        setServiceCalls((prev) => prev.filter((c) => c.id !== payload.id));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [shop?.id]);
 
   // Filter nav for staff (per-item allowed modules)
   const visibleGroups = useMemo(() => {

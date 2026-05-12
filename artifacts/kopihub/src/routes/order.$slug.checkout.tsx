@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams, useNavigate, getRouteApi } from "@tan
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { readCart, cartTotal, clearCart, itemUnitPrice, type CustomerCartItem } from "@/lib/customer-cart";
+import { addToCart } from "@/lib/customer-cart";
 import { formatIDR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { ChevronLeft, Loader2, ScanQrCode, CheckCircle2, Banknote, QrCode } from "lucide-react";
+import { ChevronLeft, Loader2, ScanQrCode, CheckCircle2, Banknote, QrCode, RefreshCw, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/order/$slug/checkout")({
   component: DineInCheckoutPage,
@@ -34,6 +35,9 @@ function DineInCheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [estimasiMenit, setEstimasiMenit] = useState<number | null>(null);
+  const [lastOrderItems, setLastOrderItems] = useState<CustomerCartItem[]>([]);
+  const [reordering, setReordering] = useState(false);
 
   useEffect(() => {
     setItems(readCart(cartKey));
@@ -74,8 +78,10 @@ function DineInCheckoutPage() {
     }
 
     setSubmitting(true);
+    // Save items for re-order before clearing
+    const savedItems = [...items];
+
     try {
-      // Try to get or create anonymous session
       const { data: { session } } = await supabase.auth.getSession();
       let userId: string | null = session?.user?.id ?? null;
       if (!userId) {
@@ -104,7 +110,7 @@ function DineInCheckoutPage() {
           subtotal: total,
           total_amount: total,
           payment_method: payMethod,
-          payment_status: payMethod === "cash" ? "pending" : "pending",
+          payment_status: "unpaid" as const,
           status: "pending",
           notes: note.trim() || null,
           channel: "pos",
@@ -117,14 +123,29 @@ function DineInCheckoutPage() {
 
       if (error) throw error;
 
+      // Hitung estimasi waktu berdasarkan antrian
+      try {
+        const { count } = await supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("shop_id", shopId)
+          .in("status", ["pending", "preparing"]);
+        const menit = Math.max(3, Math.min(30, (count ?? 1) * 4));
+        setEstimasiMenit(menit);
+      } catch {
+        setEstimasiMenit(5);
+      }
+
       clearCart(cartKey);
+      setLastOrderItems(savedItems);
       setOrderId(order.id);
       setDone(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      // Graceful fallback: show success even if DB insert partially fails
       if (message.includes("column") || message.includes("relation")) {
         clearCart(cartKey);
+        setLastOrderItems(savedItems);
+        setEstimasiMenit(5);
         setOrderId("demo-" + Date.now());
         setDone(true);
         return;
@@ -135,9 +156,30 @@ function DineInCheckoutPage() {
     }
   }
 
+  async function handleReorder() {
+    if (!lastOrderItems.length) return;
+    setReordering(true);
+    for (const item of lastOrderItems) {
+      addToCart(cartKey, {
+        menu_item_id: item.menu_item_id,
+        name: item.name,
+        price: item.price,
+        image_url: item.image_url,
+        options: item.options,
+      }, item.qty);
+    }
+    toast.success("Menu pesanan sebelumnya ditambahkan ke keranjang!");
+    await navigate({
+      to: "/order/$slug/cart",
+      params: { slug },
+      search: { table, tableName },
+    });
+    setReordering(false);
+  }
+
   if (done) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 pb-8">
         <div className="h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
           <CheckCircle2 className="h-10 w-10 text-green-600" />
         </div>
@@ -147,6 +189,16 @@ function DineInCheckoutPage() {
             Pesanan dari <strong>{displayTableName}</strong> sedang diproses
           </p>
         </div>
+
+        {/* Estimasi waktu */}
+        {estimasiMenit !== null && (
+          <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30 px-4 py-3">
+            <Clock className="h-5 w-5 text-blue-600 shrink-0" />
+            <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+              Estimasi siap: <strong>~{estimasiMenit} menit</strong>
+            </p>
+          </div>
+        )}
 
         <div className="w-full max-w-xs rounded-xl border border-border bg-card p-4 text-left space-y-2">
           <div className="flex justify-between text-sm">
@@ -185,8 +237,29 @@ function DineInCheckoutPage() {
           </div>
         )}
 
+        {/* Re-order 1-tap */}
+        {lastOrderItems.length > 0 && (
+          <div className="w-full max-w-xs space-y-2">
+            <p className="text-xs text-muted-foreground text-center">Mau pesan yang sama lagi?</p>
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleReorder}
+              disabled={reordering}
+            >
+              {reordering ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Pesan Lagi Menu Sama ({lastOrderItems.reduce((s, i) => s + i.qty, 0)} item)
+            </Button>
+          </div>
+        )}
+
         <Button
-          variant="outline"
+          variant="ghost"
+          size="sm"
           onClick={() =>
             navigate({
               to: "/order/$slug",
@@ -195,7 +268,7 @@ function DineInCheckoutPage() {
             })
           }
         >
-          Pesan Lagi
+          Pilih Menu Lain
         </Button>
       </div>
     );

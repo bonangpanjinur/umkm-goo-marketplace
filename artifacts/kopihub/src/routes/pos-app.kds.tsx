@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChefHat, Clock, CheckCircle2, Bell, Filter } from "lucide-react";
+import { Loader2, ChefHat, Clock, CheckCircle2, Bell, Filter, BellRing, X, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -38,6 +38,21 @@ type OrderItem = {
   kds_station?: string | null;
 };
 
+type ServiceCall = {
+  id: string;
+  shop_id: string;
+  table_id: string;
+  table_name: string;
+  called_at: string;
+  type: "waiter" | "bill";
+};
+
+function timeAgo(iso: string) {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return `${diff}d lalu`;
+  return `${Math.floor(diff / 60)} mnt lalu`;
+}
+
 function KDSPage() {
   const { shop, outlet, loading: loadingShop } = useCurrentShop();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -45,6 +60,67 @@ function KDSPage() {
   const [loading, setLoading] = useState(true);
   const [activeStation, setActiveStation] = useState<string>("all");
   const [stations, setStations] = useState<string[]>([]);
+
+  // Service calls state
+  const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
+
+  // Subscribe to service calls broadcast
+  useEffect(() => {
+    if (!shop?.id) return;
+
+    const ch = supabase
+      .channel(`service-calls-${shop.id}`)
+      .on("broadcast", { event: "service_call" }, ({ payload }) => {
+        const call = payload as ServiceCall;
+        setServiceCalls((prev) => {
+          // Deduplicate by table_id — update if same table
+          const existing = prev.findIndex((c) => c.table_id === call.table_id);
+          if (existing >= 0) {
+            const next = [...prev];
+            next[existing] = call;
+            return next;
+          }
+          return [call, ...prev];
+        });
+        // Play sound
+        const audio = new Audio("/notification.mp3");
+        audio.play().catch(() => {});
+        // Toast
+        toast.info(`🔔 ${call.table_name} memanggil pelayan!`, {
+          duration: 8000,
+          description: "Lihat panel panggilan di atas",
+        });
+      })
+      .on("broadcast", { event: "dismiss_call" }, ({ payload }) => {
+        setServiceCalls((prev) => prev.filter((c) => c.id !== payload.id));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(ch); };
+  }, [shop?.id]);
+
+  function dismissCall(call: ServiceCall) {
+    setServiceCalls((prev) => prev.filter((c) => c.id !== call.id));
+    // Broadcast dismiss so other KDS devices sync
+    if (shop?.id) {
+      const ch = supabase.channel(`service-calls-${shop.id}`);
+      ch.send({ type: "broadcast", event: "dismiss_call", payload: { id: call.id } }).then(() => {
+        supabase.removeChannel(ch);
+      });
+    }
+  }
+
+  function dismissAllCalls() {
+    if (shop?.id) {
+      serviceCalls.forEach((call) => {
+        const ch = supabase.channel(`service-calls-${shop.id}`);
+        ch.send({ type: "broadcast", event: "dismiss_call", payload: { id: call.id } }).then(() => {
+          supabase.removeChannel(ch);
+        });
+      });
+    }
+    setServiceCalls([]);
+  }
 
   useEffect(() => {
     if (!outlet) return;
@@ -98,7 +174,6 @@ function KDSPage() {
             }, {});
             setItems(grouped);
 
-            // Extract unique stations
             const uniqueStations = Array.from(new Set(processedItems.map(i => i.kds_station || "general")));
             setStations(uniqueStations as string[]);
           }
@@ -144,11 +219,9 @@ function KDSPage() {
                       quantity: item.quantity,
                       note: item.note,
                       category_id: item.menu_items?.category_id ?? null,
-              kds_station: item.menu_items?.categories?.kds_station || "general"
+                      kds_station: item.menu_items?.categories?.kds_station || "general"
                     }));
                     setItems((prev) => ({ ...prev, [newOrder.id]: processed }));
-                    
-                    // Update stations list
                     const newStations = processed.map(i => i.kds_station || "general");
                     setStations(prev => Array.from(new Set([...prev, ...newStations])));
                   }
@@ -177,7 +250,6 @@ function KDSPage() {
 
   const filteredOrders = useMemo(() => {
     if (activeStation === "all") return orders;
-    
     return orders.filter(order => {
       const orderItems = items[order.id] || [];
       return orderItems.some(item => item.kds_station === activeStation);
@@ -207,6 +279,44 @@ function KDSPage() {
 
   return (
     <div className="flex h-screen flex-col bg-slate-950 text-white overflow-hidden">
+      {/* ── Service Calls Panel ───────────────────────────────────────── */}
+      {serviceCalls.length > 0 && (
+        <div className="border-b border-amber-500/40 bg-amber-500/10 px-4 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <BellRing className="h-4 w-4 text-amber-400 animate-bounce" />
+              <span className="text-sm font-bold text-amber-300">
+                Panggilan Pelayan ({serviceCalls.length})
+              </span>
+            </div>
+            <button
+              onClick={dismissAllCalls}
+              className="text-xs text-slate-400 hover:text-white transition-colors"
+            >
+              Tutup Semua
+            </button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {serviceCalls.map((call) => (
+              <div
+                key={call.id}
+                className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/20 px-3 py-1.5"
+              >
+                <UserCheck className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <span className="text-sm font-semibold text-amber-200">{call.table_name}</span>
+                <span className="text-[10px] text-amber-400/70">{timeAgo(call.called_at)}</span>
+                <button
+                  onClick={() => dismissCall(call)}
+                  className="ml-1 text-amber-400/60 hover:text-amber-200 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex h-16 items-center justify-between border-b border-slate-800 px-6 bg-slate-900">
         <div className="flex items-center gap-3">
@@ -239,9 +349,21 @@ function KDSPage() {
             <div className="text-sm font-medium">{format(new Date(), "EEEE, d MMMM", { locale: id })}</div>
             <div className="text-xs text-slate-400">Real-time Sync Active</div>
           </div>
-          <Button variant="outline" size="icon" className="bg-slate-800 border-slate-700 hover:bg-slate-700">
-            <Bell className="h-4 w-4" />
-          </Button>
+          {/* Bell badge shows count of pending calls */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="icon"
+              className={`bg-slate-800 border-slate-700 hover:bg-slate-700 ${serviceCalls.length > 0 ? "border-amber-500/60" : ""}`}
+            >
+              <Bell className={`h-4 w-4 ${serviceCalls.length > 0 ? "text-amber-400" : ""}`} />
+            </Button>
+            {serviceCalls.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                {serviceCalls.length}
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
