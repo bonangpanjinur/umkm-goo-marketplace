@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLowStockIngredients } from "@/hooks/use-low-stock";
 import { useOwnerPaymentPendingCount } from "@/hooks/useAdNotifications";
+import { useUnansweredQACount } from "@/hooks/use-unanswered-qa";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -221,6 +222,7 @@ function AppLayoutInner() {
   const [shop, setShop] = useState<{ id: string; name: string; logo_url: string | null; suspended_at?: string | null; suspended_reason?: string | null } | null>(null);
   const paymentPendingAdCount = useOwnerPaymentPendingCount(shop?.id ?? null);
   const { criticalCount: lowStockCount, emptyCount, items: lowStockItems } = useLowStockIngredients(shop?.id ?? null);
+  const unansweredQACount = useUnansweredQACount(shop?.id ?? null);
   const prevLowStockCountRef = useRef<number>(0);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -433,6 +435,11 @@ function AppLayoutInner() {
                         {item.to === "/pos-app/inventory" && lowStockCount > 0 && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-white animate-pulse">
                             {emptyCount > 0 ? "!" : lowStockCount > 9 ? "9+" : lowStockCount}
+                          </span>
+                        )}
+                        {item.to === "/pos-app/qa" && unansweredQACount > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white animate-pulse">
+                            {unansweredQACount > 9 ? "9+" : unansweredQACount}
                           </span>
                         )}
                       </Link>
