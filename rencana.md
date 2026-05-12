@@ -41,6 +41,12 @@
 | 12 Mei 2026 | **Fase 5** | **Laporan Harian via WhatsApp** — halaman `/pos-app/laporan-harian`; omset, grafik per jam, top menu, stok kritis; tombol Bagikan via WhatsApp | ✅ |
 | 12 Mei 2026 | **Fase 5** | **Auto Print Struk** — toggle per-perangkat di Pengaturan (localStorage); window.print() otomatis saat order online baru masuk via realtime | ✅ |
 | 12 Mei 2026 | **Fase 5** | **Split Bill per Orang** — SplitBillDialog di KDS; pilih 2–20 orang; hitung per orang; salin teks untuk dikirim ke customer | ✅ |
+| 12 Mei 2026 | **Fase 7** | **Manajemen Pengguna Pembeli** — Tabel semua buyer; cari by email/nama; filter aktif/diblokir; lihat riwayat pesanan per user; ban/unban dengan alasan | ✅ |
+| 12 Mei 2026 | **Fase 7** | **Moderasi Konten Terpusat** — Panel ulasan ter-flag; isi+alasan flag+info toko+pembeli; aksi Setujui (hapus flag) atau Sembunyikan permanen | ✅ |
+| 12 Mei 2026 | **Fase 7** | **Revenue Intelligence Dashboard** — KPI platform terpadu: subscription+komisi+fee breakdown; area chart tren harian; pie komposisi; top 10 toko per komisi; export CSV | ✅ |
+| 12 Mei 2026 | **Fase 7** | **Churn & Retensi Toko** — 4 tab: Akan Expired (Pro ≤30 hari), Sudah Churn, GMV Turun >40%, Tidak Aktif >14 hari; quick action kirim notif renewal | ✅ |
+| 12 Mei 2026 | **Fase 7** | **Laporan Keuangan & Pajak** — Rekap bulanan per tahun: subscription/komisi/fee WD; kalkulasi PPN 11%; total tahunan + per kuartal; export CSV untuk pembukuan | ✅ |
+| 12 Mei 2026 | **Fase 7** | **Deteksi Fraud & Anomali** — Pesanan risiko tinggi (nilai besar+dispute cepat); spike GMV toko ≥5× rata-rata harian; risk score 0–100; tandai untuk investigasi | ✅ |
 
 ---
 
@@ -128,6 +134,44 @@
 
 ---
 
+## FASE 7 — Super Admin Intelligence ✅ SELESAI
+
+> Platform yang menghasilkan uang harus bisa dikelola dengan data, bukan intuisi.
+
+### Latar Belakang & Urgensi Bisnis
+
+Setelah 27 halaman admin operasional terbangun, ditemukan 6 gap kritis yang langsung berdampak pada revenue dan keamanan platform:
+- Tidak ada cara untuk melihat/mengelola akun pembeli yang bermasalah
+- Ulasan yang di-flag oleh seller terbengkalai tanpa alur review admin
+- Tidak ada dashboard pendapatan platform terpadu (hanya GMV toko, bukan revenue platform)
+- Pro shops yang akan churn tidak terdeteksi sebelum benar-benar pergi
+- Tidak ada laporan keuangan terkonsolidasi untuk keperluan pajak/audit
+- Tidak ada sistem deteksi fraud otomatis untuk melindungi platform
+
+### Fitur yang Dibangun
+
+| # | Fitur | Route | Deskripsi Detail | Status |
+|---|---|---|---|---|
+| F7-1 | **Manajemen Pengguna Pembeli** | `/admin/users` | Tabel semua buyer dengan pencarian email/nama, filter aktif/diblokir, pagination 50/hal; modal detail: riwayat 20 pesanan terakhir per user; aksi ban/unban dengan formulir alasan; integrasi tabel `profiles` + `orders` | ✅ |
+| F7-2 | **Moderasi Konten Terpusat** | `/admin/moderation` | Panel khusus ulasan ter-flag (`is_flagged=true`); tab Menunggu Review vs Sudah Diproses; tampilkan isi ulasan, rating bintang, alasan flag, info toko, nama pembeli, tanggal; aksi: Setujui (hapus flag, ulasan tetap tampil) atau Sembunyikan (is_hidden=true); counter badge realtime | ✅ |
+| F7-3 | **Revenue Intelligence Dashboard** | `/admin/revenue` | 6 KPI cards: Total Pendapatan Platform, Subscription MRR, Komisi Marketplace (take rate %), Fee Penarikan, Pendapatan Iklan, AOV; area chart tren harian multi-series (subscription vs komisi); pie chart komposisi pendapatan; tabel top 10 toko penghasil komisi dengan take rate per toko; period filter 7/30/90/365 hari; export CSV | ✅ |
+| F7-4 | **Churn & Retensi Toko** | `/admin/churn` | 4 tab operasional: (1) Akan Expired — Pro shops dengan sisa ≤30 hari, urut by urgency, warna merah/kuning; (2) Sudah Churn — pernah Pro, sudah free, urut by expire date; (3) GMV Turun — shops dengan GMV 30-hari sekarang <60% vs 30-hari sebelumnya; (4) Tidak Aktif — Pro shops tanpa order completed 14 hari; quick action "Kirim Notif Renewal" per baris | ✅ |
+| F7-5 | **Laporan Keuangan & Pajak** | `/admin/financial-report` | Rekap per tahun (selector 5 tahun terakhir); breakdown 12 bulan: subscription + komisi + fee WD; kalkulasi PPN 11% (UU HPP 2021) per bulan; ringkasan 4 kuartal; total tahunan di tfoot; badge "Berjalan" untuk bulan ini; catatan pajak informatif; export CSV siap pembukuan | ✅ |
+| F7-6 | **Deteksi Fraud & Anomali** | `/admin/fraud` | Tab Pesanan Mencurigakan: skoring 0–100 berdasarkan dispute <2 jam / <24 jam setelah order, nilai ≥ Rp 1jt, status cancelled; Tab Toko Anomali: spike GMV hari ini ≥5× rata-rata harian 7 hari (deteksi wash trading / fake orders); KPI cards: risiko tinggi, spike shops, total ditandai; aksi "Tandai untuk Investigasi" per item | ✅ |
+
+### Dampak Bisnis yang Diharapkan
+
+| Fitur | Dampak Langsung |
+|---|---|
+| Revenue Intelligence | Visibilitas penuh pendapatan platform → keputusan pricing lebih tepat |
+| Churn & Retensi | Deteksi dini toko Pro yang akan pergi → intervensi tepat waktu = MRR terjaga |
+| Laporan Keuangan | Kesiapan audit/pajak → compliance, hindari denda |
+| Fraud Detection | Cegah kerugian dari dispute fraudulen atau wash-trading |
+| Moderasi Konten | Kepercayaan marketplace meningkat → konversi pembeli lebih tinggi |
+| User Management | Respons cepat terhadap akun bermasalah → reputasi platform terjaga |
+
+---
+
 ## Prioritas Global
 
 | Fase | Dampak Bisnis | Effort | Status |
@@ -138,3 +182,4 @@
 | Fase 5 — Otomasi Operasional | ⭐⭐⭐⭐ | Sedang | ✅ Selesai |
 | Fase 4 — Marketplace UX | ⭐⭐⭐ | Tinggi | ✅ Selesai |
 | Fase 6 — Feedback Loop | ⭐⭐⭐ | Rendah | ✅ Selesai |
+| Fase 7 — Super Admin Intelligence | ⭐⭐⭐⭐⭐ | Tinggi | ✅ Selesai |

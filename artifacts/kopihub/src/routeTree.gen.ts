@@ -100,20 +100,26 @@ import { Route as AkunFavoritRouteImport } from './routes/akun.favorit'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
 import { Route as AdminNotificationTemplatesRouteImport } from './routes/admin.notification-templates'
+import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminImpersonationRouteImport } from './routes/admin.impersonation'
+import { Route as AdminFraudRouteImport } from './routes/admin.fraud'
+import { Route as AdminFinancialReportRouteImport } from './routes/admin.financial-report'
 import { Route as AdminFeeSimulatorRouteImport } from './routes/admin.fee-simulator'
 import { Route as AdminFeatureFlagsRouteImport } from './routes/admin.feature-flags'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
+import { Route as AdminChurnRouteImport } from './routes/admin.churn'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminBrandingRouteImport } from './routes/admin.branding'
@@ -604,6 +610,11 @@ const AdminVouchersRoute = AdminVouchersRouteImport.update({
   path: '/vouchers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminShopsRoute = AdminShopsRouteImport.update({
   id: '/shops',
   path: '/shops',
@@ -612,6 +623,11 @@ const AdminShopsRoute = AdminShopsRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReconciliationRoute = AdminReconciliationRouteImport.update({
@@ -635,6 +651,11 @@ const AdminNotificationTemplatesRoute =
     path: '/notification-templates',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminModerationRoute = AdminModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminKycRoute = AdminKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -648,6 +669,16 @@ const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
 const AdminImpersonationRoute = AdminImpersonationRouteImport.update({
   id: '/impersonation',
   path: '/impersonation',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFraudRoute = AdminFraudRouteImport.update({
+  id: '/fraud',
+  path: '/fraud',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFinancialReportRoute = AdminFinancialReportRouteImport.update({
+  id: '/financial-report',
+  path: '/financial-report',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFeeSimulatorRoute = AdminFeeSimulatorRouteImport.update({
@@ -673,6 +704,11 @@ const AdminDisputesRoute = AdminDisputesRouteImport.update({
 const AdminCommissionRoute = AdminCommissionRouteImport.update({
   id: '/commission',
   path: '/commission',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChurnRoute = AdminChurnRouteImport.update({
+  id: '/churn',
+  path: '/churn',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCatalogRoute = AdminCatalogRouteImport.update({
@@ -866,20 +902,26 @@ export interface FileRoutesByFullPath {
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/churn': typeof AdminChurnRoute
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
+  '/admin/financial-report': typeof AdminFinancialReportRoute
+  '/admin/fraud': typeof AdminFraudRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/reconciliation': typeof AdminReconciliationRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
+  '/admin/users': typeof AdminUsersRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
@@ -1003,20 +1045,26 @@ export interface FileRoutesByTo {
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/churn': typeof AdminChurnRoute
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
+  '/admin/financial-report': typeof AdminFinancialReportRoute
+  '/admin/fraud': typeof AdminFraudRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/reconciliation': typeof AdminReconciliationRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
+  '/admin/users': typeof AdminUsersRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
@@ -1142,20 +1190,26 @@ export interface FileRoutesById {
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/churn': typeof AdminChurnRoute
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
+  '/admin/financial-report': typeof AdminFinancialReportRoute
+  '/admin/fraud': typeof AdminFraudRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/reconciliation': typeof AdminReconciliationRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
+  '/admin/users': typeof AdminUsersRoute
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
@@ -1284,20 +1338,26 @@ export interface FileRouteTypes {
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
+    | '/admin/churn'
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
+    | '/admin/financial-report'
+    | '/admin/fraud'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/moderation'
     | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
     | '/admin/reconciliation'
+    | '/admin/revenue'
     | '/admin/settings'
     | '/admin/shops'
+    | '/admin/users'
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
@@ -1421,20 +1481,26 @@ export interface FileRouteTypes {
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
+    | '/admin/churn'
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
+    | '/admin/financial-report'
+    | '/admin/fraud'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/moderation'
     | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
     | '/admin/reconciliation'
+    | '/admin/revenue'
     | '/admin/settings'
     | '/admin/shops'
+    | '/admin/users'
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
@@ -1559,20 +1625,26 @@ export interface FileRouteTypes {
     | '/admin/branding'
     | '/admin/broadcast'
     | '/admin/catalog'
+    | '/admin/churn'
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
+    | '/admin/financial-report'
+    | '/admin/fraud'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/moderation'
     | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
     | '/admin/reconciliation'
+    | '/admin/revenue'
     | '/admin/settings'
     | '/admin/shops'
+    | '/admin/users'
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
@@ -2341,6 +2413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVouchersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/shops': {
       id: '/admin/shops'
       path: '/shops'
@@ -2353,6 +2432,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/reconciliation': {
@@ -2383,6 +2469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNotificationTemplatesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/moderation': {
+      id: '/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AdminModerationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/kyc': {
       id: '/admin/kyc'
       path: '/kyc'
@@ -2402,6 +2495,20 @@ declare module '@tanstack/react-router' {
       path: '/impersonation'
       fullPath: '/admin/impersonation'
       preLoaderRoute: typeof AdminImpersonationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/fraud': {
+      id: '/admin/fraud'
+      path: '/fraud'
+      fullPath: '/admin/fraud'
+      preLoaderRoute: typeof AdminFraudRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/financial-report': {
+      id: '/admin/financial-report'
+      path: '/financial-report'
+      fullPath: '/admin/financial-report'
+      preLoaderRoute: typeof AdminFinancialReportRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/fee-simulator': {
@@ -2437,6 +2544,13 @@ declare module '@tanstack/react-router' {
       path: '/commission'
       fullPath: '/admin/commission'
       preLoaderRoute: typeof AdminCommissionRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/churn': {
+      id: '/admin/churn'
+      path: '/churn'
+      fullPath: '/admin/churn'
+      preLoaderRoute: typeof AdminChurnRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/catalog': {
@@ -2707,20 +2821,26 @@ interface AdminRouteChildren {
   AdminBrandingRoute: typeof AdminBrandingRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
+  AdminChurnRoute: typeof AdminChurnRoute
   AdminCommissionRoute: typeof AdminCommissionRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
   AdminFeatureFlagsRoute: typeof AdminFeatureFlagsRoute
   AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
+  AdminFinancialReportRoute: typeof AdminFinancialReportRoute
+  AdminFraudRoute: typeof AdminFraudRoute
   AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
+  AdminModerationRoute: typeof AdminModerationRoute
   AdminNotificationTemplatesRoute: typeof AdminNotificationTemplatesRoute
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
   AdminReconciliationRoute: typeof AdminReconciliationRoute
+  AdminRevenueRoute: typeof AdminRevenueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopsRoute: typeof AdminShopsRouteWithChildren
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminVouchersRoute: typeof AdminVouchersRoute
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -2736,20 +2856,26 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBrandingRoute: AdminBrandingRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
   AdminCatalogRoute: AdminCatalogRoute,
+  AdminChurnRoute: AdminChurnRoute,
   AdminCommissionRoute: AdminCommissionRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
   AdminFeatureFlagsRoute: AdminFeatureFlagsRoute,
   AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
+  AdminFinancialReportRoute: AdminFinancialReportRoute,
+  AdminFraudRoute: AdminFraudRoute,
   AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
+  AdminModerationRoute: AdminModerationRoute,
   AdminNotificationTemplatesRoute: AdminNotificationTemplatesRoute,
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,
   AdminPlansRoute: AdminPlansRouteWithChildren,
   AdminReconciliationRoute: AdminReconciliationRoute,
+  AdminRevenueRoute: AdminRevenueRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopsRoute: AdminShopsRouteWithChildren,
+  AdminUsersRoute: AdminUsersRoute,
   AdminVouchersRoute: AdminVouchersRoute,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
