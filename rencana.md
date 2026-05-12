@@ -30,6 +30,17 @@
 | 12 Mei 2026 | **Fase 3** | **Notifikasi stok kritis** — badge merah animasi di nav Inventori + toast error/warning real-time saat bahan ≤ min_stock atau habis | ✅ |
 | 12 Mei 2026 | **Fase 3** | **Auto non-aktif menu** — trigger DB nonaktifkan menu (is_available=false) otomatis jika ingredient habis + notifikasi danger ke owner | ✅ |
 | 12 Mei 2026 | **Fase 3** | **Bundle Produk / Paket** — buat paket multi-produk dengan harga spesial; trigger DB expand bundle ke komponen dan deduct stok tiap bahan sekaligus; badge PAKET di POS grid | ✅ |
+| 12 Mei 2026 | **Fase 4** | **Notifikasi Promo** — follower toko dapat notif saat promo/flash-sale baru; trigger DB fan-out ke semua followers | ✅ |
+| 12 Mei 2026 | **Fase 4** | **Live Chat Sebelum Beli** — chat real-time antara pembeli dan owner; inbox panel di pos-app; halaman `/toko/$slug/chat` untuk pembeli | ✅ |
+| 12 Mei 2026 | **Fase 4** | **Pesanan Berulang 1-tap** — "Pesan Lagi" di riwayat pesanan marketplace & pesanan favorit; pre-fill keranjang otomatis | ✅ |
+| 12 Mei 2026 | **Fase 4** | **Estimasi Waktu Pengiriman** — komponen DeliveryEstimate di halaman produk/keranjang; berdasarkan min/max ETA dari zona pengiriman | ✅ |
+| 12 Mei 2026 | **Fase 4** | **Q&A Produk + FAQ Pin** — pembeli tanya di halaman produk; owner jawab di `/pos-app/qa`; pin FAQ ke atas; tab FAQ di dashboard | ✅ |
+| 12 Mei 2026 | **Fase 4** | **Foto di Ulasan** — upload foto saat tulis ulasan via MarketplaceReviewDialog; insentif +5 poin | ✅ |
+| 12 Mei 2026 | **Fase 5** | **Auto-reply di luar jam buka** — toggle + custom message di Pengaturan; banner auto-reply aktif di Online Orders saat toko tutup | ✅ |
+| 12 Mei 2026 | **Fase 5** | **Flash Sale Terjadwal** — set starts_at + ends_at per produk; badge LIVE/DIJADWAL/BERAKHIR; trigger notif ke followers | ✅ |
+| 12 Mei 2026 | **Fase 5** | **Laporan Harian via WhatsApp** — halaman `/pos-app/laporan-harian`; omset, grafik per jam, top menu, stok kritis; tombol Bagikan via WhatsApp | ✅ |
+| 12 Mei 2026 | **Fase 5** | **Auto Print Struk** — toggle per-perangkat di Pengaturan (localStorage); window.print() otomatis saat order online baru masuk via realtime | ✅ |
+| 12 Mei 2026 | **Fase 5** | **Split Bill per Orang** — SplitBillDialog di KDS; pilih 2–20 orang; hitung per orang; salin teks untuk dikirim ke customer | ✅ |
 
 ---
 
@@ -75,7 +86,7 @@
 
 ---
 
-## FASE 4 — Pengalaman Pembeli di Marketplace 🔲
+## FASE 4 — Pengalaman Pembeli di Marketplace ✅ SELESAI
 
 > Marketplace yang terasa personal dan mendorong transaksi berulang.
 
@@ -90,7 +101,7 @@
 
 ---
 
-## FASE 5 — Otomasi Operasional 🔲
+## FASE 5 — Otomasi Operasional ✅ SELESAI
 
 > Toko berjalan saat owner tidak pegang HP.
 
@@ -124,6 +135,6 @@
 | Fase 1 — Dine-in & KDS | ⭐⭐⭐⭐⭐ | Rendah | ✅ Selesai |
 | Fase 3 — Stok Otomatis | ⭐⭐⭐⭐⭐ | Sedang | ✅ Selesai |
 | Fase 2 — Retensi Customer | ⭐⭐⭐⭐ | Sedang | ✅ Selesai |
-| Fase 5 — Otomasi Operasional | ⭐⭐⭐⭐ | Sedang | 🔲 Antri |
-| Fase 4 — Marketplace UX | ⭐⭐⭐ | Tinggi | 🔲 Antri |
+| Fase 5 — Otomasi Operasional | ⭐⭐⭐⭐ | Sedang | ✅ Selesai |
+| Fase 4 — Marketplace UX | ⭐⭐⭐ | Tinggi | ✅ Selesai |
 | Fase 6 — Feedback Loop | ⭐⭐⭐ | Rendah | ✅ Selesai |
