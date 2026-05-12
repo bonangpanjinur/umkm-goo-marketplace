@@ -28,13 +28,13 @@ args = "API Server"
 name = "KopiHub Dev"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd artifacts/kopihub && pnpm dev"
-waitForPort = 8080
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd artifacts/kopihub && PORT=5000 pnpm dev"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "API Server"
@@ -84,6 +84,10 @@ externalPort = 8081
 
 [[ports]]
 localPort = 24178
+externalPort = 80
+
+[[ports]]
+localPort = 5000
 externalPort = 80
 
 [nix]
