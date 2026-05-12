@@ -124,6 +124,7 @@ import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBroadcastRouteImport } from './routes/admin.broadcast'
 import { Route as AdminBrandingRouteImport } from './routes/admin.branding'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
+import { Route as AdminAutoRenewalRouteImport } from './routes/admin.auto-renewal'
 import { Route as AdminAutoCancelRouteImport } from './routes/admin.auto-cancel'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
@@ -731,6 +732,11 @@ const AdminBannersRoute = AdminBannersRouteImport.update({
   path: '/banners',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAutoRenewalRoute = AdminAutoRenewalRouteImport.update({
+  id: '/auto-renewal',
+  path: '/auto-renewal',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAutoCancelRoute = AdminAutoCancelRouteImport.update({
   id: '/auto-cancel',
   path: '/auto-cancel',
@@ -898,6 +904,7 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
+  '/admin/auto-renewal': typeof AdminAutoRenewalRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
@@ -1041,6 +1048,7 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
+  '/admin/auto-renewal': typeof AdminAutoRenewalRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
@@ -1186,6 +1194,7 @@ export interface FileRoutesById {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
+  '/admin/auto-renewal': typeof AdminAutoRenewalRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/broadcast': typeof AdminBroadcastRoute
@@ -1334,6 +1343,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
+    | '/admin/auto-renewal'
     | '/admin/banners'
     | '/admin/branding'
     | '/admin/broadcast'
@@ -1477,6 +1487,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
+    | '/admin/auto-renewal'
     | '/admin/banners'
     | '/admin/branding'
     | '/admin/broadcast'
@@ -1621,6 +1632,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
+    | '/admin/auto-renewal'
     | '/admin/banners'
     | '/admin/branding'
     | '/admin/broadcast'
@@ -2581,6 +2593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBannersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/auto-renewal': {
+      id: '/admin/auto-renewal'
+      path: '/auto-renewal'
+      fullPath: '/admin/auto-renewal'
+      preLoaderRoute: typeof AdminAutoRenewalRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/auto-cancel': {
       id: '/admin/auto-cancel'
       path: '/auto-cancel'
@@ -2817,6 +2836,7 @@ interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminAutoCancelRoute: typeof AdminAutoCancelRoute
+  AdminAutoRenewalRoute: typeof AdminAutoRenewalRoute
   AdminBannersRoute: typeof AdminBannersRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
   AdminBroadcastRoute: typeof AdminBroadcastRoute
@@ -2852,6 +2872,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminAutoCancelRoute: AdminAutoCancelRoute,
+  AdminAutoRenewalRoute: AdminAutoRenewalRoute,
   AdminBannersRoute: AdminBannersRoute,
   AdminBrandingRoute: AdminBrandingRoute,
   AdminBroadcastRoute: AdminBroadcastRoute,
