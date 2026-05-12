@@ -1,0 +1,305 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Star, TrendingUp, ShoppingBag, Users, Award, BadgeCheck, Coffee, Trophy } from "lucide-react";
+import { formatIDR } from "@/lib/format";
+
+export const Route = createFileRoute("/leaderboard")({
+  head: () => ({ meta: [{ title: "Leaderboard Toko Terbaik — KopiHub" }] }),
+  component: LeaderboardPage,
+});
+
+type ShopEntry = {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  tagline: string | null;
+  avg_rating: number;
+  review_count: number;
+  order_count: number;
+  follower_count: number;
+  is_verified: boolean;
+  score: number;
+};
+
+type Category = { label: string; icon: React.ElementType; field: keyof ShopEntry };
+
+const CATEGORIES: Category[] = [
+  { label: "Rating Tertinggi",  icon: Star,        field: "avg_rating"    },
+  { label: "Terlaris",          icon: ShoppingBag, field: "order_count"   },
+  { label: "Terbanyak Pengikut",icon: Users,        field: "follower_count" },
+  { label: "Skor Terbaik",      icon: Trophy,      field: "score"          },
+];
+
+function RankMedal({ rank }: { rank: number }) {
+  if (rank === 1) return <span className="text-2xl">🥇</span>;
+  if (rank === 2) return <span className="text-2xl">🥈</span>;
+  if (rank === 3) return <span className="text-2xl">🥉</span>;
+  return <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">#{rank}</span>;
+}
+
+function StarDisplay({ rating, count }: { rating: number; count: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex">
+        {[1,2,3,4,5].map(n => (
+          <Star key={n} className={`h-3.5 w-3.5 ${n <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/25"}`} />
+        ))}
+      </div>
+      <span className="text-sm font-semibold">{rating.toFixed(1)}</span>
+      <span className="text-xs text-muted-foreground">({count})</span>
+    </div>
+  );
+}
+
+function LeaderboardPage() {
+  const [shops, setShops]       = useState<ShopEntry[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [catIdx, setCatIdx]     = useState(3); // default: Skor Terbaik
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+
+      // 1. Fetch all coffee shops with basic info
+      const { data: shopData } = await supabase
+        .from("coffee_shops")
+        .select("id, name, slug, logo_url, tagline, is_kyc_verified")
+        .eq("is_active", true)
+        .order("created_at")
+        .limit(200);
+
+      if (!shopData || shopData.length === 0) { setLoading(false); return; }
+
+      const shopIds = shopData.map(s => s.id);
+
+      // 2. Avg rating + review count per shop
+      const { data: revData } = await supabase
+        .from("product_reviews")
+        .select("shop_id, rating")
+        .in("shop_id", shopIds)
+        .eq("is_hidden", false);
+
+      const reviewMap: Record<string, { sum: number; count: number }> = {};
+      for (const r of revData ?? []) {
+        if (!reviewMap[r.shop_id]) reviewMap[r.shop_id] = { sum: 0, count: 0 };
+        reviewMap[r.shop_id].sum   += r.rating;
+        reviewMap[r.shop_id].count += 1;
+      }
+
+      // 3. Completed order count per shop
+      const { data: ordData } = await supabase
+        .from("orders")
+        .select("shop_id")
+        .in("shop_id", shopIds)
+        .eq("status", "completed");
+
+      const orderMap: Record<string, number> = {};
+      for (const o of ordData ?? []) {
+        orderMap[o.shop_id] = (orderMap[o.shop_id] ?? 0) + 1;
+      }
+
+      // 4. Follower count per shop (table may not exist yet — fail silently)
+      const followMap: Record<string, number> = {};
+      try {
+        const { data: followData } = await supabase
+          .from("shop_follows" as any)
+          .select("shop_id")
+          .in("shop_id", shopIds);
+        for (const f of (followData ?? []) as any[]) {
+          followMap[f.shop_id] = (followMap[f.shop_id] ?? 0) + 1;
+        }
+      } catch (_) { /* table not yet created — skip silently */ }
+
+      // 5. Assemble + score
+      const entries: ShopEntry[] = shopData.map(s => {
+        const rev    = reviewMap[s.id] ?? { sum: 0, count: 0 };
+        const avg    = rev.count > 0 ? rev.sum / rev.count : 0;
+        const orders = orderMap[s.id] ?? 0;
+        const follows= followMap[s.id] ?? 0;
+        // Score formula: 40% rating × reviews, 40% orders, 20% followers
+        const score  = (avg * Math.min(rev.count, 100)) * 0.4
+                     + Math.min(orders, 1000)           * 0.4
+                     + Math.min(follows, 500)            * 0.2;
+        return {
+          id:             s.id,
+          name:           s.name,
+          slug:           s.slug,
+          logo_url:       s.logo_url,
+          tagline:        s.tagline,
+          avg_rating:     Math.round(avg * 10) / 10,
+          review_count:   rev.count,
+          order_count:    orders,
+          follower_count: follows,
+          is_verified:    Boolean((s as any).is_kyc_verified),
+          score:          Math.round(score),
+        };
+      }).filter(s => s.review_count > 0 || s.order_count > 0);
+
+      setShops(entries);
+      setLoading(false);
+    })();
+  }, []);
+
+  const cat     = CATEGORIES[catIdx];
+  const sorted  = [...shops].sort((a, b) => (b[cat.field] as number) - (a[cat.field] as number)).slice(0, 50);
+  const top3    = sorted.slice(0, 3);
+  const rest    = sorted.slice(3);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-amber-50/60 via-background to-background">
+      {/* Hero */}
+      <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white py-12 px-4">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="flex justify-center mb-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+              <Trophy className="h-8 w-8" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-black tracking-tight">Leaderboard Toko Terbaik</h1>
+          <p className="mt-2 text-amber-100 text-sm">
+            Ranking toko kopi berdasarkan rating, pesanan, dan popularitas di KopiHub
+          </p>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
+        {/* Category switcher */}
+        <div className="flex gap-2 flex-wrap justify-center">
+          {CATEGORIES.map((c, i) => (
+            <button
+              key={c.label}
+              onClick={() => setCatIdx(i)}
+              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                catIdx === i
+                  ? "bg-amber-500 text-white shadow-md shadow-amber-200"
+                  : "bg-card border border-border text-muted-foreground hover:border-amber-300 hover:text-amber-700"
+              }`}
+            >
+              <c.icon className="h-3.5 w-3.5" />
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+            <Coffee className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">Belum ada toko yang memenuhi syarat.</p>
+          </div>
+        ) : (
+          <>
+            {/* Top 3 podium */}
+            {top3.length > 0 && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {top3.map((s, i) => (
+                  <Link
+                    key={s.id}
+                    to="/s/$slug"
+                    params={{ slug: s.slug }}
+                    className={`relative rounded-2xl border bg-card p-4 text-center hover:shadow-md transition-shadow group ${
+                      i === 0 ? "border-amber-300 bg-amber-50/60 shadow-sm" :
+                      i === 1 ? "border-slate-300 bg-slate-50/60" :
+                      "border-orange-300 bg-orange-50/60"
+                    }`}
+                  >
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <RankMedal rank={i + 1} />
+                    </div>
+                    <div className="mt-3 flex justify-center mb-3">
+                      {s.logo_url ? (
+                        <img src={s.logo_url} alt={s.name} className="h-14 w-14 rounded-xl object-cover border-2 border-white shadow" />
+                      ) : (
+                        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-amber-100 border-2 border-white shadow">
+                          <Coffee className="h-7 w-7 text-amber-600" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                      <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{s.name}</p>
+                      {s.is_verified && <BadgeCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
+                    </div>
+                    {s.tagline && <p className="text-[11px] text-muted-foreground truncate mb-2">{s.tagline}</p>}
+                    <div className="flex justify-center">
+                      <StarDisplay rating={s.avg_rating} count={s.review_count} />
+                    </div>
+                    <div className="mt-2 flex justify-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><ShoppingBag className="h-3 w-3" />{s.order_count}</span>
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />{s.follower_count}</span>
+                    </div>
+                    {cat.field === "score" && (
+                      <div className="mt-2 rounded-full bg-amber-100 px-2 py-0.5 inline-block text-[10px] font-bold text-amber-700">
+                        Skor {s.score}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Rank 4+ list */}
+            {rest.length > 0 && (
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="border-b border-border bg-muted/30 px-4 py-2.5">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                    {cat.label} — Rank 4 dan seterusnya
+                  </p>
+                </div>
+                <ul className="divide-y divide-border">
+                  {rest.map((s, i) => (
+                    <li key={s.id}>
+                      <Link
+                        to="/s/$slug"
+                        params={{ slug: s.slug }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors group"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                          {i + 4}
+                        </span>
+                        {s.logo_url ? (
+                          <img src={s.logo_url} alt={s.name} className="h-10 w-10 rounded-lg object-cover border border-border shrink-0" />
+                        ) : (
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
+                            <Coffee className="h-5 w-5 text-amber-600" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{s.name}</p>
+                            {s.is_verified && <BadgeCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
+                          </div>
+                          {s.tagline && <p className="text-xs text-muted-foreground truncate">{s.tagline}</p>}
+                        </div>
+                        <div className="shrink-0 text-right space-y-0.5">
+                          <StarDisplay rating={s.avg_rating} count={s.review_count} />
+                          <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-0.5"><ShoppingBag className="h-3 w-3" />{s.order_count}</span>
+                            <span className="flex items-center gap-0.5"><Users className="h-3 w-3" />{s.follower_count}</span>
+                            {cat.field === "score" && (
+                              <span className="rounded-full bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">{s.score}</span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Footer note */}
+            <p className="text-center text-xs text-muted-foreground py-2">
+              Ranking diperbarui real-time berdasarkan rating ulasan, volume pesanan, dan pengikut.
+              Toko baru akan muncul setelah mendapat ulasan atau pesanan pertama.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

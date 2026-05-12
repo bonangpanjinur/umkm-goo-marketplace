@@ -104,16 +104,16 @@
 
 ---
 
-## FASE 6 — Feedback Loop & Kepercayaan 🔲
+## FASE 6 — Feedback Loop & Kepercayaan ✅ SELESAI
 
 > Ulasan jadi aset, bukan sekedar angka.
 
 | # | Fitur | Deskripsi | Status |
 |---|---|---|---|
-| F6-1 | **Balas Ulasan Publik** | Owner balas ulasan dari dashboard; balasan tampil di bawah ulasan pembeli | 🔲 |
-| F6-2 | **Laporan Sentimen Ulasan** | Kelompokkan ulasan: positif/negatif/saran; topik paling sering disebut | 🔲 |
-| F6-3 | **Moderasi Ulasan** | Owner flag ulasan tidak relevan; admin platform review | 🔲 |
-| F6-4 | **Leaderboard Toko Terbaik** | Ranking toko per kategori berdasarkan rating + volume pesanan | 🔲 |
+| F6-1 | **Balas Ulasan Publik** | Owner balas ulasan dari dashboard; balasan tampil di bawah ulasan pembeli | ✅ |
+| F6-2 | **Laporan Sentimen Ulasan** | Kelompokkan ulasan: positif/negatif/saran; topik paling sering disebut; keyword cloud | ✅ |
+| F6-3 | **Moderasi Ulasan** | Owner sembunyikan/tampilkan ulasan; flag ke admin platform + alasan pelaporan | ✅ |
+| F6-4 | **Leaderboard Toko Terbaik** | Halaman publik /leaderboard; ranking per kategori (rating/terlaris/followers/skor); podium top-3 | ✅ |
 
 ---
 
@@ -126,4 +126,4 @@
 | Fase 2 — Retensi Customer | ⭐⭐⭐⭐ | Sedang | ✅ Selesai |
 | Fase 5 — Otomasi Operasional | ⭐⭐⭐⭐ | Sedang | 🔲 Antri |
 | Fase 4 — Marketplace UX | ⭐⭐⭐ | Tinggi | 🔲 Antri |
-| Fase 6 — Feedback Loop | ⭐⭐⭐ | Rendah | 🔲 Antri |
+| Fase 6 — Feedback Loop | ⭐⭐⭐ | Rendah | ✅ Selesai |

@@ -16,6 +16,7 @@ import { Route as PromoRouteImport } from './routes/promo'
 import { Route as PosAppRouteImport } from './routes/pos-app'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -180,6 +181,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KeranjangRoute = KeranjangRouteImport.update({
@@ -843,6 +849,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pos-app': typeof PosAppRouteWithChildren
@@ -980,6 +987,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/promo': typeof PromoRoute
@@ -1117,6 +1125,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pos-app': typeof PosAppRouteWithChildren
@@ -1258,6 +1267,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/forgot-password'
     | '/keranjang'
+    | '/leaderboard'
     | '/login'
     | '/onboarding'
     | '/pos-app'
@@ -1395,6 +1405,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/forgot-password'
     | '/keranjang'
+    | '/leaderboard'
     | '/login'
     | '/onboarding'
     | '/promo'
@@ -1531,6 +1542,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/forgot-password'
     | '/keranjang'
+    | '/leaderboard'
     | '/login'
     | '/onboarding'
     | '/pos-app'
@@ -1671,6 +1683,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   KeranjangRoute: typeof KeranjangRoute
+  LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PosAppRoute: typeof PosAppRouteWithChildren
@@ -1738,6 +1751,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/keranjang': {
@@ -3022,6 +3042,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   KeranjangRoute: KeranjangRoute,
+  LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PosAppRoute: PosAppRouteWithChildren,
