@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "aReC8wJLt4dBBBXQqkTHi"
+uri = "file://PRD_KOPIHUB_LENGKAP.md"
+type = "text"
+title = "PRD Lengkap + Gap Analysis + SQL Migrations + Rencana Bisnis"
