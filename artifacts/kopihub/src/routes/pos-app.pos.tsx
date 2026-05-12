@@ -55,6 +55,7 @@ type MenuItem = {
   image_url: string | null;
   category_id: string | null;
   is_available: boolean;
+  item_type?: string;
 };
 
 type LocalCart = {
@@ -133,7 +134,7 @@ function POSPage() {
           .order("sort_order", { ascending: true }),
         supabase
           .from("menu_items")
-          .select("id, name, price, image_url, category_id, is_available")
+          .select("id, name, price, image_url, category_id, is_available, item_type")
           .eq("shop_id", shop.id)
           .eq("is_available", true)
           .order("name", { ascending: true }),

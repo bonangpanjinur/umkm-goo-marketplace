@@ -101,6 +101,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/atribut", label: "Atribut Produk", icon: Tag },
       { to: "/pos-app/stok", label: "Stok Terpadu", icon: Layers },
       { to: "/pos-app/inventory", label: "Inventori", icon: Package },
+      { to: "/pos-app/bundles", label: "Bundle / Paket", icon: Layers },
       { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
       { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
       { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },

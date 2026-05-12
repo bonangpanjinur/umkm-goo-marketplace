@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ImageIcon } from "lucide-react";
+import { Search, ImageIcon, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatIDR } from "@/lib/format";
 
@@ -11,6 +11,7 @@ type MenuItem = {
   image_url: string | null;
   category_id: string | null;
   is_available: boolean;
+  item_type?: string;
 };
 
 interface MenuGridProps {
@@ -85,31 +86,42 @@ export function MenuGrid({ categories, items, onItemClick, loading }: MenuGridPr
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {filtered.map((it) => (
-              <button
-                key={it.id}
-                onClick={() => onItemClick(it)}
-                className="group flex flex-col overflow-hidden rounded-xl border bg-background text-left transition-all hover:border-primary hover:ring-1 hover:ring-primary"
-              >
-                <div className="relative aspect-square w-full bg-muted">
-                  {it.image_url ? (
-                    <img
-                      src={it.image_url}
-                      alt={it.name}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-3">
-                  <div className="line-clamp-2 text-sm font-medium leading-tight">{it.name}</div>
-                  <div className="mt-1 text-sm font-bold text-primary">{formatIDR(it.price)}</div>
-                </div>
-              </button>
-            ))}
+            {filtered.map((it) => {
+              const isBundle = it.item_type === "bundle";
+              return (
+                <button
+                  key={it.id}
+                  onClick={() => onItemClick(it)}
+                  className={`group flex flex-col overflow-hidden rounded-xl border bg-background text-left transition-all hover:border-primary hover:ring-1 hover:ring-primary ${
+                    isBundle ? "border-primary/30 bg-primary/[0.02]" : ""
+                  }`}
+                >
+                  <div className="relative aspect-square w-full bg-muted">
+                    {it.image_url ? (
+                      <img
+                        src={it.image_url}
+                        alt={it.name}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
+                      </div>
+                    )}
+                    {isBundle && (
+                      <span className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground leading-none">
+                        <Package className="h-2.5 w-2.5" />
+                        PAKET
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <div className="line-clamp-2 text-sm font-medium leading-tight">{it.name}</div>
+                    <div className="mt-1 text-sm font-bold text-primary">{formatIDR(it.price)}</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

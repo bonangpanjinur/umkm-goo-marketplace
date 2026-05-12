@@ -29,6 +29,7 @@
 | 12 Mei 2026 | **Fase 3** | **Stok turun otomatis** — Supabase trigger `fn_deduct_stock_on_order`: kurangi ingredients per resep saat order completed/confirmed; log stock_movements tipe 'sale' | ✅ |
 | 12 Mei 2026 | **Fase 3** | **Notifikasi stok kritis** — badge merah animasi di nav Inventori + toast error/warning real-time saat bahan ≤ min_stock atau habis | ✅ |
 | 12 Mei 2026 | **Fase 3** | **Auto non-aktif menu** — trigger DB nonaktifkan menu (is_available=false) otomatis jika ingredient habis + notifikasi danger ke owner | ✅ |
+| 12 Mei 2026 | **Fase 3** | **Bundle Produk / Paket** — buat paket multi-produk dengan harga spesial; trigger DB expand bundle ke komponen dan deduct stok tiap bahan sekaligus; badge PAKET di POS grid | ✅ |
 
 ---
 
@@ -69,7 +70,7 @@
 | F3-1 | **Stok turun otomatis** | Trigger Supabase: tiap order masuk, kurangi `ingredients` sesuai resep; berlaku POS & marketplace | ✅ |
 | F3-2 | **Notifikasi stok kritis** | Badge merah + toast di pos-app saat stok ingredient ≤ `min_stock` | ✅ |
 | F3-3 | **Auto non-aktif menu** | Jika semua ingredient utama habis, `is_available = false` otomatis | ✅ |
-| F3-4 | **Bundle Produk / Paket** | 1 kopi + 1 snack = harga paket; stok keduanya berkurang sekaligus | 🔲 |
+| F3-4 | **Bundle Produk / Paket** | 1 kopi + 1 snack = harga paket; stok keduanya berkurang sekaligus | ✅ |
 | F3-5 | **Estimasi stok habis** | "Berdasarkan penjualan 7 hari, kopi susu akan habis dalam ~2 hari" | 🔲 |
 
 ---
