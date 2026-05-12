@@ -103,6 +103,7 @@ import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminRevenueLeakageRouteImport } from './routes/admin.revenue-leakage'
 import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
@@ -626,6 +627,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRevenueLeakageRoute = AdminRevenueLeakageRouteImport.update({
+  id: '/revenue-leakage',
+  path: '/revenue-leakage',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRevenueRoute = AdminRevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
@@ -926,6 +932,7 @@ export interface FileRoutesByFullPath {
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
+  '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/users': typeof AdminUsersRoute
@@ -1070,6 +1077,7 @@ export interface FileRoutesByTo {
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
+  '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/users': typeof AdminUsersRoute
@@ -1216,6 +1224,7 @@ export interface FileRoutesById {
   '/admin/plans': typeof AdminPlansRouteWithChildren
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
+  '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/users': typeof AdminUsersRoute
@@ -1365,6 +1374,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reconciliation'
     | '/admin/revenue'
+    | '/admin/revenue-leakage'
     | '/admin/settings'
     | '/admin/shops'
     | '/admin/users'
@@ -1509,6 +1519,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reconciliation'
     | '/admin/revenue'
+    | '/admin/revenue-leakage'
     | '/admin/settings'
     | '/admin/shops'
     | '/admin/users'
@@ -1654,6 +1665,7 @@ export interface FileRouteTypes {
     | '/admin/plans'
     | '/admin/reconciliation'
     | '/admin/revenue'
+    | '/admin/revenue-leakage'
     | '/admin/settings'
     | '/admin/shops'
     | '/admin/users'
@@ -2446,6 +2458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/revenue-leakage': {
+      id: '/admin/revenue-leakage'
+      path: '/revenue-leakage'
+      fullPath: '/admin/revenue-leakage'
+      preLoaderRoute: typeof AdminRevenueLeakageRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/revenue': {
       id: '/admin/revenue'
       path: '/revenue'
@@ -2858,6 +2877,7 @@ interface AdminRouteChildren {
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
   AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
+  AdminRevenueLeakageRoute: typeof AdminRevenueLeakageRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopsRoute: typeof AdminShopsRouteWithChildren
   AdminUsersRoute: typeof AdminUsersRoute
@@ -2894,6 +2914,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlansRoute: AdminPlansRouteWithChildren,
   AdminReconciliationRoute: AdminReconciliationRoute,
   AdminRevenueRoute: AdminRevenueRoute,
+  AdminRevenueLeakageRoute: AdminRevenueLeakageRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopsRoute: AdminShopsRouteWithChildren,
   AdminUsersRoute: AdminUsersRoute,

@@ -160,6 +160,7 @@ Setelah 27 halaman admin operasional terbangun, ditemukan 6 gap kritis yang lang
 | F7-5 | **Laporan Keuangan & Pajak** | `/admin/financial-report` | Rekap per tahun (selector 5 tahun terakhir); breakdown 12 bulan: subscription + komisi + fee WD; kalkulasi PPN 11% (UU HPP 2021) per bulan; ringkasan 4 kuartal; total tahunan di tfoot; badge "Berjalan" untuk bulan ini; catatan pajak informatif; export CSV siap pembukuan | ✅ |
 | F7-6 | **Deteksi Fraud & Anomali** | `/admin/fraud` | Tab Pesanan Mencurigakan: skoring 0–100 berdasarkan dispute <2 jam / <24 jam setelah order, nilai ≥ Rp 1jt, status cancelled; Tab Toko Anomali: spike GMV hari ini ≥5× rata-rata harian 7 hari (deteksi wash trading / fake orders); KPI cards: risiko tinggi, spike shops, total ditandai; aksi "Tandai untuk Investigasi" per item | ✅ |
 | F7-7 | **Notifikasi Renewal Otomatis** | `/admin/auto-renewal` | Scheduler Express berjalan tiap 10 menit; fire pada jam 09.00 WIB; query Pro shops dalam window 1/3/7/14 hari sebelum expired; insert ke `owner_notifications` dengan dedupe_key harian; 3 API endpoints: `POST /api/cron/renewal-notifications` (trigger), `GET /api/cron/renewal-preview` (dry-run list), `GET /api/cron/renewal-history` (run log); Admin UI: toggle jendela notifikasi, preview daftar toko, riwayat eksekusi, 20 notif terakhir terkirim, panduan SQL migration | ✅ |
+| F7-8 | **Revenue Leakage Detector** | `/admin/revenue-leakage` | Deteksi otomatis order completed tanpa komisi: 3 tipe (null_commission, zero_commission, underpaid <50% rate); KPI cards: total potensi kehilangan, toko terdampak, null/zero count, underpaid count; bar chart tren leakage harian; tabel detail dengan sort by gap/total/tanggal; filter tipe + search; rate detection: commission_rate per order → commission_rate_override toko → default 3%; aksi "Tandai Investigasi" per order → log ke system_audit | ✅ |
 
 ### Dampak Bisnis yang Diharapkan
 
@@ -172,6 +173,7 @@ Setelah 27 halaman admin operasional terbangun, ditemukan 6 gap kritis yang lang
 | Moderasi Konten | Kepercayaan marketplace meningkat → konversi pembeli lebih tinggi |
 | User Management | Respons cepat terhadap akun bermasalah → reputasi platform terjaga |
 | Notif Renewal Otomatis | Tidak ada MRR yang hilang karena owner lupa perpanjang → retention Pro shops |
+| Revenue Leakage Detector | Setiap order bocor tertangkap → integritas revenue platform terjaga, audit siap |
 
 ---
 
