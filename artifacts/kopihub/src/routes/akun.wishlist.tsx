@@ -4,9 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, Heart, HeartOff, Store, ShoppingCart } from "lucide-react";
+import { Loader2, Heart, HeartOff, Store, ShoppingCart, Bell, BellOff, TrendingDown } from "lucide-react";
+
 import { formatIDR } from "@/lib/format";
 import { addToCart } from "@/lib/marketplace-cart";
+
+const ALERTS_KEY = "kh_price_alerts";
+
+function getPriceAlerts(): Record<string, { price: number; name: string }> {
+  try { return JSON.parse(localStorage.getItem(ALERTS_KEY) ?? "{}"); } catch { return {}; }
+}
+function savePriceAlerts(alerts: Record<string, { price: number; name: string }>) {
+  try { localStorage.setItem(ALERTS_KEY, JSON.stringify(alerts)); } catch {}
+}
 
 export const Route = createFileRoute("/akun/wishlist")({
   component: WishlistPage,
@@ -32,6 +42,7 @@ function WishlistPage() {
   const [loading, setLoading] = useState(true);
   const [tableExists, setTableExists] = useState(true);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [priceAlerts, setPriceAlerts] = useState<Record<string, { price: number; name: string }>>({});
 
   const load = async () => {
     if (!user) return;
@@ -64,7 +75,28 @@ function WishlistPage() {
     setLoading(false);
   };
 
-  useEffect(() => { if (user) load(); }, [user?.id]);
+  useEffect(() => {
+    if (user) {
+      load();
+      setPriceAlerts(getPriceAlerts());
+    }
+  }, [user?.id]);
+
+  const toggleAlert = (item: WishlistItem) => {
+    if (!item.product) return;
+    const alerts = getPriceAlerts();
+    if (alerts[item.menu_item_id]) {
+      delete alerts[item.menu_item_id];
+      savePriceAlerts(alerts);
+      setPriceAlerts({ ...alerts });
+      toast.success("Alert harga dimatikan");
+    } else {
+      alerts[item.menu_item_id] = { price: Number(item.product.price), name: item.product.name };
+      savePriceAlerts(alerts);
+      setPriceAlerts({ ...alerts });
+      toast.success("Alert aktif! Kami akan memberi tahu jika harga turun");
+    }
+  };
 
   const remove = async (wishlistId: string, productName: string) => {
     setRemoving(wishlistId);
@@ -142,7 +174,15 @@ function WishlistPage() {
                     <p className="truncate text-sm font-medium hover:text-primary">{p?.name ?? "Produk dihapus"}</p>
                     <p className="text-xs text-muted-foreground">{p?.shop?.name ?? "—"}</p>
                   </Link>
-                  <p className="mt-1 text-sm font-semibold text-primary">{p ? formatIDR(p.price) : "—"}</p>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-primary">{p ? formatIDR(p.price) : "—"}</p>
+                    {p && priceAlerts[item.menu_item_id] && Number(p.price) < priceAlerts[item.menu_item_id].price && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                        <TrendingDown className="h-2.5 w-2.5" />
+                        Harga turun! (dari {formatIDR(priceAlerts[item.menu_item_id].price)})
+                      </span>
+                    )}
+                  </div>
                   {p && !p.is_available && (
                     <span className="text-xs text-destructive">Tidak tersedia</span>
                   )}
@@ -157,6 +197,17 @@ function WishlistPage() {
                   >
                     {removing === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Heart className="h-3.5 w-3.5 fill-current" />}
                   </Button>
+                  {p && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-7 w-7 ${priceAlerts[item.menu_item_id] ? "text-amber-500 hover:text-amber-700" : "text-muted-foreground hover:text-foreground"}`}
+                      title={priceAlerts[item.menu_item_id] ? "Matikan alert harga" : "Aktifkan alert harga turun"}
+                      onClick={() => toggleAlert(item)}
+                    >
+                      {priceAlerts[item.menu_item_id] ? <Bell className="h-3.5 w-3.5 fill-current" /> : <Bell className="h-3.5 w-3.5" />}
+                    </Button>
+                  )}
                   {p?.is_available && (
                     <Button variant="outline" size="sm" className="h-7 gap-1 text-xs px-2" onClick={() => addCart(item)}>
                       <ShoppingCart className="h-3 w-3" /> Tambah

@@ -13,6 +13,16 @@ import {
   TrustCertCard,
   computeTrustCert,
 } from "@/components/TrustCertBadge";
+import { Trophy, Medal } from "lucide-react";
+
+function computeShopTier(shop: { kyc_status?: string | null; rating_avg?: number | null; rating_count?: number | null }) {
+  const r = Number(shop.rating_avg ?? 0);
+  const n = Number(shop.rating_count ?? 0);
+  if (r >= 4.8 && n >= 100) return { label: "Platinum", icon: Trophy, cls: "bg-violet-100 text-violet-700 border-violet-200" };
+  if (r >= 4.5 && n >= 30)  return { label: "Gold Seller", icon: Medal, cls: "bg-amber-100 text-amber-700 border-amber-200" };
+  if (r >= 4.0 && n >= 10)  return { label: "Top Seller", icon: Medal, cls: "bg-sky-100 text-sky-700 border-sky-200" };
+  return null;
+}
 
 export const Route = createFileRoute("/toko/$slug")({
   component: ShopPage,
@@ -198,6 +208,16 @@ function ShopPage() {
                 {certResult?.earned && (
                   <TrustCertBadge size="sm" />
                 )}
+                {shop && (() => {
+                  const tier = computeShopTier(shop);
+                  if (!tier) return null;
+                  const Icon = tier.icon;
+                  return (
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${tier.cls}`}>
+                      <Icon className="h-3 w-3" /> {tier.label}
+                    </span>
+                  );
+                })()}
               </div>
               {shop?.tagline && (
                 <p className="mt-1 text-muted-foreground">{shop.tagline}</p>

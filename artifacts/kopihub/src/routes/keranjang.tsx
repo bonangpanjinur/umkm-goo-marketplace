@@ -2,10 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
-import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
+import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, getLastCartActivity, markCartActivity, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
-import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/keranjang")({
@@ -56,6 +56,7 @@ function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
+  const [showAbandonedBanner, setShowAbandonedBanner] = useState(false);
 
   const refresh = async () => {
     try {
@@ -67,6 +68,11 @@ function CartPage() {
         const map: Record<string, DeliverySettings> = {};
         for (const ds of dsArr) map[ds.shop_id] = ds;
         setDeliveryMap(map);
+        const lastTs = getLastCartActivity();
+        if (lastTs && Date.now() - lastTs > 30 * 60 * 1000) {
+          setShowAbandonedBanner(true);
+        }
+        markCartActivity();
       }
     } catch (e: any) {
       toast.error(e.message);
@@ -101,6 +107,24 @@ function CartPage() {
       <MarketplaceHeader />
       <div className="mx-auto max-w-5xl px-4 py-8">
         <h1 className="text-2xl font-bold tracking-tight">Keranjang</h1>
+
+        {showAbandonedBanner && (
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-800">Keranjangmu menunggu!</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Kamu punya {items.length} item yang belum di-checkout. Selesaikan pembelianmu sekarang sebelum stok habis.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAbandonedBanner(false)}
+              className="shrink-0 text-amber-500 hover:text-amber-700"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className="mt-6 text-sm text-muted-foreground">Memuat…</div>

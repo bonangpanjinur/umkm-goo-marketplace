@@ -12,8 +12,33 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Search, Download, Users, TrendingUp, ShoppingBag, UserPlus, Tag, X } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, Search, Download, Users, TrendingUp, ShoppingBag, UserPlus, Tag, X, Wand2 } from "lucide-react";
+
+const SEGMENT_STYLE: Record<string, string> = {
+  vip:      "bg-purple-100 text-purple-700 border border-purple-200",
+  regular:  "bg-blue-100 text-blue-700 border border-blue-200",
+  new:      "bg-green-100 text-green-700 border border-green-200",
+  inactive: "bg-gray-100 text-gray-500 border border-gray-200",
+};
+
+const SEGMENT_LABEL: Record<string, string> = {
+  vip: "VIP", regular: "Reguler", new: "Baru", inactive: "Tidak Aktif",
+};
+
+function computeAutoSegment(c: { total_orders: number; total_spent: number; last_order_at: string | null; first_order_at: string | null }): string {
+  const daysSinceLast = c.last_order_at
+    ? (Date.now() - new Date(c.last_order_at).getTime()) / 86_400_000
+    : Infinity;
+  const daysSinceFirst = c.first_order_at
+    ? (Date.now() - new Date(c.first_order_at).getTime()) / 86_400_000
+    : 0;
+
+  if (c.total_orders >= 10 || c.total_spent >= 1_500_000) return "vip";
+  if (daysSinceLast > 90) return "inactive";
+  if (c.total_orders >= 3 && daysSinceLast <= 60) return "regular";
+  if (daysSinceFirst <= 30) return "new";
+  return "regular";
+}
 
 export const Route = createFileRoute("/pos-app/customers")({
   component: CustomersPage,
@@ -45,6 +70,7 @@ function CustomersPage() {
   const [editSegment, setEditSegment] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [autoLabeling, setAutoLabeling] = useState(false);
 
   useEffect(() => {
     if (!shop) return;
@@ -105,6 +131,28 @@ function CustomersPage() {
     setEditNotes(c.notes ?? "");
   }
 
+  async function runAutoLabel() {
+    if (!shop || customers.length === 0) return;
+    setAutoLabeling(true);
+    try {
+      const updates = customers.map((c) => ({
+        id: c.id,
+        segment: computeAutoSegment(c),
+      }));
+      await Promise.all(
+        updates.map(({ id, segment }) =>
+          supabase.from("shop_customers").update({ segment }).eq("id", id)
+        )
+      );
+      toast.success(`${updates.length} pelanggan berhasil di-auto-label`);
+      loadCustomers();
+    } catch {
+      toast.error("Gagal auto-label");
+    } finally {
+      setAutoLabeling(false);
+    }
+  }
+
   async function saveEdit() {
     if (!editCustomer) return;
     setSaving(true);
@@ -151,12 +199,29 @@ function CustomersPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">Pelanggan</h1>
-        <Button variant="outline" size="sm" onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" /> Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={runAutoLabel}
+            disabled={autoLabeling || customers.length === 0}
+            className="gap-1.5"
+          >
+            {autoLabeling
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <Wand2 className="h-4 w-4" />}
+            Auto-Label Semua
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground -mt-3">
+        Auto-Label menentukan segmen otomatis: <span className="font-medium text-purple-600">VIP</span> (≥10 order / ≥1.5jt), <span className="font-medium text-blue-600">Reguler</span>, <span className="font-medium text-green-600">Baru</span> (&lt;30 hari), <span className="font-medium text-gray-500">Tidak Aktif</span> (&gt;90 hari)
+      </p>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -252,7 +317,16 @@ function CustomersPage() {
                       <TableCell className="text-right">{c.total_orders}</TableCell>
                       <TableCell className="text-right">{formatIDR(c.total_spent)}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{c.segment ?? "new"}</Badge>
+                        {(() => {
+                          const seg = c.segment ?? "new";
+                          const cls = SEGMENT_STYLE[seg] ?? SEGMENT_STYLE.new;
+                          const lbl = SEGMENT_LABEL[seg] ?? seg;
+                          return (
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>
+                              {lbl}
+                            </span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">

@@ -4,13 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell } from "lucide-react";
+
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ProductReviews } from "@/components/marketplace/ProductReviews";
+
 import { ProductQA } from "@/components/marketplace/ProductQA";
 import { useSeo } from "@/lib/use-seo";
+
+const PA_KEY = "kh_price_alerts";
+function getPriceAlerts(): Record<string, { price: number; name: string }> {
+  try { return JSON.parse(localStorage.getItem(PA_KEY) ?? "{}"); } catch { return {}; }
+}
+function savePriceAlerts(d: Record<string, { price: number; name: string }>) {
+  try { localStorage.setItem(PA_KEY, JSON.stringify(d)); } catch {}
+}
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
   component: ProductDetailPage,
@@ -228,6 +238,44 @@ function ShareButton({ product, shop }: { product: Product; shop: Shop }) {
   );
 }
 
+function PriceAlertButton({ productId, productName, productPrice }: { productId: string; productName: string; productPrice: number }) {
+  const { user } = useAuth();
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const alerts = getPriceAlerts();
+    setActive(!!alerts[productId]);
+  }, [productId]);
+
+  const toggle = () => {
+    if (!user) { toast.info("Masuk untuk mengaktifkan alert harga"); return; }
+    const alerts = getPriceAlerts();
+    if (active) {
+      delete alerts[productId];
+      savePriceAlerts(alerts);
+      setActive(false);
+      toast.success("Alert harga dimatikan");
+    } else {
+      alerts[productId] = { price: productPrice, name: productName };
+      savePriceAlerts(alerts);
+      setActive(true);
+      toast.success("Alert aktif! Kamu akan diberitahu jika harga turun");
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={toggle}
+      className={`h-11 w-11 shrink-0 ${active ? "text-amber-500 border-amber-300 bg-amber-50 hover:bg-amber-100" : ""}`}
+      title={active ? "Matikan alert harga" : "Aktifkan alert harga turun"}
+    >
+      <Bell className={`h-5 w-5 ${active ? "fill-current" : ""}`} />
+    </Button>
+  );
+}
+
 function WishlistButton({ productId }: { productId: string }) {
   const { user } = useAuth();
   const [wished, setWished] = useState(false);
@@ -320,6 +368,7 @@ function AddToCartBlock({ product, shopSlug, shop }: { product: Product; shopSlu
       </div>
       <div className="flex gap-2">
         <WishlistButton productId={product.id} />
+        <PriceAlertButton productId={product.id} productName={product.name} productPrice={Number(product.price)} />
         {shop && <ShareButton product={product} shop={shop as Shop} />}
         <Button
           size="lg"

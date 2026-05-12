@@ -5,8 +5,17 @@ import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/M
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Sparkles, Store, ShieldCheck, Zap, TrendingUp, Star,
-  ChevronLeft, ChevronRight, Megaphone, Package,
+  ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
 } from "lucide-react";
+
+function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
+  const r = Number(shop.rating_avg ?? 0);
+  const n = Number(shop.rating_count ?? 0);
+  if (r >= 4.8 && n >= 100) return { label: "Platinum", icon: Trophy, cls: "bg-violet-100 text-violet-700" };
+  if (r >= 4.5 && n >= 30)  return { label: "Gold Seller", icon: Medal, cls: "bg-amber-100 text-amber-700" };
+  if (r >= 4.0 && n >= 10)  return { label: "Top Seller", icon: Medal, cls: "bg-sky-100 text-sky-700" };
+  return null;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -218,6 +227,7 @@ function SkeletonGrid({ cols = 4, count = 8 }: { cols?: number; count?: number }
 }
 
 function ShopCard({ shop }: { shop: Shop }) {
+  const tier = computeShopTier(shop);
   return (
     <Link
       to="/toko/$slug"
@@ -240,7 +250,14 @@ function ShopCard({ shop }: { shop: Shop }) {
           }
         </div>
       </div>
-      {shop.tagline && <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">{shop.tagline}</p>}
+      {tier && (() => { const Icon = tier.icon; return (
+        <div className="mt-2">
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${tier.cls}`}>
+            <Icon className="h-2.5 w-2.5" /> {tier.label}
+          </span>
+        </div>
+      ); })()}
+      {shop.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{shop.tagline}</p>}
     </Link>
   );
 }

@@ -53,6 +53,7 @@ export async function addToCart(args: {
     });
     if (error) throw error;
   }
+  markCartActivity();
 }
 
 export async function listCart(): Promise<CartItem[]> {
@@ -82,6 +83,14 @@ export async function updateCartItem(id: string, quantity: number): Promise<void
 export async function removeCartItem(id: string): Promise<void> {
   const { error } = await supabase.from("marketplace_cart_items").delete().eq("id", id);
   if (error) throw error;
+}
+
+export function markCartActivity(): void {
+  try { localStorage.setItem("kh_cart_ts", Date.now().toString()); } catch {}
+}
+
+export function getLastCartActivity(): number | null {
+  try { const v = localStorage.getItem("kh_cart_ts"); return v ? Number(v) : null; } catch { return null; }
 }
 
 export async function cartCount(): Promise<number> {
