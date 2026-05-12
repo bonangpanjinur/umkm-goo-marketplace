@@ -85,7 +85,7 @@
 | F4-2 | **Live Chat Sebelum Beli** | Chat real-time antara calon pembeli dan pemilik toko (bukan hanya di dalam pesanan) | ✅ |
 | F4-3 | **Pesanan Berulang 1-tap** | Di halaman akun, tampilkan "Pesan Lagi" dari riwayat pesanan marketplace | ✅ |
 | F4-4 | **Estimasi Waktu Pengiriman** | Tampil di halaman produk berdasarkan zona delivery dan jam operasional toko | ✅ |
-| F4-5 | **Q&A Produk** | Pembeli tanya di halaman produk; owner jawab; tampil publik untuk calon pembeli lain | ✅ |
+| F4-5 | **Q&A Produk + FAQ Pin** | Pembeli tanya di halaman produk; owner jawab; "Tandai sebagai penting" pin FAQ ke atas halaman produk; tab FAQ di dashboard | ✅ |
 | F4-6 | **Foto di Ulasan** | Upload foto saat tulis ulasan; dapat +5 poin sebagai insentif | ✅ |
 
 ---
@@ -96,11 +96,11 @@
 
 | # | Fitur | Deskripsi | Status |
 |---|---|---|---|
-| F5-1 | **Auto-reply di luar jam buka** | Sistem kirim pesan otomatis ke customer jika order masuk di luar jam operasional | 🔲 |
-| F5-2 | **Flash Sale Terjadwal** | Owner set promo untuk besok; sistem aktifkan/nonaktifkan otomatis sesuai jadwal | 🔲 |
-| F5-3 | **Laporan Harian via WhatsApp** | Ringkasan omset, top menu, stok kritis dikirim jam 23.00 tiap hari | 🔲 |
-| F5-4 | **Auto Print Struk** | Saat order online/marketplace masuk, struk tercetak otomatis tanpa klik manual | 🔲 |
-| F5-5 | **Split Bill per Orang** | Di halaman order meja, hitung pembagian bill per kepala dari total pesanan meja | 🔲 |
+| F5-1 | **Auto-reply di luar jam buka** | Toggle + custom message di Pengaturan; banner auto-reply aktif di halaman Online Orders saat toko tutup | ✅ |
+| F5-2 | **Flash Sale Terjadwal** | Owner set flash_starts_at + flash_ends_at per produk; status LIVE/DIJADWAL/BERAKHIR; badge real-time di halaman Promo | ✅ |
+| F5-3 | **Laporan Harian via WhatsApp** | Halaman /laporan-harian: omset, grafik per jam, top menu, stok kritis; tombol Bagikan via WhatsApp dengan teks terformat | ✅ |
+| F5-4 | **Auto Print Struk** | Toggle per-perangkat di Pengaturan (localStorage); window.print() otomatis saat pesanan online baru masuk via realtime | ✅ |
+| F5-5 | **Split Bill per Orang** | SplitBillDialog di KDS: pilih jumlah orang (2–20), hitung per orang, salin teks untuk dikirim ke customer | ✅ |
 
 ---
 

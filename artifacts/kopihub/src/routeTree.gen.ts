@@ -60,6 +60,7 @@ import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
 import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
 import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
+import { Route as PosAppLaporanHarianRouteImport } from './routes/pos-app.laporan-harian'
 import { Route as PosAppKycRouteImport } from './routes/pos-app.kyc'
 import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
@@ -400,6 +401,11 @@ const PosAppMarketplaceAnalyticsRoute =
 const PosAppLoyaltyRoute = PosAppLoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppLaporanHarianRoute = PosAppLaporanHarianRouteImport.update({
+  id: '/laporan-harian',
+  path: '/laporan-harian',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppKycRoute = PosAppKycRouteImport.update({
@@ -905,6 +911,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/kyc': typeof PosAppKycRoute
+  '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
@@ -1039,6 +1046,7 @@ export interface FileRoutesByTo {
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/kyc': typeof PosAppKycRoute
+  '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
@@ -1177,6 +1185,7 @@ export interface FileRoutesById {
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
   '/pos-app/kyc': typeof PosAppKycRoute
+  '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
@@ -1317,6 +1326,7 @@ export interface FileRouteTypes {
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/kyc'
+    | '/pos-app/laporan-harian'
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
@@ -1451,6 +1461,7 @@ export interface FileRouteTypes {
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/kyc'
+    | '/pos-app/laporan-harian'
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
@@ -1588,6 +1599,7 @@ export interface FileRouteTypes {
     | '/pos-app/kds'
     | '/pos-app/keuangan'
     | '/pos-app/kyc'
+    | '/pos-app/laporan-harian'
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
@@ -2034,6 +2046,13 @@ declare module '@tanstack/react-router' {
       path: '/loyalty'
       fullPath: '/pos-app/loyalty'
       preLoaderRoute: typeof PosAppLoyaltyRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/laporan-harian': {
+      id: '/pos-app/laporan-harian'
+      path: '/laporan-harian'
+      fullPath: '/pos-app/laporan-harian'
+      preLoaderRoute: typeof PosAppLaporanHarianRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/kyc': {
@@ -2830,6 +2849,7 @@ interface PosAppRouteChildren {
   PosAppKdsRoute: typeof PosAppKdsRoute
   PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
   PosAppKycRoute: typeof PosAppKycRoute
+  PosAppLaporanHarianRoute: typeof PosAppLaporanHarianRoute
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
@@ -2889,6 +2909,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppKdsRoute: PosAppKdsRoute,
   PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
   PosAppKycRoute: PosAppKycRoute,
+  PosAppLaporanHarianRoute: PosAppLaporanHarianRoute,
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,

@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChefHat, Clock, CheckCircle2, Bell, Filter, BellRing, X, UserCheck } from "lucide-react";
+import { Loader2, ChefHat, Clock, CheckCircle2, Bell, Filter, BellRing, X, UserCheck, Users } from "lucide-react";
+import { SplitBillDialog } from "@/components/SplitBillDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
@@ -53,6 +54,8 @@ function timeAgo(iso: string) {
   return `${Math.floor(diff / 60)} mnt lalu`;
 }
 
+type SplitTarget = { orderId: string; orderNo: string; total: number; items?: OrderItem[] };
+
 function KDSPage() {
   const { shop, outlet, loading: loadingShop } = useCurrentShop();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -60,6 +63,7 @@ function KDSPage() {
   const [loading, setLoading] = useState(true);
   const [activeStation, setActiveStation] = useState<string>("all");
   const [stations, setStations] = useState<string[]>([]);
+  const [splitTarget, setSplitTarget] = useState<SplitTarget | null>(null);
 
   // Service calls state
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
@@ -427,7 +431,7 @@ function KDSPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="p-4 border-t border-slate-800">
+                <div className="p-4 border-t border-slate-800 space-y-2">
                   {order.status === "pending" ? (
                     <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12"
@@ -444,12 +448,52 @@ function KDSPage() {
                       SIAP SAJI
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-slate-400 hover:text-white hover:bg-slate-800"
+                    onClick={async () => {
+                      let orderItems = items[order.id];
+                      if (!orderItems) {
+                        const { data } = await supabase
+                          .from("order_items")
+                          .select("id,name,quantity,subtotal,note")
+                          .eq("order_id", order.id);
+                        orderItems = (data ?? []) as any;
+                        setItems((prev) => ({ ...prev, [order.id]: orderItems }));
+                      }
+                      const { data: orderData } = await supabase
+                        .from("orders")
+                        .select("total")
+                        .eq("id", order.id)
+                        .maybeSingle();
+                      setSplitTarget({
+                        orderId: order.id,
+                        orderNo: order.order_no,
+                        total: Number(orderData?.total ?? 0),
+                        items: orderItems as any,
+                      });
+                    }}
+                  >
+                    <Users className="h-3.5 w-3.5 mr-1.5" />
+                    Split Bill
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </main>
+
+      {splitTarget && (
+        <SplitBillDialog
+          open={!!splitTarget}
+          onClose={() => setSplitTarget(null)}
+          total={splitTarget.total}
+          orderNo={splitTarget.orderNo}
+          items={splitTarget.items as any}
+        />
+      )}
     </div>
   );
 }

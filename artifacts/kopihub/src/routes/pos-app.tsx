@@ -157,6 +157,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
       { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
       { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
+      { to: "/pos-app/laporan-harian", label: "Laporan Harian", icon: BarChart3, hint: "Ringkasan omset, top menu & stok kritis harian. Bagikan via WhatsApp." },
       { to: "/pos-app/invoice", label: "Invoice PDF", icon: FileText },
     ],
   },

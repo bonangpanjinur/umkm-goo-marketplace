@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp, HelpCircle, Loader2, MessageCircle, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown, ChevronUp, HelpCircle, Loader2, MessageCircle, Pin, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 type QA = {
@@ -13,24 +14,41 @@ type QA = {
   answered_at: string | null;
   created_at: string;
   user_id: string | null;
+  is_pinned: boolean;
 };
 
 export function ProductQA({ productId, shopId }: { productId: string; shopId: string }) {
   const { user } = useAuth();
+  const [pinnedItems, setPinnedItems] = useState<QA[]>([]);
   const [items, setItems] = useState<QA[]>([]);
   const [myItems, setMyItems] = useState<QA[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [question, setQuestion] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const load = async () => {
-    const { data: answered } = await supabase
+    // Load pinned (FAQ) items first
+    const { data: pinned } = await supabase
       .from("product_qa")
-      .select("id, question, answer, answered_at, created_at, user_id")
+      .select("id, question, answer, answered_at, created_at, user_id, is_pinned")
       .eq("product_id", productId)
       .eq("is_hidden", false)
+      .eq("is_pinned", true)
+      .not("answer", "is", null)
+      .order("answered_at", { ascending: false })
+      .limit(10);
+    setPinnedItems((pinned as QA[]) ?? []);
+
+    // Load non-pinned answered items
+    const { data: answered } = await supabase
+      .from("product_qa")
+      .select("id, question, answer, answered_at, created_at, user_id, is_pinned")
+      .eq("product_id", productId)
+      .eq("is_hidden", false)
+      .eq("is_pinned", false)
       .not("answer", "is", null)
       .order("answered_at", { ascending: false })
       .limit(20);
@@ -39,7 +57,7 @@ export function ProductQA({ productId, shopId }: { productId: string; shopId: st
     if (user) {
       const { data: mine } = await supabase
         .from("product_qa")
-        .select("id, question, answer, answered_at, created_at, user_id")
+        .select("id, question, answer, answered_at, created_at, user_id, is_pinned")
         .eq("product_id", productId)
         .eq("user_id", user.id)
         .is("answer", null)
@@ -79,8 +97,12 @@ export function ProductQA({ productId, shopId }: { productId: string; shopId: st
     );
   }
 
+  const totalAnswered = pinnedItems.length + items.length;
+  const visibleItems = showAll ? items : items.slice(0, 3);
+
   return (
     <div className="space-y-4">
+      {/* My pending questions */}
       {myItems.length > 0 && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
           <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
@@ -93,30 +115,78 @@ export function ProductQA({ productId, shopId }: { productId: string; shopId: st
         </div>
       )}
 
-      {items.length === 0 && myItems.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          Belum ada pertanyaan untuk produk ini. Jadilah yang pertama bertanya!
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {items.map((qa) => (
-            <div key={qa.id} className="border-b border-border pb-3 last:border-0 space-y-2">
-              <div className="flex items-start gap-2">
-                <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
-                <p className="text-sm font-medium leading-snug">{qa.question}</p>
-              </div>
-              <div className="ml-6 rounded-md bg-primary/5 border border-primary/10 px-3 py-2 flex items-start gap-2">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-primary mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-semibold text-primary mb-0.5">Jawaban Penjual</p>
-                  <p className="text-sm leading-snug whitespace-pre-line">{qa.answer}</p>
+      {/* FAQ Section (pinned) */}
+      {pinnedItems.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Pin className="h-3.5 w-3.5 text-amber-500" />
+            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">FAQ — Pertanyaan Sering Ditanya</p>
+            <Badge variant="outline" className="text-[10px] px-1.5 h-4 border-amber-300 text-amber-700">
+              {pinnedItems.length}
+            </Badge>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50/60 divide-y divide-amber-100 overflow-hidden">
+            {pinnedItems.map((qa) => (
+              <div key={qa.id} className="px-4 py-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Pin className="h-3.5 w-3.5 shrink-0 text-amber-500 mt-0.5" />
+                  <p className="text-sm font-semibold leading-snug text-foreground">{qa.question}</p>
+                </div>
+                <div className="ml-5 rounded-md bg-white border border-amber-100 px-3 py-2 flex items-start gap-2">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-[10px] font-semibold text-primary mb-0.5">Jawaban Penjual</p>
+                    <p className="text-sm leading-snug whitespace-pre-line">{qa.answer}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
+      {/* Other answered Q&As */}
+      {totalAnswered === 0 && myItems.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          Belum ada pertanyaan untuk produk ini. Jadilah yang pertama bertanya!
+        </p>
+      ) : items.length > 0 ? (
+        <div className="space-y-2">
+          {pinnedItems.length > 0 && (
+            <p className="text-xs font-medium text-muted-foreground">Pertanyaan lainnya</p>
+          )}
+          <div className="space-y-3">
+            {visibleItems.map((qa) => (
+              <div key={qa.id} className="border-b border-border pb-3 last:border-0 space-y-2">
+                <div className="flex items-start gap-2">
+                  <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
+                  <p className="text-sm font-medium leading-snug">{qa.question}</p>
+                </div>
+                <div className="ml-6 rounded-md bg-primary/5 border border-primary/10 px-3 py-2 flex items-start gap-2">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-[10px] font-semibold text-primary mb-0.5">Jawaban Penjual</p>
+                    <p className="text-sm leading-snug whitespace-pre-line">{qa.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {items.length > 3 && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+            >
+              {showAll
+                ? <><ChevronUp className="h-3.5 w-3.5" /> Sembunyikan</>
+                : <><ChevronDown className="h-3.5 w-3.5" /> Lihat {items.length - 3} pertanyaan lainnya</>
+              }
+            </button>
+          )}
+        </div>
+      ) : null}
+
+      {/* Success message */}
       {submitted && (
         <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2">
           <MessageCircle className="h-4 w-4 shrink-0" />
@@ -124,6 +194,7 @@ export function ProductQA({ productId, shopId }: { productId: string; shopId: st
         </div>
       )}
 
+      {/* Ask question form */}
       {!submitted && (
         <div>
           {showForm ? (
@@ -165,7 +236,7 @@ export function ProductQA({ productId, shopId }: { productId: string; shopId: st
             >
               <HelpCircle className="h-4 w-4 mr-2" />
               Ada pertanyaan tentang produk ini?
-              {showForm ? <ChevronUp className="h-4 w-4 ml-auto" /> : <ChevronDown className="h-4 w-4 ml-auto" />}
+              <ChevronDown className="h-4 w-4 ml-auto" />
             </Button>
           )}
         </div>

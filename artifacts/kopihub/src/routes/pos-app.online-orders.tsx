@@ -1,20 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OrdersTabs } from "@/components/orders/OrdersTabs";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { formatIDR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ShoppingBag, Phone, MapPin, Bell, BellOff } from "lucide-react";
+import { Loader2, ShoppingBag, Phone, MapPin, Bell, BellOff, Printer, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { ensureNotificationPermission, notifyOrder } from "@/lib/notify";
+import { getAutoPrintEnabled } from "./pos-app.settings";
 
 export const Route = createFileRoute("/pos-app/online-orders")({
   component: OnlineOrders,
@@ -49,6 +46,13 @@ type OrderItem = {
 
 type Courier = { id: string; name: string; phone: string; plate_number: string | null };
 
+type ShopSettings = {
+  auto_reply_enabled: boolean;
+  auto_reply_message: string | null;
+  open_hours: Record<string, { open: string; close: string; closed: boolean }> | null;
+  whatsapp: string | null;
+};
+
 const STATUS_CHIP: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
   preparing: "bg-blue-100 text-blue-800",
@@ -75,27 +79,40 @@ const TABS: Array<{ key: string; label: string; statuses: string[] }> = [
   { key: "cancelled", label: "Dibatalkan", statuses: ["cancelled", "voided"] },
 ];
 
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+
+function isShopOpen(openHours: ShopSettings["open_hours"]): boolean {
+  if (!openHours) return true;
+  const now = new Date();
+  const dayKey = DAY_KEYS[now.getDay()];
+  const h = openHours[dayKey];
+  if (!h || h.closed) return false;
+  const hhmm = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+  return hhmm >= h.open && hhmm <= h.close;
+}
+
 function OnlineOrders() {
   const { shop, loading: loadingShop } = useCurrentShop();
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<Record<string, OrderItem[]>>({});
   const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
   const [tab, setTab] = useState<string>("active");
   const [loading, setLoading] = useState(true);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "denied"
   );
+  const printFrameRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     if (!shop) return;
     let cancelled = false;
+
     const load = async () => {
-      const [{ data: ord }, { data: cs }] = await Promise.all([
+      const [{ data: ord }, { data: cs }, { data: settings }] = await Promise.all([
         supabase
           .from("orders")
-          .select(
-            "id,order_no,status,fulfillment,total,delivery_fee,delivery_address,customer_name,customer_phone,note,created_at,courier_id,payment_status,payment_method,payment_proof_url"
-          )
+          .select("id,order_no,status,fulfillment,total,delivery_fee,delivery_address,customer_name,customer_phone,note,created_at,courier_id,payment_status,payment_method,payment_proof_url")
           .eq("shop_id", shop.id)
           .eq("channel", "online")
           .order("created_at", { ascending: false })
@@ -106,10 +123,16 @@ function OnlineOrders() {
           .eq("shop_id", shop.id)
           .eq("is_active", true)
           .order("name"),
+        supabase
+          .from("coffee_shops")
+          .select("auto_reply_enabled, auto_reply_message, open_hours, whatsapp")
+          .eq("id", shop.id)
+          .maybeSingle(),
       ]);
       if (cancelled) return;
       setOrders((ord ?? []) as Order[]);
       setCouriers((cs ?? []) as Courier[]);
+      setShopSettings((settings as ShopSettings | null) ?? null);
       setLoading(false);
     };
     load();
@@ -120,24 +143,44 @@ function OnlineOrders() {
         "postgres_changes",
         { event: "*", schema: "public", table: "orders", filter: `shop_id=eq.${shop.id}` },
         (payload) => {
-            // Patch state in-place to avoid a full refetch on every change.
-            // Only online-channel orders matter on this screen.
-            if (payload.eventType === "INSERT") {
-              const row = payload.new as Order & { channel: string };
-              if (row.channel !== "online") return;
-              setOrders((prev) => (prev.some((o) => o.id === row.id) ? prev : [row, ...prev]));
-              toast.info(`Pesanan baru #${row.order_no}`, {
-                icon: <Bell className="h-4 w-4" />,
-              });
-              notifyOrder("Pesanan baru masuk", `Order #${row.order_no} menunggu konfirmasi`);
-            } else if (payload.eventType === "UPDATE") {
-              const row = payload.new as Order & { channel: string };
-              if (row.channel !== "online") return;
-              setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } : o)));
-            } else if (payload.eventType === "DELETE") {
-              const row = payload.old as { id: string };
-              setOrders((prev) => prev.filter((o) => o.id !== row.id));
+          if (payload.eventType === "INSERT") {
+            const row = payload.new as Order & { channel: string };
+            if (row.channel !== "online") return;
+            setOrders((prev) => (prev.some((o) => o.id === row.id) ? prev : [row, ...prev]));
+
+            // Auto-reply check
+            if (shopSettings?.auto_reply_enabled && !isShopOpen(shopSettings.open_hours)) {
+              toast.info(
+                <div className="flex items-start gap-2">
+                  <Bot className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
+                  <div>
+                    <p className="font-semibold text-sm">Auto-reply terkirim #{row.order_no}</p>
+                    <p className="text-xs text-muted-foreground">Pesanan masuk di luar jam buka.</p>
+                  </div>
+                </div>,
+                { duration: 5000 }
+              );
+            } else {
+              toast.info(`Pesanan baru #${row.order_no}`, { icon: <Bell className="h-4 w-4" /> });
             }
+
+            notifyOrder("Pesanan baru masuk", `Order #${row.order_no} menunggu konfirmasi`);
+
+            // Auto-print struk (F5-4)
+            if (getAutoPrintEnabled()) {
+              setTimeout(() => {
+                toast.info("Auto-print struk dijalankan…", { icon: <Printer className="h-4 w-4" /> });
+                window.print();
+              }, 500);
+            }
+          } else if (payload.eventType === "UPDATE") {
+            const row = payload.new as Order & { channel: string };
+            if (row.channel !== "online") return;
+            setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } : o)));
+          } else if (payload.eventType === "DELETE") {
+            const row = payload.old as { id: string };
+            setOrders((prev) => prev.filter((o) => o.id !== row.id));
+          }
         }
       )
       .subscribe();
@@ -146,7 +189,7 @@ function OnlineOrders() {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [shop]);
+  }, [shop, shopSettings?.auto_reply_enabled]);
 
   const filtered = useMemo(() => {
     const sts = TABS.find((t) => t.key === tab)?.statuses ?? [];
@@ -165,17 +208,14 @@ function OnlineOrders() {
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase
       .from("orders")
-      .update({ status: status as "pending" | "preparing" | "ready" | "delivering" | "completed" | "cancelled" })
+      .update({ status: status as never })
       .eq("id", id);
     if (error) toast.error(error.message);
     else toast.success("Status diperbarui");
   };
 
   const assignCourier = async (id: string, courier_id: string | null) => {
-    const { error } = await supabase
-      .from("orders")
-      .update({ courier_id })
-      .eq("id", id);
+    const { error } = await supabase.from("orders").update({ courier_id }).eq("id", id);
     if (error) toast.error(error.message);
     else toast.success(courier_id ? "Kurir ditugaskan" : "Penugasan dibatalkan");
   };
@@ -183,10 +223,7 @@ function OnlineOrders() {
   const verifyPayment = async (id: string, paid: boolean) => {
     const { error } = await supabase
       .from("orders")
-      .update({
-        payment_status: paid ? "paid" : "unpaid",
-        paid_at: paid ? new Date().toISOString() : null,
-      })
+      .update({ payment_status: paid ? "paid" : "unpaid", paid_at: paid ? new Date().toISOString() : null })
       .eq("id", id);
     if (error) toast.error(error.message);
     else toast.success(paid ? "Pembayaran diverifikasi" : "Pembayaran ditolak");
@@ -205,74 +242,96 @@ function OnlineOrders() {
     n: orders.filter((o) => t.statuses.includes(o.status)).length,
   }));
 
+  const shopClosed = !isShopOpen(shopSettings?.open_hours ?? null);
+  const autoReplyActive = shopSettings?.auto_reply_enabled && shopClosed;
+
   return (
     <>
       <OrdersTabs />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
           <ShoppingBag className="h-5 w-5" />
           <h2 className="text-base font-semibold text-muted-foreground">Order Web Toko</h2>
-        <Button
-          size="sm"
-          variant={notifPerm === "granted" ? "secondary" : "outline"}
-          className="ml-auto gap-1.5"
-          onClick={async () => {
-            const p = await ensureNotificationPermission();
-            setNotifPerm(p);
-            if (p === "granted") {
-              notifyOrder("Notifikasi aktif", "Anda akan mendapat notifikasi pesanan baru");
-              toast.success("Notifikasi aktif");
-            } else if (p === "denied") {
-              toast.error("Izin notifikasi ditolak. Aktifkan dari setelan browser.");
-            }
-          }}
-        >
-          {notifPerm === "granted" ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
-          {notifPerm === "granted" ? "Notif aktif" : "Aktifkan notif"}
-        </Button>
-      </div>
 
-      <div className="mb-4 flex gap-1 border-b border-border">
-        {TABS.map((t) => {
-          const c = counts.find((x) => x.key === t.key)?.n ?? 0;
-          const active = tab === t.key;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                active
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t.label}
-              <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-xs">{c}</span>
-            </button>
-          );
-        })}
-      </div>
+          {/* Auto-reply indicator */}
+          {autoReplyActive && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+              <Bot className="h-3 w-3" />
+              Auto-reply aktif (toko tutup)
+            </span>
+          )}
 
-      {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
-          Tidak ada pesanan.
+          <Button
+            size="sm"
+            variant={notifPerm === "granted" ? "secondary" : "outline"}
+            className="ml-auto gap-1.5"
+            onClick={async () => {
+              const p = await ensureNotificationPermission();
+              setNotifPerm(p);
+              if (p === "granted") {
+                notifyOrder("Notifikasi aktif", "Anda akan mendapat notifikasi pesanan baru");
+                toast.success("Notifikasi aktif");
+              } else if (p === "denied") {
+                toast.error("Izin notifikasi ditolak. Aktifkan dari setelan browser.");
+              }
+            }}
+          >
+            {notifPerm === "granted" ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+            {notifPerm === "granted" ? "Notif aktif" : "Aktifkan notif"}
+          </Button>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((o) => (
-            <OrderCard
-              key={o.id}
-              order={o}
-              items={items[o.id]}
-              couriers={couriers}
-              onExpand={() => loadItems(o.id)}
-              onUpdateStatus={(s) => updateStatus(o.id, s)}
-              onAssign={(cid) => assignCourier(o.id, cid)}
-              onVerifyPayment={(paid) => verifyPayment(o.id, paid)}
-            />
-          ))}
+
+        {/* Auto-reply message preview */}
+        {autoReplyActive && shopSettings?.auto_reply_message && (
+          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 flex items-start gap-3">
+            <Bot className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-blue-800 mb-0.5">Pesan auto-reply yang dikirim ke customer:</p>
+              <p className="text-sm text-blue-900 italic">"{shopSettings.auto_reply_message}"</p>
+            </div>
+          </div>
+        )}
+
+        <div className="mb-4 flex gap-1 border-b border-border">
+          {TABS.map((t) => {
+            const c = counts.find((x) => x.key === t.key)?.n ?? 0;
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.label}
+                <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-xs">{c}</span>
+              </button>
+            );
+          })}
         </div>
-      )}
+
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+            Tidak ada pesanan.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((o) => (
+              <OrderCard
+                key={o.id}
+                order={o}
+                items={items[o.id]}
+                couriers={couriers}
+                autoReplyMessage={autoReplyActive ? (shopSettings?.auto_reply_message ?? null) : null}
+                onExpand={() => loadItems(o.id)}
+                onUpdateStatus={(s) => updateStatus(o.id, s)}
+                onAssign={(cid) => assignCourier(o.id, cid)}
+                onVerifyPayment={(paid) => verifyPayment(o.id, paid)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
@@ -282,6 +341,7 @@ function OrderCard({
   order,
   items,
   couriers,
+  autoReplyMessage,
   onExpand,
   onUpdateStatus,
   onAssign,
@@ -290,6 +350,7 @@ function OrderCard({
   order: Order;
   items: OrderItem[] | undefined;
   couriers: Courier[];
+  autoReplyMessage: string | null;
   onExpand: () => void;
   onUpdateStatus: (s: string) => void;
   onAssign: (cid: string | null) => void;
@@ -300,10 +361,7 @@ function OrderCard({
 
   const nextActions: { status: string; label: string; variant?: "default" | "outline" }[] =
     order.status === "pending"
-      ? [
-          { status: "preparing", label: "Terima" },
-          { status: "cancelled", label: "Tolak", variant: "outline" },
-        ]
+      ? [{ status: "preparing", label: "Terima" }, { status: "cancelled", label: "Tolak", variant: "outline" }]
       : order.status === "preparing"
       ? [{ status: "ready", label: isDelivery ? "Siap diantar" : "Siap diambil" }]
       : order.status === "ready"
@@ -318,14 +376,12 @@ function OrderCard({
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold">#{order.order_no}</p>
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CHIP[order.status]}`}>
               {STATUS_LABEL[order.status] ?? order.status}
             </span>
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
-              {order.fulfillment}
-            </span>
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">{order.fulfillment}</span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             {new Date(order.created_at).toLocaleString("id-ID")}
@@ -354,6 +410,16 @@ function OrderCard({
         {order.note && <p className="text-muted-foreground">📝 {order.note}</p>}
       </div>
 
+      {/* Auto-reply indicator on the order */}
+      {autoReplyMessage && order.status === "pending" && (
+        <div className="mt-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2 flex items-start gap-2">
+          <Bot className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-800">
+            <span className="font-semibold">Auto-reply dikirim:</span> "{autoReplyMessage}"
+          </p>
+        </div>
+      )}
+
       {(order.payment_method !== "cash" || order.payment_proof_url || order.payment_status !== "unpaid") && (
         <div className="mt-3 rounded-lg border border-border bg-muted/30 p-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -369,18 +435,9 @@ function OrderCard({
               <button
                 onClick={async () => {
                   const path = order.payment_proof_url!;
-                  // If legacy signed URL was stored, fall back to opening it directly.
-                  if (path.startsWith("http")) {
-                    window.open(path, "_blank", "noopener");
-                    return;
-                  }
-                  const { data, error } = await supabase.storage
-                    .from("payment-proofs")
-                    .createSignedUrl(path, 60 * 10);
-                  if (error || !data) {
-                    toast.error("Gagal membuka bukti");
-                    return;
-                  }
+                  if (path.startsWith("http")) { window.open(path, "_blank", "noopener"); return; }
+                  const { data, error } = await supabase.storage.from("payment-proofs").createSignedUrl(path, 60 * 10);
+                  if (error || !data) { toast.error("Gagal membuka bukti"); return; }
                   window.open(data.signedUrl, "_blank", "noopener");
                 }}
                 className="text-primary hover:underline"
@@ -413,22 +470,12 @@ function OrderCard({
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            setOpen((v) => !v);
-            if (!open) onExpand();
-          }}
-        >
+        <Button size="sm" variant="ghost" onClick={() => { setOpen((v) => !v); if (!open) onExpand(); }}>
           {open ? "Sembunyikan" : "Lihat item"}
         </Button>
 
         {isDelivery && ["preparing", "ready", "delivering"].includes(order.status) && (
-          <Select
-            value={order.courier_id ?? "none"}
-            onValueChange={(v) => onAssign(v === "none" ? null : v)}
-          >
+          <Select value={order.courier_id ?? "none"} onValueChange={(v) => onAssign(v === "none" ? null : v)}>
             <SelectTrigger className="h-8 w-[180px] text-xs">
               <SelectValue placeholder="Pilih kurir" />
             </SelectTrigger>
@@ -445,12 +492,7 @@ function OrderCard({
 
         <div className="ml-auto flex gap-2">
           {nextActions.map((a) => (
-            <Button
-              key={a.status}
-              size="sm"
-              variant={a.variant ?? "default"}
-              onClick={() => onUpdateStatus(a.status)}
-            >
+            <Button key={a.status} size="sm" variant={a.variant ?? "default"} onClick={() => onUpdateStatus(a.status)}>
               {a.label}
             </Button>
           ))}
