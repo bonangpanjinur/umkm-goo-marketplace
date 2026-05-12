@@ -8,6 +8,11 @@ import { useSeo } from "@/lib/use-seo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  TrustCertBadge,
+  TrustCertCard,
+  computeTrustCert,
+} from "@/components/TrustCertBadge";
 
 export const Route = createFileRoute("/toko/$slug")({
   component: ShopPage,
@@ -28,6 +33,12 @@ type Shop = {
   kyc_status: string | null;
 };
 
+type ReviewStats = {
+  avgRating: number;
+  count: number;
+  replyRate: number;
+};
+
 function ShopPage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
@@ -38,6 +49,8 @@ function ShopPage() {
   const [followed, setFollowed] = useState(false);
   const [followCount, setFollowCount] = useState(0);
   const [followBusy, setFollowBusy] = useState(false);
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
+  const [showCertDetail, setShowCertDetail] = useState(false);
 
   const loadFollowStatus = async (shopId: string) => {
     const [countRes, followedRes] = await Promise.all([
@@ -83,6 +96,24 @@ function ShopPage() {
       setShop(s as unknown as Shop);
       loadFollowStatus((s as any).id);
 
+      // Fetch review stats for trust cert computation
+      const { data: revData } = await supabase
+        .from("product_reviews")
+        .select("rating, shop_reply")
+        .eq("shop_id", (s as any).id)
+        .eq("is_hidden", false)
+        .limit(1000);
+      if (revData && revData.length > 0) {
+        const rows = revData as { rating: number; shop_reply: string | null }[];
+        const avg = rows.reduce((sum, r) => sum + r.rating, 0) / rows.length;
+        const replied = rows.filter(r => !!r.shop_reply).length;
+        setReviewStats({
+          avgRating: Math.round(avg * 10) / 10,
+          count:     rows.length,
+          replyRate: replied / rows.length,
+        });
+      }
+
       const { data: prods } = await supabase
         .from("menu_items")
         .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at")
@@ -123,6 +154,10 @@ function ShopPage() {
     } : null,
   });
 
+  const certResult = reviewStats
+    ? computeTrustCert(reviewStats.avgRating, reviewStats.count, reviewStats.replyRate)
+    : null;
+
   if (notFound) {
     return (
       <div className="min-h-screen bg-background">
@@ -142,11 +177,11 @@ function ShopPage() {
 
       <section className="border-b border-border bg-gradient-to-b from-primary/5 to-background">
         <div className="mx-auto max-w-7xl px-4 py-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             {shop?.logo_url ? (
-              <img src={shop.logo_url} alt={shop.name} className="h-20 w-20 rounded-2xl object-cover" />
+              <img src={shop.logo_url} alt={shop.name} className="h-20 w-20 rounded-2xl object-cover shrink-0" />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
                 <Store className="h-9 w-9" />
               </div>
             )}
@@ -159,6 +194,9 @@ function ShopPage() {
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
                     <ShieldCheck className="h-3 w-3" /> Terverifikasi
                   </span>
+                )}
+                {certResult?.earned && (
+                  <TrustCertBadge size="sm" />
                 )}
               </div>
               {shop?.tagline && (
@@ -197,11 +235,28 @@ function ShopPage() {
                     Chat dengan Toko
                   </Link>
                 </Button>
+                {certResult && (
+                  <button
+                    onClick={() => setShowCertDetail(v => !v)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    {certResult.earned ? "Lihat Sertifikat" : "Lihat Syarat Sertifikat"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
+
           {shop?.description && (
             <p className="mt-6 max-w-3xl text-sm leading-relaxed text-foreground/80">{shop.description}</p>
+          )}
+
+          {/* Trust cert detail panel */}
+          {certResult && showCertDetail && (
+            <div className="mt-5 max-w-xl">
+              <TrustCertCard result={certResult} />
+            </div>
           )}
         </div>
       </section>

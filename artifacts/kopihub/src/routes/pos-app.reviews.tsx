@@ -10,6 +10,7 @@ import {
   BarChart3, CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { computeTrustCert, TrustCertProgress } from "@/components/TrustCertBadge";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
@@ -488,6 +489,15 @@ function ReviewsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Trust Cert progress panel */}
+      {!loading && total > 0 && (() => {
+        const certAvg       = visibleAll.reduce((s, r) => s + r.rating, 0) / total;
+        const certReplied   = visibleAll.filter(r => !!r.shop_reply).length;
+        const certReplyRate = total > 0 ? certReplied / total : 0;
+        const certResult    = computeTrustCert(Math.round(certAvg * 10) / 10, total, certReplyRate);
+        return <TrustCertProgress result={certResult} />;
+      })()}
 
       {/* Summary bar chart (compact) */}
       {!loading && total > 0 && tab !== "sentimen" && (
