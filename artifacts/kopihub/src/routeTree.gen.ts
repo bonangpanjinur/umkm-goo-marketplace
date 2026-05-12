@@ -31,6 +31,7 @@ import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
 import { Route as TokoSlugRouteImport } from './routes/toko.$slug'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wishlist-analytics'
+import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
@@ -264,6 +265,11 @@ const SSlugRoute = SSlugRouteImport.update({
 const PosAppWishlistAnalyticsRoute = PosAppWishlistAnalyticsRouteImport.update({
   id: '/wishlist-analytics',
   path: '/wishlist-analytics',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppVouchersRoute = PosAppVouchersRouteImport.update({
+  id: '/vouchers',
+  path: '/vouchers',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppVariantsRoute = PosAppVariantsRouteImport.update({
@@ -1005,6 +1011,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
+  '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/toko/$slug': typeof TokoSlugRouteWithChildren
@@ -1149,6 +1156,7 @@ export interface FileRoutesByTo {
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
+  '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/toko/$slug': typeof TokoSlugRouteWithChildren
   '/track/$orderId': typeof TrackOrderIdRoute
@@ -1297,6 +1305,7 @@ export interface FileRoutesById {
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
+  '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/toko/$slug': typeof TokoSlugRouteWithChildren
@@ -1447,6 +1456,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/variants'
+    | '/pos-app/vouchers'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
     | '/toko/$slug'
@@ -1591,6 +1601,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/variants'
+    | '/pos-app/vouchers'
     | '/pos-app/wishlist-analytics'
     | '/toko/$slug'
     | '/track/$orderId'
@@ -1738,6 +1749,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/variants'
+    | '/pos-app/vouchers'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
     | '/toko/$slug'
@@ -1952,6 +1964,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist-analytics'
       fullPath: '/pos-app/wishlist-analytics'
       preLoaderRoute: typeof PosAppWishlistAnalyticsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/vouchers': {
+      id: '/pos-app/vouchers'
+      path: '/vouchers'
+      fullPath: '/pos-app/vouchers'
+      preLoaderRoute: typeof PosAppVouchersRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/variants': {
@@ -3068,6 +3087,7 @@ interface PosAppRouteChildren {
   PosAppTableQrRoute: typeof PosAppTableQrRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
   PosAppVariantsRoute: typeof PosAppVariantsRoute
+  PosAppVouchersRoute: typeof PosAppVouchersRoute
   PosAppWishlistAnalyticsRoute: typeof PosAppWishlistAnalyticsRoute
   PosAppIndexRoute: typeof PosAppIndexRoute
 }
@@ -3128,6 +3148,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTableQrRoute: PosAppTableQrRoute,
   PosAppTablesRoute: PosAppTablesRoute,
   PosAppVariantsRoute: PosAppVariantsRoute,
+  PosAppVouchersRoute: PosAppVouchersRoute,
   PosAppWishlistAnalyticsRoute: PosAppWishlistAnalyticsRoute,
   PosAppIndexRoute: PosAppIndexRoute,
 }
