@@ -46,6 +46,7 @@ import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
 import { Route as PosAppRekeningBankRouteImport } from './routes/pos-app.rekening-bank'
 import { Route as PosAppRecipesRouteImport } from './routes/pos-app.recipes'
 import { Route as PosAppRajaongkirRouteImport } from './routes/pos-app.rajaongkir'
+import { Route as PosAppQaRouteImport } from './routes/pos-app.qa'
 import { Route as PosAppPurchaseOrdersRouteImport } from './routes/pos-app.purchase-orders'
 import { Route as PosAppPromosRouteImport } from './routes/pos-app.promos'
 import { Route as PosAppPromoCalendarRouteImport } from './routes/pos-app.promo-calendar'
@@ -328,6 +329,11 @@ const PosAppRecipesRoute = PosAppRecipesRouteImport.update({
 const PosAppRajaongkirRoute = PosAppRajaongkirRouteImport.update({
   id: '/rajaongkir',
   path: '/rajaongkir',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppQaRoute = PosAppQaRouteImport.update({
+  id: '/qa',
+  path: '/qa',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppPurchaseOrdersRoute = PosAppPurchaseOrdersRouteImport.update({
@@ -912,6 +918,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
+  '/pos-app/qa': typeof PosAppQaRoute
   '/pos-app/rajaongkir': typeof PosAppRajaongkirRoute
   '/pos-app/recipes': typeof PosAppRecipesRoute
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
@@ -1045,6 +1052,7 @@ export interface FileRoutesByTo {
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
+  '/pos-app/qa': typeof PosAppQaRoute
   '/pos-app/rajaongkir': typeof PosAppRajaongkirRoute
   '/pos-app/recipes': typeof PosAppRecipesRoute
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
@@ -1182,6 +1190,7 @@ export interface FileRoutesById {
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
+  '/pos-app/qa': typeof PosAppQaRoute
   '/pos-app/rajaongkir': typeof PosAppRajaongkirRoute
   '/pos-app/recipes': typeof PosAppRecipesRoute
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
@@ -1321,6 +1330,7 @@ export interface FileRouteTypes {
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
+    | '/pos-app/qa'
     | '/pos-app/rajaongkir'
     | '/pos-app/recipes'
     | '/pos-app/rekening-bank'
@@ -1454,6 +1464,7 @@ export interface FileRouteTypes {
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
+    | '/pos-app/qa'
     | '/pos-app/rajaongkir'
     | '/pos-app/recipes'
     | '/pos-app/rekening-bank'
@@ -1590,6 +1601,7 @@ export interface FileRouteTypes {
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
+    | '/pos-app/qa'
     | '/pos-app/rajaongkir'
     | '/pos-app/recipes'
     | '/pos-app/rekening-bank'
@@ -1924,6 +1936,13 @@ declare module '@tanstack/react-router' {
       path: '/rajaongkir'
       fullPath: '/pos-app/rajaongkir'
       preLoaderRoute: typeof PosAppRajaongkirRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/qa': {
+      id: '/pos-app/qa'
+      path: '/qa'
+      fullPath: '/pos-app/qa'
+      preLoaderRoute: typeof PosAppQaRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/purchase-orders': {
@@ -2824,6 +2843,7 @@ interface PosAppRouteChildren {
   PosAppPromoCalendarRoute: typeof PosAppPromoCalendarRoute
   PosAppPromosRoute: typeof PosAppPromosRoute
   PosAppPurchaseOrdersRoute: typeof PosAppPurchaseOrdersRouteWithChildren
+  PosAppQaRoute: typeof PosAppQaRoute
   PosAppRajaongkirRoute: typeof PosAppRajaongkirRoute
   PosAppRecipesRoute: typeof PosAppRecipesRoute
   PosAppRekeningBankRoute: typeof PosAppRekeningBankRoute
@@ -2882,6 +2902,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppPromoCalendarRoute: PosAppPromoCalendarRoute,
   PosAppPromosRoute: PosAppPromosRoute,
   PosAppPurchaseOrdersRoute: PosAppPurchaseOrdersRouteWithChildren,
+  PosAppQaRoute: PosAppQaRoute,
   PosAppRajaongkirRoute: PosAppRajaongkirRoute,
   PosAppRecipesRoute: PosAppRecipesRoute,
   PosAppRekeningBankRoute: PosAppRekeningBankRoute,

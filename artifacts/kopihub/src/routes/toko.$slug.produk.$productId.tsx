@@ -9,6 +9,7 @@ import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ProductReviews } from "@/components/marketplace/ProductReviews";
+import { ProductQA } from "@/components/marketplace/ProductQA";
 import { useSeo } from "@/lib/use-seo";
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
@@ -185,10 +186,16 @@ function ProductDetailPage() {
             </div>
           </div>
         ) : null}
-        {product && (
+        {product && shop && (
+          <section className="mt-12">
+            <h2 className="text-xl font-semibold mb-4">Tanya &amp; Jawab</h2>
+            <ProductQA productId={product.id} shopId={shop.id} />
+          </section>
+        )}
+        {product && shop && (
           <section className="mt-12">
             <h2 className="text-xl font-semibold mb-4">Ulasan Produk</h2>
-            <ProductReviews productId={product.id} />
+            <ProductReviews productId={product.id} shopId={shop.id} />
           </section>
         )}
       </div>

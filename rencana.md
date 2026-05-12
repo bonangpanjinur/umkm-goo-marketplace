@@ -84,9 +84,9 @@
 | F4-1 | **Notifikasi Promo Toko Diikuti** | Pembeli yang follow toko dapat notif saat toko post promo baru | ✅ |
 | F4-2 | **Live Chat Sebelum Beli** | Chat real-time antara calon pembeli dan pemilik toko (bukan hanya di dalam pesanan) | ✅ |
 | F4-3 | **Pesanan Berulang 1-tap** | Di halaman akun, tampilkan "Pesan Lagi" dari riwayat pesanan marketplace | ✅ |
-| F4-4 | **Estimasi Waktu Pengiriman** | Tampil di halaman produk berdasarkan zona delivery dan jam operasional toko | 🔲 |
-| F4-5 | **Q&A Produk** | Pembeli tanya di halaman produk; owner jawab; tampil publik untuk calon pembeli lain | 🔲 |
-| F4-6 | **Foto di Ulasan** | Upload foto saat tulis ulasan; dapat +5 poin sebagai insentif | 🔲 |
+| F4-4 | **Estimasi Waktu Pengiriman** | Tampil di halaman produk berdasarkan zona delivery dan jam operasional toko | ✅ |
+| F4-5 | **Q&A Produk** | Pembeli tanya di halaman produk; owner jawab; tampil publik untuk calon pembeli lain | ✅ |
+| F4-6 | **Foto di Ulasan** | Upload foto saat tulis ulasan; dapat +5 poin sebagai insentif | ✅ |
 
 ---
 

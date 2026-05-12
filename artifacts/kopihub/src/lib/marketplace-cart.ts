@@ -28,7 +28,6 @@ export async function addToCart(args: {
   notes?: string;
 }): Promise<void> {
   const cart_id = await getOrCreateCartId();
-  // If exists, increment qty; else insert
   const { data: existing } = await supabase
     .from("marketplace_cart_items")
     .select("id, quantity")
@@ -101,18 +100,51 @@ export type DeliveryZone = {
   name: string;
   fee: number;
   area_note: string | null;
+  min_eta_minutes: number;
+  max_eta_minutes: number;
 };
 
 export async function listShopZones(shopIds: string[]): Promise<DeliveryZone[]> {
   if (shopIds.length === 0) return [];
   const { data, error } = await supabase
     .from("delivery_zones")
-    .select("id, shop_id, name, fee, area_note")
+    .select("id, shop_id, name, fee, area_note, min_eta_minutes, max_eta_minutes")
     .in("shop_id", shopIds)
     .eq("is_active", true)
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []).map((z: any) => ({ ...z, fee: Number(z.fee) }));
+  return (data ?? []).map((z: any) => ({
+    ...z,
+    fee: Number(z.fee),
+    min_eta_minutes: z.min_eta_minutes ?? 30,
+    max_eta_minutes: z.max_eta_minutes ?? 60,
+  }));
+}
+
+export type DeliverySettings = {
+  shop_id: string;
+  delivery_enabled: boolean;
+  pickup_enabled: boolean;
+  mode: "flat" | "zone";
+  open_time: string | null;
+  close_time: string | null;
+  min_eta_minutes: number;
+  max_eta_minutes: number;
+  notes: string | null;
+};
+
+export async function listShopDeliverySettings(shopIds: string[]): Promise<DeliverySettings[]> {
+  if (shopIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("delivery_settings")
+    .select("shop_id, delivery_enabled, pickup_enabled, mode, open_time, close_time, min_eta_minutes, max_eta_minutes, notes")
+    .in("shop_id", shopIds);
+  if (error) return [];
+  return (data ?? []).map((d: any) => ({
+    ...d,
+    min_eta_minutes: d.min_eta_minutes ?? 30,
+    max_eta_minutes: d.max_eta_minutes ?? 60,
+  })) as DeliverySettings[];
 }
 
 export async function checkout(args: {
@@ -122,8 +154,8 @@ export async function checkout(args: {
   fulfillment?: "delivery" | "pickup";
   payment_method?: string;
   notes?: string | null;
-  shipping?: Record<string, string>; // shop_id -> zone_id
-  shop_voucher_codes?: Record<string, string>; // shop_id -> code
+  shipping?: Record<string, string>;
+  shop_voucher_codes?: Record<string, string>;
   platform_voucher_code?: string | null;
 }): Promise<string[]> {
   const { data, error } = await supabase.rpc("marketplace_checkout", {

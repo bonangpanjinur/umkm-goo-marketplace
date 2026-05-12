@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { listCart, checkout, listShopZones, type CartItem, type DeliveryZone } from "@/lib/marketplace-cart";
+import { listCart, checkout, listShopZones, listShopDeliverySettings, type CartItem, type DeliveryZone, type DeliverySettings } from "@/lib/marketplace-cart";
+import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
 import { useAuth } from "@/lib/auth";
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
-import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +26,7 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
   const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [shipping, setShipping] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -90,8 +92,14 @@ function CheckoutPage() {
       return;
     }
     const shopIds = Array.from(new Set(d.map((i) => i.shop_id)));
-    const zs = await listShopZones(shopIds);
+    const [zs, dsArr] = await Promise.all([
+      listShopZones(shopIds),
+      listShopDeliverySettings(shopIds),
+    ]);
     setZones(zs);
+    const dsMap: Record<string, DeliverySettings> = {};
+    for (const ds of dsArr) dsMap[ds.shop_id] = ds;
+    setDeliveryMap(dsMap);
     const init: Record<string, string> = {};
     for (const sid of shopIds) {
       const sz = zs.filter((z) => z.shop_id === sid).sort((a, b) => a.fee - b.fee);
@@ -414,6 +422,24 @@ function CheckoutPage() {
                         </ul>
                         {fulfillment === "delivery" && (
                           <div className="border-t border-border px-3 py-2">
+                            {(() => {
+                              const ds = deliveryMap[shopId];
+                              const win = ds?.open_time && ds?.close_time
+                                ? getDeliveryWindow(ds.open_time, ds.close_time)
+                                : null;
+                              return ds && win ? (
+                                <div className={`mb-2 flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] ${win.open ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                                  {win.open
+                                    ? <Truck className="h-3 w-3 shrink-0" />
+                                    : <Clock className="h-3 w-3 shrink-0" />
+                                  }
+                                  {win.open
+                                    ? `Delivery buka · tutup pukul ${formatTime(win.closesAt!)}`
+                                    : `Delivery tutup · buka pukul ${formatTime(win.opensAt!)}`
+                                  }
+                                </div>
+                              ) : null;
+                            })()}
                             <p className="mb-1.5 text-[11px] font-medium uppercase text-muted-foreground">
                               Pilih zona pengantaran
                             </p>
@@ -445,6 +471,9 @@ function CheckoutPage() {
                                         {z.area_note && (
                                           <p className="text-[10px] text-muted-foreground">{z.area_note}</p>
                                         )}
+                                        <p className="text-[10px] text-emerald-600 font-medium">
+                                          ~{formatEta(z.min_eta_minutes, z.max_eta_minutes)}
+                                        </p>
                                       </div>
                                     </div>
                                     <span className="font-semibold whitespace-nowrap">

@@ -2,9 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
-import { listCart, updateCartItem, removeCartItem, type CartItem } from "@/lib/marketplace-cart";
+import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
-import { Trash2, Plus, Minus, ShoppingCart, Store } from "lucide-react";
+import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
+import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/keranjang")({
@@ -12,17 +13,67 @@ export const Route = createFileRoute("/keranjang")({
   component: CartPage,
 });
 
+function DeliveryChip({ ds }: { ds: DeliverySettings }) {
+  const win = ds.open_time && ds.close_time
+    ? getDeliveryWindow(ds.open_time, ds.close_time)
+    : null;
+  const isOpen = win?.open ?? true;
+
+  if (!ds.delivery_enabled && ds.pickup_enabled) {
+    return (
+      <div className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-50 border-b border-border text-xs text-blue-700">
+        <PackageCheck className="h-3.5 w-3.5 shrink-0" />
+        <span>Hanya ambil di toko (Pickup)</span>
+      </div>
+    );
+  }
+  if (!ds.delivery_enabled) return null;
+
+  return (
+    <div className={`flex items-center gap-1.5 px-4 py-1.5 border-b border-border text-xs ${isOpen ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+      {isOpen
+        ? <Truck className="h-3.5 w-3.5 shrink-0" />
+        : <Clock className="h-3.5 w-3.5 shrink-0" />
+      }
+      <span>
+        {isOpen
+          ? <>Delivery tersedia · estimasi <strong>~{formatEta(ds.min_eta_minutes, ds.max_eta_minutes)}</strong>{win?.closesAt ? ` · tutup pukul ${formatTime(win.closesAt)}` : ""}</>
+          : <>Delivery tutup saat ini{win?.opensAt ? ` · buka pukul ${formatTime(win.opensAt)}` : ""}</>
+        }
+      </span>
+      {ds.pickup_enabled && isOpen && (
+        <span className="ml-auto flex items-center gap-1 shrink-0">
+          <PackageCheck className="h-3 w-3" /> Pickup tersedia
+        </span>
+      )}
+    </div>
+  );
+}
+
 function CartPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
 
-  const refresh = () =>
-    listCart()
-      .then((data) => setItems(data))
-      .catch((e) => toast.error(e.message))
-      .finally(() => setLoading(false));
+  const refresh = async () => {
+    try {
+      const data = await listCart();
+      setItems(data);
+      if (data.length > 0) {
+        const shopIds = Array.from(new Set(data.map((i) => i.shop_id)));
+        const dsArr = await listShopDeliverySettings(shopIds);
+        const map: Record<string, DeliverySettings> = {};
+        for (const ds of dsArr) map[ds.shop_id] = ds;
+        setDeliveryMap(map);
+      }
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -66,12 +117,13 @@ function CartPage() {
             <div className="space-y-4">
               {Object.entries(grouped).map(([shopId, shopItems]) => {
                 const shop = shopItems[0].shop!;
+                const ds = deliveryMap[shopId];
                 const shopSubtotal = shopItems.reduce(
                   (s, i) => s + Number(i.unit_price) * i.quantity,
                   0,
                 );
                 return (
-                  <div key={shopId} className="rounded-xl border border-border bg-card">
+                  <div key={shopId} className="rounded-xl border border-border bg-card overflow-hidden">
                     <Link
                       to="/toko/$slug"
                       params={{ slug: shop.slug }}
@@ -86,6 +138,9 @@ function CartPage() {
                       )}
                       <span className="text-sm font-semibold">{shop.name}</span>
                     </Link>
+
+                    {ds && <DeliveryChip ds={ds} />}
+
                     <ul className="divide-y divide-border">
                       {shopItems.map((it) => (
                         <li key={it.id} className="flex items-center gap-3 p-4">
