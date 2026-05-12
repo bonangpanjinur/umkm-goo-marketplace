@@ -82,7 +82,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🔴 KRITIS — Harus Ada Sebelum Launch
 
-#### A-1. KYC Review Queue (Antrian Verifikasi KTP)
+#### ✅ A-1. KYC Review Queue (Antrian Verifikasi KTP)
 **Kenapa penting:** Tanpa ini toko tidak bisa aktif. Saat ini tidak ada alur review KTP sama sekali.
 
 **Yang perlu dibangun:**
@@ -98,7 +98,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-2. Konfigurasi Payment Gateway (Midtrans + Xendit)
+#### ✅ A-2. Konfigurasi Payment Gateway (Midtrans + Xendit)
 **Kenapa penting:** Pembayaran online tidak bisa hidup tanpa ini.
 
 **Yang perlu dibangun:**
@@ -113,7 +113,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-3. Konfigurasi Komisi Platform
+#### ✅ A-3. Konfigurasi Komisi Platform
 **Kenapa penting:** Revenue model utama platform tidak bisa jalan tanpa ini.
 
 **Yang perlu dibangun:**
@@ -127,7 +127,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-4. Konfigurasi Nama & Branding Platform
+#### ✅ A-4. Konfigurasi Nama & Branding Platform
 **Kenapa penting:** Saat ini "UMKMgo" hardcoded di mana-mana. Platform harus bisa dipakai untuk klien berbeda.
 
 **Yang perlu dibangun:**
@@ -139,7 +139,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🟡 Perlu Disempurnakan
 
-#### A-5. Dashboard Admin — Tambah KPI Penting
+#### ✅ A-5. Dashboard Admin — Tambah KPI Penting
 **KPI yang belum ada:**
 - Antrian KYC menunggu review (link ke `/admin/kyc`)
 - Total escrow tertahan di platform
@@ -150,7 +150,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-6. Manajemen Kategori Bisnis
+#### ✅ A-6. Manajemen Kategori Bisnis
 **Saat ini:** Kategori bisnis tidak bisa dikelola dari admin UI, harus edit database langsung.
 
 **Yang perlu dibangun:**
@@ -162,7 +162,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-7. Konfigurasi Penarikan Dana
+#### ✅ A-7. Konfigurasi Penarikan Dana
 **Yang perlu dibangun:**
 - Halaman `/admin/platform` tab "Penarikan"
 - Jadwal per paket: bulanan / dua kali per bulan / kapan saja
@@ -173,7 +173,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-8. Broadcast Tersegmen
+#### ✅ A-8. Broadcast Tersegmen
 **Saat ini:** Hanya bisa kirim ke semua toko.
 
 **Yang perlu dibangun:**
@@ -184,7 +184,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### A-9. Audit Log — Filter & Export
+#### ✅ A-9. Audit Log — Filter & Export
 **Saat ini:** Tampilan daftar mentah tanpa filter.
 
 **Yang perlu dibangun:**
@@ -197,14 +197,14 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🔴 Sedang — Fase 2
 
-| ID | Fitur | Catatan |
-|---|---|---|
-| A-10 | Impersonation — masuk sebagai owner (banner "Mode Support" + audit log otomatis) | Support tooling |
-| A-11 | Marketplace Fee Simulator — input skenario → proyeksi pendapatan | Bantu pricing |
-| A-12 | Feature Flag per toko/paket — aktifkan fitur beta untuk subset | Rollout bertahap |
-| A-13 | Template notifikasi — edit subject & isi email, variabel dinamis | Komunikasi branded |
-| A-14 | Rekonsiliasi gateway — cocokkan data platform vs. Midtrans/Xendit dashboard | Akuntansi |
-| A-15 | Command Palette (⌘K) — cari toko, user, invoice, broadcast lintas modul | UX admin power user |
+| ID | Fitur | Catatan | Status |
+|---|---|---|---|
+| A-10 | Impersonation — masuk sebagai owner (banner "Mode Support" + audit log otomatis) | Support tooling | ✅ Selesai |
+| A-11 | Marketplace Fee Simulator — input skenario → proyeksi pendapatan | Bantu pricing | ✅ Selesai |
+| A-12 | Feature Flag per toko/paket — aktifkan fitur beta untuk subset | Rollout bertahap | ✅ Selesai |
+| A-13 | Template notifikasi — edit subject & isi email, variabel dinamis | Komunikasi branded | ✅ Selesai |
+| A-14 | Rekonsiliasi gateway — cocokkan data platform vs. Midtrans/Xendit dashboard | Akuntansi | ✅ Selesai |
+| A-15 | Command Palette (⌘K) — cari toko, user, invoice, broadcast lintas modul | UX admin power user | ✅ Selesai |
 
 ---
 
@@ -242,7 +242,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🔴 KRITIS — Harus Ada Sebelum Launch
 
-#### O-1. Status Verifikasi KTP di Dashboard Owner
+#### ✅ O-1. Status Verifikasi KTP di Dashboard Owner
 **Kenapa penting:** Owner tidak tahu apakah tokonya sudah aktif atau belum dan kenapa.
 
 **Yang perlu dibangun:**
@@ -256,7 +256,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-2. Onboarding Wizard (5 Langkah)
+#### ✅ O-2. Onboarding Wizard (5 Langkah)
 **Kenapa penting:** Saat ini onboarding hanya form nama toko. Owner tidak tahu apa yang harus dilakukan selanjutnya — TTV sangat panjang.
 
 **Langkah wizard:**
@@ -270,7 +270,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-3. Produk Varian (Ukuran, Warna, Kombinasi)
+#### ✅ O-3. Produk Varian (Ukuran, Warna, Kombinasi)
 **Kenapa penting:** Toko fashion, craft, electronics tidak bisa berjualan tanpa varian. Ini blocker untuk semua kategori non-F&B.
 
 **Yang perlu dibangun:**
@@ -286,7 +286,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-4. Stok Terpadu Lintas Channel
+#### ✅ O-4. Stok Terpadu Lintas Channel
 **Kenapa penting:** Saat ini POS dan marketplace bisa menjual produk yang sama secara bersamaan tanpa sinkronisasi stok → risiko oversell.
 
 **Yang perlu dibangun:**
@@ -300,7 +300,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🟡 Perlu Disempurnakan
 
-#### O-5. Unified Orders Hub
+#### ✅ O-5. Unified Orders Hub
 **Saat ini:** 3 halaman terpisah untuk pesanan POS, online, dan marketplace.
 
 **Yang perlu dibangun:**
@@ -311,7 +311,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-6. Flash Sale — UI Lengkap
+#### ✅ O-6. Flash Sale — UI Lengkap
 **Saat ini:** Kolom database ada (`flash_price`, `flash_starts_at`, `flash_ends_at`) tapi UI di halaman produk sangat minim.
 
 **Yang perlu dibangun:**
@@ -322,7 +322,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-7. Keuangan — Escrow Visual & Rekening Bank
+#### ✅ O-7. Keuangan — Escrow Visual & Rekening Bank
 **Saat ini:** Angka tersedia/pending tampil tapi tidak ada konteks visual.
 
 **Yang perlu dibangun:**
@@ -334,7 +334,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-8. Storefront Live Preview
+#### ✅ O-8. Storefront Live Preview
 **Saat ini:** Owner bisa ganti tema tapi tidak bisa preview sebelum publish.
 
 **Yang perlu dibangun:**
@@ -345,7 +345,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-9. Penarikan Dana — Perbaikan Alur
+#### ✅ O-9. Penarikan Dana — Perbaikan Alur
 **Yang perlu dibangun:**
 - Pilih rekening bank dari daftar tersimpan (bukan input manual tiap kali)
 - Tampilkan: jumlah tersedia, estimasi yang diterima setelah biaya admin, jadwal pencairan sesuai paket
@@ -354,7 +354,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-10. Notifikasi In-App Inbox
+#### ✅ O-10. Notifikasi In-App Inbox
 **Saat ini:** Hanya browser push notification, tidak ada riwayat.
 
 **Yang perlu dibangun:**
@@ -365,7 +365,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### O-11. Laporan — Generalisasi per Kategori
+#### ✅ O-11. Laporan — Generalisasi per Kategori
 **Saat ini:** Laporan sangat F&B-centric (HPP, resep).
 
 **Yang perlu dibangun:**
@@ -378,21 +378,21 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🔴 Sedang — Fase 2
 
-| ID | Fitur | Kategori Target | Prioritas |
-|---|---|---|---|
-| O-12 | Produk digital — upload file, link download otomatis setelah bayar | Digital | Sedang |
-| O-13 | Bulk import CSV produk — template download, validasi, import massal | Semua | Sedang |
-| O-14 | Kalender promo — tampilan kalender kapan promo & flash sale aktif | Semua | Sedang |
-| O-15 | Invoice PDF — unduh invoice pesanan & tagihan sewa | Semua | Sedang |
-| O-16 | Atribut produk per kategori — BPOM (beauty), ISBN (buku), garansi (elektronik), ukuran (fashion) | Per kategori | Sedang |
-| O-17 | Booking jadwal (untuk kategori Jasa) — kalender slot, konfirmasi, reminder | Jasa | Sedang |
-| O-18 | Wishlist — owner lihat produk mana yang paling banyak disimpan pembeli | Semua | Rendah |
-| O-19 | Storefront builder — susun section halaman toko (banner, featured produk, teks promo) | Semua | Rendah |
-| O-20 | Custom CSS editor (paket Pro) | Pro | Rendah |
-| O-21 | Multi-outlet switcher — kelola beberapa cabang dalam 1 akun | Enterprise/Pro | Rendah |
-| O-22 | Email marketing — kirim promo ke daftar pelanggan toko | Pro | Rendah |
-| O-23 | Integrasi API kurir RajaOngkir — ongkir real-time, cek coverage | Growth/Pro | Rendah |
-| O-24 | Label pengiriman — generate label siap cetak dari dashboard | Semua | Rendah |
+| ID | Fitur | Kategori | Prioritas | Status |
+|---|---|---|---|---|
+| O-12 | Produk digital — upload file, link download otomatis setelah bayar | Digital | Sedang | ✅ Selesai |
+| O-13 | Bulk import CSV produk — template download, validasi, import massal | Semua | Sedang | ✅ Selesai |
+| O-14 | Kalender promo — tampilan kalender kapan promo & flash sale aktif | Semua | Sedang | ✅ Selesai |
+| O-15 | Invoice PDF — unduh invoice pesanan & tagihan sewa | Semua | Sedang | ✅ Selesai |
+| O-16 | Atribut produk per kategori — BPOM (beauty), ISBN (buku), garansi (elektronik), ukuran (fashion) | Per kategori | Sedang | ✅ Selesai |
+| O-17 | Booking jadwal (untuk kategori Jasa) — kalender slot, konfirmasi, reminder | Jasa | Sedang | ✅ Selesai |
+| O-18 | Wishlist — owner lihat produk mana yang paling banyak disimpan pembeli | Semua | Rendah | ✅ Selesai |
+| O-19 | Storefront builder — susun section halaman toko (banner, featured produk, teks promo) | Semua | Rendah | ✅ Selesai |
+| O-20 | Custom CSS editor (paket Pro) | Pro | Rendah | ✅ Selesai |
+| O-21 | Multi-outlet switcher — kelola beberapa cabang dalam 1 akun | Enterprise/Pro | Rendah | ✅ Selesai |
+| O-22 | Email marketing — kirim promo ke daftar pelanggan toko | Pro | Rendah | ✅ Selesai |
+| O-23 | Integrasi API kurir RajaOngkir — ongkir real-time, cek coverage | Growth/Pro | Rendah | ✅ Selesai |
+| O-24 | Label pengiriman — generate label siap cetak dari dashboard | Semua | Rendah | ✅ Selesai |
 
 ---
 
@@ -419,7 +419,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🔴 KRITIS — Harus Ada Sebelum Launch
 
-#### B-1. Payment Gateway Online (Midtrans / Xendit)
+#### ✅ B-1. Payment Gateway Online (Midtrans / Xendit)
 **Kenapa penting:** Saat ini checkout hanya bisa transfer manual. Pembeli modern tidak mau repot transfer dan upload bukti.
 
 **Yang perlu dibangun:**
@@ -432,7 +432,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-2. Alamat Tersimpan di Checkout
+#### ✅ B-2. Alamat Tersimpan di Checkout
 **Kenapa penting:** Pembeli harus isi ulang alamat setiap checkout — sangat melelahkan.
 
 **Yang perlu dibangun:**
@@ -442,7 +442,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-3. Auto-cancel & Reminder Bayar
+#### ✅ B-3. Auto-cancel & Reminder Bayar
 **Kenapa penting:** Order yang tidak dibayar menggantung dan memblokir stok.
 
 **Yang perlu dibangun:**
@@ -455,7 +455,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🟡 Perlu Disempurnakan
 
-#### B-4. Halaman Utama Marketplace — Lebih "Hidup"
+#### ✅ B-4. Halaman Utama Marketplace — Lebih "Hidup"
 **Saat ini:** Statis, tidak ada konten dinamis yang menarik.
 
 **Yang perlu dibangun:**
@@ -468,7 +468,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-5. Pencarian — Lebih Canggih
+#### ✅ B-5. Pencarian — Lebih Canggih
 **Saat ini:** Ada filter kategori, harga, sort. Belum ada filter lokasi dan pencarian tidak cerdas.
 
 **Yang perlu dibangun:**
@@ -483,7 +483,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-6. Alur Review Lebih Jelas
+#### ✅ B-6. Alur Review Lebih Jelas
 **Saat ini:** Review bisa dilakukan tapi tidak ada trigger yang obvious setelah pesanan selesai.
 
 **Yang perlu dibangun:**
@@ -495,7 +495,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-7. Tracking Pesanan — Lebih Lengkap
+#### ✅ B-7. Tracking Pesanan — Lebih Lengkap
 **Saat ini:** Timeline status ada, tapi belum ada link ke kurir dan ETA.
 
 **Yang perlu dibangun:**
@@ -506,7 +506,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-8. Akun Pembeli — Lebih Lengkap
+#### ✅ B-8. Akun Pembeli — Lebih Lengkap
 **Saat ini:** Hanya profil, alamat, pesanan, notifikasi.
 
 **Yang perlu dibangun:**
@@ -518,7 +518,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-9. Notifikasi Pembeli — In-App + Push
+#### ✅ B-9. Notifikasi Pembeli — In-App + Push
 **Saat ini:** Tidak ada notifikasi in-app yang terstruktur untuk pembeli.
 
 **Yang perlu dibangun:**
@@ -529,7 +529,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ---
 
-#### B-10. Pengalaman Mobile — Bottom Nav
+#### ✅ B-10. Pengalaman Mobile — Bottom Nav
 **Saat ini:** Tidak ada navigasi bottom bar di mobile (pembeli harus scroll ke atas untuk navigasi).
 
 **Yang perlu dibangun:**
@@ -542,18 +542,18 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 ### 🔴 Sedang — Fase 2
 
-| ID | Fitur | Prioritas |
-|---|---|---|
-| B-11 | Wishlist / simpan produk — sinkron lintas device | Sedang |
-| B-12 | Follow toko + feed update toko yang diikuti | Sedang |
-| B-13 | Riwayat lihat produk ("Baru kamu lihat") — retensi | Sedang |
-| B-14 | Produk digital — halaman download setelah bayar | Sedang |
-| B-15 | Login sebagai tamu (guest checkout) — tanpa perlu daftar | Sedang |
-| B-16 | Share produk ke media sosial (link + preview) | Rendah |
-| B-17 | Referral program pembeli — dapat voucher saat ajak teman | Rendah |
-| B-18 | Poin loyalty lintas platform (bukan per toko) | Rendah |
-| B-19 | Chat dengan toko per pesanan (in-app) | Rendah |
-| B-20 | Map toko (untuk yang punya pickup point) | Rendah |
+| ID | Fitur | Prioritas | Status |
+|---|---|---|---|
+| B-11 | Wishlist / simpan produk — sinkron lintas device | Sedang | ✅ Selesai |
+| B-12 | Follow toko + feed update toko yang diikuti | Sedang | ✅ Selesai |
+| B-13 | Riwayat lihat produk ("Baru kamu lihat") — retensi | Sedang | ✅ Selesai |
+| B-14 | Produk digital — halaman download setelah bayar | Sedang | ✅ Selesai |
+| B-15 | Login sebagai tamu (guest checkout) — tanpa perlu daftar | Sedang | ✅ Selesai |
+| B-16 | Share produk ke media sosial (link + preview) | Rendah | ✅ Selesai |
+| B-17 | Referral program pembeli — dapat voucher saat ajak teman | Rendah | ✅ Selesai |
+| B-18 | Poin loyalty lintas platform (bukan per toko) | Rendah | ✅ Selesai |
+| B-19 | Chat dengan toko per pesanan (in-app) | Rendah | ✅ Selesai |
+| B-20 | Map toko (untuk yang punya pickup point) | Rendah | ✅ Selesai |
 
 ---
 
@@ -561,7 +561,7 @@ Urutan prioritas global: **Kritis → Tinggi → Sedang → Rendah**
 
 Ini adalah fitur yang mempengaruhi ≥2 role sekaligus — **tanpa ini marketplace tidak terasa terintegrasi**.
 
-### 4.1 Order Timeline Tunggal
+### ✅ 4.1 Order Timeline Tunggal
 **Siapa terpengaruh:** Pembeli · Owner · Staff · Super Admin
 
 Semua role melihat event yang sama pada satu pesanan:
@@ -571,7 +571,7 @@ Semua role melihat event yang sama pada satu pesanan:
 
 **Komponen yang perlu dibuat:** `<StatusTimeline>` — vertikal di mobile, horizontal di desktop
 
-### 4.2 Inbox Notifikasi Terpadu
+### ✅ 4.2 Inbox Notifikasi Terpadu
 **Siapa terpengaruh:** Semua role
 
 - Setiap role punya bell icon dengan drawer notifikasi
@@ -581,14 +581,14 @@ Semua role melihat event yang sama pada satu pesanan:
 
 **Komponen yang perlu dibuat:** `<NotificationBell>` + `<NotificationDrawer>` (sudah ada skeleton, perlu dilengkapi)
 
-### 4.3 Stok Single Source of Truth
+### ✅ 4.3 Stok Single Source of Truth
 **Siapa terpengaruh:** Owner · Kasir POS · Pembeli
 
 - POS kasir, pesanan online, dan pesanan marketplace mengurangi stok dari sumber yang sama
 - Pembeli tidak bisa melihat/memesan produk yang sudah habis
 - Alert otomatis ke owner saat stok di bawah threshold
 
-### 4.4 Identitas & Verifikasi Terlihat di Publik
+### ✅ 4.4 Identitas & Verifikasi Terlihat di Publik
 **Siapa terpengaruh:** Pembeli · Owner · Admin
 
 - Badge "Terverifikasi" di halaman toko publik (jika KYC approved)
@@ -596,7 +596,7 @@ Semua role melihat event yang sama pada satu pesanan:
 - Filter "Toko Terverifikasi" di search dan kategori
 - Admin bisa lihat status KYC di list toko
 
-### 4.5 Saldo & Escrow Transparan
+### ✅ 4.5 Saldo & Escrow Transparan
 **Siapa terpengaruh:** Pembeli · Owner · Admin
 
 - Pembeli lihat status refund real-time di halaman pesanan
