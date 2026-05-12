@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Save } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Clock } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/delivery")({
@@ -26,6 +26,8 @@ type Settings = {
   delivery_enabled: boolean;
   open_time: string | null;
   close_time: string | null;
+  min_eta_minutes: number;
+  max_eta_minutes: number;
   notes: string | null;
 };
 
@@ -37,6 +39,8 @@ type Zone = {
   area_note: string | null;
   is_active: boolean;
   sort_order: number;
+  min_eta_minutes: number;
+  max_eta_minutes: number;
 };
 
 const DEFAULTS: Omit<Settings, "shop_id"> = {
@@ -48,6 +52,8 @@ const DEFAULTS: Omit<Settings, "shop_id"> = {
   delivery_enabled: true,
   open_time: null,
   close_time: null,
+  min_eta_minutes: 30,
+  max_eta_minutes: 60,
   notes: null,
 };
 
@@ -92,7 +98,14 @@ function DeliveryPage() {
     if (!shop) return;
     const { data, error } = await supabase
       .from("delivery_zones")
-      .insert({ shop_id: shop.id, name: "Zona baru", fee: 5000, sort_order: zones.length })
+      .insert({
+        shop_id: shop.id,
+        name: "Zona baru",
+        fee: 5000,
+        sort_order: zones.length,
+        min_eta_minutes: 30,
+        max_eta_minutes: 60,
+      })
       .select()
       .single();
     if (error || !data) { toast.error("Gagal"); return; }
@@ -126,7 +139,7 @@ function DeliveryPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pengaturan Delivery</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Atur ongkir, minimum order, dan jam delivery untuk etalase publik.
+            Atur ongkir, estimasi waktu, dan jam delivery untuk etalase publik.
           </p>
         </div>
         <Button onClick={saveSettings} disabled={saving} className="gap-1">
@@ -238,13 +251,52 @@ function DeliveryPage() {
           </div>
         </div>
 
+        {settings.mode === "flat" && (
+          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-medium">Estimasi Waktu Pengiriman</Label>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-1">
+              Ditampilkan ke pembeli di halaman produk sebelum checkout.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Estimasi minimum (menit)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={settings.min_eta_minutes}
+                  onChange={(e) =>
+                    setSettings({ ...settings, min_eta_minutes: Math.max(1, Number(e.target.value) || 1) })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Estimasi maksimum (menit)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={settings.max_eta_minutes}
+                  onChange={(e) =>
+                    setSettings({ ...settings, max_eta_minutes: Math.max(1, Number(e.target.value) || 1) })
+                  }
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Contoh: min 30, maks 60 → pembeli melihat "~30–60 mnt"
+            </p>
+          </div>
+        )}
+
         <div className="space-y-1">
           <Label className="text-xs">Catatan untuk pelanggan</Label>
           <Textarea
             value={settings.notes ?? ""}
             onChange={(e) => setSettings({ ...settings, notes: e.target.value || null })}
             rows={2}
-            placeholder="Mis. estimasi 30-60 menit, hari Minggu libur, dll."
+            placeholder="Mis. estimasi tergantung jarak, hari Minggu libur, dll."
           />
         </div>
       </section>
@@ -252,7 +304,12 @@ function DeliveryPage() {
       {settings.mode === "zone" && (
         <section className="mt-6 space-y-3 rounded-xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold">Zona pengiriman</h2>
+            <div>
+              <h2 className="text-base font-semibold">Zona pengiriman</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Setiap zona bisa punya estimasi waktu pengiriman sendiri.
+              </p>
+            </div>
             <Button size="sm" variant="outline" onClick={addZone} className="gap-1">
               <Plus className="h-4 w-4" /> Tambah zona
             </Button>
@@ -264,35 +321,61 @@ function DeliveryPage() {
             </p>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {zones.map((z) => (
-              <div key={z.id} className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_140px_1fr_auto_auto]">
-                <Input
-                  value={z.name}
-                  placeholder="Nama zona"
-                  onChange={(e) => updateZone(z.id, { name: e.target.value })}
-                />
-                <Input
-                  type="number"
-                  value={z.fee}
-                  placeholder="Fee"
-                  onChange={(e) => updateZone(z.id, { fee: Number(e.target.value) || 0 })}
-                />
-                <Input
-                  value={z.area_note ?? ""}
-                  placeholder="Catatan area (mis. radius < 3 km)"
-                  onChange={(e) => updateZone(z.id, { area_note: e.target.value || null })}
-                />
-                <div className="flex items-center gap-2 px-1">
-                  <Switch
-                    checked={z.is_active}
-                    onCheckedChange={(v) => updateZone(z.id, { is_active: v })}
+              <div key={z.id} className="rounded-lg border border-border p-3 space-y-2">
+                <div className="grid gap-2 sm:grid-cols-[1fr_130px_1fr_auto_auto]">
+                  <Input
+                    value={z.name}
+                    placeholder="Nama zona"
+                    onChange={(e) => updateZone(z.id, { name: e.target.value })}
                   />
-                  <span className="text-xs text-muted-foreground">{z.is_active ? "Aktif" : "Off"}</span>
+                  <Input
+                    type="number"
+                    value={z.fee}
+                    placeholder="Ongkir (Rp)"
+                    onChange={(e) => updateZone(z.id, { fee: Number(e.target.value) || 0 })}
+                  />
+                  <Input
+                    value={z.area_note ?? ""}
+                    placeholder="Catatan area (mis. radius < 3 km)"
+                    onChange={(e) => updateZone(z.id, { area_note: e.target.value || null })}
+                  />
+                  <div className="flex items-center gap-2 px-1">
+                    <Switch
+                      checked={z.is_active}
+                      onCheckedChange={(v) => updateZone(z.id, { is_active: v })}
+                    />
+                    <span className="text-xs text-muted-foreground">{z.is_active ? "Aktif" : "Off"}</span>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => deleteZone(z.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => deleteZone(z.id)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                <div className="grid gap-2 sm:grid-cols-2 pl-0.5">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <Label className="text-xs text-muted-foreground shrink-0">ETA min (mnt)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      className="h-7 text-xs"
+                      value={z.min_eta_minutes ?? 30}
+                      onChange={(e) => updateZone(z.id, { min_eta_minutes: Math.max(1, Number(e.target.value) || 1) })}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <Label className="text-xs text-muted-foreground shrink-0">ETA maks (mnt)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      className="h-7 text-xs"
+                      value={z.max_eta_minutes ?? 60}
+                      onChange={(e) => updateZone(z.id, { max_eta_minutes: Math.max(1, Number(e.target.value) || 1) })}
+                    />
+                  </div>
+                </div>
               </div>
             ))}
           </div>

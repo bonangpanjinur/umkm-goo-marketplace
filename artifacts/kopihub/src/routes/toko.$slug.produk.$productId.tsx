@@ -2,8 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
+import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Copy, Check } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check } from "lucide-react";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -179,6 +180,7 @@ function ProductDetailPage() {
                   {product.description}
                 </p>
               )}
+              <DeliveryEstimate shopId={shop.id} />
               <AddToCartBlock product={product} shopSlug={shop.slug} shop={shop} />
             </div>
           </div>

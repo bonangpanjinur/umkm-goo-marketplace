@@ -752,6 +752,8 @@ export type Database = {
           created_at: string
           delivery_enabled: boolean
           free_above: number | null
+          max_eta_minutes: number
+          min_eta_minutes: number
           min_order: number
           mode: Database["public"]["Enums"]["delivery_mode"]
           notes: string | null
@@ -766,6 +768,8 @@ export type Database = {
           created_at?: string
           delivery_enabled?: boolean
           free_above?: number | null
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           min_order?: number
           mode?: Database["public"]["Enums"]["delivery_mode"]
           notes?: string | null
@@ -780,6 +784,8 @@ export type Database = {
           created_at?: string
           delivery_enabled?: boolean
           free_above?: number | null
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           min_order?: number
           mode?: Database["public"]["Enums"]["delivery_mode"]
           notes?: string | null
@@ -797,6 +803,8 @@ export type Database = {
           fee: number
           id: string
           is_active: boolean
+          max_eta_minutes: number
+          min_eta_minutes: number
           name: string
           shop_id: string
           sort_order: number
@@ -808,6 +816,8 @@ export type Database = {
           fee?: number
           id?: string
           is_active?: boolean
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           name: string
           shop_id: string
           sort_order?: number
@@ -819,6 +829,8 @@ export type Database = {
           fee?: number
           id?: string
           is_active?: boolean
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           name?: string
           shop_id?: string
           sort_order?: number
