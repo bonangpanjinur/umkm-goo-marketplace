@@ -1,10 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer, RotateCcw } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+import { addToCart } from "@/lib/marketplace-cart";
+import { toast } from "sonner";
 
 function OrderCountdownBadge({ createdAt }: { createdAt: string }) {
   const [label, setLabel] = useState("");
@@ -77,9 +80,60 @@ function matchTab(status: string, tab: FilterTab) {
 
 function OrdersListPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<FilterTab>("semua");
+  const [reordering, setReordering] = useState<string | null>(null);
+
+  async function reorderOrder(e: React.MouseEvent, orderId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    setReordering(orderId);
+    try {
+      const { data: items } = await supabase
+        .from("order_items" as any)
+        .select("menu_item_id, name, quantity, unit_price, menu_items(id, is_available, shop_id)")
+        .eq("order_id", orderId);
+
+      if (!items || items.length === 0) {
+        toast.error("Item pesanan tidak ditemukan");
+        return;
+      }
+
+      const available = (items as any[]).filter(
+        (it) => it.menu_item_id && it.menu_items?.is_available,
+      );
+
+      if (available.length === 0) {
+        toast.error("Semua item tidak tersedia lagi");
+        return;
+      }
+
+      await Promise.all(
+        available.map((it: any) =>
+          addToCart({
+            shop_id: it.menu_items.shop_id,
+            product_id: it.menu_item_id,
+            unit_price: Number(it.unit_price),
+            quantity: it.quantity,
+          }),
+        ),
+      );
+
+      const skipped = (items as any[]).length - available.length;
+      toast.success(
+        skipped > 0
+          ? `${available.length} item ditambah ke keranjang (${skipped} tidak tersedia)`
+          : `${available.length} item ditambah ke keranjang`,
+      );
+      navigate({ to: "/keranjang" });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Gagal menambah ke keranjang");
+    } finally {
+      setReordering(null);
+    }
+  }
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -161,40 +215,60 @@ function OrdersListPage() {
         <div className="space-y-2.5">
           {filtered.map(o => {
             const isActive = ACTIVE_STATUSES.has(o.status);
+            const isDone   = DONE_STATUSES.has(o.status);
             const colorCls = STATUS_COLOR[o.status] ?? "bg-muted text-muted-foreground border-border";
+            const isReordering = reordering === o.id;
             return (
-              <Link key={o.id} to="/akun/pesanan/$orderId" params={{ orderId: o.id }}>
-                <div className={`group relative flex items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-md ${
-                  isActive ? "border-primary/30 bg-primary/5" : "border-border bg-card"
-                }`}>
-                  {isActive && (
-                    <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                  )}
-                  {o.shop?.logo_url
-                    ? <img src={o.shop.logo_url} alt="" className="h-12 w-12 rounded-lg object-cover border border-border" />
-                    : <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted"><ShoppingBag className="h-5 w-5 text-muted-foreground" /></div>
-                  }
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-2">
-                      <p className="font-semibold text-sm truncate">{o.shop?.name ?? "Toko"}</p>
-                      {o.fulfillment === "delivery" && <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5" />}
+              <div key={o.id} className="relative">
+                <Link to="/akun/pesanan/$orderId" params={{ orderId: o.id }}>
+                  <div className={`group relative flex items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-md ${
+                    isActive ? "border-primary/30 bg-primary/5" : "border-border bg-card"
+                  }`}>
+                    {isActive && (
+                      <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    )}
+                    {o.shop?.logo_url
+                      ? <img src={o.shop.logo_url} alt="" className="h-12 w-12 rounded-lg object-cover border border-border" />
+                      : <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted"><ShoppingBag className="h-5 w-5 text-muted-foreground" /></div>
+                    }
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-2">
+                        <p className="font-semibold text-sm truncate">{o.shop?.name ?? "Toko"}</p>
+                        {o.fulfillment === "delivery" && <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {o.order_no} · {new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${colorCls}`}>
+                          {STATUS_LABEL[o.status] ?? o.status}
+                        </span>
+                        {o.status === "pending" && o.payment_status === "unpaid" && (
+                          <OrderCountdownBadge createdAt={o.created_at} />
+                        )}
+                        <span className="text-sm font-semibold">{formatIDR(o.total)}</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {o.order_no} · {new Date(o.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${colorCls}`}>
-                        {STATUS_LABEL[o.status] ?? o.status}
-                      </span>
-                      {o.status === "pending" && o.payment_status === "unpaid" && (
-                        <OrderCountdownBadge createdAt={o.created_at} />
-                      )}
-                      <span className="text-sm font-semibold">{formatIDR(o.total)}</span>
-                    </div>
+                    <span className="text-muted-foreground group-hover:text-foreground text-lg leading-none">›</span>
                   </div>
-                  <span className="text-muted-foreground group-hover:text-foreground text-lg leading-none">›</span>
-                </div>
-              </Link>
+                </Link>
+                {isDone && (
+                  <div className="absolute bottom-3 right-10">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-7 gap-1.5 px-2.5 text-xs shadow-sm"
+                      disabled={isReordering}
+                      onClick={(e) => reorderOrder(e, o.id)}
+                    >
+                      {isReordering
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <RotateCcw className="h-3 w-3" />}
+                      Pesan Lagi
+                    </Button>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

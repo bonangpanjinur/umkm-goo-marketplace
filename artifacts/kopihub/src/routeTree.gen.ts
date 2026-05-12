@@ -64,6 +64,7 @@ import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
 import { Route as PosAppInvoiceRouteImport } from './routes/pos-app.invoice'
 import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
+import { Route as PosAppInboxRouteImport } from './routes/pos-app.inbox'
 import { Route as PosAppIklanRouteImport } from './routes/pos-app.iklan'
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppEmailMarketingRouteImport } from './routes/pos-app.email-marketing'
@@ -123,6 +124,7 @@ import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
+import { Route as TokoSlugChatRouteImport } from './routes/toko.$slug.chat'
 import { Route as SSlugOrdersRouteImport } from './routes/s.$slug.orders'
 import { Route as SSlugMeRouteImport } from './routes/s.$slug.me'
 import { Route as SSlugLoginRouteImport } from './routes/s.$slug.login'
@@ -417,6 +419,11 @@ const PosAppInvoiceRoute = PosAppInvoiceRouteImport.update({
 const PosAppInventoryRoute = PosAppInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppInboxRoute = PosAppInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppIklanRoute = PosAppIklanRouteImport.update({
@@ -715,6 +722,11 @@ const TokoSlugMapRoute = TokoSlugMapRouteImport.update({
   path: '/map',
   getParentRoute: () => TokoSlugRoute,
 } as any)
+const TokoSlugChatRoute = TokoSlugChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const SSlugOrdersRoute = SSlugOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -881,6 +893,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
+  '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
@@ -938,6 +951,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1012,6 +1026,7 @@ export interface FileRoutesByTo {
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
+  '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
@@ -1068,6 +1083,7 @@ export interface FileRoutesByTo {
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
@@ -1147,6 +1163,7 @@ export interface FileRoutesById {
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
+  '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
@@ -1204,6 +1221,7 @@ export interface FileRoutesById {
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1284,6 +1302,7 @@ export interface FileRouteTypes {
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
     | '/pos-app/iklan'
+    | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
     | '/pos-app/kds'
@@ -1341,6 +1360,7 @@ export interface FileRouteTypes {
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/toko/$slug/chat'
     | '/toko/$slug/map'
     | '/akun/pesanan/'
     | '/order/$slug/'
@@ -1415,6 +1435,7 @@ export interface FileRouteTypes {
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
     | '/pos-app/iklan'
+    | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
     | '/pos-app/kds'
@@ -1471,6 +1492,7 @@ export interface FileRouteTypes {
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/toko/$slug/chat'
     | '/toko/$slug/map'
     | '/akun/pesanan'
     | '/order/$slug'
@@ -1549,6 +1571,7 @@ export interface FileRouteTypes {
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
     | '/pos-app/iklan'
+    | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
     | '/pos-app/kds'
@@ -1606,6 +1629,7 @@ export interface FileRouteTypes {
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/toko/$slug/chat'
     | '/toko/$slug/map'
     | '/akun/pesanan/'
     | '/order/$slug/'
@@ -2028,6 +2052,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppInventoryRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/inbox': {
+      id: '/pos-app/inbox'
+      path: '/inbox'
+      fullPath: '/pos-app/inbox'
+      preLoaderRoute: typeof PosAppInboxRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/iklan': {
       id: '/pos-app/iklan'
       path: '/iklan'
@@ -2441,6 +2472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TokoSlugMapRouteImport
       parentRoute: typeof TokoSlugRoute
     }
+    '/toko/$slug/chat': {
+      id: '/toko/$slug/chat'
+      path: '/chat'
+      fullPath: '/toko/$slug/chat'
+      preLoaderRoute: typeof TokoSlugChatRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/s/$slug/orders': {
       id: '/s/$slug/orders'
       path: '/orders'
@@ -2767,6 +2805,7 @@ interface PosAppRouteChildren {
   PosAppEmailMarketingRoute: typeof PosAppEmailMarketingRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
   PosAppIklanRoute: typeof PosAppIklanRoute
+  PosAppInboxRoute: typeof PosAppInboxRoute
   PosAppInventoryRoute: typeof PosAppInventoryRoute
   PosAppInvoiceRoute: typeof PosAppInvoiceRoute
   PosAppKdsRoute: typeof PosAppKdsRoute
@@ -2824,6 +2863,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppEmailMarketingRoute: PosAppEmailMarketingRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
   PosAppIklanRoute: PosAppIklanRoute,
+  PosAppInboxRoute: PosAppInboxRoute,
   PosAppInventoryRoute: PosAppInventoryRoute,
   PosAppInvoiceRoute: PosAppInvoiceRoute,
   PosAppKdsRoute: PosAppKdsRoute,
@@ -2918,11 +2958,13 @@ const SSlugRouteChildren: SSlugRouteChildren = {
 const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
 
 interface TokoSlugRouteChildren {
+  TokoSlugChatRoute: typeof TokoSlugChatRoute
   TokoSlugMapRoute: typeof TokoSlugMapRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
 
 const TokoSlugRouteChildren: TokoSlugRouteChildren = {
+  TokoSlugChatRoute: TokoSlugChatRoute,
   TokoSlugMapRoute: TokoSlugMapRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }

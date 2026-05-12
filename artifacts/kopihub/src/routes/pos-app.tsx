@@ -53,6 +53,7 @@ import {
   Megaphone,
   QrCode,
   BellRing,
+  MessageCircle,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -132,6 +133,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Pelanggan",
     items: [
       { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
+      { to: "/pos-app/inbox", label: "Inbox Chat", icon: MessageCircle },
       { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
       { to: "/pos-app/promo-calendar", label: "Kalender Promo", icon: CalendarDays },
       { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
