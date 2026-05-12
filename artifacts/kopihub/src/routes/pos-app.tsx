@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { useLowStockIngredients } from "@/hooks/use-low-stock";
 import { useOwnerPaymentPendingCount } from "@/hooks/useAdNotifications";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -214,6 +215,8 @@ function AppLayoutInner() {
   const staff = useStaffRole();
   const [shop, setShop] = useState<{ id: string; name: string; logo_url: string | null; suspended_at?: string | null; suspended_reason?: string | null } | null>(null);
   const paymentPendingAdCount = useOwnerPaymentPendingCount(shop?.id ?? null);
+  const { criticalCount: lowStockCount, emptyCount, items: lowStockItems } = useLowStockIngredients(shop?.id ?? null);
+  const prevLowStockCountRef = useRef<number>(0);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
@@ -258,6 +261,29 @@ function AppLayoutInner() {
       navigate({ to: "/onboarding" });
     })();
   }, [user, loading, navigate, location.pathname, staff.loading, staff.isStaff, staff.shopId]);
+
+  // F3-2: Toast notification when new low-stock ingredients detected
+  useEffect(() => {
+    if (!shop?.id || lowStockCount === 0) return;
+    if (lowStockCount > prevLowStockCountRef.current) {
+      const emptyItems = lowStockItems.filter((i) => i.stock_status === "empty");
+      const criticalItems = lowStockItems.filter((i) => i.stock_status === "critical");
+      if (emptyItems.length > 0) {
+        toast.error(`⚠️ ${emptyItems.length} bahan habis!`, {
+          description: emptyItems.map((i) => i.name).slice(0, 3).join(", ")
+            + (emptyItems.length > 3 ? ` +${emptyItems.length - 3} lainnya` : ""),
+          duration: 8000,
+          action: { label: "Cek Inventori", onClick: () => {} },
+        });
+      } else if (criticalItems.length > 0) {
+        toast.warning(`🔴 ${criticalItems.length} bahan stok kritis`, {
+          description: criticalItems.map((i) => `${i.name} (${i.current_stock} ${i.unit})`).slice(0, 2).join(", "),
+          duration: 6000,
+        });
+      }
+    }
+    prevLowStockCountRef.current = lowStockCount;
+  }, [lowStockCount, lowStockItems, shop?.id]);
 
   // Service call subscription — shows toast on any pos-app page
   useEffect(() => {
@@ -397,6 +423,11 @@ function AppLayoutInner() {
                         {item.to === "/pos-app/iklan" && paymentPendingAdCount > 0 && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white">
                             {paymentPendingAdCount > 9 ? "9+" : paymentPendingAdCount}
+                          </span>
+                        )}
+                        {item.to === "/pos-app/inventory" && lowStockCount > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-white animate-pulse">
+                            {emptyCount > 0 ? "!" : lowStockCount > 9 ? "9+" : lowStockCount}
                           </span>
                         )}
                       </Link>

@@ -26,6 +26,9 @@
 | 12 Mei 2026 | **Fase 2** | **Notif Poin Kadaluarsa** — owner set expire days di loyalty settings; customer lihat warning banner saat poin mendekati kadaluarsa | ✅ |
 | 12 Mei 2026 | **Fase 2** | **Kode Referral Unik** — kode deterministik per user (UMK+8char); salin kode / bagikan link; riwayat referral dengan status & reward | ✅ |
 | 12 Mei 2026 | **Fase 2** | **Pesanan Favorit** — tandai pesanan selesai sebagai favorit; beri nama custom; Pesan Lagi 1-tap pre-fill keranjang + navigate ke toko | ✅ |
+| 12 Mei 2026 | **Fase 3** | **Stok turun otomatis** — Supabase trigger `fn_deduct_stock_on_order`: kurangi ingredients per resep saat order completed/confirmed; log stock_movements tipe 'sale' | ✅ |
+| 12 Mei 2026 | **Fase 3** | **Notifikasi stok kritis** — badge merah animasi di nav Inventori + toast error/warning real-time saat bahan ≤ min_stock atau habis | ✅ |
+| 12 Mei 2026 | **Fase 3** | **Auto non-aktif menu** — trigger DB nonaktifkan menu (is_available=false) otomatis jika ingredient habis + notifikasi danger ke owner | ✅ |
 
 ---
 
@@ -57,15 +60,15 @@
 
 ---
 
-## FASE 3 — Manajemen Stok Otomatis 🔲
+## FASE 3 — Manajemen Stok Otomatis ✅ SELESAI
 
 > Stok tidak pernah oversell; owner selalu tahu kondisi bahan.
 
 | # | Fitur | Deskripsi | Status |
 |---|---|---|---|
-| F3-1 | **Stok turun otomatis** | Trigger Supabase: tiap order masuk, kurangi `ingredients` sesuai resep; berlaku POS & marketplace | 🔲 |
-| F3-2 | **Notifikasi stok kritis** | Badge merah + toast di pos-app saat stok ingredient ≤ `min_stock` | 🔲 |
-| F3-3 | **Auto non-aktif menu** | Jika semua ingredient utama habis, `is_available = false` otomatis | 🔲 |
+| F3-1 | **Stok turun otomatis** | Trigger Supabase: tiap order masuk, kurangi `ingredients` sesuai resep; berlaku POS & marketplace | ✅ |
+| F3-2 | **Notifikasi stok kritis** | Badge merah + toast di pos-app saat stok ingredient ≤ `min_stock` | ✅ |
+| F3-3 | **Auto non-aktif menu** | Jika semua ingredient utama habis, `is_available = false` otomatis | ✅ |
 | F3-4 | **Bundle Produk / Paket** | 1 kopi + 1 snack = harga paket; stok keduanya berkurang sekaligus | 🔲 |
 | F3-5 | **Estimasi stok habis** | "Berdasarkan penjualan 7 hari, kopi susu akan habis dalam ~2 hari" | 🔲 |
 
@@ -118,8 +121,8 @@
 | Fase | Dampak Bisnis | Effort | Status |
 |------|--------------|--------|--------|
 | Fase 1 — Dine-in & KDS | ⭐⭐⭐⭐⭐ | Rendah | ✅ Selesai |
-| Fase 3 — Stok Otomatis | ⭐⭐⭐⭐⭐ | Sedang | 🔲 Antri |
-| Fase 2 — Retensi Customer | ⭐⭐⭐⭐ | Sedang | 🔲 Antri |
+| Fase 3 — Stok Otomatis | ⭐⭐⭐⭐⭐ | Sedang | ✅ Selesai |
+| Fase 2 — Retensi Customer | ⭐⭐⭐⭐ | Sedang | ✅ Selesai |
 | Fase 5 — Otomasi Operasional | ⭐⭐⭐⭐ | Sedang | 🔲 Antri |
 | Fase 4 — Marketplace UX | ⭐⭐⭐ | Tinggi | 🔲 Antri |
 | Fase 6 — Feedback Loop | ⭐⭐⭐ | Rendah | 🔲 Antri |
