@@ -872,6 +872,7 @@ POST /api/notifications/read  — tandai notifikasi dibaca
 | Sprint | Tanggal | Item Selesai |
 |---|---|---|
 | Rendah-1 | 11 Mei 2026 | O-18, O-19, O-20, O-21, O-22, O-23, O-24, B-16, B-17, B-18, B-19, B-20 |
+| Ekstra-1 | 12 Mei 2026 | **QR Code Meja (Dine-in Ordering)** — `pos-app.table-qr.tsx`: owner generate & cetak QR per meja (grid card, QR besar preview, salin link, cetak satu/semua). `order.$slug.tsx` + `order.$slug.index.tsx` + `order.$slug.cart.tsx` + `order.$slug.checkout.tsx`: flow dine-in end-to-end — pelanggan scan QR → buka menu → keranjang → konfirmasi (nama + catatan) → bayar Cash/QRIS. Banner "Meja X" hijau di semua halaman. Pesanan masuk langsung ke dashboard & KDS. Nav "QR Code Meja" ditambah ke sidebar owner. |
 
 ---
 

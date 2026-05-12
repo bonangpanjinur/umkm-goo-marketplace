@@ -32,6 +32,7 @@ import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wishlist-analytics'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
+import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
 import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
 import { Route as PosAppStorefrontBuilderRouteImport } from './routes/pos-app.storefront-builder'
@@ -81,6 +82,7 @@ import { Route as PosAppAttendanceRouteImport } from './routes/pos-app.attendanc
 import { Route as PosAppAtributRouteImport } from './routes/pos-app.atribut'
 import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearance'
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
+import { Route as OrderSlugRouteImport } from './routes/order.$slug'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
@@ -116,6 +118,7 @@ import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
+import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
 import { Route as SSlugOrdersRouteImport } from './routes/s.$slug.orders'
@@ -128,6 +131,8 @@ import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.p
 import { Route as PosAppMenuImportRouteImport } from './routes/pos-app.menu.import'
 import { Route as PosAppKeuanganTarikRouteImport } from './routes/pos-app.keuangan.tarik'
 import { Route as PesananOrderIdChatRouteImport } from './routes/pesanan.$orderId.chat'
+import { Route as OrderSlugCheckoutRouteImport } from './routes/order.$slug.checkout'
+import { Route as OrderSlugCartRouteImport } from './routes/order.$slug.cart'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
@@ -249,6 +254,11 @@ const PosAppVariantsRoute = PosAppVariantsRouteImport.update({
 const PosAppTablesRoute = PosAppTablesRouteImport.update({
   id: '/tables',
   path: '/tables',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppTableQrRoute = PosAppTableQrRouteImport.update({
+  id: '/table-qr',
+  path: '/table-qr',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppTableMapsRoute = PosAppTableMapsRouteImport.update({
@@ -497,6 +507,11 @@ const PesananOrderIdRoute = PesananOrderIdRouteImport.update({
   path: '/pesanan/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrderSlugRoute = OrderSlugRouteImport.update({
+  id: '/order/$slug',
+  path: '/order/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KategoriSlugRoute = KategoriSlugRouteImport.update({
   id: '/kategori/$slug',
   path: '/kategori/$slug',
@@ -673,6 +688,11 @@ const SSlugIndexRoute = SSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SSlugRoute,
 } as any)
+const OrderSlugIndexRoute = OrderSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrderSlugRoute,
+} as any)
 const AkunPesananIndexRoute = AkunPesananIndexRouteImport.update({
   id: '/pesanan/',
   path: '/pesanan/',
@@ -733,6 +753,16 @@ const PesananOrderIdChatRoute = PesananOrderIdChatRouteImport.update({
   id: '/chat',
   path: '/chat',
   getParentRoute: () => PesananOrderIdRoute,
+} as any)
+const OrderSlugCheckoutRoute = OrderSlugCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => OrderSlugRoute,
+} as any)
+const OrderSlugCartRoute = OrderSlugCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => OrderSlugRoute,
 } as any)
 const CheckoutSuksesOrderIdRoute = CheckoutSuksesOrderIdRouteImport.update({
   id: '/sukses/$orderId',
@@ -818,6 +848,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
@@ -867,6 +898,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
+  '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
@@ -880,6 +912,8 @@ export interface FileRoutesByFullPath {
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/order/$slug/cart': typeof OrderSlugCartRoute
+  '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
@@ -892,6 +926,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
+  '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
@@ -992,6 +1027,7 @@ export interface FileRoutesByTo {
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
+  '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
@@ -1004,6 +1040,8 @@ export interface FileRoutesByTo {
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/order/$slug/cart': typeof OrderSlugCartRoute
+  '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
@@ -1016,6 +1054,7 @@ export interface FileRoutesByTo {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
+  '/order/$slug': typeof OrderSlugIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
@@ -1071,6 +1110,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
@@ -1120,6 +1160,7 @@ export interface FileRoutesById {
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
+  '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
@@ -1133,6 +1174,8 @@ export interface FileRoutesById {
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/order/$slug/cart': typeof OrderSlugCartRoute
+  '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
@@ -1145,6 +1188,7 @@ export interface FileRoutesById {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
+  '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
@@ -1201,6 +1245,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/invite/$token'
     | '/kategori/$slug'
+    | '/order/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/appearance'
     | '/pos-app/atribut'
@@ -1250,6 +1295,7 @@ export interface FileRouteTypes {
     | '/pos-app/storefront-builder'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
+    | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/variants'
     | '/pos-app/wishlist-analytics'
@@ -1263,6 +1309,8 @@ export interface FileRouteTypes {
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
     | '/checkout/sukses/$orderId'
+    | '/order/$slug/cart'
+    | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
     | '/pos-app/keuangan/tarik'
     | '/pos-app/menu/import'
@@ -1275,6 +1323,7 @@ export interface FileRouteTypes {
     | '/s/$slug/orders'
     | '/toko/$slug/map'
     | '/akun/pesanan/'
+    | '/order/$slug/'
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
@@ -1375,6 +1424,7 @@ export interface FileRouteTypes {
     | '/pos-app/storefront-builder'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
+    | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/variants'
     | '/pos-app/wishlist-analytics'
@@ -1387,6 +1437,8 @@ export interface FileRouteTypes {
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
     | '/checkout/sukses/$orderId'
+    | '/order/$slug/cart'
+    | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
     | '/pos-app/keuangan/tarik'
     | '/pos-app/menu/import'
@@ -1399,6 +1451,7 @@ export interface FileRouteTypes {
     | '/s/$slug/orders'
     | '/toko/$slug/map'
     | '/akun/pesanan'
+    | '/order/$slug'
     | '/s/$slug'
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
@@ -1453,6 +1506,7 @@ export interface FileRouteTypes {
     | '/download/$token'
     | '/invite/$token'
     | '/kategori/$slug'
+    | '/order/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/appearance'
     | '/pos-app/atribut'
@@ -1502,6 +1556,7 @@ export interface FileRouteTypes {
     | '/pos-app/storefront-builder'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
+    | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/variants'
     | '/pos-app/wishlist-analytics'
@@ -1515,6 +1570,8 @@ export interface FileRouteTypes {
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
     | '/checkout/sukses/$orderId'
+    | '/order/$slug/cart'
+    | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
     | '/pos-app/keuangan/tarik'
     | '/pos-app/menu/import'
@@ -1527,6 +1584,7 @@ export interface FileRouteTypes {
     | '/s/$slug/orders'
     | '/toko/$slug/map'
     | '/akun/pesanan/'
+    | '/order/$slug/'
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
@@ -1551,6 +1609,7 @@ export interface RootRouteChildren {
   DownloadTokenRoute: typeof DownloadTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
   KategoriSlugRoute: typeof KategoriSlugRoute
+  OrderSlugRoute: typeof OrderSlugRouteWithChildren
   PesananOrderIdRoute: typeof PesananOrderIdRouteWithChildren
   SSlugRoute: typeof SSlugRouteWithChildren
   TokoSlugRoute: typeof TokoSlugRouteWithChildren
@@ -1719,6 +1778,13 @@ declare module '@tanstack/react-router' {
       path: '/tables'
       fullPath: '/pos-app/tables'
       preLoaderRoute: typeof PosAppTablesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/table-qr': {
+      id: '/pos-app/table-qr'
+      path: '/table-qr'
+      fullPath: '/pos-app/table-qr'
+      preLoaderRoute: typeof PosAppTableQrRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/table-maps': {
@@ -2064,6 +2130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PesananOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/order/$slug': {
+      id: '/order/$slug'
+      path: '/order/$slug'
+      fullPath: '/order/$slug'
+      preLoaderRoute: typeof OrderSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kategori/$slug': {
       id: '/kategori/$slug'
       path: '/kategori/$slug'
@@ -2309,6 +2382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugIndexRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/order/$slug/': {
+      id: '/order/$slug/'
+      path: '/'
+      fullPath: '/order/$slug/'
+      preLoaderRoute: typeof OrderSlugIndexRouteImport
+      parentRoute: typeof OrderSlugRoute
+    }
     '/akun/pesanan/': {
       id: '/akun/pesanan/'
       path: '/pesanan'
@@ -2392,6 +2472,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/pesanan/$orderId/chat'
       preLoaderRoute: typeof PesananOrderIdChatRouteImport
       parentRoute: typeof PesananOrderIdRoute
+    }
+    '/order/$slug/checkout': {
+      id: '/order/$slug/checkout'
+      path: '/checkout'
+      fullPath: '/order/$slug/checkout'
+      preLoaderRoute: typeof OrderSlugCheckoutRouteImport
+      parentRoute: typeof OrderSlugRoute
+    }
+    '/order/$slug/cart': {
+      id: '/order/$slug/cart'
+      path: '/cart'
+      fullPath: '/order/$slug/cart'
+      preLoaderRoute: typeof OrderSlugCartRouteImport
+      parentRoute: typeof OrderSlugRoute
     }
     '/checkout/sukses/$orderId': {
       id: '/checkout/sukses/$orderId'
@@ -2663,6 +2757,7 @@ interface PosAppRouteChildren {
   PosAppStorefrontBuilderRoute: typeof PosAppStorefrontBuilderRoute
   PosAppSuppliersRoute: typeof PosAppSuppliersRoute
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
+  PosAppTableQrRoute: typeof PosAppTableQrRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppWishlistAnalyticsRoute: typeof PosAppWishlistAnalyticsRoute
@@ -2718,6 +2813,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppStorefrontBuilderRoute: PosAppStorefrontBuilderRoute,
   PosAppSuppliersRoute: PosAppSuppliersRoute,
   PosAppTableMapsRoute: PosAppTableMapsRoute,
+  PosAppTableQrRoute: PosAppTableQrRoute,
   PosAppTablesRoute: PosAppTablesRoute,
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppWishlistAnalyticsRoute: PosAppWishlistAnalyticsRoute,
@@ -2726,6 +2822,22 @@ const PosAppRouteChildren: PosAppRouteChildren = {
 
 const PosAppRouteWithChildren =
   PosAppRoute._addFileChildren(PosAppRouteChildren)
+
+interface OrderSlugRouteChildren {
+  OrderSlugCartRoute: typeof OrderSlugCartRoute
+  OrderSlugCheckoutRoute: typeof OrderSlugCheckoutRoute
+  OrderSlugIndexRoute: typeof OrderSlugIndexRoute
+}
+
+const OrderSlugRouteChildren: OrderSlugRouteChildren = {
+  OrderSlugCartRoute: OrderSlugCartRoute,
+  OrderSlugCheckoutRoute: OrderSlugCheckoutRoute,
+  OrderSlugIndexRoute: OrderSlugIndexRoute,
+}
+
+const OrderSlugRouteWithChildren = OrderSlugRoute._addFileChildren(
+  OrderSlugRouteChildren,
+)
 
 interface PesananOrderIdRouteChildren {
   PesananOrderIdChatRoute: typeof PesananOrderIdChatRoute
@@ -2794,6 +2906,7 @@ const rootRouteChildren: RootRouteChildren = {
   DownloadTokenRoute: DownloadTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
   KategoriSlugRoute: KategoriSlugRoute,
+  OrderSlugRoute: OrderSlugRouteWithChildren,
   PesananOrderIdRoute: PesananOrderIdRouteWithChildren,
   SSlugRoute: SSlugRouteWithChildren,
   TokoSlugRoute: TokoSlugRouteWithChildren,

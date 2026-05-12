@@ -50,6 +50,7 @@ import {
   Tag,
   CalendarCheck,
   Megaphone,
+  QrCode,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -171,6 +172,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "settings",
     label: "Pengaturan Toko",
     items: [
+      { to: "/pos-app/table-qr", label: "QR Code Meja", icon: QrCode },
       { to: "/pos-app/printers", label: "Printer", icon: Printer },
       { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
       { to: "/pos-app/storefront-builder", label: "Storefront Builder", icon: LayoutDashboard },
