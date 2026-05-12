@@ -91,6 +91,7 @@ import { Route as AkunRiwayatRouteImport } from './routes/akun.riwayat'
 import { Route as AkunReferralRouteImport } from './routes/akun.referral'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunLoyaltyRouteImport } from './routes/akun.loyalty'
+import { Route as AkunFavoritRouteImport } from './routes/akun.favorit'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
@@ -552,6 +553,11 @@ const AkunLoyaltyRoute = AkunLoyaltyRouteImport.update({
   path: '/loyalty',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunFavoritRoute = AkunFavoritRouteImport.update({
+  id: '/favorit',
+  path: '/favorit',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunAlamatRoute = AkunAlamatRouteImport.update({
   id: '/alamat',
   path: '/alamat',
@@ -840,6 +846,7 @@ export interface FileRoutesByFullPath {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/favorit': typeof AkunFavoritRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -970,6 +977,7 @@ export interface FileRoutesByTo {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/favorit': typeof AkunFavoritRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -1102,6 +1110,7 @@ export interface FileRoutesById {
   '/admin/vouchers': typeof AdminVouchersRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
+  '/akun/favorit': typeof AkunFavoritRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -1237,6 +1246,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
+    | '/akun/favorit'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -1367,6 +1377,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
+    | '/akun/favorit'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -1498,6 +1509,7 @@ export interface FileRouteTypes {
     | '/admin/vouchers'
     | '/admin/withdrawals'
     | '/akun/alamat'
+    | '/akun/favorit'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -2193,6 +2205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunLoyaltyRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/favorit': {
+      id: '/akun/favorit'
+      path: '/favorit'
+      fullPath: '/akun/favorit'
+      preLoaderRoute: typeof AkunFavoritRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/alamat': {
       id: '/akun/alamat'
       path: '/alamat'
@@ -2625,6 +2644,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AkunRouteChildren {
   AkunAlamatRoute: typeof AkunAlamatRoute
+  AkunFavoritRoute: typeof AkunFavoritRoute
   AkunLoyaltyRoute: typeof AkunLoyaltyRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
   AkunReferralRoute: typeof AkunReferralRoute
@@ -2637,6 +2657,7 @@ interface AkunRouteChildren {
 
 const AkunRouteChildren: AkunRouteChildren = {
   AkunAlamatRoute: AkunAlamatRoute,
+  AkunFavoritRoute: AkunFavoritRoute,
   AkunLoyaltyRoute: AkunLoyaltyRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
   AkunReferralRoute: AkunReferralRoute,

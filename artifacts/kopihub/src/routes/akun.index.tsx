@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShoppingBag, Heart, Bell, MapPin, Star, User } from "lucide-react";
+import { Loader2, ShoppingBag, Heart, Bell, MapPin, Star, User, Cake } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
@@ -17,7 +17,7 @@ function ProfilePage() {
   const { user } = useAuth();
   const [loading, setLoading]  = useState(true);
   const [saving, setSaving]    = useState(false);
-  const [form, setForm]        = useState({ display_name: "", phone: "", email: "" });
+  const [form, setForm]        = useState({ display_name: "", phone: "", email: "", birthday: "" });
   const [stats, setStats]      = useState({ orders: 0, wishlist: 0, notifications: 0, totalSpent: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
@@ -25,7 +25,7 @@ function ProfilePage() {
     if (!user) return;
     (async () => {
       const [profileRes, orderRes, wishlistRes, notifRes] = await Promise.all([
-        supabase.from("customer_profiles").select("display_name, phone, email").eq("user_id", user.id).maybeSingle(),
+        supabase.from("customer_profiles").select("display_name, phone, email, birthday").eq("user_id", user.id).maybeSingle(),
         supabase.from("orders").select("id, status, total, created_at, shop:coffee_shops(name, slug, logo_url)").eq("customer_user_id", user.id).like("order_no", "MKT-%").order("created_at", { ascending: false }).limit(3),
         supabase.from("wishlists" as any).select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_user_id", user.id).is("read_at", null),
@@ -35,9 +35,10 @@ function ProfilePage() {
       const totalSpent = allOrders.reduce((s: number, o: any) => s + Number(o.total ?? 0), 0);
 
       setForm({
-        display_name: profileRes.data?.display_name || user.user_metadata?.full_name || "",
-        phone:        profileRes.data?.phone || "",
-        email:        profileRes.data?.email || user.email || "",
+        display_name: (profileRes.data as any)?.display_name || user.user_metadata?.full_name || "",
+        phone:        (profileRes.data as any)?.phone || "",
+        email:        (profileRes.data as any)?.email || user.email || "",
+        birthday:     (profileRes.data as any)?.birthday || "",
       });
       setRecentOrders(allOrders);
 
@@ -61,7 +62,8 @@ function ProfilePage() {
       display_name: form.display_name.trim().slice(0, 100),
       phone:        form.phone.trim().slice(0, 20) || null,
       email:        form.email.trim().slice(0, 255) || null,
-    }, { onConflict: "user_id" });
+      birthday:     form.birthday || null,
+    } as any, { onConflict: "user_id" });
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Profil tersimpan");
@@ -167,6 +169,13 @@ function ProfilePage() {
           <div><Label>Nama lengkap</Label><Input className="mt-1" value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} maxLength={100} /></div>
           <div><Label>No. WhatsApp</Label><Input className="mt-1" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} maxLength={20} placeholder="08xxxxxxxxx" inputMode="tel" /></div>
           <div><Label>Email</Label><Input className="mt-1" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} maxLength={255} /></div>
+          <div>
+            <Label className="flex items-center gap-1.5">
+              <Cake className="h-3.5 w-3.5 text-rose-500" /> Tanggal Lahir
+            </Label>
+            <Input className="mt-1" type="date" value={form.birthday} onChange={e => setForm({ ...form, birthday: e.target.value })} />
+            <p className="mt-1 text-xs text-muted-foreground">Digunakan untuk voucher ulang tahun dari toko.</p>
+          </div>
           <div className="flex items-center gap-3">
             <Button onClick={save} disabled={saving} className="gap-2">
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}

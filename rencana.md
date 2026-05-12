@@ -21,6 +21,11 @@
 | 12 Mei 2026 | **Fase 1** | **Toast real-time** — notifikasi panggilan meja muncul di seluruh pos-app layout | ✅ |
 | 12 Mei 2026 | **Fase 1** | **Re-order 1-tap** — pesan ulang menu yang sama setelah checkout, 1 klik | ✅ |
 | 12 Mei 2026 | **Fase 1** | **Estimasi Waktu Siap** — perkiraan waktu berdasarkan jumlah pesanan di antrian dapur | ✅ |
+| 12 Mei 2026 | **Fase 2** | **Tier Membership** — Bronze/Silver/Gold/Platinum berdasarkan lifetime earned; badge + progress bar; real data Supabase | ✅ |
+| 12 Mei 2026 | **Fase 2** | **Voucher Ulang Tahun** — birthday field di profil customer; owner aktifkan voucher + nominal; panel birthday hari ini di owner dashboard | ✅ |
+| 12 Mei 2026 | **Fase 2** | **Notif Poin Kadaluarsa** — owner set expire days di loyalty settings; customer lihat warning banner saat poin mendekati kadaluarsa | ✅ |
+| 12 Mei 2026 | **Fase 2** | **Kode Referral Unik** — kode deterministik per user (UMK+8char); salin kode / bagikan link; riwayat referral dengan status & reward | ✅ |
+| 12 Mei 2026 | **Fase 2** | **Pesanan Favorit** — tandai pesanan selesai sebagai favorit; beri nama custom; Pesan Lagi 1-tap pre-fill keranjang + navigate ke toko | ✅ |
 
 ---
 
@@ -38,17 +43,17 @@
 
 ---
 
-## FASE 2 — Retensi Customer & Loyalty Loop 🔲
+## FASE 2 — Retensi Customer & Loyalty Loop ✅ SELESAI
 
 > Pembeli datang lagi tanpa perlu bayar biaya iklan baru.
 
 | # | Fitur | Deskripsi | Status |
 |---|---|---|---|
-| F2-1 | **Tier Membership** | Silver → Gold → Platinum; threshold poin; badge di profil; benefit per tier (diskon, prioritas) | 🔲 |
-| F2-2 | **Voucher Ulang Tahun Otomatis** | Cek tanggal lahir → kirim voucher H-1 ulang tahun ke customer | 🔲 |
-| F2-3 | **Notif Poin Kadaluarsa** | Ingatkan customer 7 hari sebelum poin expired via notifikasi in-app | 🔲 |
-| F2-4 | **Kode Referral Unik** | Tiap customer punya kode referral; share link; keduanya dapat poin saat referral pertama order | 🔲 |
-| F2-5 | **Pesanan Favorit** | Simpan kombinasi menu ke "Favorit"; pesan ulang 1 tap dari halaman akun customer | 🔲 |
+| F2-1 | **Tier Membership** | Bronze/Silver/Gold/Platinum berdasarkan `total_earned` lifetime; progress bar ke tier berikutnya; badge aktif; benefit per tier; per-toko breakdown; CTA ke marketplace | ✅ |
+| F2-2 | **Voucher Ulang Tahun Otomatis** | Birthday field di form profil customer; owner aktifkan + set nominal + expiry days di `pos-app/loyalty`; panel "Ulang Tahun Hari Ini" di owner dashboard | ✅ |
+| F2-3 | **Notif Poin Kadaluarsa** | Owner set `points_expire_days` di loyalty settings; customer lihat warning banner kuning saat poin aktif akan segera kadaluarsa | ✅ |
+| F2-4 | **Kode Referral Unik** | Kode deterministik `UMK+8HEX` per user; salin kode / salin link / share native; riwayat referral + status (Terdaftar/Pembelian Pertama/Reward Diterima) + total reward | ✅ |
+| F2-5 | **Pesanan Favorit** | `/akun/favorit` — tandai pesanan selesai dengan ikon hati; beri nama custom; "Pesan Lagi" pre-fill keranjang + navigate ke storefront toko; tab Favorit vs Semua | ✅ |
 
 ---
 

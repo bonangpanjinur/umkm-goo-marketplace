@@ -12,14 +12,15 @@ export const Route = createFileRoute("/akun")({
 });
 
 const NAV = [
-  { to: "/akun",             label: "Profil",       icon: User,      exact: true },
-  { to: "/akun/pesanan",     label: "Pesanan",      icon: ShoppingBag },
-  { to: "/akun/wishlist",    label: "Wishlist",     icon: Heart },
-  { to: "/akun/riwayat",     label: "Baru Dilihat", icon: History },
-  { to: "/akun/loyalty",     label: "Poin Loyalty", icon: Star },
-  { to: "/akun/referral",    label: "Referral",     icon: Gift },
-  { to: "/akun/notifikasi",  label: "Notifikasi",   icon: Bell },
-  { to: "/akun/alamat",      label: "Alamat",       icon: MapPin },
+  { to: "/akun",             label: "Profil",        icon: User,      exact: true },
+  { to: "/akun/pesanan",     label: "Pesanan",       icon: ShoppingBag },
+  { to: "/akun/favorit",     label: "Favorit",       icon: Heart },
+  { to: "/akun/wishlist",    label: "Wishlist",      icon: Heart },
+  { to: "/akun/riwayat",     label: "Baru Dilihat",  icon: History },
+  { to: "/akun/loyalty",     label: "Poin Loyalty",  icon: Star },
+  { to: "/akun/referral",    label: "Referral",      icon: Gift },
+  { to: "/akun/notifikasi",  label: "Notifikasi",    icon: Bell },
+  { to: "/akun/alamat",      label: "Alamat",        icon: MapPin },
 ];
 
 function AkunLayout() {
