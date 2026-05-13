@@ -116,16 +116,37 @@ function PortfolioPage() {
 
   async function handleUpload(file: File) {
     if (!shop?.id) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("File terlalu besar (maks 5 MB)"); return; }
+    if (!ALLOWED_FORMATS.includes(file.type)) {
+      toast.error("Format tidak didukung. Gunakan JPG, PNG, atau WebP.");
+      return;
+    }
+    if (file.size > MAX_BYTES) { toast.error("File terlalu besar (maks 5 MB)"); return; }
     setUploading(true);
     try {
+      const meta = await readImageMeta(file);
+      if (meta.w < MIN_DIM || meta.h < MIN_DIM) {
+        toast.error(`Resolusi terlalu kecil (${meta.w}×${meta.h}). Minimal ${MIN_DIM}×${MIN_DIM} px.`);
+        setUploading(false);
+        return;
+      }
+      if (uploadTarget === "before" || uploadTarget === "after") {
+        const other = uploadTarget === "before" ? dims.after : dims.before;
+        if (other) {
+          const ar1 = meta.w / meta.h;
+          const ar2 = other.w / other.h;
+          const diff = Math.abs(ar1 - ar2) / Math.max(ar1, ar2);
+          if (diff > 0.2) {
+            toast.warning("Aspek rasio Sebelum & Sesudah berbeda jauh — slider mungkin terpotong.");
+          }
+        }
+      }
       const ext  = file.name.split(".").pop();
       const path = `portfolio/${shop.id}/${Date.now()}-${uploadTarget}.${ext}`;
       const { error: upErr } = await supabase.storage.from("shop-assets").upload(path, file, { upsert: true });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("shop-assets").getPublicUrl(path);
-      if (uploadTarget === "before") setBeforeUrl(urlData.publicUrl);
-      else if (uploadTarget === "after") setAfterUrl(urlData.publicUrl);
+      if (uploadTarget === "before") { setBeforeUrl(urlData.publicUrl); setDims(d => ({ ...d, before: meta })); }
+      else if (uploadTarget === "after") { setAfterUrl(urlData.publicUrl); setDims(d => ({ ...d, after: meta })); }
       else setImgUrl(urlData.publicUrl);
       toast.success("Gambar berhasil diunggah");
     } catch (e: any) {
@@ -135,10 +156,18 @@ function PortfolioPage() {
     }
   }
 
+  function swapBeforeAfter() {
+    const b = beforeUrl;
+    setBeforeUrl(afterUrl);
+    setAfterUrl(b);
+    setDims(d => ({ before: d.after, after: d.before }));
+  }
+
   function openAdd() {
     setEditItem(null);
     setImgUrl(""); setCaption(""); setCategory("");
     setIsBA(false); setBeforeUrl(""); setAfterUrl("");
+    setDims({});
     setShowAdd(true);
   }
 
@@ -150,6 +179,7 @@ function PortfolioPage() {
     setIsBA(Boolean(item.is_before_after));
     setBeforeUrl(item.before_image_url ?? "");
     setAfterUrl(item.after_image_url ?? "");
+    setDims({});
     setShowAdd(true);
   }
 
