@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers } from "lucide-react";
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -120,6 +120,7 @@ function ProductDetailPage() {
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [cartQty, setCartQty] = useState(1);
 
   useEffect(() => {
     (async () => {
@@ -254,6 +255,7 @@ function ProductDetailPage() {
               <div className="mt-4 text-3xl font-bold text-primary">
                 Rp {Number(product.price).toLocaleString("id-ID")}
               </div>
+              <BulkPricingTiers productId={product.id} basePrice={Number(product.price)} activeQty={cartQty} />
               {product.track_stock && (
                 <div className="mt-2 text-sm text-muted-foreground">
                   Stok: {(product.stock ?? 0) > 0 ? `${product.stock} tersedia` : "Habis"}
@@ -314,7 +316,7 @@ function ProductDetailPage() {
               )}
 
               <DeliveryEstimate shopId={shop.id} />
-              <AddToCartBlock product={product} shopSlug={shop.slug} shop={shop} />
+              <AddToCartBlock product={product} shopSlug={shop.slug} shop={shop} qty={cartQty} onQtyChange={setCartQty} />
             </div>
           </div>
         ) : null}
@@ -524,6 +526,90 @@ function CompareButton({ product }: { product: Product }) {
   );
 }
 
+type BulkRule = { id: string; min_qty: number; max_qty: number | null; price: number; label: string | null };
+
+function BulkPricingTiers({ productId, basePrice, activeQty }: { productId: string; basePrice: number; activeQty: number }) {
+  const [tiers, setTiers] = useState<BulkRule[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("bulk_pricing_rules")
+        .select("id, min_qty, max_qty, price, label")
+        .eq("menu_item_id", productId)
+        .order("min_qty");
+      if (!error) setTiers((data ?? []) as BulkRule[]);
+      setLoaded(true);
+    })();
+  }, [productId]);
+
+  if (!loaded || tiers.length === 0) return null;
+
+  const activeTier = tiers.slice().reverse().find(t => activeQty >= t.min_qty && (t.max_qty === null || activeQty <= t.max_qty));
+  const activePrice = activeTier ? activeTier.price : basePrice;
+  const activeSaving = Math.round((1 - activePrice / basePrice) * 100);
+
+  return (
+    <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-800 overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-emerald-200 dark:border-emerald-800 bg-emerald-100/60 dark:bg-emerald-900/30 px-3 py-2">
+        <Layers className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+        <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Harga Grosir / Bulk</span>
+        <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400">Beli lebih, hemat lebih!</span>
+      </div>
+      <div className="divide-y divide-emerald-100 dark:divide-emerald-900">
+        {tiers.map(tier => {
+          const isActive = tier === activeTier;
+          const discount = Math.round((1 - tier.price / basePrice) * 100);
+          return (
+            <div
+              key={tier.id}
+              className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${isActive ? "bg-emerald-200/70 dark:bg-emerald-800/40" : ""}`}
+            >
+              {isActive && (
+                <span className="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white">
+                  <Check className="h-3 w-3" />
+                </span>
+              )}
+              {!isActive && (
+                <span className="shrink-0 h-5 w-5 rounded-full border-2 border-emerald-300 dark:border-emerald-700" />
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium text-foreground">
+                  Beli {tier.min_qty}{tier.max_qty ? `–${tier.max_qty}` : "+"} pcs
+                </span>
+                {tier.label && (
+                  <span className="ml-2 text-xs text-muted-foreground">({tier.label})</span>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <span className={`text-sm font-bold ${isActive ? "text-emerald-700 dark:text-emerald-300" : "text-foreground"}`}>
+                  Rp {Number(tier.price).toLocaleString("id-ID")} / pcs
+                </span>
+                {discount > 0 && (
+                  <span className="ml-2 text-[10px] font-semibold text-emerald-700 bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-400 rounded-full px-1.5 py-0.5">
+                    -{discount}%
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {activeTier && activeSaving > 0 && (
+        <div className="border-t border-emerald-200 dark:border-emerald-800 bg-emerald-100/60 dark:bg-emerald-900/30 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+          Dengan {activeQty} pcs: Rp {Number(activePrice * activeQty).toLocaleString("id-ID")} — hemat {activeSaving}% dari harga normal
+        </div>
+      )}
+      {!activeTier && (
+        <div className="border-t border-emerald-200 dark:border-emerald-800 px-3 py-2 text-xs text-emerald-600 dark:text-emerald-500">
+          Tambah qty untuk mendapatkan harga grosir (min. {tiers[0]?.min_qty} pcs)
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FrequentlyBoughtTogether({ productId, shopId, shopSlug }: { productId: string; shopId: string; shopSlug: string }) {
   type RelatedProduct = { id: string; name: string; price: number; image_url: string | null };
   const [related, setRelated] = useState<RelatedProduct[]>([]);
@@ -631,8 +717,13 @@ function DigitalPreview({ product }: { product: Product }) {
   );
 }
 
-function AddToCartBlock({ product, shopSlug, shop }: { product: Product; shopSlug: string; shop?: Shop | null }) {
-  const [qty, setQty] = useState(1);
+function AddToCartBlock({ product, shopSlug, shop, qty: qtyProp, onQtyChange }: {
+  product: Product; shopSlug: string; shop?: Shop | null;
+  qty?: number; onQtyChange?: (n: number) => void;
+}) {
+  const [qtyLocal, setQtyLocal] = useState(1);
+  const qty = qtyProp ?? qtyLocal;
+  const setQty = (n: number) => { setQtyLocal(n); onQtyChange?.(n); };
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

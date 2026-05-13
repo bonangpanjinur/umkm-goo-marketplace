@@ -85,6 +85,7 @@ import { Route as PosAppCouriersRouteImport } from './routes/pos-app.couriers'
 import { Route as PosAppCourierRouteImport } from './routes/pos-app.courier'
 import { Route as PosAppCategoriesRouteImport } from './routes/pos-app.categories'
 import { Route as PosAppBundlesRouteImport } from './routes/pos-app.bundles'
+import { Route as PosAppBulkPricingRouteImport } from './routes/pos-app.bulk-pricing'
 import { Route as PosAppBookingRouteImport } from './routes/pos-app.booking'
 import { Route as PosAppBillingRouteImport } from './routes/pos-app.billing'
 import { Route as PosAppBackupRouteImport } from './routes/pos-app.backup'
@@ -544,6 +545,11 @@ const PosAppCategoriesRoute = PosAppCategoriesRouteImport.update({
 const PosAppBundlesRoute = PosAppBundlesRouteImport.update({
   id: '/bundles',
   path: '/bundles',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppBulkPricingRoute = PosAppBulkPricingRouteImport.update({
+  id: '/bulk-pricing',
+  path: '/bulk-pricing',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppBookingRoute = PosAppBookingRouteImport.update({
@@ -1014,6 +1020,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
+  '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/courier': typeof PosAppCourierRoute
@@ -1167,6 +1174,7 @@ export interface FileRoutesByTo {
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
+  '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/courier': typeof PosAppCourierRoute
@@ -1324,6 +1332,7 @@ export interface FileRoutesById {
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
+  '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/courier': typeof PosAppCourierRoute
@@ -1483,6 +1492,7 @@ export interface FileRouteTypes {
     | '/pos-app/backup'
     | '/pos-app/billing'
     | '/pos-app/booking'
+    | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
     | '/pos-app/courier'
@@ -1636,6 +1646,7 @@ export interface FileRouteTypes {
     | '/pos-app/backup'
     | '/pos-app/billing'
     | '/pos-app/booking'
+    | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
     | '/pos-app/courier'
@@ -1792,6 +1803,7 @@ export interface FileRouteTypes {
     | '/pos-app/backup'
     | '/pos-app/billing'
     | '/pos-app/booking'
+    | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
     | '/pos-app/courier'
@@ -2440,6 +2452,13 @@ declare module '@tanstack/react-router' {
       path: '/bundles'
       fullPath: '/pos-app/bundles'
       preLoaderRoute: typeof PosAppBundlesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/bulk-pricing': {
+      id: '/pos-app/bulk-pricing'
+      path: '/bulk-pricing'
+      fullPath: '/pos-app/bulk-pricing'
+      preLoaderRoute: typeof PosAppBulkPricingRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/booking': {
@@ -3196,6 +3215,7 @@ interface PosAppRouteChildren {
   PosAppBackupRoute: typeof PosAppBackupRoute
   PosAppBillingRoute: typeof PosAppBillingRoute
   PosAppBookingRoute: typeof PosAppBookingRoute
+  PosAppBulkPricingRoute: typeof PosAppBulkPricingRoute
   PosAppBundlesRoute: typeof PosAppBundlesRoute
   PosAppCategoriesRoute: typeof PosAppCategoriesRoute
   PosAppCourierRoute: typeof PosAppCourierRoute
@@ -3260,6 +3280,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppBackupRoute: PosAppBackupRoute,
   PosAppBillingRoute: PosAppBillingRoute,
   PosAppBookingRoute: PosAppBookingRoute,
+  PosAppBulkPricingRoute: PosAppBulkPricingRoute,
   PosAppBundlesRoute: PosAppBundlesRoute,
   PosAppCategoriesRoute: PosAppCategoriesRoute,
   PosAppCourierRoute: PosAppCourierRoute,
