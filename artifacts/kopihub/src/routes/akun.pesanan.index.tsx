@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer, RotateCcw } from "lucide-react";
+import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer, RotateCcw, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatIDR } from "@/lib/format";
 import { addToCart } from "@/lib/marketplace-cart";
 import { toast } from "sonner";
@@ -85,6 +86,9 @@ function OrdersListPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<FilterTab>("semua");
   const [reordering, setReordering] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   async function reorderOrder(e: React.MouseEvent, orderId: string) {
     e.preventDefault();
@@ -165,8 +169,19 @@ function OrdersListPage() {
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  const filtered = orders.filter(o => matchTab(o.status, tab));
+  const filtered = orders.filter(o => {
+    if (!matchTab(o.status, tab)) return false;
+    if (q.trim()) {
+      const needle = q.toLowerCase();
+      const hit = (o.order_no ?? "").toLowerCase().includes(needle) || (o.shop?.name ?? "").toLowerCase().includes(needle);
+      if (!hit) return false;
+    }
+    if (dateFrom && new Date(o.created_at).getTime() < new Date(dateFrom).getTime()) return false;
+    if (dateTo && new Date(o.created_at).getTime() > new Date(dateTo).getTime() + 86400000) return false;
+    return true;
+  });
   const activeCount = orders.filter(o => ACTIVE_STATUSES.has(o.status)).length;
+  const hasFilter = q || dateFrom || dateTo;
 
   if (loading) return <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
@@ -199,6 +214,22 @@ function OrdersListPage() {
             </button>
           );
         })}
+      </div>
+
+      <div className="space-y-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input className="pl-8 h-9 text-sm" value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nomor pesanan atau nama toko…" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-9 text-xs" placeholder="Dari" />
+          <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-9 text-xs" placeholder="Sampai" />
+        </div>
+        {hasFilter && (
+          <button onClick={() => { setQ(""); setDateFrom(""); setDateTo(""); }} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <X className="h-3 w-3" /> Reset filter
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 ? (

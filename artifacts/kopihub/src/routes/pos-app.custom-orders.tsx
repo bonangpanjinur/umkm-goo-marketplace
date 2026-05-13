@@ -65,8 +65,27 @@ function CustomOrdersPage() {
       .channel(`cor-merchant-${shop.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "custom_order_requests", filter: `shop_id=eq.${shop.id}` },
-        () => { load(); }
+        { event: "INSERT", schema: "public", table: "custom_order_requests", filter: `shop_id=eq.${shop.id}` },
+        (payload: any) => {
+          const row = payload?.new as Req;
+          if (row) setItems(prev => [row, ...prev.filter(p => p.id !== row.id)]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "custom_order_requests", filter: `shop_id=eq.${shop.id}` },
+        (payload: any) => {
+          const row = payload?.new as Req;
+          if (row) setItems(prev => prev.map(p => p.id === row.id ? { ...p, ...row } : p));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "custom_order_requests", filter: `shop_id=eq.${shop.id}` },
+        (payload: any) => {
+          const id = payload?.old?.id;
+          if (id) setItems(prev => prev.filter(p => p.id !== id));
+        }
       )
       .on(
         "postgres_changes",
