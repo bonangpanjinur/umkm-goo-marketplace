@@ -386,6 +386,12 @@ export type Database = {
           instagram: string | null
           is_active: boolean
           is_featured: boolean
+          kyc_document_url: string | null
+          kyc_reject_reason: string | null
+          kyc_reviewed_at: string | null
+          kyc_reviewer_id: string | null
+          kyc_status: string | null
+          kyc_submitted_at: string | null
           last_dns_check_at: string | null
           logo_url: string | null
           marketplace_visible: boolean
@@ -436,6 +442,12 @@ export type Database = {
           instagram?: string | null
           is_active?: boolean
           is_featured?: boolean
+          kyc_document_url?: string | null
+          kyc_reject_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_reviewer_id?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
           last_dns_check_at?: string | null
           logo_url?: string | null
           marketplace_visible?: boolean
@@ -486,6 +498,12 @@ export type Database = {
           instagram?: string | null
           is_active?: boolean
           is_featured?: boolean
+          kyc_document_url?: string | null
+          kyc_reject_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_reviewer_id?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
           last_dns_check_at?: string | null
           logo_url?: string | null
           marketplace_visible?: boolean
