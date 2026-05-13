@@ -86,9 +86,14 @@ function CustomOrderForm() {
             <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
             <h1 className="mt-4 text-xl font-bold">Permintaan terkirim!</h1>
             <p className="mt-2 text-sm text-muted-foreground">Tim {shop.name} akan menghubungi kamu di {contact} secepatnya.</p>
-            <Link to="/toko/$slug" params={{ slug }}>
-              <Button className="mt-6">Kembali ke toko</Button>
-            </Link>
+            <div className="mt-6 flex flex-wrap gap-2 justify-center">
+              <Link to="/toko/$slug" params={{ slug }}>
+                <Button variant="outline">Kembali ke toko</Button>
+              </Link>
+              <Link to="/toko/$slug/custom-order/status" params={{ slug }}>
+                <Button>Lihat Status Permintaan</Button>
+              </Link>
+            </div>
           </div>
         ) : (
           <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-6 space-y-4">
