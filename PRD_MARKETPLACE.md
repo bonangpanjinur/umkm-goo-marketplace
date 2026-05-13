@@ -429,7 +429,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ✅ Selesai (`booking.cancel.$token.tsx` + `akun.bookings.tsx`) |
 | M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai (Sprint 10) |
 | M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ✅ Selesai (`akun.returns.tsx`) |
-| M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ✅ Selesai (`pos-app.upsell.tsx` + tabel `product_upsell_suggestions` + cron mingguan `compute_upsell_suggestions`) |
+| M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ✅ Selesai Sprint 12 — tabel `product_upsell_suggestions` + fungsi `compute_upsell_suggestions()` (co-occurrence 90 hari, top-6 intra-shop) + cron mingguan `0 3 * * 0` UTC + panel `pos-app.upsell.tsx` (pin/manual override) + component publik baca precomputed dulu |
 | M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan | ✅ Selesai (`pos-app.bulk-pricing.tsx`) |
 | M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ✅ Selesai (`pos-app.rental-availability.tsx`) |
 | M-10 | **Deposit Booking Online** — pengaturan % DP per toko, step konfirmasi DP, kolom DB | Jasa/Rental | Komitmen | ✅ Selesai (Sprint 11) — *integrasi Midtrans/Xendit masih ❌* |
