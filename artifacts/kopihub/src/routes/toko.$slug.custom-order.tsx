@@ -37,7 +37,7 @@ function CustomOrderForm() {
       if (s) {
         setShop(s);
         if (produk) {
-          const { data: p } = await (supabase as any).from("menu_items").select("id, name").eq("id", produk).maybeSingle();
+          const { data: p } = await supabase.from("menu_items").select("id, name").eq("id", produk).maybeSingle();
           if (p) setProduct(p);
         }
       }
@@ -53,7 +53,7 @@ function CustomOrderForm() {
       return;
     }
     setSaving(true);
-    const { error } = await (supabase as any).from("custom_order_requests").insert({
+    const { error } = await supabase.from("custom_order_requests").insert({
       shop_id: shop.id,
       product_id: product?.id ?? null,
       customer_name: name.trim(),

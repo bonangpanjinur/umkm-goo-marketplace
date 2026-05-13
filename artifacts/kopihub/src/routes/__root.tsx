@@ -3,6 +3,7 @@ import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { PWAUpdater } from "@/components/PWAUpdater";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
+import { EnvBanner } from "@/components/EnvBanner";
 
 function NotFoundComponent() {
   return (
@@ -45,6 +46,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <HeadContent />
+      <EnvBanner />
       <Outlet />
       <PWAUpdater />
       <PushNotificationManager />

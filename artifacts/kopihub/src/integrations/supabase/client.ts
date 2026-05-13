@@ -1,16 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-function createSupabaseClient() {
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    console.warn(
-      '[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. ' +
-      'Set these environment variables to enable data fetching.'
+export const isSupabasePlaceholder = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY;
+
+function createSupabaseClient() {
+  if (isSupabasePlaceholder) {
+    // Loud, single warning. Banner di __root memberi tahu user secara visual.
+    // eslint-disable-next-line no-console
+    console.error(
+      '[Supabase] VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY tidak terbaca. ' +
+      'Build preview ini tidak akan bisa fetch data. Set env di .env root project.'
     );
-    // Return a placeholder client that won't crash on import — calls will fail gracefully
     return createClient<Database>(
       SUPABASE_URL || 'https://placeholder.supabase.co',
       SUPABASE_PUBLISHABLE_KEY || 'placeholder-anon-key',
@@ -18,7 +21,7 @@ function createSupabaseClient() {
     );
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!, {
     auth: {
       storage: typeof window !== 'undefined' ? localStorage : undefined,
       persistSession: true,

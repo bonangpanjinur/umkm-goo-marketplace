@@ -91,7 +91,7 @@ function PortfolioPage() {
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { error } = await (supabase as any).from("shop_portfolio").select("id").limit(1);
+      const { error } = await supabase.from("shop_portfolio").select("id").limit(1);
       if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
         setTableExists(false);
         setLoading(false);
@@ -104,7 +104,7 @@ function PortfolioPage() {
 
   async function loadItems() {
     if (!shop?.id) return;
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("shop_portfolio")
       .select("id, image_url, caption, category, sort_order, before_image_url, after_image_url, is_before_after")
       .eq("shop_id", shop.id)
@@ -202,12 +202,12 @@ function PortfolioPage() {
     };
     try {
       if (editItem) {
-        const { error } = await (supabase as any).from("shop_portfolio").update(payload).eq("id", editItem.id);
+        const { error } = await supabase.from("shop_portfolio").update(payload).eq("id", editItem.id);
         if (error) throw error;
         toast.success("Portofolio diperbarui!");
       } else {
         const maxSort = items.length > 0 ? Math.max(...items.map(i => i.sort_order)) + 1 : 0;
-        const { error } = await (supabase as any).from("shop_portfolio").insert({ shop_id: shop.id, sort_order: maxSort, ...payload });
+        const { error } = await supabase.from("shop_portfolio").insert({ shop_id: shop.id, sort_order: maxSort, ...payload });
         if (error) throw error;
         toast.success("Foto berhasil ditambahkan!");
       }
@@ -222,7 +222,7 @@ function PortfolioPage() {
 
   async function deleteItem(id: string) {
     setDeleting(id);
-    const { error } = await (supabase as any).from("shop_portfolio").delete().eq("id", id);
+    const { error } = await supabase.from("shop_portfolio").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Foto dihapus"); await loadItems(); }
     setDeleting(null);
