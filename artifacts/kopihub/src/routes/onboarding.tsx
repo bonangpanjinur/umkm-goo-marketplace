@@ -106,6 +106,13 @@ function OnboardingPage() {
       const baseSlug = slugify(shopName) || `shop-${user!.id.slice(0, 6)}`;
       const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
 
+      // Resolve category slug → UUID (business_category_id is a UUID FK)
+      const { data: cat } = await supabase
+        .from("business_categories")
+        .select("id")
+        .eq("slug", categoryId)
+        .maybeSingle();
+
       const { data: shop, error: shopErr } = await supabase
         .from("coffee_shops")
         .insert({
@@ -113,7 +120,7 @@ function OnboardingPage() {
           name: shopName.trim(),
           slug,
           description: description.trim() || null,
-          business_category_id: categoryId,
+          business_category_id: cat?.id ?? null,
         } as any)
         .select("id")
         .single();
