@@ -32,6 +32,7 @@ import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
 import { Route as TokoSlugRouteImport } from './routes/toko.$slug'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wishlist-analytics'
+import { Route as PosAppWalletConfigRouteImport } from './routes/pos-app.wallet-config'
 import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
 import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
@@ -65,6 +66,7 @@ import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
 import { Route as PosAppOnlineOrdersRouteImport } from './routes/pos-app.online-orders'
 import { Route as PosAppNotifikasiRouteImport } from './routes/pos-app.notifikasi'
 import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
+import { Route as PosAppMembershipRouteImport } from './routes/pos-app.membership'
 import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
 import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
@@ -104,6 +106,7 @@ import { Route as KatalogSlugRouteImport } from './routes/katalog.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as AkunWishlistRouteImport } from './routes/akun.wishlist'
+import { Route as AkunSaldoRouteImport } from './routes/akun.saldo'
 import { Route as AkunRiwayatRouteImport } from './routes/akun.riwayat'
 import { Route as AkunReturnsRouteImport } from './routes/akun.returns'
 import { Route as AkunReferralRouteImport } from './routes/akun.referral'
@@ -151,6 +154,8 @@ import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
+import { Route as TokoSlugSaldoRouteImport } from './routes/toko.$slug.saldo'
+import { Route as TokoSlugMembershipRouteImport } from './routes/toko.$slug.membership'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
 import { Route as TokoSlugCustomOrderRouteImport } from './routes/toko.$slug.custom-order'
 import { Route as TokoSlugChatRouteImport } from './routes/toko.$slug.chat'
@@ -291,6 +296,11 @@ const SSlugRoute = SSlugRouteImport.update({
 const PosAppWishlistAnalyticsRoute = PosAppWishlistAnalyticsRouteImport.update({
   id: '/wishlist-analytics',
   path: '/wishlist-analytics',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppWalletConfigRoute = PosAppWalletConfigRouteImport.update({
+  id: '/wallet-config',
+  path: '/wallet-config',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppWaitlistRoute = PosAppWaitlistRouteImport.update({
@@ -457,6 +467,11 @@ const PosAppNotifikasiRoute = PosAppNotifikasiRouteImport.update({
 const PosAppMenuRoute = PosAppMenuRouteImport.update({
   id: '/menu',
   path: '/menu',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppMembershipRoute = PosAppMembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppMarketplaceOrdersRoute = PosAppMarketplaceOrdersRouteImport.update({
@@ -653,6 +668,11 @@ const DownloadTokenRoute = DownloadTokenRouteImport.update({
 const AkunWishlistRoute = AkunWishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunSaldoRoute = AkunSaldoRouteImport.update({
+  id: '/saldo',
+  path: '/saldo',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunRiwayatRoute = AkunRiwayatRouteImport.update({
@@ -891,6 +911,16 @@ const AkunPesananIndexRoute = AkunPesananIndexRouteImport.update({
   path: '/pesanan/',
   getParentRoute: () => AkunRoute,
 } as any)
+const TokoSlugSaldoRoute = TokoSlugSaldoRouteImport.update({
+  id: '/saldo',
+  path: '/saldo',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
+const TokoSlugMembershipRoute = TokoSlugMembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const TokoSlugMapRoute = TokoSlugMapRouteImport.update({
   id: '/map',
   path: '/map',
@@ -1084,6 +1114,7 @@ export interface FileRoutesByFullPath {
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
+  '/akun/saldo': typeof AkunSaldoRoute
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1123,6 +1154,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -1156,6 +1188,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
+  '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/toko/$slug': typeof TokoSlugRouteWithChildren
@@ -1185,6 +1218,8 @@ export interface FileRoutesByFullPath {
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
+  '/toko/$slug/membership': typeof TokoSlugMembershipRoute
+  '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
@@ -1251,6 +1286,7 @@ export interface FileRoutesByTo {
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
+  '/akun/saldo': typeof AkunSaldoRoute
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1289,6 +1325,7 @@ export interface FileRoutesByTo {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -1322,6 +1359,7 @@ export interface FileRoutesByTo {
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
+  '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/toko/$slug': typeof TokoSlugRouteWithChildren
   '/track/$orderId': typeof TrackOrderIdRoute
@@ -1350,6 +1388,8 @@ export interface FileRoutesByTo {
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
+  '/toko/$slug/membership': typeof TokoSlugMembershipRoute
+  '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
@@ -1420,6 +1460,7 @@ export interface FileRoutesById {
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
+  '/akun/saldo': typeof AkunSaldoRoute
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1459,6 +1500,7 @@ export interface FileRoutesById {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -1492,6 +1534,7 @@ export interface FileRoutesById {
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
+  '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/toko/$slug': typeof TokoSlugRouteWithChildren
@@ -1521,6 +1564,8 @@ export interface FileRoutesById {
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
+  '/toko/$slug/membership': typeof TokoSlugMembershipRoute
+  '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
@@ -1592,6 +1637,7 @@ export interface FileRouteTypes {
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
+    | '/akun/saldo'
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
@@ -1631,6 +1677,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
+    | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
@@ -1664,6 +1711,7 @@ export interface FileRouteTypes {
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
+    | '/pos-app/wallet-config'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
     | '/toko/$slug'
@@ -1693,6 +1741,8 @@ export interface FileRouteTypes {
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
+    | '/toko/$slug/membership'
+    | '/toko/$slug/saldo'
     | '/akun/pesanan/'
     | '/order/$slug/'
     | '/s/$slug/'
@@ -1759,6 +1809,7 @@ export interface FileRouteTypes {
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
+    | '/akun/saldo'
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
@@ -1797,6 +1848,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
+    | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
@@ -1830,6 +1882,7 @@ export interface FileRouteTypes {
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
+    | '/pos-app/wallet-config'
     | '/pos-app/wishlist-analytics'
     | '/toko/$slug'
     | '/track/$orderId'
@@ -1858,6 +1911,8 @@ export interface FileRouteTypes {
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
+    | '/toko/$slug/membership'
+    | '/toko/$slug/saldo'
     | '/akun/pesanan'
     | '/order/$slug'
     | '/s/$slug'
@@ -1927,6 +1982,7 @@ export interface FileRouteTypes {
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
+    | '/akun/saldo'
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
@@ -1966,6 +2022,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
+    | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
@@ -1999,6 +2056,7 @@ export interface FileRouteTypes {
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
+    | '/pos-app/wallet-config'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
     | '/toko/$slug'
@@ -2028,6 +2086,8 @@ export interface FileRouteTypes {
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
+    | '/toko/$slug/membership'
+    | '/toko/$slug/saldo'
     | '/akun/pesanan/'
     | '/order/$slug/'
     | '/s/$slug/'
@@ -2228,6 +2288,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist-analytics'
       fullPath: '/pos-app/wishlist-analytics'
       preLoaderRoute: typeof PosAppWishlistAnalyticsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/wallet-config': {
+      id: '/pos-app/wallet-config'
+      path: '/wallet-config'
+      fullPath: '/pos-app/wallet-config'
+      preLoaderRoute: typeof PosAppWalletConfigRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/waitlist': {
@@ -2459,6 +2526,13 @@ declare module '@tanstack/react-router' {
       path: '/menu'
       fullPath: '/pos-app/menu'
       preLoaderRoute: typeof PosAppMenuRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/membership': {
+      id: '/pos-app/membership'
+      path: '/membership'
+      fullPath: '/pos-app/membership'
+      preLoaderRoute: typeof PosAppMembershipRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/marketplace-orders': {
@@ -2732,6 +2806,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/akun/wishlist'
       preLoaderRoute: typeof AkunWishlistRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/saldo': {
+      id: '/akun/saldo'
+      path: '/saldo'
+      fullPath: '/akun/saldo'
+      preLoaderRoute: typeof AkunSaldoRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/riwayat': {
@@ -3063,6 +3144,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunPesananIndexRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/toko/$slug/saldo': {
+      id: '/toko/$slug/saldo'
+      path: '/saldo'
+      fullPath: '/toko/$slug/saldo'
+      preLoaderRoute: typeof TokoSlugSaldoRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
+    '/toko/$slug/membership': {
+      id: '/toko/$slug/membership'
+      path: '/membership'
+      fullPath: '/toko/$slug/membership'
+      preLoaderRoute: typeof TokoSlugMembershipRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/toko/$slug/map': {
       id: '/toko/$slug/map'
       path: '/map'
@@ -3373,6 +3468,7 @@ interface AkunRouteChildren {
   AkunReferralRoute: typeof AkunReferralRoute
   AkunReturnsRoute: typeof AkunReturnsRoute
   AkunRiwayatRoute: typeof AkunRiwayatRoute
+  AkunSaldoRoute: typeof AkunSaldoRoute
   AkunWishlistRoute: typeof AkunWishlistRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunPesananOrderIdRoute: typeof AkunPesananOrderIdRoute
@@ -3389,6 +3485,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunReferralRoute: AkunReferralRoute,
   AkunReturnsRoute: AkunReturnsRoute,
   AkunRiwayatRoute: AkunRiwayatRoute,
+  AkunSaldoRoute: AkunSaldoRoute,
   AkunWishlistRoute: AkunWishlistRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunPesananOrderIdRoute: AkunPesananOrderIdRoute,
@@ -3489,6 +3586,7 @@ interface PosAppRouteChildren {
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
+  PosAppMembershipRoute: typeof PosAppMembershipRoute
   PosAppMenuRoute: typeof PosAppMenuRouteWithChildren
   PosAppNotifikasiRoute: typeof PosAppNotifikasiRoute
   PosAppOnlineOrdersRoute: typeof PosAppOnlineOrdersRoute
@@ -3522,6 +3620,7 @@ interface PosAppRouteChildren {
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppVouchersRoute: typeof PosAppVouchersRoute
   PosAppWaitlistRoute: typeof PosAppWaitlistRoute
+  PosAppWalletConfigRoute: typeof PosAppWalletConfigRoute
   PosAppWishlistAnalyticsRoute: typeof PosAppWishlistAnalyticsRoute
   PosAppIndexRoute: typeof PosAppIndexRoute
 }
@@ -3559,6 +3658,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
+  PosAppMembershipRoute: PosAppMembershipRoute,
   PosAppMenuRoute: PosAppMenuRouteWithChildren,
   PosAppNotifikasiRoute: PosAppNotifikasiRoute,
   PosAppOnlineOrdersRoute: PosAppOnlineOrdersRoute,
@@ -3592,6 +3692,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppVouchersRoute: PosAppVouchersRoute,
   PosAppWaitlistRoute: PosAppWaitlistRoute,
+  PosAppWalletConfigRoute: PosAppWalletConfigRoute,
   PosAppWishlistAnalyticsRoute: PosAppWishlistAnalyticsRoute,
   PosAppIndexRoute: PosAppIndexRoute,
 }
@@ -3667,6 +3768,8 @@ interface TokoSlugRouteChildren {
   TokoSlugChatRoute: typeof TokoSlugChatRoute
   TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRouteWithChildren
   TokoSlugMapRoute: typeof TokoSlugMapRoute
+  TokoSlugMembershipRoute: typeof TokoSlugMembershipRoute
+  TokoSlugSaldoRoute: typeof TokoSlugSaldoRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
 
@@ -3675,6 +3778,8 @@ const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugChatRoute: TokoSlugChatRoute,
   TokoSlugCustomOrderRoute: TokoSlugCustomOrderRouteWithChildren,
   TokoSlugMapRoute: TokoSlugMapRoute,
+  TokoSlugMembershipRoute: TokoSlugMembershipRoute,
+  TokoSlugSaldoRoute: TokoSlugSaldoRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }
 

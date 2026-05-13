@@ -15,6 +15,7 @@ const NAV = [
   { to: "/akun",             label: "Profil",        icon: User,         exact: true },
   { to: "/akun/pesanan",     label: "Pesanan",       icon: ShoppingBag },
   { to: "/akun/bookings",    label: "Booking",       icon: CalendarCheck },
+  { to: "/akun/saldo",       label: "Saldo & Member", icon: Wallet },
   { to: "/akun/cashback",    label: "Cashback",      icon: Wallet },
   { to: "/akun/returns",     label: "Pengembalian",  icon: PackageX },
   { to: "/akun/favorit",     label: "Favorit",       icon: Heart },
