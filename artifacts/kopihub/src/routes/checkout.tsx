@@ -71,6 +71,14 @@ function CheckoutPage() {
 
   async function loadCartAndProfile(uid: string, anonymous: boolean) {
     if (!anonymous) {
+      // Prioritas 1: alamat default dari tabel customer_addresses (multi-alamat).
+      const { data: defAddr } = await supabase
+        .from("customer_addresses")
+        .select("address_line, recipient_name, phone")
+        .eq("user_id", uid)
+        .eq("is_default", true)
+        .maybeSingle();
+
       const { data: prof } = await supabase
         .from("customer_profiles")
         .select("display_name, phone, default_address, default_city")
@@ -79,14 +87,20 @@ function CheckoutPage() {
       if (prof) {
         if (prof.display_name) setRecipientName(prof.display_name);
         if (prof.phone) setPhone(prof.phone);
-        if (prof.default_address) {
-          const full = prof.default_city
-            ? `${prof.default_address}, ${prof.default_city}`
-            : prof.default_address;
-          setAddress(full);
-          setSavedAddress(full);
-          setUsingSavedAddress(true);
-        }
+      }
+      if (defAddr) {
+        if (defAddr.recipient_name) setRecipientName(defAddr.recipient_name);
+        if (defAddr.phone) setPhone(defAddr.phone);
+        setAddress(defAddr.address_line);
+        setSavedAddress(defAddr.address_line);
+        setUsingSavedAddress(true);
+      } else if (prof?.default_address) {
+        const full = prof.default_city
+          ? `${prof.default_address}, ${prof.default_city}`
+          : prof.default_address;
+        setAddress(full);
+        setSavedAddress(full);
+        setUsingSavedAddress(true);
       }
     }
 
