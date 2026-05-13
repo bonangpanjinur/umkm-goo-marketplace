@@ -13,9 +13,10 @@ import {
   TrustCertCard,
   computeTrustCert,
 } from "@/components/TrustCertBadge";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { Trophy, Medal } from "lucide-react";
 
-type PortfolioItem = { id: string; image_url: string; caption: string | null; category: string | null; sort_order: number };
+type PortfolioItem = { id: string; image_url: string; caption: string | null; category: string | null; sort_order: number; before_image_url?: string | null; after_image_url?: string | null; is_before_after?: boolean | null };
 
 function PortfolioGallery({ shopId }: { shopId: string }) {
   const [items, setItems]     = useState<PortfolioItem[]>([]);
@@ -27,7 +28,7 @@ function PortfolioGallery({ shopId }: { shopId: string }) {
     (async () => {
       const { data, error } = await (supabase as any)
         .from("shop_portfolio")
-        .select("id, image_url, caption, category, sort_order")
+        .select("id, image_url, caption, category, sort_order, before_image_url, after_image_url, is_before_after")
         .eq("shop_id", shopId)
         .order("sort_order")
         .limit(24);
@@ -63,12 +64,16 @@ function PortfolioGallery({ shopId }: { shopId: string }) {
             className="group relative aspect-square overflow-hidden rounded-xl bg-muted/40 border border-border hover:border-primary/50 transition-all"
             onClick={() => setLightbox(idx)}
           >
-            <img
-              src={item.image_url}
-              alt={item.caption ?? "Portofolio"}
-              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-              onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Foto"; }}
-            />
+            {item.is_before_after && item.before_image_url && item.after_image_url ? (
+              <BeforeAfterSlider beforeUrl={item.before_image_url} afterUrl={item.after_image_url} className="aspect-square h-full" />
+            ) : (
+              <img
+                src={item.image_url}
+                alt={item.caption ?? "Portofolio"}
+                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Foto"; }}
+              />
+            )}
             {item.caption && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <p className="text-[10px] text-white line-clamp-2">{item.caption}</p>
@@ -90,11 +95,15 @@ function PortfolioGallery({ shopId }: { shopId: string }) {
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div className="max-w-3xl w-full" onClick={e => e.stopPropagation()}>
-            <img
-              src={items[lightbox].image_url}
-              alt={items[lightbox].caption ?? "Portofolio"}
-              className="w-full max-h-[80vh] object-contain rounded-xl"
-            />
+            {items[lightbox].is_before_after && items[lightbox].before_image_url && items[lightbox].after_image_url ? (
+              <BeforeAfterSlider beforeUrl={items[lightbox].before_image_url!} afterUrl={items[lightbox].after_image_url!} className="aspect-video w-full" />
+            ) : (
+              <img
+                src={items[lightbox].image_url}
+                alt={items[lightbox].caption ?? "Portofolio"}
+                className="w-full max-h-[80vh] object-contain rounded-xl"
+              />
+            )}
             {items[lightbox].caption && (
               <p className="mt-3 text-center text-sm text-white/80">{items[lightbox].caption}</p>
             )}

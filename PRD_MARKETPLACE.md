@@ -448,8 +448,8 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | F-01 | Group Buy / Patungan (beli bareng, semua dapat harga spesial jika kuorum tercapai) | 3 hari |
 | F-02 | Subscription / Langganan Produk Rutin | 3 hari |
 | F-03 | AI Generator Deskripsi Produk (foto → nama + deskripsi + tag) | 2 hari |
-| F-04 | Pre-Order Mode (tanggal buka, tutup, estimasi produksi) | 2 hari |
-| F-05 | Custom Order / Made-to-Order Form | 2 hari |
+| F-04 | ✅ Pre-Order Mode (Sprint 13 — `pos-app.pre-orders.tsx` + kolom `pre_order_*` di `menu_items`) | 2 hari |
+| F-05 | ✅ Custom Order Form (Sprint 13 — `custom_order_requests`, `pos-app.custom-orders.tsx`, `toko.$slug.custom-order.tsx`, toggle `accepts_custom_order`) | 2 hari |
 | F-06 | Affiliate Program per Toko | 3 hari |
 | F-07 | Google Analytics & Meta Pixel Integration | 2 hari |
 | F-08 | Rating Pembeli 2-Way (toko rate pembeli, ekosistem lebih sehat) | 2 hari |
@@ -457,7 +457,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | F-10 | BNPL / Cicilan (Kredivo, Akulaku) | 5 hari |
 | F-11 | Mobile App (React Native / Expo) | 3+ minggu |
 | F-12 | Merchant Onboarding Email Sequence (H+1, H+3, H+7 setelah daftar) | 2 hari |
-| F-13 | Platform Health Score per Toko (skor 0–100 kelengkapan profil) | 2 hari |
+| F-13 | ✅ Platform Health Score per Toko (Sprint 13 — view `shop_health_score` + `admin.health-score.tsx`) | 2 hari |
 | F-14 | Automated Payout Scheduler (payout otomatis terjadwal) | 2 hari |
 | F-15 | Multi-Admin Super Admin (Finance Admin, Support Admin, Content Admin) | 2 hari |
 
@@ -647,7 +647,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | # | Fitur | Prioritas | Deskripsi |
 |---|---|---|---|
 | SA-01 | 🔥 **Merchant Onboarding Automation** | TINGGI | Email sequence otomatis setelah toko daftar: Hari 1 (selamat datang + checklist), Hari 3 (panduan upload produk), Hari 7 (tips pertama penjualan). Track progress per toko |
-| SA-02 | 🔥 **Platform Health Score per Toko** | TINGGI | Skor 0–100 per toko berdasarkan: produk aktif, foto lengkap, deskripsi terisi, respons ulasan, waktu proses order. Tampilkan di daftar toko admin |
+| SA-02 | ✅ **Platform Health Score per Toko** — Sprint 13 (`shop_health_score` view, `admin.health-score.tsx`, skor 0–100 dari produk aktif + order 30d + rating + recency) |
 | SA-03 | 🔥 **Automated Payout Scheduler** | TINGGI | Payout otomatis terjadwal (harian/mingguan/bulanan) tanpa perlu admin approve satu per satu. Admin set threshold & jadwal, sistem eksekusi otomatis |
 | SA-04 | 🔥 **Merchant Tier Program (Admin Control)** | TINGGI | Admin definisikan tier: Starter → Verified → Top Seller → Elite. Kriteria otomatis dinilai setiap malam. Benefit per tier (komisi lebih rendah, visibilitas lebih tinggi) |
 | SA-05 | **Konfigurasi Booking per Kategori** | TINGGI | Admin toggle: kategori bisnis mana yang boleh pakai sistem booking (salon, studio foto, dll.) dan set parameter booking (min H sebelumnya, maks peserta, deposit wajib/tidak) |

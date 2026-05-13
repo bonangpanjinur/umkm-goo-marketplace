@@ -83,6 +83,7 @@ import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
 import { Route as PosAppDigitalRouteImport } from './routes/pos-app.digital'
 import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
 import { Route as PosAppCustomersRouteImport } from './routes/pos-app.customers'
+import { Route as PosAppCustomOrdersRouteImport } from './routes/pos-app.custom-orders'
 import { Route as PosAppCustomCssRouteImport } from './routes/pos-app.custom-css'
 import { Route as PosAppCouriersRouteImport } from './routes/pos-app.couriers'
 import { Route as PosAppCourierRouteImport } from './routes/pos-app.courier'
@@ -127,6 +128,7 @@ import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminImpersonationRouteImport } from './routes/admin.impersonation'
+import { Route as AdminHealthScoreRouteImport } from './routes/admin.health-score'
 import { Route as AdminFraudRouteImport } from './routes/admin.fraud'
 import { Route as AdminFinancialReportRouteImport } from './routes/admin.financial-report'
 import { Route as AdminFeeSimulatorRouteImport } from './routes/admin.fee-simulator'
@@ -150,6 +152,7 @@ import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
+import { Route as TokoSlugCustomOrderRouteImport } from './routes/toko.$slug.custom-order'
 import { Route as TokoSlugChatRouteImport } from './routes/toko.$slug.chat'
 import { Route as TokoSlugBookingRouteImport } from './routes/toko.$slug.booking'
 import { Route as SSlugOrdersRouteImport } from './routes/s.$slug.orders'
@@ -545,6 +548,11 @@ const PosAppCustomersRoute = PosAppCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppCustomOrdersRoute = PosAppCustomOrdersRouteImport.update({
+  id: '/custom-orders',
+  path: '/custom-orders',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppCustomCssRoute = PosAppCustomCssRouteImport.update({
   id: '/custom-css',
   path: '/custom-css',
@@ -766,6 +774,11 @@ const AdminImpersonationRoute = AdminImpersonationRouteImport.update({
   path: '/impersonation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminHealthScoreRoute = AdminHealthScoreRouteImport.update({
+  id: '/health-score',
+  path: '/health-score',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFraudRoute = AdminFraudRouteImport.update({
   id: '/fraud',
   path: '/fraud',
@@ -879,6 +892,11 @@ const AkunPesananIndexRoute = AkunPesananIndexRouteImport.update({
 const TokoSlugMapRoute = TokoSlugMapRouteImport.update({
   id: '/map',
   path: '/map',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
+const TokoSlugCustomOrderRoute = TokoSlugCustomOrderRouteImport.update({
+  id: '/custom-order',
+  path: '/custom-order',
   getParentRoute: () => TokoSlugRoute,
 } as any)
 const TokoSlugChatRoute = TokoSlugChatRouteImport.update({
@@ -1028,6 +1046,7 @@ export interface FileRoutesByFullPath {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
+  '/admin/health-score': typeof AdminHealthScoreRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1072,6 +1091,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/courier': typeof PosAppCourierRoute
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/custom-css': typeof PosAppCustomCssRoute
+  '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1149,6 +1169,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
+  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1190,6 +1211,7 @@ export interface FileRoutesByTo {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
+  '/admin/health-score': typeof AdminHealthScoreRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1233,6 +1255,7 @@ export interface FileRoutesByTo {
   '/pos-app/courier': typeof PosAppCourierRoute
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/custom-css': typeof PosAppCustomCssRoute
+  '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1309,6 +1332,7 @@ export interface FileRoutesByTo {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
+  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
@@ -1354,6 +1378,7 @@ export interface FileRoutesById {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
+  '/admin/health-score': typeof AdminHealthScoreRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1398,6 +1423,7 @@ export interface FileRoutesById {
   '/pos-app/courier': typeof PosAppCourierRoute
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/custom-css': typeof PosAppCustomCssRoute
+  '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1475,6 +1501,7 @@ export interface FileRoutesById {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
+  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1521,6 +1548,7 @@ export interface FileRouteTypes {
     | '/admin/fee-simulator'
     | '/admin/financial-report'
     | '/admin/fraud'
+    | '/admin/health-score'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
@@ -1565,6 +1593,7 @@ export interface FileRouteTypes {
     | '/pos-app/courier'
     | '/pos-app/couriers'
     | '/pos-app/custom-css'
+    | '/pos-app/custom-orders'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -1642,6 +1671,7 @@ export interface FileRouteTypes {
     | '/s/$slug/orders'
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
+    | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
     | '/akun/pesanan/'
     | '/order/$slug/'
@@ -1683,6 +1713,7 @@ export interface FileRouteTypes {
     | '/admin/fee-simulator'
     | '/admin/financial-report'
     | '/admin/fraud'
+    | '/admin/health-score'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
@@ -1726,6 +1757,7 @@ export interface FileRouteTypes {
     | '/pos-app/courier'
     | '/pos-app/couriers'
     | '/pos-app/custom-css'
+    | '/pos-app/custom-orders'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -1802,6 +1834,7 @@ export interface FileRouteTypes {
     | '/s/$slug/orders'
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
+    | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
     | '/akun/pesanan'
     | '/order/$slug'
@@ -1846,6 +1879,7 @@ export interface FileRouteTypes {
     | '/admin/fee-simulator'
     | '/admin/financial-report'
     | '/admin/fraud'
+    | '/admin/health-score'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
@@ -1890,6 +1924,7 @@ export interface FileRouteTypes {
     | '/pos-app/courier'
     | '/pos-app/couriers'
     | '/pos-app/custom-css'
+    | '/pos-app/custom-orders'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -1967,6 +2002,7 @@ export interface FileRouteTypes {
     | '/s/$slug/orders'
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
+    | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
     | '/akun/pesanan/'
     | '/order/$slug/'
@@ -2526,6 +2562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppCustomersRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/custom-orders': {
+      id: '/pos-app/custom-orders'
+      path: '/custom-orders'
+      fullPath: '/pos-app/custom-orders'
+      preLoaderRoute: typeof PosAppCustomOrdersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/custom-css': {
       id: '/pos-app/custom-css'
       path: '/custom-css'
@@ -2834,6 +2877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/health-score': {
+      id: '/admin/health-score'
+      path: '/health-score'
+      fullPath: '/admin/health-score'
+      preLoaderRoute: typeof AdminHealthScoreRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fraud': {
       id: '/admin/fraud'
       path: '/fraud'
@@ -2993,6 +3043,13 @@ declare module '@tanstack/react-router' {
       path: '/map'
       fullPath: '/toko/$slug/map'
       preLoaderRoute: typeof TokoSlugMapRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
+    '/toko/$slug/custom-order': {
+      id: '/toko/$slug/custom-order'
+      path: '/custom-order'
+      fullPath: '/toko/$slug/custom-order'
+      preLoaderRoute: typeof TokoSlugCustomOrderRouteImport
       parentRoute: typeof TokoSlugRoute
     }
     '/toko/$slug/chat': {
@@ -3196,6 +3253,7 @@ interface AdminRouteChildren {
   AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
   AdminFinancialReportRoute: typeof AdminFinancialReportRoute
   AdminFraudRoute: typeof AdminFraudRoute
+  AdminHealthScoreRoute: typeof AdminHealthScoreRoute
   AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
@@ -3234,6 +3292,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
   AdminFinancialReportRoute: AdminFinancialReportRoute,
   AdminFraudRoute: AdminFraudRoute,
+  AdminHealthScoreRoute: AdminHealthScoreRoute,
   AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
@@ -3361,6 +3420,7 @@ interface PosAppRouteChildren {
   PosAppCourierRoute: typeof PosAppCourierRoute
   PosAppCouriersRoute: typeof PosAppCouriersRoute
   PosAppCustomCssRoute: typeof PosAppCustomCssRoute
+  PosAppCustomOrdersRoute: typeof PosAppCustomOrdersRoute
   PosAppCustomersRoute: typeof PosAppCustomersRoute
   PosAppDeliveryRoute: typeof PosAppDeliveryRoute
   PosAppDigitalRoute: typeof PosAppDigitalRoute
@@ -3430,6 +3490,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppCourierRoute: PosAppCourierRoute,
   PosAppCouriersRoute: PosAppCouriersRoute,
   PosAppCustomCssRoute: PosAppCustomCssRoute,
+  PosAppCustomOrdersRoute: PosAppCustomOrdersRoute,
   PosAppCustomersRoute: PosAppCustomersRoute,
   PosAppDeliveryRoute: PosAppDeliveryRoute,
   PosAppDigitalRoute: PosAppDigitalRoute,
@@ -3543,6 +3604,7 @@ const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
 interface TokoSlugRouteChildren {
   TokoSlugBookingRoute: typeof TokoSlugBookingRoute
   TokoSlugChatRoute: typeof TokoSlugChatRoute
+  TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRoute
   TokoSlugMapRoute: typeof TokoSlugMapRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
@@ -3550,6 +3612,7 @@ interface TokoSlugRouteChildren {
 const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugBookingRoute: TokoSlugBookingRoute,
   TokoSlugChatRoute: TokoSlugChatRoute,
+  TokoSlugCustomOrderRoute: TokoSlugCustomOrderRoute,
   TokoSlugMapRoute: TokoSlugMapRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }

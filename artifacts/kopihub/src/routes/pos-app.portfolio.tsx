@@ -14,6 +14,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/portfolio")({
@@ -45,6 +47,9 @@ type PortfolioItem = {
   caption: string | null;
   category: string | null;
   sort_order: number;
+  before_image_url?: string | null;
+  after_image_url?: string | null;
+  is_before_after?: boolean | null;
 };
 
 function PortfolioPage() {
@@ -60,8 +65,12 @@ function PortfolioPage() {
   const [imgUrl, setImgUrl]     = useState("");
   const [caption, setCaption]   = useState("");
   const [category, setCategory] = useState("");
+  const [isBA, setIsBA]         = useState(false);
+  const [beforeUrl, setBeforeUrl] = useState("");
+  const [afterUrl, setAfterUrl]   = useState("");
   const [saving, setSaving]     = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState<"main"|"before"|"after">("main");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -82,7 +91,7 @@ function PortfolioPage() {
     if (!shop?.id) return;
     const { data, error } = await (supabase as any)
       .from("shop_portfolio")
-      .select("id, image_url, caption, category, sort_order")
+      .select("id, image_url, caption, category, sort_order, before_image_url, after_image_url, is_before_after")
       .eq("shop_id", shop.id)
       .order("sort_order");
     if (error) toast.error(error.message);
@@ -96,11 +105,13 @@ function PortfolioPage() {
     setUploading(true);
     try {
       const ext  = file.name.split(".").pop();
-      const path = `portfolio/${shop.id}/${Date.now()}.${ext}`;
+      const path = `portfolio/${shop.id}/${Date.now()}-${uploadTarget}.${ext}`;
       const { error: upErr } = await supabase.storage.from("shop-assets").upload(path, file, { upsert: true });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("shop-assets").getPublicUrl(path);
-      setImgUrl(urlData.publicUrl);
+      if (uploadTarget === "before") setBeforeUrl(urlData.publicUrl);
+      else if (uploadTarget === "after") setAfterUrl(urlData.publicUrl);
+      else setImgUrl(urlData.publicUrl);
       toast.success("Gambar berhasil diunggah");
     } catch (e: any) {
       toast.error(e.message);
@@ -112,6 +123,7 @@ function PortfolioPage() {
   function openAdd() {
     setEditItem(null);
     setImgUrl(""); setCaption(""); setCategory("");
+    setIsBA(false); setBeforeUrl(""); setAfterUrl("");
     setShowAdd(true);
   }
 
@@ -120,26 +132,37 @@ function PortfolioPage() {
     setImgUrl(item.image_url);
     setCaption(item.caption ?? "");
     setCategory(item.category ?? "");
+    setIsBA(Boolean(item.is_before_after));
+    setBeforeUrl(item.before_image_url ?? "");
+    setAfterUrl(item.after_image_url ?? "");
     setShowAdd(true);
   }
 
   async function save() {
-    if (!imgUrl.trim()) { toast.error("Masukkan URL gambar atau unggah foto."); return; }
+    if (isBA && (!beforeUrl.trim() || !afterUrl.trim())) {
+      toast.error("Foto Sebelum & Sesudah wajib diisi.");
+      return;
+    }
+    if (!isBA && !imgUrl.trim()) { toast.error("Masukkan URL gambar atau unggah foto."); return; }
     if (!shop?.id) return;
     setSaving(true);
+    const baseImg = isBA ? (afterUrl.trim() || beforeUrl.trim()) : imgUrl.trim();
+    const payload = {
+      image_url: baseImg,
+      caption: caption.trim() || null,
+      category: category.trim() || null,
+      is_before_after: isBA,
+      before_image_url: isBA ? beforeUrl.trim() : null,
+      after_image_url: isBA ? afterUrl.trim() : null,
+    };
     try {
       if (editItem) {
-        const { error } = await (supabase as any)
-          .from("shop_portfolio")
-          .update({ image_url: imgUrl.trim(), caption: caption.trim() || null, category: category.trim() || null })
-          .eq("id", editItem.id);
+        const { error } = await (supabase as any).from("shop_portfolio").update(payload).eq("id", editItem.id);
         if (error) throw error;
         toast.success("Portofolio diperbarui!");
       } else {
         const maxSort = items.length > 0 ? Math.max(...items.map(i => i.sort_order)) + 1 : 0;
-        const { error } = await (supabase as any)
-          .from("shop_portfolio")
-          .insert({ shop_id: shop.id, image_url: imgUrl.trim(), caption: caption.trim() || null, category: category.trim() || null, sort_order: maxSort });
+        const { error } = await (supabase as any).from("shop_portfolio").insert({ shop_id: shop.id, sort_order: maxSort, ...payload });
         if (error) throw error;
         toast.success("Foto berhasil ditambahkan!");
       }
@@ -217,15 +240,24 @@ function PortfolioPage() {
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
             {items.map(item => (
               <div key={item.id} className="group relative rounded-xl overflow-hidden border border-border bg-card">
-                <div className="aspect-square w-full bg-muted overflow-hidden">
-                  <img
-                    src={item.image_url}
-                    alt={item.caption ?? "Portofolio"}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/300x300?text=Foto"; }}
-                  />
-                </div>
+                {item.is_before_after && item.before_image_url && item.after_image_url ? (
+                  <div className="aspect-square w-full">
+                    <BeforeAfterSlider beforeUrl={item.before_image_url} afterUrl={item.after_image_url} className="aspect-square" />
+                  </div>
+                ) : (
+                  <div className="aspect-square w-full bg-muted overflow-hidden">
+                    <img
+                      src={item.image_url}
+                      alt={item.caption ?? "Portofolio"}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/300x300?text=Foto"; }}
+                    />
+                  </div>
+                )}
                 <div className="p-2">
+                  {item.is_before_after && (
+                    <span className="text-[10px] font-medium text-amber-700 bg-amber-100 rounded-full px-2 py-0.5 mr-1">Before/After</span>
+                  )}
                   {item.category && (
                     <span className="text-[10px] font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5">{item.category}</span>
                   )}
@@ -262,41 +294,70 @@ function PortfolioPage() {
             <DialogTitle>{editItem ? "Edit Foto" : "Tambah Foto Portofolio"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <Label>Foto</Label>
-              {imgUrl && (
-                <div className="relative mt-1 mb-2 w-full aspect-video rounded-lg overflow-hidden border border-border bg-muted">
-                  <img src={imgUrl} alt="preview" className="h-full w-full object-cover" />
-                  <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setImgUrl("")}>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
-              <div className="flex gap-2 mt-1">
-                <Input
-                  value={imgUrl}
-                  onChange={e => setImgUrl(e.target.value)}
-                  placeholder="https://…"
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  disabled={uploading}
-                  onClick={() => fileRef.current?.click()}
-                  title="Unggah dari perangkat"
-                >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                </Button>
+            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">Mode Before / After</div>
+                <div className="text-xs text-muted-foreground">Tampilkan slider perbandingan dua foto.</div>
               </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f); }}
-              />
+              <Switch checked={isBA} onCheckedChange={setIsBA} />
             </div>
+
+            {isBA ? (
+              <div className="grid grid-cols-2 gap-3">
+                {(["before","after"] as const).map(side => {
+                  const url = side === "before" ? beforeUrl : afterUrl;
+                  const setUrl = side === "before" ? setBeforeUrl : setAfterUrl;
+                  return (
+                    <div key={side}>
+                      <Label className="capitalize">{side === "before" ? "Sebelum" : "Sesudah"}</Label>
+                      {url && (
+                        <div className="relative mt-1 mb-2 aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                          <img src={url} alt={side} className="h-full w-full object-cover" />
+                          <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setUrl("")}>
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex gap-1 mt-1">
+                        <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL…" className="flex-1 text-xs" />
+                        <Button variant="outline" size="icon" disabled={uploading}
+                          onClick={() => { setUploadTarget(side); fileRef.current?.click(); }}>
+                          {uploading && uploadTarget === side ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {beforeUrl && afterUrl && (
+                  <div className="col-span-2">
+                    <Label className="text-xs text-muted-foreground">Pratinjau slider</Label>
+                    <BeforeAfterSlider beforeUrl={beforeUrl} afterUrl={afterUrl} className="aspect-video mt-1" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Label>Foto</Label>
+                {imgUrl && (
+                  <div className="relative mt-1 mb-2 w-full aspect-video rounded-lg overflow-hidden border border-border bg-muted">
+                    <img src={imgUrl} alt="preview" className="h-full w-full object-cover" />
+                    <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setImgUrl("")}>
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex gap-2 mt-1">
+                  <Input value={imgUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://…" className="flex-1" />
+                  <Button variant="outline" size="icon" disabled={uploading}
+                    onClick={() => { setUploadTarget("main"); fileRef.current?.click(); }}>
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
+
             <div>
               <Label>Keterangan (opsional)</Label>
               <Textarea
@@ -319,7 +380,7 @@ function PortfolioPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)}>Batal</Button>
-            <Button onClick={save} disabled={saving || !imgUrl.trim()}>
+            <Button onClick={save} disabled={saving || (isBA ? (!beforeUrl.trim() || !afterUrl.trim()) : !imgUrl.trim())}>
               {saving ? "Menyimpan…" : editItem ? "Simpan Perubahan" : "Tambah Foto"}
             </Button>
           </DialogFooter>

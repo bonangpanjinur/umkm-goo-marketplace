@@ -48,6 +48,7 @@ const NAV = [
   { to: "/admin/fraud", label: "Deteksi Fraud", icon: ShieldX },
   { to: "/admin/auto-renewal", label: "Notif Renewal Otomatis", icon: Bell },
   { to: "/admin/revenue-leakage", label: "Revenue Leakage", icon: SearchX },
+  { to: "/admin/health-score", label: "Health Score Toko", icon: Activity },
 ] as const;
 
 function AdminLayout() {

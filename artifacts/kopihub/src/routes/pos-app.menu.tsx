@@ -45,6 +45,7 @@ type MenuItem = {
   flash_price: number | null;
   flash_starts_at: string | null;
   flash_ends_at: string | null;
+  accepts_custom_order?: boolean | null;
 };
 
 type HPPRow = {
@@ -99,6 +100,7 @@ function MenuPage() {
   const [flashPrice, setFlashPrice] = useState<string>("");
   const [flashStarts, setFlashStarts] = useState<string>("");
   const [flashEnds, setFlashEnds] = useState<string>("");
+  const [acceptsCustomOrder, setAcceptsCustomOrder] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
 
@@ -113,7 +115,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -161,6 +163,7 @@ function MenuPage() {
     setFlashPrice("");
     setFlashStarts("");
     setFlashEnds("");
+    setAcceptsCustomOrder(false);
     setOpen(true);
   }
 
@@ -185,6 +188,7 @@ function MenuPage() {
     setFlashPrice(it.flash_price != null ? String(it.flash_price) : "");
     setFlashStarts(toLocalInput(it.flash_starts_at));
     setFlashEnds(toLocalInput(it.flash_ends_at));
+    setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
     setOpen(true);
   }
 
@@ -240,6 +244,7 @@ function MenuPage() {
       flash_price: fpNum,
       flash_starts_at: fpNum != null && flashStarts ? new Date(flashStarts).toISOString() : null,
       flash_ends_at: fpNum != null && flashEnds ? new Date(flashEnds).toISOString() : null,
+      accepts_custom_order: acceptsCustomOrder,
     };
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
@@ -430,6 +435,16 @@ function MenuPage() {
                     </div>
                   </div>
                   <Switch checked={trackStock} onCheckedChange={setTrackStock} />
+                </div>
+
+                <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                  <div>
+                    <div className="text-sm font-medium">Terima Custom Order</div>
+                    <div className="text-xs text-muted-foreground">
+                      Pembeli bisa kirim brief khusus (ukuran, warna, request unik).
+                    </div>
+                  </div>
+                  <Switch checked={acceptsCustomOrder} onCheckedChange={setAcceptsCustomOrder} />
                 </div>
 
                 <div className="space-y-1.5">
