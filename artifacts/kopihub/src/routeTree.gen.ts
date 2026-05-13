@@ -33,6 +33,7 @@ import { Route as TokoSlugRouteImport } from './routes/toko.$slug'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wishlist-analytics'
 import { Route as PosAppWalletConfigRouteImport } from './routes/pos-app.wallet-config'
+import { Route as PosAppWalletApprovalsRouteImport } from './routes/pos-app.wallet-approvals'
 import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
 import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
@@ -301,6 +302,11 @@ const PosAppWishlistAnalyticsRoute = PosAppWishlistAnalyticsRouteImport.update({
 const PosAppWalletConfigRoute = PosAppWalletConfigRouteImport.update({
   id: '/wallet-config',
   path: '/wallet-config',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppWalletApprovalsRoute = PosAppWalletApprovalsRouteImport.update({
+  id: '/wallet-approvals',
+  path: '/wallet-approvals',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppWaitlistRoute = PosAppWaitlistRouteImport.update({
@@ -1188,6 +1194,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
+  '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -1359,6 +1366,7 @@ export interface FileRoutesByTo {
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
+  '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/toko/$slug': typeof TokoSlugRouteWithChildren
@@ -1534,6 +1542,7 @@ export interface FileRoutesById {
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
+  '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -1711,6 +1720,7 @@ export interface FileRouteTypes {
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
+    | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
@@ -1882,6 +1892,7 @@ export interface FileRouteTypes {
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
+    | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
     | '/pos-app/wishlist-analytics'
     | '/toko/$slug'
@@ -2056,6 +2067,7 @@ export interface FileRouteTypes {
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
+    | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
@@ -2295,6 +2307,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet-config'
       fullPath: '/pos-app/wallet-config'
       preLoaderRoute: typeof PosAppWalletConfigRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/wallet-approvals': {
+      id: '/pos-app/wallet-approvals'
+      path: '/wallet-approvals'
+      fullPath: '/pos-app/wallet-approvals'
+      preLoaderRoute: typeof PosAppWalletApprovalsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/waitlist': {
@@ -3620,6 +3639,7 @@ interface PosAppRouteChildren {
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppVouchersRoute: typeof PosAppVouchersRoute
   PosAppWaitlistRoute: typeof PosAppWaitlistRoute
+  PosAppWalletApprovalsRoute: typeof PosAppWalletApprovalsRoute
   PosAppWalletConfigRoute: typeof PosAppWalletConfigRoute
   PosAppWishlistAnalyticsRoute: typeof PosAppWishlistAnalyticsRoute
   PosAppIndexRoute: typeof PosAppIndexRoute
@@ -3692,6 +3712,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppVouchersRoute: PosAppVouchersRoute,
   PosAppWaitlistRoute: PosAppWaitlistRoute,
+  PosAppWalletApprovalsRoute: PosAppWalletApprovalsRoute,
   PosAppWalletConfigRoute: PosAppWalletConfigRoute,
   PosAppWishlistAnalyticsRoute: PosAppWishlistAnalyticsRoute,
   PosAppIndexRoute: PosAppIndexRoute,
