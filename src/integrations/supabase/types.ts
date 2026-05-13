@@ -2185,6 +2185,7 @@ export type Database = {
           commission_amount: number | null
           commission_rate: number | null
           courier_id: string | null
+          courier_name: string | null
           created_at: string
           customer_name: string | null
           customer_phone: string | null
@@ -2226,6 +2227,9 @@ export type Database = {
           tax: number
           tip_amount: number
           total: number
+          tracking_number: string | null
+          tracking_set_at: string | null
+          tracking_url: string | null
           updated_at: string
         }
         Insert: {
@@ -2237,6 +2241,7 @@ export type Database = {
           commission_amount?: number | null
           commission_rate?: number | null
           courier_id?: string | null
+          courier_name?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
@@ -2278,6 +2283,9 @@ export type Database = {
           tax?: number
           tip_amount?: number
           total?: number
+          tracking_number?: string | null
+          tracking_set_at?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -2289,6 +2297,7 @@ export type Database = {
           commission_amount?: number | null
           commission_rate?: number | null
           courier_id?: string | null
+          courier_name?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
@@ -2330,6 +2339,9 @@ export type Database = {
           tax?: number
           tip_amount?: number
           total?: number
+          tracking_number?: string | null
+          tracking_set_at?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Relationships: [
