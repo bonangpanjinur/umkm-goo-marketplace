@@ -19,7 +19,7 @@ import { formatIDR } from "@/lib/format";
 import { OrderChat } from "@/components/marketplace/OrderChat";
 import { ResolveDisputeDialog } from "@/components/marketplace/ResolveDisputeDialog";
 import { TrackingDialog } from "@/components/marketplace/TrackingDialog";
-import { courierLabel } from "@/lib/tracking";
+import { courierLabel, getCourierTrackUrl } from "@/lib/tracking";
 
 export const Route = createFileRoute("/pos-app/marketplace-orders")({
   head: () => ({ meta: [{ title: "Pesanan Marketplace" }] }),
@@ -506,6 +506,19 @@ function MarketplaceOrdersPage() {
                           <span className="text-muted-foreground"> · </span>
                           <span className="font-mono">{o.tracking_number}</span>
                         </div>
+                        {(() => {
+                          const trackUrl = getCourierTrackUrl(o.courier_name, o.tracking_number);
+                          return trackUrl ? (
+                            <a
+                              href={trackUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-indigo-700 hover:underline font-medium"
+                            >
+                              Lacak
+                            </a>
+                          ) : null;
+                        })()}
                         <button
                           onClick={() => setTrackingFor(o)}
                           className="text-indigo-700 hover:underline font-medium"
