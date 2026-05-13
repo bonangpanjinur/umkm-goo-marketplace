@@ -294,41 +294,70 @@ function PortfolioPage() {
             <DialogTitle>{editItem ? "Edit Foto" : "Tambah Foto Portofolio"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <Label>Foto</Label>
-              {imgUrl && (
-                <div className="relative mt-1 mb-2 w-full aspect-video rounded-lg overflow-hidden border border-border bg-muted">
-                  <img src={imgUrl} alt="preview" className="h-full w-full object-cover" />
-                  <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setImgUrl("")}>
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
-              <div className="flex gap-2 mt-1">
-                <Input
-                  value={imgUrl}
-                  onChange={e => setImgUrl(e.target.value)}
-                  placeholder="https://…"
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  disabled={uploading}
-                  onClick={() => fileRef.current?.click()}
-                  title="Unggah dari perangkat"
-                >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                </Button>
+            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">Mode Before / After</div>
+                <div className="text-xs text-muted-foreground">Tampilkan slider perbandingan dua foto.</div>
               </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f); }}
-              />
+              <Switch checked={isBA} onCheckedChange={setIsBA} />
             </div>
+
+            {isBA ? (
+              <div className="grid grid-cols-2 gap-3">
+                {(["before","after"] as const).map(side => {
+                  const url = side === "before" ? beforeUrl : afterUrl;
+                  const setUrl = side === "before" ? setBeforeUrl : setAfterUrl;
+                  return (
+                    <div key={side}>
+                      <Label className="capitalize">{side === "before" ? "Sebelum" : "Sesudah"}</Label>
+                      {url && (
+                        <div className="relative mt-1 mb-2 aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                          <img src={url} alt={side} className="h-full w-full object-cover" />
+                          <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setUrl("")}>
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex gap-1 mt-1">
+                        <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL…" className="flex-1 text-xs" />
+                        <Button variant="outline" size="icon" disabled={uploading}
+                          onClick={() => { setUploadTarget(side); fileRef.current?.click(); }}>
+                          {uploading && uploadTarget === side ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {beforeUrl && afterUrl && (
+                  <div className="col-span-2">
+                    <Label className="text-xs text-muted-foreground">Pratinjau slider</Label>
+                    <BeforeAfterSlider beforeUrl={beforeUrl} afterUrl={afterUrl} className="aspect-video mt-1" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Label>Foto</Label>
+                {imgUrl && (
+                  <div className="relative mt-1 mb-2 w-full aspect-video rounded-lg overflow-hidden border border-border bg-muted">
+                    <img src={imgUrl} alt="preview" className="h-full w-full object-cover" />
+                    <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setImgUrl("")}>
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex gap-2 mt-1">
+                  <Input value={imgUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://…" className="flex-1" />
+                  <Button variant="outline" size="icon" disabled={uploading}
+                    onClick={() => { setUploadTarget("main"); fileRef.current?.click(); }}>
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
+
             <div>
               <Label>Keterangan (opsional)</Label>
               <Textarea
