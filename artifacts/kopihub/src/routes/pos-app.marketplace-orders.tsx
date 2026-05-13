@@ -497,6 +497,24 @@ function MarketplaceOrdersPage() {
                       </div>
                     )}
 
+                    {/* Tracking info */}
+                    {o.fulfillment === "delivery" && o.tracking_number && (
+                      <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs flex items-center gap-2">
+                        <Truck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold">{courierLabel(o.courier_name)}</span>
+                          <span className="text-muted-foreground"> · </span>
+                          <span className="font-mono">{o.tracking_number}</span>
+                        </div>
+                        <button
+                          onClick={() => setTrackingFor(o)}
+                          className="text-indigo-700 hover:underline font-medium"
+                        >
+                          Ubah
+                        </button>
+                      </div>
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-1">
                       {next && (
@@ -508,6 +526,11 @@ function MarketplaceOrdersPage() {
                         >
                           {isAdv ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
                           {NEXT_LABEL[o.status] ?? `→ ${STATUS_LABEL[next]}`}
+                        </Button>
+                      )}
+                      {o.fulfillment === "delivery" && !["pending","cancelled"].includes(o.status) && !o.tracking_number && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setTrackingFor(o)}>
+                          <Truck className="h-3.5 w-3.5" /> Input Resi
                         </Button>
                       )}
                       {!isTerminal && (
