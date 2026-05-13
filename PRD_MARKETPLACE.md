@@ -448,8 +448,8 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | F-01 | Group Buy / Patungan (beli bareng, semua dapat harga spesial jika kuorum tercapai) | 3 hari |
 | F-02 | Subscription / Langganan Produk Rutin | 3 hari |
 | F-03 | AI Generator Deskripsi Produk (foto → nama + deskripsi + tag) | 2 hari |
-| F-04 | Pre-Order Mode (tanggal buka, tutup, estimasi produksi) | 2 hari |
-| F-05 | Custom Order / Made-to-Order Form | 2 hari |
+| F-04 | ✅ Pre-Order Mode (Sprint 13 — `pos-app.pre-orders.tsx` + kolom `pre_order_*` di `menu_items`) | 2 hari |
+| F-05 | ✅ Custom Order Form (Sprint 13 — `custom_order_requests`, `pos-app.custom-orders.tsx`, `toko.$slug.custom-order.tsx`, toggle `accepts_custom_order`) | 2 hari |
 | F-06 | Affiliate Program per Toko | 3 hari |
 | F-07 | Google Analytics & Meta Pixel Integration | 2 hari |
 | F-08 | Rating Pembeli 2-Way (toko rate pembeli, ekosistem lebih sehat) | 2 hari |
