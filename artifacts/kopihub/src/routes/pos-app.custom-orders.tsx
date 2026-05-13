@@ -66,6 +66,46 @@ function CustomOrdersPage() {
     else { toast.success("Status diperbarui"); load(); }
   }
 
+  function waLink(contact: string, message: string) {
+    const phone = contact.replace(/\D/g, "").replace(/^0/, "62");
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  }
+
+  function buildAcceptMessage(r: Req) {
+    const parts = [
+      `Halo ${r.customer_name}, terima kasih sudah mengirim brief custom order ke ${shop?.name ?? "toko kami"}.`,
+      `Kami *menerima* permintaanmu:`,
+      `"${r.description.slice(0, 200)}${r.description.length > 200 ? "…" : ""}"`,
+    ];
+    if (r.budget_min || r.budget_max)
+      parts.push(`Budget: Rp ${(r.budget_min ?? 0).toLocaleString("id-ID")} – Rp ${(r.budget_max ?? 0).toLocaleString("id-ID")}.`);
+    if (r.deadline)
+      parts.push(`Deadline: ${new Date(r.deadline).toLocaleDateString("id-ID")}.`);
+    parts.push("Kami akan kirim detail biaya & estimasi pengerjaan secepatnya. 🙏");
+    return parts.join("\n\n");
+  }
+
+  function buildRejectMessage(r: Req) {
+    return [
+      `Halo ${r.customer_name}, terima kasih sudah mengirim brief custom order ke ${shop?.name ?? "toko kami"}.`,
+      `Maaf, untuk saat ini kami belum bisa menerima permintaan tersebut${r.deadline ? ` dengan deadline ${new Date(r.deadline).toLocaleDateString("id-ID")}` : ""}.`,
+      `Jangan ragu untuk menghubungi kami lagi untuk pesanan lain. 🙏`,
+    ].join("\n\n");
+  }
+
+  async function accept(r: Req) {
+    await updateStatus(r.id, "accepted");
+    window.open(waLink(r.customer_contact, buildAcceptMessage(r)), "_blank");
+    toast.success("Permintaan diterima — pesan WhatsApp dibuka");
+  }
+
+  async function reject(r: Req) {
+    if (!confirm(`Tolak permintaan dari ${r.customer_name}?`)) return;
+    await updateStatus(r.id, "rejected");
+    window.open(waLink(r.customer_contact, buildRejectMessage(r)), "_blank");
+    toast.success("Permintaan ditolak — pesan WhatsApp dibuka");
+  }
+
   async function saveNote(id: string) {
     const { error } = await (supabase as any).from("custom_order_requests").update({ owner_note: note }).eq("id", id);
     if (error) toast.error(error.message);
