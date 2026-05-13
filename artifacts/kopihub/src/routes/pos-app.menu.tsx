@@ -437,6 +437,16 @@ function MenuPage() {
                   <Switch checked={trackStock} onCheckedChange={setTrackStock} />
                 </div>
 
+                <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                  <div>
+                    <div className="text-sm font-medium">Terima Custom Order</div>
+                    <div className="text-xs text-muted-foreground">
+                      Pembeli bisa kirim brief khusus (ukuran, warna, request unik).
+                    </div>
+                  </div>
+                  <Switch checked={acceptsCustomOrder} onCheckedChange={setAcceptsCustomOrder} />
+                </div>
+
                 <div className="space-y-1.5">
                   <Label>Yield resep (porsi per resep)</Label>
                   <Input type="number" min={1} step="1" value={recipeYield}
