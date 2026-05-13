@@ -100,6 +100,7 @@ function MenuPage() {
   const [flashPrice, setFlashPrice] = useState<string>("");
   const [flashStarts, setFlashStarts] = useState<string>("");
   const [flashEnds, setFlashEnds] = useState<string>("");
+  const [acceptsCustomOrder, setAcceptsCustomOrder] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
 
