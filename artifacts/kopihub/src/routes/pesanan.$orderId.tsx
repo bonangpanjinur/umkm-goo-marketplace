@@ -37,7 +37,7 @@ function OrderTrackPage() {
     (async () => {
       const { data: o } = await supabase
         .from("orders")
-        .select("id, order_no, status, payment_status, total, subtotal, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, shop:coffee_shops(name, slug, phone, whatsapp, logo_url)")
+        .select("id, order_no, status, payment_status, total, subtotal, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, requires_deposit, deposit_amount, deposit_paid, deposit_paid_at, balance_due, balance_paid, balance_paid_at, shop:coffee_shops(name, slug, phone, whatsapp, logo_url)")
         .eq("id", orderId)
         .maybeSingle();
       setOrder(o);
