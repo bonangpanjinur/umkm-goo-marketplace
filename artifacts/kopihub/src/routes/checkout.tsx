@@ -207,6 +207,26 @@ function CheckoutPage() {
   const membershipTotal = Object.values(membershipDiscountByShop).reduce((s, v) => s + v, 0);
   const grandTotal = itemsTotal + shippingTotal - membershipTotal;
 
+  // Per-shop deposit (DP) calculation
+  const depositByShop: Record<string, number> = {};
+  for (const [shopId, shopItems] of Object.entries(grouped)) {
+    const cfg = depositSettings[shopId];
+    if (!cfg?.enabled) continue;
+    const sub = shopItems.reduce((s, i) => s + Number(i.unit_price) * i.quantity, 0);
+    const ship = fulfillment === "delivery"
+      ? (zones.find((z) => z.id === shipping[shopId])?.fee ?? 0)
+      : 0;
+    const memDisc = membershipDiscountByShop[shopId] ?? 0;
+    const shopTotal = sub + ship - memDisc;
+    if (shopTotal < cfg.min_total) continue;
+    const dp = Math.round((shopTotal * cfg.percent) / 100);
+    if (dp > 0) depositByShop[shopId] = dp;
+  }
+  const depositTotal = Object.values(depositByShop).reduce((s, v) => s + v, 0);
+  const balanceTotal = grandTotal - depositTotal;
+  const hasDeposit = depositTotal > 0;
+
+
   const submit = async () => {
     if (!recipientName.trim() || !phone.trim() || (fulfillment === "delivery" && !address.trim())) {
       toast.error("Lengkapi data penerima.");
