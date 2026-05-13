@@ -555,6 +555,34 @@ function MarketplaceOrdersPage() {
                       </div>
                     )}
 
+                    {/* Deposit / DP info */}
+                    {o.requires_deposit && (
+                      <div className="rounded-lg border border-amber-300/60 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20 px-3 py-2 text-xs space-y-1">
+                        <div className="flex items-center justify-between font-semibold text-amber-800 dark:text-amber-300">
+                          <span>Pembayaran DP</span>
+                          <span>
+                            {o.deposit_paid && o.balance_paid
+                              ? "Lunas penuh"
+                              : o.deposit_paid
+                                ? "DP lunas · sisa belum"
+                                : "DP belum dibayar"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>DP</span>
+                          <span className={o.deposit_paid ? "text-emerald-700 font-semibold" : "font-semibold"}>
+                            {formatIDR(o.deposit_amount || 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Sisa</span>
+                          <span className={o.balance_paid ? "text-emerald-700 font-semibold" : "font-semibold"}>
+                            {formatIDR(o.balance_due || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-1">
                       {next && (
@@ -566,6 +594,16 @@ function MarketplaceOrdersPage() {
                         >
                           {isAdv ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
                           {NEXT_LABEL[o.status] ?? `→ ${STATUS_LABEL[next]}`}
+                        </Button>
+                      )}
+                      {o.requires_deposit && !o.deposit_paid && (
+                        <Button size="sm" variant="outline" onClick={() => markDepositPaid(o)} disabled={isAdv}>
+                          Tandai DP Lunas
+                        </Button>
+                      )}
+                      {o.requires_deposit && o.deposit_paid && !o.balance_paid && (
+                        <Button size="sm" variant="outline" onClick={() => markBalancePaid(o)} disabled={isAdv}>
+                          Tandai Pelunasan
                         </Button>
                       )}
                       {o.fulfillment === "delivery" && !["pending","cancelled"].includes(o.status) && !o.tracking_number && (
