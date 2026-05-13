@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Loader2, ChevronLeft, Search, Sparkles, Calendar, Package } from "lucide-react";
 import { toast } from "sonner";
+import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
 type Req = {
   id: string;
@@ -23,6 +24,7 @@ type Req = {
   owner_note: string | null;
   created_at: string;
   updated_at: string;
+  history?: TimelineEntry[];
 };
 
 const STORAGE_KEY = (slug: string) => `kopihub:custom-order-contact:${slug}`;
