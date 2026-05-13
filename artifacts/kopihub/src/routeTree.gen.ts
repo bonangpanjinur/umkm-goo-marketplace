@@ -57,6 +57,7 @@ import { Route as PosAppPurchaseOrdersRouteImport } from './routes/pos-app.purch
 import { Route as PosAppPromosRouteImport } from './routes/pos-app.promos'
 import { Route as PosAppPromoCalendarRouteImport } from './routes/pos-app.promo-calendar'
 import { Route as PosAppPrintersRouteImport } from './routes/pos-app.printers'
+import { Route as PosAppPreOrdersRouteImport } from './routes/pos-app.pre-orders'
 import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
 import { Route as PosAppPortfolioRouteImport } from './routes/pos-app.portfolio'
 import { Route as PosAppOutletsRouteImport } from './routes/pos-app.outlets'
@@ -411,6 +412,11 @@ const PosAppPromoCalendarRoute = PosAppPromoCalendarRouteImport.update({
 const PosAppPrintersRoute = PosAppPrintersRouteImport.update({
   id: '/printers',
   path: '/printers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPreOrdersRoute = PosAppPreOrdersRouteImport.update({
+  id: '/pre-orders',
+  path: '/pre-orders',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppPosRoute = PosAppPosRouteImport.update({
@@ -1091,6 +1097,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
+  '/pos-app/pre-orders': typeof PosAppPreOrdersRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
@@ -1251,6 +1258,7 @@ export interface FileRoutesByTo {
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
+  '/pos-app/pre-orders': typeof PosAppPreOrdersRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
@@ -1415,6 +1423,7 @@ export interface FileRoutesById {
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
+  '/pos-app/pre-orders': typeof PosAppPreOrdersRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
@@ -1581,6 +1590,7 @@ export interface FileRouteTypes {
     | '/pos-app/outlets'
     | '/pos-app/portfolio'
     | '/pos-app/pos'
+    | '/pos-app/pre-orders'
     | '/pos-app/printers'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
@@ -1741,6 +1751,7 @@ export interface FileRouteTypes {
     | '/pos-app/outlets'
     | '/pos-app/portfolio'
     | '/pos-app/pos'
+    | '/pos-app/pre-orders'
     | '/pos-app/printers'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
@@ -1904,6 +1915,7 @@ export interface FileRouteTypes {
     | '/pos-app/outlets'
     | '/pos-app/portfolio'
     | '/pos-app/pos'
+    | '/pos-app/pre-orders'
     | '/pos-app/printers'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
@@ -2330,6 +2342,13 @@ declare module '@tanstack/react-router' {
       path: '/printers'
       fullPath: '/pos-app/printers'
       preLoaderRoute: typeof PosAppPrintersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/pre-orders': {
+      id: '/pos-app/pre-orders'
+      path: '/pre-orders'
+      fullPath: '/pos-app/pre-orders'
+      preLoaderRoute: typeof PosAppPreOrdersRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/pos': {
@@ -3367,6 +3386,7 @@ interface PosAppRouteChildren {
   PosAppOutletsRoute: typeof PosAppOutletsRoute
   PosAppPortfolioRoute: typeof PosAppPortfolioRoute
   PosAppPosRoute: typeof PosAppPosRoute
+  PosAppPreOrdersRoute: typeof PosAppPreOrdersRoute
   PosAppPrintersRoute: typeof PosAppPrintersRoute
   PosAppPromoCalendarRoute: typeof PosAppPromoCalendarRoute
   PosAppPromosRoute: typeof PosAppPromosRoute
@@ -3435,6 +3455,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppOutletsRoute: PosAppOutletsRoute,
   PosAppPortfolioRoute: PosAppPortfolioRoute,
   PosAppPosRoute: PosAppPosRoute,
+  PosAppPreOrdersRoute: PosAppPreOrdersRoute,
   PosAppPrintersRoute: PosAppPrintersRoute,
   PosAppPromoCalendarRoute: PosAppPromoCalendarRoute,
   PosAppPromosRoute: PosAppPromosRoute,

@@ -331,10 +331,10 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Analitik voucher booking per kode | ✅ Selesai Sprint 11 |
 | Pembatalan mandiri via link token | ✅ Selesai Sprint 11 (Fase B — cancellation_token + halaman publik /booking/cancel/:token) |
 | Waitlist virtual saat slot penuh | ✅ Selesai Sprint 11 (M-12 — booking_waitlist + form antrean + panel POS + notif otomatis) |
-| Reminder otomatis H-1 / H-3 | ❌ |
-| Reschedule & batal mandiri oleh pembeli | ❌ |
-| Riwayat booking di akun pembeli | ❌ |
-| Kalender ketersediaan real-time | ❌ |
+| Reminder otomatis H-1 / H-3 | ✅ Selesai Sprint 12 G-1 (`send_booking_reminders()` + pg_cron `0 2 * * *` UTC) |
+| Reschedule & batal mandiri oleh pembeli | ✅ Selesai Sprint 11 (`booking.cancel.$token.tsx`) |
+| Riwayat booking di akun pembeli | ✅ Selesai (`akun.bookings.tsx`) |
+| Kalender ketersediaan real-time | ✅ (kalender slot di `toko.$slug.booking.tsx` baca `booking_slots` real-time) |
 
 ### 4.2 Roadmap Booking Lengkap
 
@@ -347,11 +347,11 @@ URL: `/toko/:slug/booking` — wizard 3 langkah: kalender tanggal → pilih slot
 - ✅ Voucher khusus booking — buat/kelola di POS, input kode di halaman publik, diskon atomik via RPC
 - ✅ Analitik voucher — pemakaian, total diskon, dampak revenue, filter rentang waktu
 
-#### Fase B — Manajemen Lanjutan (~3 hari) ❌ Belum
-- ❌ Reschedule mandiri (minimal H-24 sebelum jadwal)
-- ❌ Pembatalan mandiri oleh pelanggan via link aman (secure token)
-- ❌ Reminder otomatis H-3 dan H-1 (notif in-app + template WA)
-- ❌ Riwayat booking di akun pembeli (`/akun/bookings`)
+#### Fase B — Manajemen Lanjutan ✅ Selesai (Sprint 11–12)
+- ⚠️ Reschedule mandiri (minimal H-24 sebelum jadwal) — *belum, hanya batal mandiri*
+- ✅ Pembatalan mandiri oleh pelanggan via link aman (secure token) — Sprint 11
+- ✅ Reminder otomatis H-3 dan H-1 (notif in-app + tracking dedup) — Sprint 12 G-1
+- ✅ Riwayat booking di akun pembeli (`/akun/bookings`) — `akun.bookings.tsx`
 
 #### Fase C — Fitur Lanjutan (~5 hari) ❌ Belum
 - ❌ Deposit payment terintegrasi Midtrans/Xendit (saat ini: konfirmasi manual via WA)
@@ -425,7 +425,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 |---|---|---|---|---|
 | M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ✅ Selesai (Sprint 11) |
 | M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ✅ Selesai (`pos-app.portfolio.tsx`) |
-| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ⚠️ Panel manual ada (`pos-app.booking-reminders.tsx`) — *cron otomatis masih ❌* |
+| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ✅ Selesai Sprint 12 G-1 — `send_booking_reminders()` + pg_cron harian `0 2 * * *` UTC + tracking `reminded_h1_at`/`reminded_h3_at` + dedup via `dedupe_key` |
 | M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ✅ Selesai (`booking.cancel.$token.tsx` + `akun.bookings.tsx`) |
 | M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai (Sprint 10) |
 | M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ✅ Selesai (`akun.returns.tsx`) |
@@ -479,7 +479,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 |---|---|---|---|
 | R-01 | **Reservasi Meja Publik** dari marketplace | ⚠️ Merchant-side only (meja), ✅ booking layanan publik ada | 🔥 TINGGI |
 | R-02 | **Tag Alergen & Dietary** per menu item | ✅ Selesai Sprint 9 | — |
-| R-03 | **Waitlist / Antrian Virtual** | ❌ | 🔥 TINGGI |
+| R-03 | **Waitlist / Antrian Virtual** | ✅ Selesai Sprint 11 M-12 (`booking_waitlist` + form antrean + panel POS + notif otomatis) | — |
 | R-04 | **Happy Hour / Harga Waktu** (otomatis berlaku & berakhir) | ❌ | 🔥 TINGGI |
 | R-05 | Pre-Order Catering (tanggal + waktu tertentu di masa depan) | ❌ | TINGGI |
 | R-06 | Menu Paket / Combo Builder (build your own combo) | ❌ | SEDANG |
@@ -554,7 +554,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | # | Fitur | Ada? | Prioritas |
 |---|---|---|---|
 | FA-01 | Tabel ukuran (size chart) per produk | ✅ Selesai Sprint 9 | — |
-| FA-02 | Filter ukuran dan warna di halaman toko | ❌ | 🔥 TINGGI |
+| FA-02 | Filter ukuran dan warna di halaman toko | ✅ Selesai Sprint 13 (`toko.$slug.tsx` — extract `attributes.size` & `attributes.color`, multi-select chip, filter client-side) | — |
 | FA-03 | Panduan ukuran interaktif ("Tinggi 165cm, berat 55kg → pilih M") | ❌ | SEDANG |
 | FA-04 | Label "Pre-loved / Second" untuk produk bekas berkualitas | ❌ | SEDANG |
 | FA-05 | Tampilkan model yang pakai produk (foto lookbook) | ❌ | SEDANG |

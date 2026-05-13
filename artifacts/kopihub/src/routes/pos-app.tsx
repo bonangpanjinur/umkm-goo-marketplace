@@ -159,6 +159,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/happy-hour", label: "Happy Hour", icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam" },
       { to: "/pos-app/bulk-pricing", label: "Harga Grosir / Bulk", icon: Layers, hint: "Harga bertingkat otomatis: beli lebih banyak, harga lebih murah" },
       { to: "/pos-app/upsell", label: "Sering Dibeli Bersama", icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
+      { to: "/pos-app/pre-orders", label: "Pre-Order Mode", icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch" },
     ],
   },
   {
