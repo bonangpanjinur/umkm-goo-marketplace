@@ -188,6 +188,7 @@ function MenuPage() {
     setFlashPrice(it.flash_price != null ? String(it.flash_price) : "");
     setFlashStarts(toLocalInput(it.flash_starts_at));
     setFlashEnds(toLocalInput(it.flash_ends_at));
+    setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
     setOpen(true);
   }
 
