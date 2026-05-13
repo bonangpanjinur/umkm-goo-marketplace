@@ -91,7 +91,7 @@ function PortfolioPage() {
     if (!shop?.id) return;
     const { data, error } = await (supabase as any)
       .from("shop_portfolio")
-      .select("id, image_url, caption, category, sort_order")
+      .select("id, image_url, caption, category, sort_order, before_image_url, after_image_url, is_before_after")
       .eq("shop_id", shop.id)
       .order("sort_order");
     if (error) toast.error(error.message);
