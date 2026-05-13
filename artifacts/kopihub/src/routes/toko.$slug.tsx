@@ -220,7 +220,7 @@ function ShopPage() {
 
       const { data: prods } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at")
+        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, attributes")
         .eq("shop_id", (s as any).id)
         .eq("is_available", true)
         .order("sort_order")
