@@ -600,7 +600,13 @@ function CheckoutPage() {
                   <span className="text-muted-foreground">Total item</span>
                   <span>Rp {itemsTotal.toLocaleString("id-ID")}</span>
                 </div>
-              <div className="flex justify-between">
+                {membershipTotal > 0 && (
+                  <div className="flex justify-between text-amber-700">
+                    <span className="flex items-center gap-1"><Crown className="h-3.5 w-3.5" /> Diskon Member</span>
+                    <span className="font-semibold">−Rp {membershipTotal.toLocaleString("id-ID")}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">Ongkir</span>
                   <span>{fulfillment === "delivery" ? `Rp ${shippingTotal.toLocaleString("id-ID")}` : "Pickup"}</span>
                 </div>
