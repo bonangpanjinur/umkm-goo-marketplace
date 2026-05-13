@@ -154,6 +154,7 @@ import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
+import { Route as TokoSlugSaldoRouteImport } from './routes/toko.$slug.saldo'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
 import { Route as TokoSlugCustomOrderRouteImport } from './routes/toko.$slug.custom-order'
 import { Route as TokoSlugChatRouteImport } from './routes/toko.$slug.chat'
@@ -909,6 +910,11 @@ const AkunPesananIndexRoute = AkunPesananIndexRouteImport.update({
   path: '/pesanan/',
   getParentRoute: () => AkunRoute,
 } as any)
+const TokoSlugSaldoRoute = TokoSlugSaldoRouteImport.update({
+  id: '/saldo',
+  path: '/saldo',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const TokoSlugMapRoute = TokoSlugMapRouteImport.update({
   id: '/map',
   path: '/map',
@@ -1206,6 +1212,7 @@ export interface FileRoutesByFullPath {
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
+  '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
@@ -1374,6 +1381,7 @@ export interface FileRoutesByTo {
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
+  '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
@@ -1548,6 +1556,7 @@ export interface FileRoutesById {
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
+  '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
@@ -1723,6 +1732,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
+    | '/toko/$slug/saldo'
     | '/akun/pesanan/'
     | '/order/$slug/'
     | '/s/$slug/'
@@ -1891,6 +1901,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
+    | '/toko/$slug/saldo'
     | '/akun/pesanan'
     | '/order/$slug'
     | '/s/$slug'
@@ -2064,6 +2075,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
+    | '/toko/$slug/saldo'
     | '/akun/pesanan/'
     | '/order/$slug/'
     | '/s/$slug/'
@@ -3120,6 +3132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunPesananIndexRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/toko/$slug/saldo': {
+      id: '/toko/$slug/saldo'
+      path: '/saldo'
+      fullPath: '/toko/$slug/saldo'
+      preLoaderRoute: typeof TokoSlugSaldoRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/toko/$slug/map': {
       id: '/toko/$slug/map'
       path: '/map'
@@ -3730,6 +3749,7 @@ interface TokoSlugRouteChildren {
   TokoSlugChatRoute: typeof TokoSlugChatRoute
   TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRouteWithChildren
   TokoSlugMapRoute: typeof TokoSlugMapRoute
+  TokoSlugSaldoRoute: typeof TokoSlugSaldoRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
 
@@ -3738,6 +3758,7 @@ const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugChatRoute: TokoSlugChatRoute,
   TokoSlugCustomOrderRoute: TokoSlugCustomOrderRouteWithChildren,
   TokoSlugMapRoute: TokoSlugMapRoute,
+  TokoSlugSaldoRoute: TokoSlugSaldoRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }
 
