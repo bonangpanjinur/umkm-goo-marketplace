@@ -65,8 +65,12 @@ function PortfolioPage() {
   const [imgUrl, setImgUrl]     = useState("");
   const [caption, setCaption]   = useState("");
   const [category, setCategory] = useState("");
+  const [isBA, setIsBA]         = useState(false);
+  const [beforeUrl, setBeforeUrl] = useState("");
+  const [afterUrl, setAfterUrl]   = useState("");
   const [saving, setSaving]     = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState<"main"|"before"|"after">("main");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
