@@ -385,24 +385,166 @@ function ShopPage() {
 
       <PortfolioGallery shopId={shop?.id ?? ""} />
 
-      <section className="mx-auto max-w-7xl px-4 py-10">
-        <h2 className="mb-4 text-xl font-bold tracking-tight">Produk</h2>
-        {loading ? (
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] rounded-xl bg-muted/40 animate-pulse" />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Belum ada produk.</p>
-        ) : (
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
-            {products.map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
-        )}
-      </section>
+      <ProductsSection
+        loading={loading}
+        products={products}
+        selectedSizes={selectedSizes}
+        setSelectedSizes={setSelectedSizes}
+        selectedColors={selectedColors}
+        setSelectedColors={setSelectedColors}
+      />
 
       <MarketplaceFooter />
     </div>
+  );
+}
+
+function extractAttrValues(products: any[], key: string): string[] {
+  const set = new Set<string>();
+  for (const p of products) {
+    const attr = p?.attributes;
+    if (!attr) continue;
+    const raw = attr[key] ?? attr[key.toLowerCase()] ?? attr[key.charAt(0).toUpperCase() + key.slice(1)];
+    if (Array.isArray(raw)) {
+      for (const v of raw) if (v) set.add(String(v).trim());
+    } else if (typeof raw === "string" && raw.trim()) {
+      // support comma-separated string
+      for (const v of raw.split(",")) if (v.trim()) set.add(v.trim());
+    }
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "id"));
+}
+
+function productMatchesAttr(product: any, key: string, selected: string[]): boolean {
+  if (selected.length === 0) return true;
+  const attr = product?.attributes;
+  if (!attr) return false;
+  const raw = attr[key] ?? attr[key.toLowerCase()] ?? attr[key.charAt(0).toUpperCase() + key.slice(1)];
+  let values: string[] = [];
+  if (Array.isArray(raw)) values = raw.map(String);
+  else if (typeof raw === "string") values = raw.split(",").map((s) => s.trim());
+  const lower = values.map((v) => v.toLowerCase());
+  return selected.some((s) => lower.includes(s.toLowerCase()));
+}
+
+function ProductsSection({
+  loading,
+  products,
+  selectedSizes,
+  setSelectedSizes,
+  selectedColors,
+  setSelectedColors,
+}: {
+  loading: boolean;
+  products: any[];
+  selectedSizes: string[];
+  setSelectedSizes: (v: string[]) => void;
+  selectedColors: string[];
+  setSelectedColors: (v: string[]) => void;
+}) {
+  const sizes = useMemo(() => extractAttrValues(products, "size"), [products]);
+  const colors = useMemo(() => extractAttrValues(products, "color"), [products]);
+
+  const filtered = useMemo(() => {
+    return products.filter(
+      (p) =>
+        productMatchesAttr(p, "size", selectedSizes) &&
+        productMatchesAttr(p, "color", selectedColors),
+    );
+  }, [products, selectedSizes, selectedColors]);
+
+  const toggle = (list: string[], setList: (v: string[]) => void, value: string) => {
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  };
+
+  const hasFilters = sizes.length > 0 || colors.length > 0;
+  const activeCount = selectedSizes.length + selectedColors.length;
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-10">
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <h2 className="text-xl font-bold tracking-tight">Produk</h2>
+        {activeCount > 0 && (
+          <button
+            onClick={() => { setSelectedSizes([]); setSelectedColors([]); }}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Reset filter ({activeCount})
+          </button>
+        )}
+      </div>
+
+      {hasFilters && (
+        <div className="mb-5 space-y-3">
+          {sizes.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">Ukuran</span>
+              {sizes.map((s) => {
+                const on = selectedSizes.includes(s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => toggle(selectedSizes, setSelectedSizes, s)}
+                    className={`px-3 h-8 rounded-full border text-xs font-medium transition-colors ${
+                      on
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {colors.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">Warna</span>
+              {colors.map((c) => {
+                const on = selectedColors.includes(c);
+                return (
+                  <button
+                    key={c}
+                    onClick={() => toggle(selectedColors, setSelectedColors, c)}
+                    className={`px-3 h-8 rounded-full border text-xs font-medium transition-colors ${
+                      on
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="aspect-[3/4] rounded-xl bg-muted/40 animate-pulse" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {products.length === 0
+            ? "Belum ada produk."
+            : "Tidak ada produk yang cocok dengan filter. Coba reset atau ubah pilihan."}
+        </p>
+      ) : (
+        <>
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+            {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+          {activeCount > 0 && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Menampilkan {filtered.length} dari {products.length} produk
+            </p>
+          )}
+        </>
+      )}
+    </section>
   );
 }
