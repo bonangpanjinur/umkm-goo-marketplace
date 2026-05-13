@@ -425,7 +425,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 |---|---|---|---|---|
 | M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ✅ Selesai (Sprint 11) |
 | M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ✅ Selesai (`pos-app.portfolio.tsx`) |
-| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ⚠️ Panel manual ada (`pos-app.booking-reminders.tsx`) — *cron otomatis masih ❌* |
+| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ✅ Selesai Sprint 12 G-1 — `send_booking_reminders()` + pg_cron harian `0 2 * * *` UTC + tracking `reminded_h1_at`/`reminded_h3_at` + dedup via `dedupe_key` |
 | M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ✅ Selesai (`booking.cancel.$token.tsx` + `akun.bookings.tsx`) |
 | M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai (Sprint 10) |
 | M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ✅ Selesai (`akun.returns.tsx`) |
