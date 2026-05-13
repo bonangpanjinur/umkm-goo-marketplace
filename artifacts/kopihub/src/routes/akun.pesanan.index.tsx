@@ -216,6 +216,22 @@ function OrdersListPage() {
         })}
       </div>
 
+      <div className="space-y-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input className="pl-8 h-9 text-sm" value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nomor pesanan atau nama toko…" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-9 text-xs" placeholder="Dari" />
+          <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-9 text-xs" placeholder="Sampai" />
+        </div>
+        {hasFilter && (
+          <button onClick={() => { setQ(""); setDateFrom(""); setDateTo(""); }} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <X className="h-3 w-3" /> Reset filter
+          </button>
+        )}
+      </div>
+
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-border py-12 text-center">
           <ShoppingBag className="h-10 w-10 text-muted-foreground opacity-30" />
