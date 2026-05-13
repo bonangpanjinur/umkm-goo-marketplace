@@ -65,6 +65,7 @@ import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
 import { Route as PosAppOnlineOrdersRouteImport } from './routes/pos-app.online-orders'
 import { Route as PosAppNotifikasiRouteImport } from './routes/pos-app.notifikasi'
 import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
+import { Route as PosAppMembershipRouteImport } from './routes/pos-app.membership'
 import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
 import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
@@ -457,6 +458,11 @@ const PosAppNotifikasiRoute = PosAppNotifikasiRouteImport.update({
 const PosAppMenuRoute = PosAppMenuRouteImport.update({
   id: '/menu',
   path: '/menu',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppMembershipRoute = PosAppMembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppMarketplaceOrdersRoute = PosAppMarketplaceOrdersRouteImport.update({
@@ -1123,6 +1129,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -1289,6 +1296,7 @@ export interface FileRoutesByTo {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -1459,6 +1467,7 @@ export interface FileRoutesById {
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
+  '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
@@ -1631,6 +1640,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
+    | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
@@ -1797,6 +1807,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
+    | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
@@ -1966,6 +1977,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
+    | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
@@ -2459,6 +2471,13 @@ declare module '@tanstack/react-router' {
       path: '/menu'
       fullPath: '/pos-app/menu'
       preLoaderRoute: typeof PosAppMenuRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/membership': {
+      id: '/pos-app/membership'
+      path: '/membership'
+      fullPath: '/pos-app/membership'
+      preLoaderRoute: typeof PosAppMembershipRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/marketplace-orders': {
@@ -3489,6 +3508,7 @@ interface PosAppRouteChildren {
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
+  PosAppMembershipRoute: typeof PosAppMembershipRoute
   PosAppMenuRoute: typeof PosAppMenuRouteWithChildren
   PosAppNotifikasiRoute: typeof PosAppNotifikasiRoute
   PosAppOnlineOrdersRoute: typeof PosAppOnlineOrdersRoute
@@ -3559,6 +3579,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
+  PosAppMembershipRoute: PosAppMembershipRoute,
   PosAppMenuRoute: PosAppMenuRouteWithChildren,
   PosAppNotifikasiRoute: PosAppNotifikasiRoute,
   PosAppOnlineOrdersRoute: PosAppOnlineOrdersRoute,
