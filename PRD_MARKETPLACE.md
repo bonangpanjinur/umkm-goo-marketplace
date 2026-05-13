@@ -347,11 +347,11 @@ URL: `/toko/:slug/booking` — wizard 3 langkah: kalender tanggal → pilih slot
 - ✅ Voucher khusus booking — buat/kelola di POS, input kode di halaman publik, diskon atomik via RPC
 - ✅ Analitik voucher — pemakaian, total diskon, dampak revenue, filter rentang waktu
 
-#### Fase B — Manajemen Lanjutan (~3 hari) ❌ Belum
-- ❌ Reschedule mandiri (minimal H-24 sebelum jadwal)
-- ❌ Pembatalan mandiri oleh pelanggan via link aman (secure token)
-- ❌ Reminder otomatis H-3 dan H-1 (notif in-app + template WA)
-- ❌ Riwayat booking di akun pembeli (`/akun/bookings`)
+#### Fase B — Manajemen Lanjutan ✅ Selesai (Sprint 11–12)
+- ⚠️ Reschedule mandiri (minimal H-24 sebelum jadwal) — *belum, hanya batal mandiri*
+- ✅ Pembatalan mandiri oleh pelanggan via link aman (secure token) — Sprint 11
+- ✅ Reminder otomatis H-3 dan H-1 (notif in-app + tracking dedup) — Sprint 12 G-1
+- ✅ Riwayat booking di akun pembeli (`/akun/bookings`) — `akun.bookings.tsx`
 
 #### Fase C — Fitur Lanjutan (~5 hari) ❌ Belum
 - ❌ Deposit payment terintegrasi Midtrans/Xendit (saat ini: konfirmasi manual via WA)
