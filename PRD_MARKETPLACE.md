@@ -554,7 +554,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | # | Fitur | Ada? | Prioritas |
 |---|---|---|---|
 | FA-01 | Tabel ukuran (size chart) per produk | ✅ Selesai Sprint 9 | — |
-| FA-02 | Filter ukuran dan warna di halaman toko | ❌ | 🔥 TINGGI |
+| FA-02 | Filter ukuran dan warna di halaman toko | ✅ Selesai Sprint 13 (`toko.$slug.tsx` — extract `attributes.size` & `attributes.color`, multi-select chip, filter client-side) | — |
 | FA-03 | Panduan ukuran interaktif ("Tinggi 165cm, berat 55kg → pilih M") | ❌ | SEDANG |
 | FA-04 | Label "Pre-loved / Second" untuk produk bekas berkualitas | ❌ | SEDANG |
 | FA-05 | Tampilkan model yang pakai produk (foto lookbook) | ❌ | SEDANG |
