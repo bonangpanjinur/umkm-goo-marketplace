@@ -119,6 +119,209 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_slots: {
+        Row: {
+          capacity: number
+          created_at: string
+          deposit_percent: number
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          notes: string | null
+          price: number | null
+          service_name: string
+          shop_id: string
+          slot_date: string
+          slot_time: string
+          staff_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          deposit_percent?: number
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          price?: number | null
+          service_name: string
+          shop_id: string
+          slot_date: string
+          slot_time: string
+          staff_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          deposit_percent?: number
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          price?: number | null
+          service_name?: string
+          shop_id?: string
+          slot_date?: string
+          slot_time?: string
+          staff_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_slots_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_waitlist: {
+        Row: {
+          created_at: string
+          customer_name: string
+          customer_phone: string | null
+          customer_user_id: string | null
+          id: string
+          notified_at: string | null
+          party_size: number
+          requested_date: string | null
+          requested_time: string | null
+          shop_id: string
+          slot_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          id?: string
+          notified_at?: string | null
+          party_size?: number
+          requested_date?: string | null
+          requested_time?: string | null
+          shop_id: string
+          slot_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          id?: string
+          notified_at?: string | null
+          party_size?: number
+          requested_date?: string | null
+          requested_time?: string | null
+          shop_id?: string
+          slot_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_waitlist_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_waitlist_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "booking_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          cancel_token: string
+          cancelled_at: string | null
+          cancelled_reason: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          customer_user_id: string | null
+          deposit_amount: number
+          deposit_paid: boolean
+          deposit_paid_at: string | null
+          id: string
+          notes: string | null
+          party_size: number
+          reminded_h1_at: string | null
+          reminded_h3_at: string | null
+          shop_id: string
+          slot_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_token?: string
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          deposit_amount?: number
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
+          id?: string
+          notes?: string | null
+          party_size?: number
+          reminded_h1_at?: string | null
+          reminded_h3_at?: string | null
+          shop_id: string
+          slot_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_token?: string
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          deposit_amount?: number
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
+          id?: string
+          notes?: string | null
+          party_size?: number
+          reminded_h1_at?: string | null
+          reminded_h3_at?: string | null
+          shop_id?: string
+          slot_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "booking_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branding_audit: {
         Row: {
           changed_by: string
@@ -3779,6 +3982,10 @@ export type Database = {
         Args: { _reason: string; _shop_id: string }
         Returns: undefined
       }
+      booking_cancel_by_token: {
+        Args: { _reason?: string; _token: string }
+        Returns: Json
+      }
       close_shift: {
         Args: { _closing_cash: number; _note?: string; _shift_id: string }
         Returns: Json
@@ -4018,6 +4225,7 @@ export type Database = {
         }
         Returns: Json
       }
+      send_booking_reminders: { Args: never; Returns: Json }
       send_order_message: {
         Args: { _attachment_url?: string; _body: string; _order_id: string }
         Returns: string
