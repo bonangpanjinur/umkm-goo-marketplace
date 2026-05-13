@@ -380,7 +380,7 @@ function PortfolioPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)}>Batal</Button>
-            <Button onClick={save} disabled={saving || !imgUrl.trim()}>
+            <Button onClick={save} disabled={saving || (isBA ? (!beforeUrl.trim() || !afterUrl.trim()) : !imgUrl.trim())}>
               {saving ? "Menyimpan…" : editItem ? "Simpan Perubahan" : "Tambah Foto"}
             </Button>
           </DialogFooter>
