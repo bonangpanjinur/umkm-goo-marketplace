@@ -485,7 +485,53 @@ function SettingsPage() {
         </div>
       </Section>
 
-      {/* Pajak & Service Charge */}
+      {/* Down Payment / DP */}
+      <Section icon={CreditCard} title="Down Payment (DP)" desc="Aktifkan untuk meminta pelanggan bayar uang muka saat checkout. Sisa dilunasi setelah pesanan diterima.">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+            <div>
+              <div className="text-sm font-medium">Aktifkan DP otomatis</div>
+              <p className="text-xs text-muted-foreground">Order yang memenuhi minimum total akan otomatis dihitung DP-nya.</p>
+            </div>
+            <Switch
+              checked={form.deposit_enabled}
+              onCheckedChange={(v) => update("deposit_enabled", Boolean(v))}
+            />
+          </div>
+
+          {form.deposit_enabled && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Persentase DP (%)</Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={100}
+                  value={form.deposit_percent}
+                  onChange={(e) => update("deposit_percent", Math.max(1, Math.min(100, Number(e.target.value || 0))))}
+                  placeholder="30"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Mis. 30 = pelanggan bayar 30% di awal.</p>
+              </div>
+              <div>
+                <Label>Minimum total (Rp)</Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  value={form.deposit_min_total}
+                  onChange={(e) => update("deposit_min_total", Math.max(0, Number(e.target.value || 0)))}
+                  placeholder="0"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">DP berlaku jika total ≥ nilai ini. Isi 0 untuk semua order.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </Section>
+
+
       <Section icon={ReceiptIcon} title="Pajak & Service Charge" desc="Diterapkan otomatis saat checkout POS dan online.">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
