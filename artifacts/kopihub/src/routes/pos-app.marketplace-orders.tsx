@@ -574,6 +574,18 @@ function MarketplaceOrdersPage() {
           dispute={resolveFor}
           onResolved={load}
         />
+
+        {trackingFor && (
+          <TrackingDialog
+            open={!!trackingFor}
+            onOpenChange={(v) => !v && setTrackingFor(null)}
+            orderId={trackingFor.id}
+            orderNo={trackingFor.order_no}
+            initialCourier={trackingFor.courier_name}
+            initialAwb={trackingFor.tracking_number}
+            onSaved={load}
+          />
+        )}
       </div>
     </>
   );
