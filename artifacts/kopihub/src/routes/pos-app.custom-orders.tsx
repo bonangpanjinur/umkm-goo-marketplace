@@ -103,7 +103,7 @@ function CustomOrdersPage() {
   async function load() {
     if (!shop?.id) return;
     setLoading(true);
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("custom_order_requests")
       .select("*")
       .eq("shop_id", shop.id)
@@ -114,7 +114,7 @@ function CustomOrdersPage() {
   }
 
   async function loadHistory(requestId: string) {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("custom_order_status_history")
       .select("from_status,to_status,note,created_at")
       .eq("request_id", requestId)
@@ -132,7 +132,7 @@ function CustomOrdersPage() {
   async function updateStatus(id: string, status: string, ownerNote?: string) {
     const patch: any = { status };
     if (typeof ownerNote === "string" && ownerNote.trim()) patch.owner_note = ownerNote.trim();
-    const { error } = await (supabase as any).from("custom_order_requests").update(patch).eq("id", id);
+    const { error } = await supabase.from("custom_order_requests").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status diperbarui");
     setStatusNote("");
@@ -172,7 +172,7 @@ function CustomOrdersPage() {
   }
 
   async function saveNote(id: string) {
-    const { error } = await (supabase as any).from("custom_order_requests").update({ owner_note: note }).eq("id", id);
+    const { error } = await supabase.from("custom_order_requests").update({ owner_note: note }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Catatan disimpan"); setEditing(null); load(); }
   }

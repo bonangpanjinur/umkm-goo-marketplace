@@ -81,7 +81,7 @@ function CustomOrderStatusPage() {
       return;
     }
     if (!opts?.silent) setSearching(true);
-    const { data, error } = await (supabase as any).rpc("get_customer_custom_orders", {
+    const { data, error } = await supabase.rpc("get_customer_custom_orders", {
       p_shop_slug: slug,
       p_contact: v,
     });
