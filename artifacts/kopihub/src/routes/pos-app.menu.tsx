@@ -45,6 +45,7 @@ type MenuItem = {
   flash_price: number | null;
   flash_starts_at: string | null;
   flash_ends_at: string | null;
+  accepts_custom_order?: boolean | null;
 };
 
 type HPPRow = {
