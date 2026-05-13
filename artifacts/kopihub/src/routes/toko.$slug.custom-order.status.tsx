@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Loader2, ChevronLeft, Search, Sparkles, Calendar, Package } from "lucide-react";
 import { toast } from "sonner";
+import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
 type Req = {
   id: string;
@@ -23,6 +24,7 @@ type Req = {
   owner_note: string | null;
   created_at: string;
   updated_at: string;
+  history?: TimelineEntry[];
 };
 
 const STORAGE_KEY = (slug: string) => `kopihub:custom-order-contact:${slug}`;
@@ -175,6 +177,13 @@ function CustomOrderStatusPage() {
                     <div className="mt-3 rounded-lg bg-muted/60 p-3 text-sm">
                       <p className="text-xs font-medium text-muted-foreground mb-1">Catatan dari penjual</p>
                       <p className="whitespace-pre-line">{r.owner_note}</p>
+                    </div>
+                  )}
+
+                  {r.history && r.history.length > 0 && (
+                    <div className="mt-4 border-t border-border pt-3">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Riwayat status</p>
+                      <CustomOrderTimeline history={r.history} />
                     </div>
                   )}
                 </div>

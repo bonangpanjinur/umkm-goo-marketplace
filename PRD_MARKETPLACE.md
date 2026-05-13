@@ -449,7 +449,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | F-02 | Subscription / Langganan Produk Rutin | 3 hari |
 | F-03 | AI Generator Deskripsi Produk (foto → nama + deskripsi + tag) | 2 hari |
 | F-04 | ✅ Pre-Order Mode (Sprint 13 — `pos-app.pre-orders.tsx` + kolom `pre_order_*` di `menu_items`) | 2 hari |
-| F-05 | ✅ Custom Order Form (Sprint 13 — `custom_order_requests`, `pos-app.custom-orders.tsx` dgn tombol Terima/Tolak + WA template, `toko.$slug.custom-order.tsx`, CTA di `toko.$slug.produk.$productId.tsx`, toggle `accepts_custom_order`, halaman status customer `toko.$slug.custom-order.status.tsx` + RPC `get_customer_custom_orders`) | 2 hari |
+| F-05 | ✅ Custom Order Form (Sprint 13 — `custom_order_requests`, `pos-app.custom-orders.tsx` dgn search/filter (nama, WA, budget, tanggal) + sort + tombol per-status (Terima/Mulai/Selesai/Tolak) yang otomatis kirim WA template + catatan owner, timeline riwayat status (`custom_order_status_history` + trigger), `toko.$slug.custom-order.tsx`, CTA di `toko.$slug.produk.$productId.tsx`, toggle `accepts_custom_order`, halaman status customer `toko.$slug.custom-order.status.tsx` menampilkan timeline + RPC `get_customer_custom_orders` dgn jsonb history, komponen `CustomOrderTimeline.tsx`) | 2 hari |
 | F-06 | Affiliate Program per Toko | 3 hari |
 | F-07 | Google Analytics & Meta Pixel Integration | 2 hari |
 | F-08 | Rating Pembeli 2-Way (toko rate pembeli, ekosistem lebih sehat) | 2 hari |

@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History } from "lucide-react";
 import { toast } from "sonner";
+import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
 export const Route = createFileRoute("/pos-app/custom-orders")({
   head: () => ({ meta: [{ title: "Permintaan Custom — Merchant" }] }),
@@ -28,10 +30,11 @@ type Req = {
 };
 
 const STATUS = [
-  { v: "pending",   l: "Menunggu",  cls: "bg-amber-100 text-amber-700" },
-  { v: "accepted",  l: "Diterima",  cls: "bg-emerald-100 text-emerald-700" },
-  { v: "rejected",  l: "Ditolak",   cls: "bg-rose-100 text-rose-700" },
-  { v: "completed", l: "Selesai",   cls: "bg-sky-100 text-sky-700" },
+  { v: "pending",     l: "Menunggu",    cls: "bg-amber-100 text-amber-700" },
+  { v: "accepted",    l: "Diterima",    cls: "bg-emerald-100 text-emerald-700" },
+  { v: "in_progress", l: "Dikerjakan",  cls: "bg-blue-100 text-blue-700" },
+  { v: "completed",   l: "Selesai",     cls: "bg-green-100 text-green-700" },
+  { v: "rejected",    l: "Ditolak",     cls: "bg-rose-100 text-rose-700" },
 ];
 
 function CustomOrdersPage() {
@@ -41,6 +44,19 @@ function CustomOrdersPage() {
   const [filter, setFilter] = useState<string>("all");
   const [editing, setEditing] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [statusNote, setStatusNote] = useState("");
+
+  // Search & filter
+  const [q, setQ] = useState("");
+  const [budgetMin, setBudgetMin] = useState("");
+  const [budgetMax, setBudgetMax] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "deadline" | "budget">("newest");
+
+  // Timeline expand & history cache
+  const [openTimeline, setOpenTimeline] = useState<Record<string, boolean>>({});
+  const [historyCache, setHistoryCache] = useState<Record<string, TimelineEntry[]>>({});
 
   useEffect(() => {
     if (!shop?.id) return;
@@ -60,10 +76,31 @@ function CustomOrdersPage() {
     setLoading(false);
   }
 
-  async function updateStatus(id: string, status: string) {
-    const { error } = await (supabase as any).from("custom_order_requests").update({ status }).eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Status diperbarui"); load(); }
+  async function loadHistory(requestId: string) {
+    const { data, error } = await (supabase as any)
+      .from("custom_order_status_history")
+      .select("from_status,to_status,note,created_at")
+      .eq("request_id", requestId)
+      .order("created_at", { ascending: true });
+    if (error) { toast.error(error.message); return; }
+    setHistoryCache(c => ({ ...c, [requestId]: (data ?? []) as TimelineEntry[] }));
+  }
+
+  async function toggleTimeline(id: string) {
+    const next = !openTimeline[id];
+    setOpenTimeline(s => ({ ...s, [id]: next }));
+    if (next && !historyCache[id]) await loadHistory(id);
+  }
+
+  async function updateStatus(id: string, status: string, ownerNote?: string) {
+    const patch: any = { status };
+    if (typeof ownerNote === "string" && ownerNote.trim()) patch.owner_note = ownerNote.trim();
+    const { error } = await (supabase as any).from("custom_order_requests").update(patch).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Status diperbarui");
+    setStatusNote("");
+    if (historyCache[id]) await loadHistory(id);
+    load();
   }
 
   function waLink(contact: string, message: string) {
@@ -71,39 +108,30 @@ function CustomOrdersPage() {
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
-  function buildAcceptMessage(r: Req) {
-    const parts = [
-      `Halo ${r.customer_name}, terima kasih sudah mengirim brief custom order ke ${shop?.name ?? "toko kami"}.`,
-      `Kami *menerima* permintaanmu:`,
-      `"${r.description.slice(0, 200)}${r.description.length > 200 ? "…" : ""}"`,
+  function buildStatusMessage(r: Req, status: string, ownerNote?: string) {
+    const labelMap: Record<string,string> = {
+      accepted: "✅ *diterima*",
+      in_progress: "🛠️ *sedang dikerjakan*",
+      completed: "🎉 *selesai*",
+      rejected: "❌ *ditolak*",
+    };
+    const lines = [
+      `Halo ${r.customer_name}, update permintaan custom order kamu di ${shop?.name ?? "toko kami"}:`,
+      `Status: ${labelMap[status] ?? status}`,
+      `Brief: "${r.description.slice(0, 160)}${r.description.length > 160 ? "…" : ""}"`,
     ];
-    if (r.budget_min || r.budget_max)
-      parts.push(`Budget: Rp ${(r.budget_min ?? 0).toLocaleString("id-ID")} – Rp ${(r.budget_max ?? 0).toLocaleString("id-ID")}.`);
-    if (r.deadline)
-      parts.push(`Deadline: ${new Date(r.deadline).toLocaleDateString("id-ID")}.`);
-    parts.push("Kami akan kirim detail biaya & estimasi pengerjaan secepatnya. 🙏");
-    return parts.join("\n\n");
+    if (ownerNote?.trim()) lines.push(`Catatan: ${ownerNote.trim()}`);
+    if (r.deadline) lines.push(`Deadline: ${new Date(r.deadline).toLocaleDateString("id-ID")}`);
+    lines.push("Terima kasih 🙏");
+    return lines.join("\n\n");
   }
 
-  function buildRejectMessage(r: Req) {
-    return [
-      `Halo ${r.customer_name}, terima kasih sudah mengirim brief custom order ke ${shop?.name ?? "toko kami"}.`,
-      `Maaf, untuk saat ini kami belum bisa menerima permintaan tersebut${r.deadline ? ` dengan deadline ${new Date(r.deadline).toLocaleDateString("id-ID")}` : ""}.`,
-      `Jangan ragu untuk menghubungi kami lagi untuk pesanan lain. 🙏`,
-    ].join("\n\n");
-  }
-
-  async function accept(r: Req) {
-    await updateStatus(r.id, "accepted");
-    window.open(waLink(r.customer_contact, buildAcceptMessage(r)), "_blank");
-    toast.success("Permintaan diterima — pesan WhatsApp dibuka");
-  }
-
-  async function reject(r: Req) {
-    if (!confirm(`Tolak permintaan dari ${r.customer_name}?`)) return;
-    await updateStatus(r.id, "rejected");
-    window.open(waLink(r.customer_contact, buildRejectMessage(r)), "_blank");
-    toast.success("Permintaan ditolak — pesan WhatsApp dibuka");
+  async function changeStatus(r: Req, status: string) {
+    if (status === "rejected" && !confirm(`Tolak permintaan dari ${r.customer_name}?`)) return;
+    await updateStatus(r.id, status, statusNote);
+    if (["accepted","in_progress","completed","rejected"].includes(status)) {
+      window.open(waLink(r.customer_contact, buildStatusMessage(r, status, statusNote)), "_blank");
+    }
   }
 
   async function saveNote(id: string) {
@@ -112,11 +140,44 @@ function CustomOrdersPage() {
     else { toast.success("Catatan disimpan"); setEditing(null); load(); }
   }
 
+  const filtered = useMemo(() => {
+    let arr = items;
+    if (filter !== "all") arr = arr.filter(i => i.status === filter);
+    if (q.trim()) {
+      const needle = q.toLowerCase();
+      arr = arr.filter(i =>
+        i.customer_name.toLowerCase().includes(needle) ||
+        i.customer_contact.toLowerCase().includes(needle) ||
+        i.description.toLowerCase().includes(needle)
+      );
+    }
+    const bMin = budgetMin ? Number(budgetMin) : null;
+    const bMax = budgetMax ? Number(budgetMax) : null;
+    if (bMin !== null) arr = arr.filter(i => (i.budget_max ?? i.budget_min ?? 0) >= bMin);
+    if (bMax !== null) arr = arr.filter(i => (i.budget_min ?? i.budget_max ?? Number.MAX_SAFE_INTEGER) <= bMax);
+    if (dateFrom) { const d = new Date(dateFrom).getTime(); arr = arr.filter(i => new Date(i.created_at).getTime() >= d); }
+    if (dateTo)   { const d = new Date(dateTo).getTime() + 86400000; arr = arr.filter(i => new Date(i.created_at).getTime() <= d); }
+
+    if (sortBy === "deadline") {
+      arr = [...arr].sort((a,b) => {
+        if (!a.deadline) return 1; if (!b.deadline) return -1;
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      });
+    } else if (sortBy === "budget") {
+      arr = [...arr].sort((a,b) => (b.budget_max ?? b.budget_min ?? 0) - (a.budget_max ?? a.budget_min ?? 0));
+    }
+    return arr;
+  }, [items, filter, q, budgetMin, budgetMax, dateFrom, dateTo, sortBy]);
+
+  function resetFilters() {
+    setQ(""); setBudgetMin(""); setBudgetMax(""); setDateFrom(""); setDateTo(""); setFilter("all"); setSortBy("newest");
+  }
+
   if (shopLoading || loading) {
     return <div className="p-6 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Memuat…</div>;
   }
 
-  const filtered = filter === "all" ? items : items.filter(i => i.status === filter);
+  const hasFilters = q || budgetMin || budgetMax || dateFrom || dateTo || filter !== "all" || sortBy !== "newest";
 
   return (
     <div className="p-6 space-y-6 max-w-5xl">
@@ -125,21 +186,59 @@ function CustomOrdersPage() {
         <p className="text-sm text-muted-foreground mt-0.5">Brief pesanan khusus dari pembeli untuk produk yang menerima custom order.</p>
       </div>
 
-      <div className="flex gap-2 flex-wrap text-xs">
-        <button onClick={() => setFilter("all")} className={`px-3 py-1 rounded-full font-medium ${filter==="all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>Semua ({items.length})</button>
-        {STATUS.map(s => (
-          <button key={s.v} onClick={() => setFilter(s.v)} className={`px-3 py-1 rounded-full font-medium ${filter===s.v ? "bg-primary text-primary-foreground" : s.cls}`}>{s.l} ({items.filter(i => i.status === s.v).length})</button>
-        ))}
+      {/* Search & filter toolbar */}
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto] items-center">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input className="pl-8" value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama, nomor WA, atau brief…" />
+          </div>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
+            className="h-9 rounded-md border border-input bg-transparent px-2 text-sm">
+            <option value="newest">Terbaru</option>
+            <option value="deadline">Deadline terdekat</option>
+            <option value="budget">Budget tertinggi</option>
+          </select>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-4">
+          <div>
+            <label className="text-[11px] text-muted-foreground">Budget min</label>
+            <Input type="number" value={budgetMin} onChange={e => setBudgetMin(e.target.value)} placeholder="0" />
+          </div>
+          <div>
+            <label className="text-[11px] text-muted-foreground">Budget max</label>
+            <Input type="number" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} placeholder="∞" />
+          </div>
+          <div>
+            <label className="text-[11px] text-muted-foreground">Dari tanggal</label>
+            <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-[11px] text-muted-foreground">Sampai tanggal</label>
+            <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => setFilter("all")} className={`px-3 py-1 rounded-full text-xs font-medium ${filter==="all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>Semua ({items.length})</button>
+          {STATUS.map(s => (
+            <button key={s.v} onClick={() => setFilter(s.v)} className={`px-3 py-1 rounded-full text-xs font-medium ${filter===s.v ? "bg-primary text-primary-foreground" : s.cls}`}>{s.l} ({items.filter(i => i.status === s.v).length})</button>
+          ))}
+          <span className="ml-auto text-xs text-muted-foreground">{filtered.length} hasil</span>
+          {hasFilters && (
+            <Button size="sm" variant="ghost" onClick={resetFilters}><X className="h-3 w-3 mr-1" /> Reset</Button>
+          )}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          Belum ada permintaan custom order.
+          Tidak ada permintaan yang cocok dengan filter.
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map(r => {
             const st = STATUS.find(s => s.v === r.status) ?? STATUS[0];
+            const tlOpen = !!openTimeline[r.id];
             return (
               <div key={r.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -187,25 +286,49 @@ function CustomOrdersPage() {
                   <button className="text-xs text-primary hover:underline" onClick={() => { setEditing(r.id); setNote(""); }}>+ Tambah catatan</button>
                 )}
 
-                <div className="flex gap-2 flex-wrap pt-2 border-t border-border">
-                  <a href={waLink(r.customer_contact, `Halo ${r.customer_name}, mengenai brief custom order kamu di ${shop?.name ?? ""}…`)} target="_blank" rel="noreferrer">
-                    <Button size="sm" variant="outline">Hubungi WhatsApp</Button>
-                  </a>
-                  {r.status === "pending" && (
-                    <>
-                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => accept(r)}>
-                        Terima &amp; kirim WA
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => reject(r)}>
-                        Tolak &amp; kirim WA
-                      </Button>
-                    </>
-                  )}
-                  {r.status === "accepted" && (
-                    <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, "completed")}>Tandai Selesai</Button>
-                  )}
-                  {(r.status === "rejected" || r.status === "completed") && (
-                    <Button size="sm" variant="ghost" onClick={() => updateStatus(r.id, "pending")}>Buka kembali</Button>
+                <div className="border-t border-border pt-3 space-y-2">
+                  <Textarea
+                    rows={2}
+                    placeholder="Catatan untuk pelanggan saat ubah status (opsional, akan dikirim via WA)…"
+                    value={statusNote}
+                    onChange={e => setStatusNote(e.target.value)}
+                  />
+                  <div className="flex gap-2 flex-wrap">
+                    <a href={waLink(r.customer_contact, `Halo ${r.customer_name}, mengenai brief custom order kamu di ${shop?.name ?? ""}…`)} target="_blank" rel="noreferrer">
+                      <Button size="sm" variant="outline">Hubungi WhatsApp</Button>
+                    </a>
+                    {r.status === "pending" && (
+                      <>
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => changeStatus(r, "accepted")}>Terima &amp; kirim WA</Button>
+                        <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => changeStatus(r, "rejected")}>Tolak &amp; kirim WA</Button>
+                      </>
+                    )}
+                    {r.status === "accepted" && (
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => changeStatus(r, "in_progress")}>Mulai dikerjakan &amp; kirim WA</Button>
+                    )}
+                    {(r.status === "accepted" || r.status === "in_progress") && (
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => changeStatus(r, "completed")}>Tandai selesai &amp; kirim WA</Button>
+                    )}
+                    {(r.status === "rejected" || r.status === "completed") && (
+                      <Button size="sm" variant="ghost" onClick={() => updateStatus(r.id, "pending")}>Buka kembali</Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-border pt-2">
+                  <button onClick={() => toggleTimeline(r.id)} className="text-xs flex items-center gap-1 text-primary hover:underline">
+                    <History className="h-3 w-3" />
+                    {tlOpen ? "Sembunyikan riwayat" : "Lihat riwayat status"}
+                    {tlOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  </button>
+                  {tlOpen && (
+                    <div className="mt-3">
+                      {historyCache[r.id] ? (
+                        <CustomOrderTimeline history={historyCache[r.id]} />
+                      ) : (
+                        <div className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Memuat riwayat…</div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
