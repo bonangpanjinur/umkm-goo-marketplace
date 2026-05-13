@@ -64,12 +64,16 @@ function PortfolioGallery({ shopId }: { shopId: string }) {
             className="group relative aspect-square overflow-hidden rounded-xl bg-muted/40 border border-border hover:border-primary/50 transition-all"
             onClick={() => setLightbox(idx)}
           >
-            <img
-              src={item.image_url}
-              alt={item.caption ?? "Portofolio"}
-              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-              onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Foto"; }}
-            />
+            {item.is_before_after && item.before_image_url && item.after_image_url ? (
+              <BeforeAfterSlider beforeUrl={item.before_image_url} afterUrl={item.after_image_url} className="aspect-square h-full" />
+            ) : (
+              <img
+                src={item.image_url}
+                alt={item.caption ?? "Portofolio"}
+                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Foto"; }}
+              />
+            )}
             {item.caption && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <p className="text-[10px] text-white line-clamp-2">{item.caption}</p>
