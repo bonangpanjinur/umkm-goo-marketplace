@@ -61,6 +61,24 @@ function CustomOrdersPage() {
   useEffect(() => {
     if (!shop?.id) return;
     load();
+    const ch = supabase
+      .channel(`cor-merchant-${shop.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "custom_order_requests", filter: `shop_id=eq.${shop.id}` },
+        () => { load(); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "custom_order_status_history" },
+        (payload: any) => {
+          const rid = payload?.new?.request_id;
+          if (rid && historyCache[rid]) loadHistory(rid);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shop?.id]);
 
   async function load() {
