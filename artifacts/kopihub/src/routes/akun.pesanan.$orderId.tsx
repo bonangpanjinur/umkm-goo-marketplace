@@ -10,6 +10,7 @@ import {
   ShieldCheck, RefreshCw, Timer, CreditCard, AlertTriangle,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+import { courierLabel, getCourierTrackUrl } from "@/lib/tracking";
 import { MarketplaceReviewDialog } from "@/components/marketplace/MarketplaceReviewDialog";
 import { OrderChat } from "@/components/marketplace/OrderChat";
 import { DisputeDialog } from "@/components/marketplace/DisputeDialog";
@@ -211,7 +212,7 @@ function OrderDetailPage() {
     if (!user) return;
     const { data: o } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, shop:coffee_shops(id, name, slug, logo_url, whatsapp, phone)")
+      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, tracking_number, courier_name, tracking_url, tracking_set_at, shop:coffee_shops(id, name, slug, logo_url, whatsapp, phone)")
       .eq("id", orderId)
       .eq("customer_user_id", user.id)
       .maybeSingle();
@@ -337,6 +338,45 @@ function OrderDetailPage() {
       </Card>
 
       <OrderTimeline order={order} logs={logs} />
+
+      {order.tracking_number && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Truck className="h-4 w-4 text-primary" /> Resi Pengiriman
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Kurir</span>
+              <span className="font-medium">{courierLabel(order.courier_name)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">No. Resi</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(order.tracking_number); toast.success("No. resi disalin"); }}
+                className="font-mono text-sm font-semibold text-foreground hover:text-primary transition-colors"
+                title="Klik untuk salin"
+              >
+                {order.tracking_number}
+              </button>
+            </div>
+            {order.tracking_set_at && (
+              <p className="text-[11px] text-muted-foreground">Diinput {formatTs(order.tracking_set_at)}</p>
+            )}
+            {(() => {
+              const url = order.tracking_url || getCourierTrackUrl(order.courier_name, order.tracking_number);
+              return url ? (
+                <Button asChild size="sm" variant="outline" className="w-full gap-2 mt-1">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <Truck className="h-4 w-4" /> Cek Status Resi
+                  </a>
+                </Button>
+              ) : null;
+            })()}
+          </CardContent>
+        </Card>
+      )}
 
       {canReview && !allReviewed && reviewItems.length > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">

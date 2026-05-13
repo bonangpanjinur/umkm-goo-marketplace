@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { OrderChat } from "@/components/marketplace/OrderChat";
 import { ResolveDisputeDialog } from "@/components/marketplace/ResolveDisputeDialog";
+import { TrackingDialog } from "@/components/marketplace/TrackingDialog";
+import { courierLabel } from "@/lib/tracking";
 
 export const Route = createFileRoute("/pos-app/marketplace-orders")({
   head: () => ({ meta: [{ title: "Pesanan Marketplace" }] }),
@@ -124,13 +126,14 @@ function MarketplaceOrdersPage() {
   const [resolveFor, setResolveFor] = useState<any>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [trackingFor, setTrackingFor] = useState<any>(null);
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, escrow_status, items:order_items(id, name, qty, price, total)")
+      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, escrow_status, tracking_number, courier_name, tracking_url, tracking_set_at, items:order_items(id, name, qty, price, total)")
       .eq("shop_id", shop.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -494,6 +497,24 @@ function MarketplaceOrdersPage() {
                       </div>
                     )}
 
+                    {/* Tracking info */}
+                    {o.fulfillment === "delivery" && o.tracking_number && (
+                      <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs flex items-center gap-2">
+                        <Truck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold">{courierLabel(o.courier_name)}</span>
+                          <span className="text-muted-foreground"> · </span>
+                          <span className="font-mono">{o.tracking_number}</span>
+                        </div>
+                        <button
+                          onClick={() => setTrackingFor(o)}
+                          className="text-indigo-700 hover:underline font-medium"
+                        >
+                          Ubah
+                        </button>
+                      </div>
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-1">
                       {next && (
@@ -505,6 +526,11 @@ function MarketplaceOrdersPage() {
                         >
                           {isAdv ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
                           {NEXT_LABEL[o.status] ?? `→ ${STATUS_LABEL[next]}`}
+                        </Button>
+                      )}
+                      {o.fulfillment === "delivery" && !["pending","cancelled"].includes(o.status) && !o.tracking_number && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setTrackingFor(o)}>
+                          <Truck className="h-3.5 w-3.5" /> Input Resi
                         </Button>
                       )}
                       {!isTerminal && (
@@ -548,6 +574,18 @@ function MarketplaceOrdersPage() {
           dispute={resolveFor}
           onResolved={load}
         />
+
+        {trackingFor && (
+          <TrackingDialog
+            open={!!trackingFor}
+            onOpenChange={(v) => !v && setTrackingFor(null)}
+            orderId={trackingFor.id}
+            orderNo={trackingFor.order_no}
+            initialCourier={trackingFor.courier_name}
+            initialAwb={trackingFor.tracking_number}
+            onSaved={load}
+          />
+        )}
       </div>
     </>
   );
