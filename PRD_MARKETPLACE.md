@@ -457,7 +457,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | F-10 | BNPL / Cicilan (Kredivo, Akulaku) | 5 hari |
 | F-11 | Mobile App (React Native / Expo) | 3+ minggu |
 | F-12 | Merchant Onboarding Email Sequence (H+1, H+3, H+7 setelah daftar) | 2 hari |
-| F-13 | Platform Health Score per Toko (skor 0–100 kelengkapan profil) | 2 hari |
+| F-13 | ✅ Platform Health Score per Toko (Sprint 13 — view `shop_health_score` + `admin.health-score.tsx`) | 2 hari |
 | F-14 | Automated Payout Scheduler (payout otomatis terjadwal) | 2 hari |
 | F-15 | Multi-Admin Super Admin (Finance Admin, Support Admin, Content Admin) | 2 hari |
 
