@@ -161,7 +161,16 @@ function CheckoutPage() {
           return s + (z ? z.fee : 0);
         }, 0)
       : 0;
-  const grandTotal = itemsTotal + shippingTotal;
+  // Per-shop membership discount (auto-applied on subtotal)
+  const membershipDiscountByShop: Record<string, number> = {};
+  for (const [shopId, shopItems] of Object.entries(grouped)) {
+    const m = memberships[shopId];
+    if (!m) continue;
+    const sub = shopItems.reduce((s, i) => s + Number(i.unit_price) * i.quantity, 0);
+    membershipDiscountByShop[shopId] = Math.round((sub * m.discount_percent) / 100);
+  }
+  const membershipTotal = Object.values(membershipDiscountByShop).reduce((s, v) => s + v, 0);
+  const grandTotal = itemsTotal + shippingTotal - membershipTotal;
 
   const submit = async () => {
     if (!recipientName.trim() || !phone.trim() || (fulfillment === "delivery" && !address.trim())) {
