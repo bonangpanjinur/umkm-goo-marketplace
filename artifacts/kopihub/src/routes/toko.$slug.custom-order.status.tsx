@@ -74,22 +74,49 @@ function CustomOrderStatusPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  async function load(value: string) {
+  async function load(value: string, opts?: { silent?: boolean }) {
     const v = value.trim();
     if (v.replace(/\D/g, "").length < 6) {
-      toast.error("Masukkan nomor WhatsApp yang valid");
+      if (!opts?.silent) toast.error("Masukkan nomor WhatsApp yang valid");
       return;
     }
-    setSearching(true);
+    if (!opts?.silent) setSearching(true);
     const { data, error } = await (supabase as any).rpc("get_customer_custom_orders", {
       p_shop_slug: slug,
       p_contact: v,
     });
-    setSearching(false);
-    if (error) { toast.error(error.message); return; }
+    if (!opts?.silent) setSearching(false);
+    if (error) { if (!opts?.silent) toast.error(error.message); return; }
     setRows((data ?? []) as Req[]);
     if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY(slug), v);
   }
+
+  // Realtime: refresh saat ada perubahan request atau riwayat status
+  useEffect(() => {
+    if (!rows || rows.length === 0) return;
+    const ids = new Set(rows.map(r => r.id));
+    const ch = supabase
+      .channel(`cor-customer-${slug}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "custom_order_requests" },
+        (payload: any) => {
+          const id = payload?.new?.id ?? payload?.old?.id;
+          if (id && ids.has(id)) load(contact, { silent: true });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "custom_order_status_history" },
+        (payload: any) => {
+          const rid = payload?.new?.request_id;
+          if (rid && ids.has(rid)) load(contact, { silent: true });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, slug, contact]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (!shop) return <div className="p-12 text-center">Toko tidak ditemukan.</div>;
