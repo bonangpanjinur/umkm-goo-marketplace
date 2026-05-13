@@ -22,7 +22,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, UtensilsCrossed, Upload, ImageIcon, AlertTriangle, TrendingUp, TrendingDown, SlidersHorizontal } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, UtensilsCrossed, Upload, ImageIcon, AlertTriangle, TrendingUp, TrendingDown, SlidersHorizontal, ExternalLink } from "lucide-react";
 import { ModifierManager } from "@/components/modifier-manager";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
@@ -303,6 +303,16 @@ function MenuPage() {
               ))}
             </SelectContent>
           </Select>
+          {shop?.slug && (
+            <a
+              href={`/katalog/${shop.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted/30 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" /> Bagikan Katalog
+            </a>
+          )}
           <a
             href="/pos-app/menu/import"
             className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted/30 transition-colors"

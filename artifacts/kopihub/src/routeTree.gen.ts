@@ -20,6 +20,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as BandingkanRouteImport } from './routes/bandingkan'
 import { Route as AkunRouteImport } from './routes/akun'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -90,6 +91,7 @@ import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearanc
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as OrderSlugRouteImport } from './routes/order.$slug'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
+import { Route as KatalogSlugRouteImport } from './routes/katalog.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as AkunWishlistRouteImport } from './routes/akun.wishlist'
@@ -211,6 +213,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BandingkanRoute = BandingkanRouteImport.update({
+  id: '/bandingkan',
+  path: '/bandingkan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AkunRoute = AkunRouteImport.update({
@@ -564,6 +571,11 @@ const KategoriSlugRoute = KategoriSlugRouteImport.update({
   path: '/kategori/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KatalogSlugRoute = KatalogSlugRouteImport.update({
+  id: '/katalog/$slug',
+  path: '/katalog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
@@ -906,6 +918,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/akun': typeof AkunRouteWithChildren
+  '/bandingkan': typeof BandingkanRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
@@ -959,6 +972,7 @@ export interface FileRoutesByFullPath {
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
@@ -1054,6 +1068,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bandingkan': typeof BandingkanRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
@@ -1106,6 +1121,7 @@ export interface FileRoutesByTo {
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/appearance': typeof PosAppAppearanceRoute
@@ -1202,6 +1218,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/akun': typeof AkunRouteWithChildren
+  '/bandingkan': typeof BandingkanRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
@@ -1255,6 +1272,7 @@ export interface FileRoutesById {
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
@@ -1354,6 +1372,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/akun'
+    | '/bandingkan'
     | '/checkout'
     | '/forgot-password'
     | '/keranjang'
@@ -1407,6 +1426,7 @@ export interface FileRouteTypes {
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
+    | '/katalog/$slug'
     | '/kategori/$slug'
     | '/order/$slug'
     | '/pesanan/$orderId'
@@ -1502,6 +1522,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/bandingkan'
     | '/checkout'
     | '/forgot-password'
     | '/keranjang'
@@ -1554,6 +1575,7 @@ export interface FileRouteTypes {
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
+    | '/katalog/$slug'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/appearance'
@@ -1649,6 +1671,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/akun'
+    | '/bandingkan'
     | '/checkout'
     | '/forgot-password'
     | '/keranjang'
@@ -1702,6 +1725,7 @@ export interface FileRouteTypes {
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
+    | '/katalog/$slug'
     | '/kategori/$slug'
     | '/order/$slug'
     | '/pesanan/$orderId'
@@ -1800,6 +1824,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AkunRoute: typeof AkunRouteWithChildren
+  BandingkanRoute: typeof BandingkanRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   KeranjangRoute: typeof KeranjangRoute
@@ -1813,6 +1838,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  KatalogSlugRoute: typeof KatalogSlugRoute
   KategoriSlugRoute: typeof KategoriSlugRoute
   OrderSlugRoute: typeof OrderSlugRouteWithChildren
   PesananOrderIdRoute: typeof PesananOrderIdRouteWithChildren
@@ -1899,6 +1925,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bandingkan': {
+      id: '/bandingkan'
+      path: '/bandingkan'
+      fullPath: '/bandingkan'
+      preLoaderRoute: typeof BandingkanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/akun': {
@@ -2389,6 +2422,13 @@ declare module '@tanstack/react-router' {
       path: '/kategori/$slug'
       fullPath: '/kategori/$slug'
       preLoaderRoute: typeof KategoriSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/katalog/$slug': {
+      id: '/katalog/$slug'
+      path: '/katalog/$slug'
+      fullPath: '/katalog/$slug'
+      preLoaderRoute: typeof KatalogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -3249,6 +3289,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AkunRoute: AkunRouteWithChildren,
+  BandingkanRoute: BandingkanRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   KeranjangRoute: KeranjangRoute,
@@ -3262,6 +3303,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
+  KatalogSlugRoute: KatalogSlugRoute,
   KategoriSlugRoute: KategoriSlugRoute,
   OrderSlugRoute: OrderSlugRouteWithChildren,
   PesananOrderIdRoute: PesananOrderIdRouteWithChildren,

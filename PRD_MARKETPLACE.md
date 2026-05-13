@@ -1,6 +1,6 @@
 # PRD — UMKMgo / KopiHub
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
-**Versi:** 4.0 | **Diperbarui:** Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
+**Versi:** 5.0 | **Diperbarui:** Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
 
 ---
 
@@ -20,12 +20,40 @@
 
 ---
 
+## RINGKASAN EKSEKUTIF
+
+Platform ini sudah sangat kuat dari sisi infrastruktur. **60–70% fitur inti sudah ada.** Gap terbesar bukan di fitur yang rumit, tapi di pengalaman pengguna yang lengkap:
+
+1. **Sistem booking masih setengah jalan** — merchant bisa kelola, tapi pembeli tidak bisa self-serve. Ini gap paling kritis untuk semua usaha jasa.
+2. **Viral loop belum ada** — tidak ada cara mudah untuk pembeli share produk, share keranjang, atau ajak teman beli bareng. Fitur ini hampir nol effort tapi dampaknya besar.
+3. **Fitur per industri masih generik** — semua toko diperlakukan sama padahal kebutuhan restoran, salon, fotografer, dan toko fashion sangat berbeda.
+4. **Kepercayaan pembeli perlu diperkuat** — histori harga, foto ulasan, BPOM/ingredient list, size chart adalah fitur kecil yang langsung naikkan konversi.
+5. **Super Admin sudah lengkap** — gap utama hanya di otomasi (payout otomatis, onboarding sequence, health score per toko).
+
+---
+
 ## BAGIAN 1: STATUS IMPLEMENTASI SAAT INI
 
 ### 1.1 Super Admin ✅ Lengkap
+
+**Yang Sudah Ada:**
 Dashboard KPI · Manajemen KYC merchant · Manajemen toko (suspend/unsuspend) · Tagihan & invoice · Persetujuan penarikan dana · Voucher platform-wide · Dispute resolution · Manajemen paket & plan matrix · Konfigurasi komisi · Konfigurasi payment gateway (Midtrans + Xendit) · Branding platform · Broadcast notifikasi · Auto-cancel pesanan · Impersonasi toko (support mode + audit) · Audit log · Domain kustom · Feature flags · Fee simulator · Rekonsiliasi keuangan · Template notifikasi · Banner homepage · Review iklan merchant · Manajemen akun pembeli · Moderasi konten · Revenue Intelligence Dashboard · Churn & Retensi · Laporan Keuangan & Pajak (PPN 11%) · Deteksi Fraud (rule-based + anomali GMV) · Auto-renewal reminder · Revenue Leakage Detector
 
+**⚠️ Perlu Diperbaiki:**
+| Fitur | Masalah | Saran Perbaikan |
+|---|---|---|
+| **Deteksi Fraud** | Hanya rule-based dasar, tidak ada ML scoring | Tambah skor risiko 0–100 per transaksi berdasarkan pola: IP, device, kecepatan order, nilai transaksi |
+| **Manajemen Kategori** | Kategori global ada tapi CRUD dari admin belum dinamis | Buat halaman `/admin/categories` — add/edit/delete/reorder kategori bisnis beserta icon, slug, fitur toggle |
+| **Katalog Global** | Ada tapi belum jelas scope-nya | Pisahkan antara "Kategori Bisnis" (F&B, Fashion, dll.) dan "Kategori Produk" per toko |
+| **Churn Analysis** | Hanya dashboard, tidak ada tindakan otomatis | Tambah trigger: jika toko tidak login 14 hari → otomatis kirim email re-engagement |
+| **Laporan Keuangan** | CSV export ada tapi format belum standar akuntansi | Tambah format laporan kompatibel Jurnal / MYOB / Accurate |
+| **Broadcast Notifikasi** | Kirim ke semua atau segmen toko, belum bisa ke pembeli | Pisahkan target: broadcast ke merchant vs. broadcast ke pembeli |
+| **Manajemen Pengguna Pembeli** | Hanya lihat data, tidak ada tindakan | Tambah: suspend akun, reset password, lihat riwayat order, tambah kredit/cashback manual |
+
 ### 1.2 Merchant / Pemilik Toko ✅ Lengkap
+
+**Yang Sudah Ada:**
+
 **POS & Operasional:** Kasir digital · KDS · Meja + QR order · Shift kasir · Split bill per orang · Printer thermal · Panggil pelayan realtime
 
 **Katalog:** Menu/produk · Kategori · Varian & atribut · Bundle · Produk digital · Import CSV
@@ -54,8 +82,35 @@ Dashboard KPI · Manajemen KYC merchant · Manajemen toko (suspend/unsuspend) ·
 
 **Notifikasi:** Notifikasi toko · **Banner keranjang terbengkalai**
 
+**⚠️ Perlu Diperbaiki:**
+| Fitur | Masalah | Saran Perbaikan |
+|---|---|---|
+| **Dashboard POS** | Grafik tren hanya 7/30 hari, tidak bisa pilih rentang kustom | Tambah date range picker — pilih tanggal mulai & selesai bebas |
+| **Manajemen Pesanan** | Status pesanan update manual satu per satu | Tambah bulk action: pilih beberapa pesanan → update status sekaligus |
+| **Upload Foto Produk** | Belum ada crop/resize di browser sebelum upload | Tambah crop tool in-browser (react-image-crop) — hemat storage, foto lebih konsisten |
+| **Booking** | Hanya bisa dibuat manual oleh merchant, belum ada halaman publik untuk pembeli booking sendiri | 🔥 Buat halaman publik `/toko/:slug/booking` agar pembeli bisa booking mandiri |
+| **Laporan Laba Rugi** | Halaman profit ada tapi tidak menampilkan breakdown biaya operasional | Tambah input "biaya lain-lain" per periode agar L/R lebih akurat |
+| **Stok** | Alert stok menipis hanya di UI, tidak ada notif push/WA | Tambah: kirim notif push ke owner + template WA jika stok item di bawah minimum |
+| **Q&A Produk** | Auto-reply ada tapi matching hanya exact | Upgrade ke fuzzy matching / keyword-based matching |
+| **Ulasan** | Balas ulasan ada tapi tidak ada filter "belum dibalas" yang jelas | Tambah tab "Perlu Dibalas" dengan badge merah jika ada ulasan belum dibalas > 24 jam |
+| **Kalender Promo** | Ada tapi tidak terintegrasi dengan jadwal produk flash sale | Sinkronkan kalender promo dengan flash sale dan voucher aktif |
+
 ### 1.3 Pembeli / Customer ✅ Lengkap
+
+**Yang Sudah Ada:**
 Beranda marketplace · Search + filter · Kategori · Flash sale · Featured shops · Banner iklan · Halaman toko + tier badge · Detail produk + varian + ulasan + foto ulasan · Q&A produk · Keranjang multi-toko · Checkout (delivery/pickup) · Berbagai metode bayar · Order tracking realtime · Bukti pengiriman kurir · Live chat dengan penjual · Dispute · Akun: pesanan, alamat, wishlist, favorit, notifikasi · Loyalty (poin, tier Bronze→Platinum, redeem) · **Voucher ulang tahun otomatis** · **Notif poin kadaluarsa** · Referral program dengan kode unik · Follow toko · **Reorder 1-klik** · Pesanan favorit (beri nama, pesan lagi) · **Alert harga turun** · Riwayat produk dilihat · Trust Certificate Badge · Estimasi waktu pengiriman
+
+**⚠️ Perlu Diperbaiki:**
+| Fitur | Masalah | Saran Perbaikan |
+|---|---|---|
+| **Pencarian** | Hanya full-text sederhana, tidak ada filter lanjutan | Tambah filter: harga min–max, rating minimum, kategori, lokasi toko, metode bayar |
+| **Halaman Keranjang** | Tidak bisa pilih item mana yang mau di-checkout | Tambah checkbox per item — pembeli bisa pilih sebagian untuk checkout sekarang |
+| **Checkout** | Alamat tersimpan tidak otomatis dipilih | Auto-select alamat default saat checkout dibuka |
+| **Order Tracking** | Hanya status internal, belum ada integrasi nomor resi ke website kurir | Tambah tombol "Cek Resi" yang langsung buka tracking di website kurir relevan |
+| **Wishlist** | Alert harga turun hanya localStorage, tidak persisten lintas device | Simpan price alert di database agar sinkron di semua perangkat |
+| **Notifikasi** | Notif in-app ada tapi belum ada push notification browser | Implementasi Web Push Notification (service worker) untuk notif walau browser ditutup |
+| **Ulasan** | Tidak bisa upload foto saat menulis ulasan | Tambah upload foto/video bukti di form ulasan |
+| **Profil Akun** | Belum ada avatar/foto profil yang bisa diupload | Tambah upload avatar |
 
 ---
 
@@ -78,15 +133,19 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 12 Mei 2026 | Fase 7 | Manajemen Buyer, Moderasi Konten, Revenue Intelligence, Churn & Retensi, Laporan Pajak, Fraud Detection, Auto-renewal, Revenue Leakage | ✅ |
 | 13 Mei 2026 | Sprint 8 | Notifikasi Keranjang Terbengkalai, Badge Tier Toko (Platinum/Gold/Top Seller), Label Pelanggan Auto (VIP/Reguler/Baru/Tidak Aktif), Alert Harga Turun, Platform Voucher Admin UI | ✅ |
 | 13 Mei 2026 | Sprint 8 | **Voucher Toko** — merchant CRUD voucher khusus tokonya | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-01 Halaman Booking Publik** (`/toko/:slug/booking`) — wizard 3 langkah: kalender tanggal, pilih slot, isi data; notif in-app ke merchant; tombol konfirmasi WA | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-05 WA Notif Order** — tombol "WA ke Pelanggan" di detail order merchant, pesan template terisi otomatis (nama, item, total) | ✅ |
-| 13 Mei 2026 | Sprint 9 | **Tombol Booking** di halaman toko marketplace — tombol "Booking Layanan" menonjol mengarah ke halaman booking publik | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-03 Share Keranjang** — tombol "Bagikan Keranjang" di sidebar cart, pakai native share API atau copy ringkasan item+total | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-04 Pesan sebagai Hadiah** — checkbox di checkout: nama penerima hadiah + pesan ucapan yang dicetak di slip | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-06 Histori Harga** — grafik line chart di halaman produk, query tabel `menu_item_price_history`, graceful empty state | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-07 Size Chart** — tabel ukuran dinamis di halaman produk (dari field `size_chart` JSON di `menu_items`) | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-08 Tag Alergen & Dietary** — badge Halal/Vegan/Vegetarian + daftar alergen (⚠️) di halaman produk | ✅ |
-| 13 Mei 2026 | Sprint 9 | **P-09 Ingredient List & BPOM** — nomor BPOM + daftar komposisi/bahan dari field `bpom_number`/`ingredients` di `menu_items` | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-01 Halaman Booking Publik** (`/toko/:slug/booking`) — wizard 3 langkah: kalender, pilih slot, isi data; notif in-app; tombol konfirmasi WA | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-02 Tombol Share Produk** — ShareButton di halaman produk: native share API + copy link + WA | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-03 Share Keranjang** — tombol "Bagikan Keranjang" di sidebar cart, native share API atau copy ringkasan | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-04 Pesan sebagai Hadiah** — checkbox di checkout: nama penerima + pesan ucapan yang dicetak di slip | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-05 WA Notif Order** — tombol "WA ke Pelanggan" di detail order merchant, pesan template terisi otomatis | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-06 Histori Harga** — grafik line chart di halaman produk, query tabel `menu_item_price_history` | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-07 Size Chart** — tabel ukuran dinamis di halaman produk (dari field `size_chart` JSON) | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-08 Tag Alergen & Dietary** — badge Halal/Vegan/Vegetarian + daftar alergen di halaman produk | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-09 Ingredient List & BPOM** — nomor BPOM + daftar komposisi/bahan di halaman produk | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-10 Tombol Bagikan Laporan Harian ke WA** — shareWA() di laporan harian + banner CTA | ✅ |
+| 13 Mei 2026 | Sprint 9 | **Tombol Booking** di halaman toko marketplace — menonjol mengarah ke halaman booking publik | ✅ |
+| 14 Mei 2026 | Sprint 10 | **M-05 Perbandingan Produk** — `/bandingkan` side-by-side hingga 4 produk + `lib/compare.ts` | ✅ |
+| 14 Mei 2026 | Sprint 10 | **M-15 Katalog Link Shareable** — `/katalog/:slug` halaman publik + filter kategori + tombol share | ✅ |
 
 ---
 
@@ -102,9 +161,9 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | `fnb_restaurant` | Restoran & Rumah Makan | Warung makan, rumah makan, nasi padang | POS · KDS · Meja · Reservasi · QR order |
 | `fnb_cafe` | Kafe & Kedai Kopi | Kafe specialty, coffee shop, kedai susu | POS · KDS · Happy hour · Ambiance menu |
 | `fnb_street` | Jajanan & Gerobak | Bakso, gorengan, mi ayam, es dawet | POS sederhana · Delivery |
-| `fnb_catering` | Katering & Box Nasi | Katering pernikahan, box makan siang, nasi tumpeng | Booking + deposit · Min. order · Tanggal pesan |
+| `fnb_catering` | Katering & Box Nasi | Katering pernikahan, box makan siang | Booking + deposit · Min. order · Tanggal pesan |
 | `fnb_bakery` | Bakeri & Kue | Toko kue, roti artisan, kue ulang tahun custom | Pre-order · Custom design · Tanggal siap |
-| `fnb_packaged` | Makanan Kemasan | Keripik, sambal, kue kering, minuman botol, frozen food | Berat · Expired · Komposisi · Halal cert |
+| `fnb_packaged` | Makanan Kemasan | Keripik, sambal, kue kering, frozen food | Berat · Expired · Komposisi · Halal cert |
 | `fnb_healthy` | Makanan Sehat | Salad, jus cold-pressed, diet meal prep | Info kalori/nutrisi · Allergen tag · Langganan |
 
 #### 💆 Kecantikan & Perawatan Diri
@@ -216,7 +275,7 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Kode | Nama | Contoh Usaha | Fitur Tambahan |
 |---|---|---|---|
 | `digital_product` | Produk Digital | Template, font, e-book, preset, musik | Auto-delivery · Lisensi · Preview watermark |
-| `digital_service` | Jasa Digital | Web developer, SEO, social media manager, data entry | Brief form · Milestone · Deliver file · Revisi |
+| `digital_service` | Jasa Digital | Web developer, SEO, social media manager | Brief form · Milestone · Deliver file · Revisi |
 | `digital_repair` | Servis Elektronik | Servis HP, laptop, tablet, CCTV | **Booking antar** · Estimasi biaya · Notif selesai |
 
 #### 🌾 Pertanian & Agribisnis
@@ -251,7 +310,7 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Manajemen status booking: pending → confirmed → done → cancelled | ✅ |
 | Tabel `booking_slots` dan `bookings` di Supabase | ✅ |
 | Reservasi meja restoran (library `reservations.ts`) | ✅ |
-| **Halaman booking publik untuk pembeli** | ❌ GAP KRITIS |
+| **Halaman booking publik untuk pembeli** (`/toko/:slug/booking`) | ✅ Selesai Sprint 9 |
 | Pilih staff/resource saat booking | ❌ |
 | Deposit payment saat booking | ❌ |
 | Reminder otomatis H-1 / H-3 | ❌ |
@@ -261,18 +320,8 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 
 ### 4.2 Roadmap Booking Lengkap
 
-#### Fase A — Halaman Booking Publik (Prioritas KRITIS, ~2 hari)
-URL: `/toko/:slug/booking`
-```
-Alur:
-1. Pilih layanan (nama, durasi, harga)
-2. Pilih tanggal (kalender — tanggal dengan slot tersedia tampil berbeda)
-3. Pilih jam (slot kosong saja yang tampil)
-4. Pilih staff/resource (opsional — jika merchant mengaktifkan)
-5. Isi data: nama, nomor WA, catatan
-6. Bayar deposit (opsional — merchant set %)
-7. Konfirmasi → notif in-app + template WA ke pembeli dan merchant
-```
+#### Fase A — Halaman Booking Publik ✅ Selesai
+URL: `/toko/:slug/booking` — wizard 3 langkah: kalender tanggal → pilih slot → isi data & konfirmasi.
 
 #### Fase B — Manajemen Lanjutan (~3 hari)
 - Reschedule mandiri (minimal H-24 sebelum jadwal)
@@ -334,38 +383,38 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 
 ### 🔴 Bangun Sekarang (Dampak Besar, Effort Kecil — < 1 hari)
 
-| # | Fitur | Role | Impact |
-|---|---|---|---|
-| P-01 | **Halaman Booking Publik** (`/toko/:slug/booking`) | Semua usaha jasa | Konversi |
-| P-02 | **Tombol Share Produk** (WA/IG/copy link) | Pembeli | Viral |
-| P-03 | **Share Keranjang** (link unik → teman bisa checkout item sama) | Pembeli | Viral |
-| P-04 | **Pesan sebagai Hadiah** (checkbox + nama + pesan ucapan di checkout) | Pembeli | AOV |
-| P-05 | **WhatsApp Notif Order** (tombol di detail pesanan → wa.me template terisi otomatis) | Merchant | Retensi |
-| P-06 | **Histori Harga** (grafik mini 30 hari terakhir di halaman produk) | Pembeli | Kepercayaan |
-| P-07 | **Size Chart** per produk fashion | Fashion | Konversi |
-| P-08 | **Tag Alergen & Dietary** (Halal, Vegetarian, Bebas Gluten) untuk F&B | Restoran | Kepercayaan |
-| P-09 | **Ingredient List & Nomor BPOM** untuk produk kecantikan/skincare | Beauty | Trust |
-| P-10 | **Tombol Bagikan Laporan Harian ke WA** (sudah ada halaman, tambah tombol share) | Merchant | Efisiensi |
+| # | Fitur | Role | Impact | Status |
+|---|---|---|---|---|
+| P-01 | **Halaman Booking Publik** (`/toko/:slug/booking`) | Semua usaha jasa | Konversi | ✅ Selesai |
+| P-02 | **Tombol Share Produk** (WA/IG/copy link) | Pembeli | Viral | ✅ Selesai |
+| P-03 | **Share Keranjang** (link unik → teman bisa checkout item sama) | Pembeli | Viral | ✅ Selesai |
+| P-04 | **Pesan sebagai Hadiah** (checkbox + nama + pesan ucapan di checkout) | Pembeli | AOV | ✅ Selesai |
+| P-05 | **WhatsApp Notif Order** (tombol di detail pesanan → wa.me template terisi otomatis) | Merchant | Retensi | ✅ Selesai |
+| P-06 | **Histori Harga** (grafik mini 30 hari terakhir di halaman produk) | Pembeli | Kepercayaan | ✅ Selesai |
+| P-07 | **Size Chart** per produk fashion | Fashion | Konversi | ✅ Selesai |
+| P-08 | **Tag Alergen & Dietary** (Halal, Vegetarian, Bebas Gluten) untuk F&B | Restoran | Kepercayaan | ✅ Selesai |
+| P-09 | **Ingredient List & Nomor BPOM** untuk produk kecantikan/skincare | Beauty | Trust | ✅ Selesai |
+| P-10 | **Tombol Bagikan Laporan Harian ke WA** | Merchant | Efisiensi | ✅ Selesai |
 
 ### 🟡 Kuartal Ini (Dampak Besar, Effort Sedang — 1–3 hari)
 
-| # | Fitur | Role | Impact |
-|---|---|---|---|
-| M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi |
-| M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan |
-| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi |
-| M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX |
-| M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi |
-| M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan |
-| M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV |
-| M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan |
-| M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi |
-| M-10 | **Deposit Booking Online** via Midtrans/Xendit | Jasa/Rental | Komitmen |
-| M-11 | **Happy Hour / Time-based Pricing** (harga berubah per jam) | F&B | Pendapatan |
-| M-12 | **Waitlist / Antrian Virtual** (daftar antrian saat penuh, notif saat giliran tiba) | F&B/Jasa | Retensi |
-| M-13 | **Preview Produk Digital** (sample watermarked sebelum beli) | Digital | Konversi |
-| M-14 | **Cashback Wallet** (cashback % per transaksi, dipakai di order berikutnya) | Pembeli | Retensi |
-| M-15 | **Katalog PDF / Link Shareable** (export produk aktif jadi PDF/link public) | Merchant | Pemasaran |
+| # | Fitur | Role | Impact | Status |
+|---|---|---|---|---|
+| M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ❌ |
+| M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ❌ |
+| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ❌ |
+| M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ❌ |
+| M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai |
+| M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ❌ |
+| M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ❌ |
+| M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan | ❌ |
+| M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ❌ |
+| M-10 | **Deposit Booking Online** via Midtrans/Xendit | Jasa/Rental | Komitmen | ❌ |
+| M-11 | **Happy Hour / Time-based Pricing** (harga berubah per jam) | F&B | Pendapatan | ❌ |
+| M-12 | **Waitlist / Antrian Virtual** (daftar antrian saat penuh, notif saat giliran tiba) | F&B/Jasa | Retensi | ❌ |
+| M-13 | **Preview Produk Digital** (sample watermarked sebelum beli) | Digital | Konversi | ❌ |
+| M-14 | **Cashback Wallet** (cashback % per transaksi, dipakai di order berikutnya) | Pembeli | Retensi | ❌ |
+| M-15 | **Katalog PDF / Link Shareable** (export produk aktif jadi PDF/link public) | Merchant | Pemasaran | ✅ Selesai |
 
 ### 🟢 Masa Depan (Dampak Besar, Effort Besar — 3+ hari)
 
@@ -391,15 +440,28 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 
 ## BAGIAN 6: FITUR KHUSUS PER KATEGORI
 
-### 6.1 Rental (Mobil, Motor, Alat Camping, Elektronik, dll.)
-- **Booking berdasarkan rentang tanggal** (bukan slot waktu)
-- **Cek ketersediaan unit per item** — jika unit sudah dipesan tanggal tersebut, tidak bisa dipilih
-- **Manajemen unit/armada** — merchant input setiap unit: ID, kondisi, foto, catatan
-- **Dokumen wajib**: KTP untuk semua rental, SIM untuk kendaraan bermotor
-- **Deposit wajib** — sistem hitung deposit otomatis berdasarkan nilai & durasi
-- **Checklist kondisi** sebelum dan sesudah penyewaan (foto)
-- **Perpanjangan sewa** — pembeli bisa request perpanjang dari akun
-- **Denda keterlambatan** — merchant set nominal per hari terlambat
+### 6.1 Restoran & F&B
+- **Reservasi meja** dari marketplace (tanggal, waktu, jumlah orang, permintaan khusus)
+- **Tag alergen & dietary**: Halal, Vegetarian, Vegan, Bebas Gluten, Bebas Laktosa, Pedas (level 1–5)
+- **Info nutrisi** per menu item (kalori, protein, lemak, karbohidrat)
+- **Happy hour pricing** — harga/diskon berbeda berdasarkan jam
+- **Waitlist virtual** saat meja penuh
+- **Split bill** per orang (sudah ada)
+- **Pre-order katering** untuk tanggal tertentu
+
+**Detail backlog F&B:**
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| R-01 | **Reservasi Meja Publik** dari marketplace | ⚠️ Merchant-side only | 🔥 KRITIS |
+| R-02 | **Tag Alergen & Dietary** per menu item | ✅ Selesai Sprint 9 | — |
+| R-03 | **Waitlist / Antrian Virtual** | ❌ | 🔥 TINGGI |
+| R-04 | **Happy Hour / Harga Waktu** (otomatis berlaku & berakhir) | ❌ | 🔥 TINGGI |
+| R-05 | Pre-Order Catering (tanggal + waktu tertentu di masa depan) | ❌ | TINGGI |
+| R-06 | Menu Paket / Combo Builder (build your own combo) | ❌ | SEDANG |
+| R-07 | Informasi Nutrisi (kalori, protein, lemak per porsi) | ❌ | SEDANG |
+| R-08 | Rekap Penjualan per Menu (lebih detail) | ⚠️ Dasar ada | SEDANG |
+| R-09 | Order Meja via QR tanpa App (fully web-based) | ✅ Ada | TINGGI |
+| R-10 | Kitchen Load Monitor (estimasi waktu tunggu berdasarkan queue aktif) | ❌ | SEDANG |
 
 ### 6.2 Barbershop & Salon
 - **Booking + pilih barber/stylist** — foto + nama + spesialisasi
@@ -409,16 +471,21 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 - **Pengingat potong rambut** — notif otomatis 4 minggu setelah kunjungan terakhir
 - **Membership / Paket** (beli 10 sesi bayar 8, berlaku 3 bulan)
 
-### 6.3 Restoran & F&B
-- **Reservasi meja** dari marketplace (tanggal, waktu, jumlah orang, permintaan khusus)
-- **Tag alergen & dietary**: Halal, Vegetarian, Vegan, Bebas Gluten, Bebas Laktosa, Pedas (level 1–5)
-- **Info nutrisi** per menu item (kalori, protein, lemak, karbohidrat)
-- **Happy hour pricing** — harga/diskon berbeda berdasarkan jam
-- **Waitlist virtual** saat meja penuh
-- **Split bill** per orang (sudah ada)
-- **Pre-order katering** untuk tanggal tertentu (sudah ada sebagian)
+**Detail backlog Salon & Barber:**
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| SB-01 | Booking layanan per slot waktu | ⚠️ Merchant-side only | 🔥 TINGGI |
+| SB-02 | Pilih stylist/barber spesifik saat booking | ❌ | 🔥 TINGGI |
+| SB-03 | Durasi layanan berbeda per jenis (potong 30 menit, warna 2 jam) | ⚠️ Dasar ada | TINGGI |
+| SB-04 | Galeri hasil karya (before/after foto) | ❌ | 🔥 TINGGI |
+| SB-05 | Membership / Paket Langganan (beli 10 potong bayar 8) | ❌ | SEDANG |
+| SB-06 | Pengingat potong rambut (notif 4 minggu setelah kunjungan terakhir) | ❌ | SEDANG |
+| SB-07 | Catatan pelanggan per kunjungan (riwayat warna, produk digunakan) | ❌ | SEDANG |
+| SB-08 | Booking bisa reschedule mandiri oleh pelanggan | ❌ | TINGGI |
+| SB-09 | Konfirmasi booking via WhatsApp otomatis | ❌ | 🔥 TINGGI |
+| SB-10 | Pembayaran deposit online saat booking | ❌ | SEDANG |
 
-### 6.4 Fotografer & Studio Kreatif
+### 6.3 Fotografer & Studio Kreatif
 - **Paket sesi** (Basic 1 jam, Standard 2 jam, Premium full day)
 - **Pilih lokasi** (studio indoor, outdoor, lokasi pilihan klien)
 - **Brief form** sebelum sesi (konsep, referensi foto, kebutuhan)
@@ -427,6 +494,30 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 - **Add-on**: editing ekstra, album cetak, jumlah foto final
 - **Portofolio per fotografer/studio** dengan kategori (wedding, produk, wisuda)
 
+**Detail backlog Studio Foto:**
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| SF-01 | Booking sesi foto (foto produk, wisuda, prewedding, dll.) | ⚠️ Merchant-side only | 🔥 KRITIS |
+| SF-02 | Pilih paket sesi (Basic 1 jam, Standard 2 jam, Premium full day) | ❌ | 🔥 TINGGI |
+| SF-03 | Pilih lokasi (studio indoor, outdoor, lokasi pilihan klien) | ❌ | TINGGI |
+| SF-04 | Portofolio galeri hasil foto per fotografer/studio | ❌ | 🔥 TINGGI |
+| SF-05 | Upload file hasil foto ke klien (link download) | ❌ | TINGGI |
+| SF-06 | Deposit wajib saat booking (misal 50% dari total) | ❌ | TINGGI |
+| SF-07 | Contract/agreement digital saat booking | ❌ | SEDANG |
+| SF-08 | Add-on saat booking (editing ekstra, album cetak, dll.) | ❌ | SEDANG |
+| SF-09 | Kalender ketersediaan fotografer | ❌ | 🔥 TINGGI |
+| SF-10 | Review dengan foto hasil karya (klien upload di ulasan) | ❌ | TINGGI |
+
+### 6.4 Rental (Mobil, Motor, Alat Camping, Elektronik, dll.)
+- **Booking berdasarkan rentang tanggal** (bukan slot waktu)
+- **Cek ketersediaan unit per item** — jika unit sudah dipesan tanggal tersebut, tidak bisa dipilih
+- **Manajemen unit/armada** — merchant input setiap unit: ID, kondisi, foto, catatan
+- **Dokumen wajib**: KTP untuk semua rental, SIM untuk kendaraan bermotor
+- **Deposit wajib** — sistem hitung deposit otomatis berdasarkan nilai & durasi
+- **Checklist kondisi** sebelum dan sesudah penyewaan (foto)
+- **Perpanjangan sewa** — pembeli bisa request perpanjang dari akun
+- **Denda keterlambatan** — merchant set nominal per hari terlambat
+
 ### 6.5 Fashion & Pakaian
 - **Size chart** per produk (cm, bukan hanya S/M/L)
 - **Filter ukuran & warna** di halaman toko
@@ -434,11 +525,32 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 - **Custom order**: warna khusus, ukuran khusus, sablon nama
 - **Pre-loved label**: kondisi A/B/C, ukuran aktual, tidak bisa retur
 
+**Detail backlog Fashion:**
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| FA-01 | Tabel ukuran (size chart) per produk | ✅ Selesai Sprint 9 | — |
+| FA-02 | Filter ukuran dan warna di halaman toko | ❌ | 🔥 TINGGI |
+| FA-03 | Panduan ukuran interaktif ("Tinggi 165cm, berat 55kg → pilih M") | ❌ | SEDANG |
+| FA-04 | Label "Pre-loved / Second" untuk produk bekas berkualitas | ❌ | SEDANG |
+| FA-05 | Tampilkan model yang pakai produk (foto lookbook) | ❌ | SEDANG |
+| FA-06 | Custom order (warna khusus, ukuran khusus, sablon nama) | ❌ | TINGGI |
+| FA-07 | Notif "Ukuran kamu tersedia lagi" ketika stok restok | ❌ | TINGGI |
+
 ### 6.6 Kecantikan & Skincare
 - **Ingredient list lengkap** per produk
 - **Nomor BPOM & tanggal kedaluwarsa**
 - **Tag jenis kulit**: Oily, Dry, Combination, Sensitive, Normal
 - **Klaim verifikasi**: Dermatologically tested, Hypoallergenic, dll.
+
+**Detail backlog Beauty:**
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| BE-01 | Ingredient list lengkap per produk | ✅ Selesai Sprint 9 | — |
+| BE-02 | Nomor izin BPOM & tanggal kedaluwarsa | ✅ Selesai Sprint 9 | — |
+| BE-03 | Tag skin type: oily, dry, combination, sensitive | ❌ | TINGGI |
+| BE-04 | Quiz rekomendasi produk berdasarkan jenis kulit | ❌ | SEDANG |
+| BE-05 | Klaim verifikasi: "Dermatologically tested", "Hypoallergenic" | ❌ | SEDANG |
+| BE-06 | Bundling skincare routine (serum + moisturizer + SPF) | ✅ Bundle ada | TINGGI |
 
 ### 6.7 Produk Digital
 - **Preview watermarked** (sample sebelum beli)
@@ -446,11 +558,52 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 - **Update versi** — pembeli yang sudah beli otomatis dapat versi terbaru
 - **Limit download** per lisensi
 
-### 6.8 Penitipan Hewan & Pet Services
+**Detail backlog Produk Digital:**
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| PD-01 | Auto-delivery file setelah pembayaran berhasil | ✅ | — |
+| PD-02 | Lisensi produk digital (personal use vs. commercial use) | ❌ | TINGGI |
+| PD-03 | Preview produk (watermarked sample sebelum beli) | ❌ | 🔥 TINGGI |
+| PD-04 | Update produk: pembeli yang sudah beli otomatis dapat versi terbaru | ❌ | SEDANG |
+| PD-05 | Limit download per lisensi (anti-sharing) | ❌ | SEDANG |
+| PD-06 | Kode aktivasi / serial key untuk software | ❌ | SEDANG |
+
+### 6.8 Klinik & Jasa Kesehatan
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| KL-01 | Booking konsultasi dokter/dokter gigi/terapis | ⚠️ Merchant-side only | 🔥 KRITIS |
+| KL-02 | Anamnesis digital sebelum konsultasi (form isian kesehatan) | ❌ | SEDANG |
+| KL-03 | Rekam medis sederhana per pasien (merchant-side) | ❌ | SEDANG |
+| KL-04 | Nomor antrian digital + estimasi waktu tunggu | ❌ | TINGGI |
+| KL-05 | Tagihan & resep digital | ❌ | SEDANG |
+| KL-06 | Telemedicine / konsultasi video | ❌ | RENDAH |
+| KL-07 | Reminder jadwal kontrol ulang | ❌ | SEDANG |
+
+### 6.9 Penitipan Hewan & Pet Services
 - **Booking + durasi** (harian, overnight, mingguan)
 - **Info hewan**: jenis, ras, umur, berat, vaksin, catatan kesehatan
 - **Update foto harian** ke pemilik hewan (kirim via WA)
 - **Kapasitas kandang** per ukuran hewan
+
+### 6.10 Kerajinan & Produk Seni
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| KR-01 | Mode custom order (spesifikasi warna, ukuran, motif) | ❌ | 🔥 TINGGI |
+| KR-02 | Estimasi waktu produksi per produk | ❌ | TINGGI |
+| KR-03 | Certificate of Authenticity (COA) digital untuk karya seni | ❌ | SEDANG |
+| KR-04 | Edisi terbatas (limited edition) dengan counter stok terlihat | ❌ | SEDANG |
+| KR-05 | Galeri proses pembuatan (work-in-progress photos) | ❌ | SEDANG |
+| KR-06 | Opsi beli reseller / grosir dengan harga berbeda | ❌ | SEDANG |
+
+### 6.11 Jasa Umum (Desainer, Les Privat, Konsultan)
+| # | Fitur | Ada? | Prioritas |
+|---|---|---|---|
+| JU-01 | Booking konsultasi per jam / per sesi | ⚠️ Merchant-side only | 🔥 KRITIS |
+| JU-02 | Brief form sebelum sesi (isi kebutuhan klien) | ❌ | TINGGI |
+| JU-03 | Milestone tracking untuk project jangka panjang | ❌ | SEDANG |
+| JU-04 | Deliver hasil kerja via platform (upload file) | ❌ | TINGGI |
+| JU-05 | Kontrak freelance digital yang bisa ditandatangani | ❌ | SEDANG |
+| JU-06 | Escrow per milestone (bayar bertahap sesuai progress) | ❌ | SEDANG |
 
 ---
 
@@ -463,19 +616,25 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | Manajemen Pembeli | Hanya lihat data, tidak ada kredit manual | Tambah: kredit cashback, suspend, reset password |
 | Churn Analysis | Dashboard ada, tidak ada tindakan otomatis | Auto-kirim email re-engagement jika tidak login 14 hari |
 | Laporan Keuangan | Ada tapi format belum standar akuntansi | Format kompatibel Jurnal / Accurate |
+| Deteksi Fraud | Hanya rule-based dasar | Tambah skor risiko 0–100 per transaksi |
 
 ### Yang Belum Ada
-| # | Fitur | Prioritas |
-|---|---|---|
-| SA-01 | **Merchant Onboarding Automation** — email sequence H+1/H+3/H+7 | TINGGI |
-| SA-02 | **Platform Health Score** — skor 0–100 kelengkapan per toko | TINGGI |
-| SA-03 | **Automated Payout Scheduler** — payout otomatis tanpa approve manual | TINGGI |
-| SA-04 | **Merchant Tier Program (Admin Control)** — Starter → Verified → Top Seller → Elite | TINGGI |
-| SA-05 | **Konfigurasi Booking per Kategori** — toggle mana kategori yang boleh pakai booking | TINGGI |
-| SA-06 | **Multi-Admin dengan Role** — Finance, Support, Content Admin | SEDANG |
-| SA-07 | **Cohort & LTV Analytics** — berapa merchant masih aktif 3/6/12 bulan setelah daftar | SEDANG |
-| SA-08 | **Data Export / GDPR Tools** — export data user, right-to-erasure | SEDANG |
-| SA-09 | **Sandbox / Demo Mode** — calon merchant coba POS dengan data dummy tanpa daftar | SEDANG |
+| # | Fitur | Prioritas | Deskripsi |
+|---|---|---|---|
+| SA-01 | 🔥 **Merchant Onboarding Automation** | TINGGI | Email sequence otomatis setelah toko daftar: Hari 1 (selamat datang + checklist), Hari 3 (panduan upload produk), Hari 7 (tips pertama penjualan). Track progress per toko |
+| SA-02 | 🔥 **Platform Health Score per Toko** | TINGGI | Skor 0–100 per toko berdasarkan: produk aktif, foto lengkap, deskripsi terisi, respons ulasan, waktu proses order. Tampilkan di daftar toko admin |
+| SA-03 | 🔥 **Automated Payout Scheduler** | TINGGI | Payout otomatis terjadwal (harian/mingguan/bulanan) tanpa perlu admin approve satu per satu. Admin set threshold & jadwal, sistem eksekusi otomatis |
+| SA-04 | 🔥 **Merchant Tier Program (Admin Control)** | TINGGI | Admin definisikan tier: Starter → Verified → Top Seller → Elite. Kriteria otomatis dinilai setiap malam. Benefit per tier (komisi lebih rendah, visibilitas lebih tinggi) |
+| SA-05 | **Konfigurasi Booking per Kategori** | TINGGI | Admin toggle: kategori bisnis mana yang boleh pakai sistem booking (salon, studio foto, dll.) dan set parameter booking (min H sebelumnya, maks peserta, deposit wajib/tidak) |
+| SA-06 | **Multi-Admin dengan Role** | SEDANG | Super admin bisa undang admin lain dengan akses terbatas: Finance Admin (hanya keuangan), Support Admin (hanya impersonasi + dispute), Content Admin (hanya banner + moderasi) |
+| SA-07 | **Cohort & LTV Analytics** | SEDANG | Analisis: cohort merchant berdasarkan bulan onboarding, berapa yang masih aktif 3/6/12 bulan kemudian. LTV per merchant per paket |
+| SA-08 | **Data Export / GDPR Tools** | SEDANG | Pembeli/merchant bisa request export seluruh data mereka. Admin bisa eksekusi right-to-erasure (hapus data sesuai permintaan) |
+| SA-09 | **Sandbox / Demo Mode** | SEDANG | Calon merchant bisa coba POS & dashboard dengan data dummy tanpa perlu daftar — kurangi barrier to entry |
+| SA-10 | **A/B Testing Manager** | SEDANG | Admin bisa buat eksperimen: tampilkan versi A ke 50% pengguna, versi B ke 50%. Track konversi. Tanpa perlu deploy ulang |
+| SA-11 | **Merchant Leaderboard Internal** | RENDAH | Ranking merchant berdasarkan GMV, pertumbuhan, kepuasan pelanggan — untuk program reward internal |
+| SA-12 | **Tax Management** | TINGGI | Generate laporan pajak PPh/PPN per periode. Export format siap lapor SPT. Set NPWP platform |
+| SA-13 | **SLA & Response Time Monitor** | SEDANG | Monitor: rata-rata waktu respons API, uptime 30 hari, notif jika ada degradasi performa |
+| SA-14 | **Affiliate & Partner Management** | SEDANG | Kelola afiliator: buat kode unik, track klik & konversi, hitung komisi, bayar afiliator |
 
 ---
 
@@ -497,8 +656,10 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 /                          → Marketplace beranda
 /kategori/:slug            → Halaman kategori
 /toko/:slug                → Halaman toko (produk + info)
-/toko/:slug/booking        → Booking layanan publik ← PERLU DIBANGUN
+/toko/:slug/booking        → Booking layanan publik ✅
 /toko/:slug/produk/:id     → Detail produk
+/katalog/:slug             → Katalog link shareable ✅
+/bandingkan                → Perbandingan produk ✅
 /search                    → Hasil pencarian
 /keranjang                 → Keranjang
 /checkout                  → Checkout
@@ -534,7 +695,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | Payment gateway | Midtrans + Xendit keduanya; secret key diubah via UI Super Admin (terenkripsi) |
 | Verifikasi toko | Wajib upload KTP sebelum toko aktif |
 | Jadwal penarikan | Kapan saja (Pro+); bulanan (Gratis/Starter); biaya admin dikonfigurasi Super Admin |
-| Booking | Sistem sudah ada sisi merchant; perlu halaman publik untuk pembeli |
+| Booking | Halaman publik `/toko/:slug/booking` sudah ada; fitur lanjutan (staff, deposit) masih dikembangkan |
 
 ---
 
@@ -559,6 +720,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | Alert Harga Turun | ≥ 15% pembeli yang klik alert melakukan pembelian |
 | Voucher Toko | ≥ 20% toko aktif buat minimal 1 voucher |
 | WhatsApp Notif Order | ≥ 60% merchant pakai tombol WA notif |
+| Katalog Shareable | ≥ 40% merchant bagikan link katalog dalam 30 hari |
 
 ---
 
@@ -603,97 +765,20 @@ Merchant daftar → isi profil toko → pilih kategori usaha → langsung aktif 
     │atau          │  │             │  │  /booking    │
     │tokosaya.com  │  │Tampil di    │  │Pembeli self- │
     │              │  │search &     │  │serve booking │
-    │Tema kustom   │  │kategori     │  │langsung      │
+    │Tema kustom   │  │kategori     │  │langsung ✅   │
     │per kategori  │  │marketplace  │  │              │
     └──────────────┘  └─────────────┘  └──────────────┘
 ```
 
-### 12.2 Contoh Nyata per Jenis Usaha
+### 12.2 URL & Akses Toko
 
-#### Barbershop "Cukur Bros"
-```
-Daftar → pilih kategori: Barbershop
-URL default: /s/cukur-bros  (bisa upgrade ke cukurbros.com)
+| Kondisi | URL Toko | URL Marketplace | URL Booking | URL Katalog |
+|---|---|---|---|---|
+| Baru daftar (gratis) | `/s/nama-toko` | `/toko/nama-toko` | `/toko/nama-toko/booking` | `/katalog/nama-toko` |
+| Paket Growth+ | `/s/nama-toko` + custom path | `/toko/nama-toko` | `/toko/nama-toko/booking` | `/katalog/nama-toko` |
+| Paket Pro (custom domain) | `namatoko.com` | `/toko/nama-toko` | `namatoko.com/booking` | `/katalog/nama-toko` |
 
-Website Sendiri (tema: Barber Dark):
-  → Profil toko + foto barbershop
-  → Daftar layanan (Potong Biasa Rp 25k, Skin Fade Rp 45k, dll.)
-  → Tombol "Booking Sekarang" menonjol
-  → Galeri before/after
-  → Ulasan pelanggan
-
-Halaman Marketplace (/toko/cukur-bros):
-  → Kartu toko tampil di kategori "Barbershop" di marketplace
-  → Pembeli search "barbershop" → Cukur Bros muncul
-  → Rating + jarak + harga mulai dari
-
-Halaman Booking (/toko/cukur-bros/booking):
-  → Pilih layanan: Potong Biasa / Skin Fade / Creambath
-  → Pilih barber: Budi / Andi / Reza (dengan foto & spesialisasi)
-  → Pilih tanggal & slot jam
-  → Isi nama + WA
-  → Konfirmasi → notif WA otomatis ke pembeli & toko
-
-Dashboard Merchant (sama untuk semua sumber):
-  → Booking dari website, marketplace, atau link langsung
-    → semua masuk satu inbox di /pos-app/booking
-```
-
-#### Rental Mobil "Jaya Rental"
-```
-Daftar → pilih kategori: Rental Mobil
-URL default: /s/jaya-rental  (bisa upgrade ke jayarental.com)
-
-Website Sendiri (tema: Rental Bold):
-  → Daftar armada: Avanza, Innova, Hiace (foto, kapasitas, harga/hari)
-  → Cek ketersediaan per tanggal
-  → Tombol "Pesan Sekarang"
-  → Syarat sewa (SIM, KTP, deposit)
-  → Area layanan (kota/kabupaten yang dilayani)
-
-Halaman Marketplace (/toko/jaya-rental):
-  → Tampil di kategori "Rental Kendaraan"
-  → Filter: kota, harga, kapasitas
-  → Rating + jumlah ulasan
-
-Halaman Booking (/toko/jaya-rental/booking):
-  → Pilih kendaraan: Avanza / Innova / Hiace
-  → Pilih tanggal mulai & selesai (kalender range)
-  → Cek ketersediaan otomatis (unit yang sudah dipesan tidak bisa dipilih)
-  → Dengan/tanpa sopir
-  → Lokasi ambil kendaraan
-  → Upload KTP + SIM (form)
-  → Bayar deposit online
-  → Konfirmasi + kontrak digital dikirim via WA
-
-Dashboard Merchant:
-  → Semua booking masuk satu panel
-  → Kalender armada: mana yang sedang disewa, kapan kembali
-  → Alert: armada akan kembali besok (siapkan untuk penyewa berikutnya)
-```
-
-#### Toko Kue "Dapur Manis"
-```
-Daftar → pilih kategori: Bakeri & Kue
-URL default: /s/dapur-manis
-
-Website Sendiri (tema: Bakery Warm):
-  → Foto produk yang menggiurkan (hero full-width)
-  → Menu: kue ulang tahun, kue kering, box hampers
-  → Pre-order form untuk kue custom
-  → "Order minimal H-3" tertera jelas
-  → Jam buka + kontak WA
-
-Marketplace (/toko/dapur-manis):
-  → Tampil di kategori F&B → Bakeri
-  → Produk bisa dibeli langsung (ready stock)
-  → Pre-order produk dengan tanggal siap
-
-Booking/Order:
-  → Produk ready: tambah ke keranjang → checkout biasa
-  → Kue custom: isi form (ukuran, rasa, tulisan, tema, tanggal acara)
-             → merchant review → kirim penawaran → konfirmasi
-```
+> Marketplace (`/toko/`) dan katalog (`/katalog/`) selalu pakai URL platform. Custom domain hanya untuk website toko sendiri.
 
 ### 12.3 Bagaimana Data Mengalir (Unified)
 
@@ -702,6 +787,7 @@ Sumber Pesanan/Booking:
   ├── Website Toko Sendiri (/s/:slug)      ──┐
   ├── Marketplace (/toko/:slug)            ──┤──→ Satu database toko
   ├── Link Booking Langsung (/toko/:slug/booking) ─┤   (shop_id = sama)
+  ├── Katalog Shareable (/katalog/:slug)   ──┤
   ├── QR Code (di meja, brosur, IG story) ──┘
   └── POS / Kasir (walk-in langsung)      ────→ Masuk sebagai POS order
 
@@ -711,19 +797,7 @@ Semua masuk ke Dashboard yang sama:
   /pos-app/marketplace-orders → view khusus pesanan online
 ```
 
-### 12.4 URL & Akses Toko
-
-| Kondisi | URL Toko | URL Marketplace | URL Booking |
-|---|---|---|---|
-| Baru daftar (gratis) | `/s/nama-toko` | `/toko/nama-toko` | `/toko/nama-toko/booking` |
-| Paket Growth+ | `/s/nama-toko` + custom path | `/toko/nama-toko` | `/toko/nama-toko/booking` |
-| Paket Pro (custom domain) | `namatoko.com` | `/toko/nama-toko` | `namatoko.com/booking` |
-
-> Marketplace (`/toko/`) selalu pakai URL platform — tidak bisa pakai custom domain di halaman marketplace. Custom domain hanya untuk website toko sendiri.
-
-### 12.5 Fitur Booking per Kategori — Tampil/Sembunyi Otomatis
-
-Fitur booking **otomatis menyesuaikan** berdasarkan kategori usaha yang dipilih saat daftar:
+### 12.4 Fitur Booking per Kategori — Tampil/Sembunyi Otomatis
 
 | Kategori | Jenis Booking | Field Ekstra |
 |---|---|---|
@@ -745,7 +819,7 @@ Fitur booking **otomatis menyesuaikan** berdasarkan kategori usaha yang dipilih 
 
 ## BAGIAN 13: RENCANA TEMA PER KATEGORI USAHA
 
-> Tema bukan sekedar warna — tema adalah identitas visual + layout + komponen yang disesuaikan dengan kebutuhan unik tiap jenis bisnis. Setiap merchant bisa pilih tema yang sesuai kategori usahanya, dan kustomisasi warna, font, logo.
+> Tema bukan sekedar warna — tema adalah identitas visual + layout + komponen yang disesuaikan dengan kebutuhan unik tiap jenis bisnis.
 
 ### 13.1 Filosofi Desain Tema
 
@@ -760,10 +834,9 @@ Merchant bisa:
   → Custom CSS (paket Pro)
 ```
 
-### 13.2 Katalog Tema (35+ Tema Rencana)
+### 13.2 Katalog Tema
 
 #### 🍽️ Tema F&B
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_cafe_cozy` | **Cozy Brew** | Kafe & Kedai Kopi | Coklat tua · Krem · Amber | Foto hero full-width · Font serif · Suasana hangat |
@@ -774,7 +847,6 @@ Merchant bisa:
 | `theme_healthy` | **Green Plate** | Makanan Sehat | Hijau sage · Putih · Aksen tomat | Clean · Nutrisi terlihat · Subscription CTA |
 
 #### ✂️ Tema Kecantikan & Perawatan
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_barber` | **The Barber** | Barbershop | Hitam · Putih · Merah | Dark maskulin · Vintage barber pole · Staff cards |
@@ -785,7 +857,6 @@ Merchant bisa:
 | `theme_skincare` | **Pure Glow** | Skincare & Kosmetik | Putih · Krem · Blush | Clean beauty · Ingredient highlight · Before/after |
 
 #### 🚗 Tema Otomotif & Rental
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_rental_car` | **Road Ready** | Rental Mobil | Abu gelap · Biru · Putih | Foto armada besar · Filter ketersediaan · Kalender booking |
@@ -794,7 +865,6 @@ Merchant bisa:
 | `theme_carwash` | **Sparkling** | Cuci Kendaraan | Biru · Putih · Cyan | Fresh · Paket layanan · Queue booking |
 
 #### 🏕️ Tema Rental & Outdoor
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_camping` | **Wild & Free** | Sewa Alat Camping | Hijau tua · Coklat · Krem | Adventure · Foto alam · Cek ketersediaan item |
@@ -802,7 +872,6 @@ Merchant bisa:
 | `theme_event_rental` | **Party Pro** | Sewa Perlengkapan Event | Ungu · Gold · Putih | Event-forward · Paket bundling · CTA booking |
 
 #### 📸 Tema Kreatif & Studio
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_photographer` | **Frame & Lens** | Fotografer & Studio | Hitam · Putih · Gold | Portfolio full-screen · Paket foto cards · Booking CTA |
@@ -810,7 +879,6 @@ Merchant bisa:
 | `theme_creative` | **Canvas** | Desainer & Ilustrator | Putih · Hitam · Aksen bebas | Portfolio masonry · Brief form · Project card |
 
 #### 🏠 Tema Properti & Hunian
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_villa` | **Escape** | Villa & Penginapan | Hijau · Coklat kayu · Putih | Foto landscape · Fasilitas grid · Kalender check-in/out |
@@ -818,7 +886,6 @@ Merchant bisa:
 | `theme_coworking` | **Work Flow** | Coworking & Meeting Room | Biru gelap · Putih · Aksen kuning | Produktif · Fasilitas · Booking per jam |
 
 #### ⚕️ Tema Kesehatan & Kebugaran
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_clinic` | **MedCare** | Klinik & Praktek | Biru · Putih · Hijau muda | Clinical trust · Dokter cards · Booking konsultasi |
@@ -827,14 +894,12 @@ Merchant bisa:
 | `theme_wellness` | **Vital** | Terapi & Pijat | Hijau muda · Coklat · Putih | Wellness-forward · Layanan list · Booking sesi |
 
 #### 🐾 Tema Hewan Peliharaan
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_petshop` | **Pawsome** | Pet Shop & Grooming | Kuning · Putih · Aksen orange | Playful · Foto hewan lucu · Booking grooming |
 | `theme_pethotel` | **Happy Paws** | Pet Hotel | Hijau · Putih · Abu | Trustworthy · Kapasitas · Update foto hewan |
 
 #### 👗 Tema Fashion & Gaya
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_fashion_minimal` | **Mode** | Fashion Modern | Putih · Hitam · Aksen bebas | Lookbook · Grid foto besar · Size chart |
@@ -842,90 +907,32 @@ Merchant bisa:
 | `theme_batik_craft` | **Nusantara** | Batik & Kerajinan | Coklat · Gold · Merah bata | Tradisional modern · Cerita pengrajin · Custom order |
 
 #### ✈️ Tema Wisata & Perjalanan
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_travel` | **Wanderlust** | Tour & Travel | Biru laut · Putih · Sunset orange | Foto destinasi · Paket wisata cards · Booking + itinerary |
 | `theme_guide` | **Local Expert** | Guide Wisata Lokal | Hijau · Coklat · Putih | Otentik · Profil guide · Review |
 
 #### 🎓 Tema Pendidikan
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_education` | **EduPath** | Bimbel & Kursus | Biru · Putih · Kuning | Trustworthy · Jadwal kelas · Daftar guru |
 | `theme_online_course` | **LearnUp** | Kursus Online | Ungu · Putih · Aksen hijau | Modern · Preview video · Progress CTA |
 
 #### 🎭 Tema Event & Hiburan
-
 | Kode Tema | Nama | Target | Palet Default | Karakteristik |
 |---|---|---|---|---|
 | `theme_event` | **Celebrate** | EO & Venue | Gold · Putih · Hitam | Mewah · Portofolio event · Paket EO · Booking |
 | `theme_entertainer` | **Spotlight** | Artis & Entertainer | Hitam · Merah · Gold | Showbiz · Video reel · Booking + rider |
 
-### 13.3 Komponen Khusus per Tema
+### 13.3 Roadmap Pembuatan Tema
 
-Setiap tema memiliki komponen yang spesifik untuk kebutuhan bisnis tersebut:
+#### Fase 1 — Tema Dasar (sudah ada)
+- ✅ Classic · Modern · Bold · Natural
 
-#### Tema Barber / Salon — Komponen Ekstra
-```
-StaffCard         → Foto barber/stylist + nama + spesialisasi + tombol pilih
-BeforeAfterGallery → Slider sebelum/sesudah (drag atau swipe)
-LoyaltyStamp      → Kartu stamp digital (8 stamp = 1 gratis)
-BookingWidget     → Pilih layanan → pilih staff → pilih slot → form
-ServicePriceList  → Tabel layanan + durasi + harga (bergambar opsional)
-```
-
-#### Tema Rental (Mobil/Alat) — Komponen Ekstra
-```
-FleetGrid         → Grid kendaraan/alat + foto + spesifikasi + harga/hari
-AvailabilityCalendar → Pilih tanggal range → cek ketersediaan
-DepositBadge      → Banner "Deposit X% diperlukan"
-DocumentUpload    → Upload KTP/SIM saat booking
-UnitStatusBadge   → Tersedia / Dipesan / Dalam Perawatan
-```
-
-#### Tema Restoran — Komponen Ekstra
-```
-MenuSection       → Kategori menu dengan foto besar + harga + allergen tag
-TableReservation  → Form reservasi meja (tanggal + waktu + jumlah orang)
-HappyHourBanner   → Banner countdown happy hour aktif
-DietaryFilter     → Filter Halal / Vegetarian / Bebas Gluten
-NutritionBadge    → Info kalori per item (opsional)
-QROrderButton     → CTA scan QR untuk order di meja
-```
-
-#### Tema Fotografer / Studio — Komponen Ekstra
-```
-PortfolioMasonry  → Grid foto portfolio (bisa klik untuk fullscreen)
-PackageCard       → Paket foto (nama + durasi + include + harga + CTA)
-BriefForm         → Form pengisian konsep/kebutuhan sebelum booking
-DeliverInfo       → Info: "X foto edited, format JPG + RAW, deliver H+7"
-PhotoographerProfile → Foto fotografer + bio + pengalaman + spesialisasi
-```
-
-#### Tema Villa / Penginapan — Komponen Ekstra
-```
-PhotoGallery      → Gallery foto 5+ gambar (hero + lightbox)
-FacilityGrid      → Grid fasilitas (WiFi, kolam, dapur, dll.) dengan ikon
-CheckInOutPicker  → Date range picker check-in / check-out
-GuestSelector     → Pilih jumlah tamu (dewasa + anak)
-RoomGrid          → Tipe kamar + foto + fasilitas + harga/malam
-```
-
-### 13.4 Roadmap Pembuatan Tema
-
-#### Fase 1 — Tema Dasar (4 tema, sudah ada sebagian)
-- ✅ Classic (generik, semua kategori)
-- ✅ Modern (minimalis)
-- ✅ Bold (kontras tinggi)
-- ✅ Natural (earthy tones)
-
-#### Fase 2 — Tema Kategori Utama (bangun sekarang, ~1 minggu per tema)
-Prioritas berdasarkan jumlah kategori paling umum di UMKM Indonesia:
-
+#### Fase 2 — Tema Kategori Utama (prioritas berdasarkan volume UMKM Indonesia)
 | # | Tema | Kategori | Komponen Baru |
 |---|---|---|---|
-| 1 | **Cozy Brew** (kafe) | F&B Cafe | POS-forward layout · Menu cards · Booking meja |
+| 1 | **Cozy Brew** | F&B Cafe | POS-forward layout · Menu cards · Booking meja |
 | 2 | **The Barber** | Barbershop | StaffCard · BeforeAfterGallery · BookingWidget |
 | 3 | **Road Ready** | Rental Mobil | FleetGrid · AvailabilityCalendar · DocumentUpload |
 | 4 | **Wild & Free** | Sewa Camping | ItemGrid · DateRangeBooking · DepositBadge |
@@ -941,46 +948,6 @@ Prioritas berdasarkan jumlah kategori paling umum di UMKM Indonesia:
 #### Fase 4 — Tema Premium & White Label
 - Tema berbayar (Rp 99k – Rp 499k sekali beli atau Rp 29k/bulan)
 - White label: hapus semua branding platform (Enterprise only)
-- Custom tema dari Super Admin (upload komponen sendiri)
-
-### 13.5 Implementasi Teknis Tema
-
-```typescript
-// Setiap tema didefinisikan sebagai config object:
-interface ThemeConfig {
-  id: string                    // "theme_barber"
-  name: string                  // "The Barber"
-  category: string[]            // ["beauty_barber"]
-  layout: "service" | "product" | "rental" | "restaurant"
-  defaultColors: {
-    primary: string             // "#1a1a1a"
-    accent: string              // "#e63946"
-    background: string          // "#f8f8f8"
-    text: string                // "#2d2d2d"
-  }
-  defaultFont: string           // "Inter" | "Playfair Display" | "Space Grotesk"
-  sections: ThemeSection[]      // Sections yang tampil default
-  components: string[]          // Komponen ekstra yang tersedia
-  bookingType: "session" | "rental" | "reservation" | "class" | "none"
-  isPremium: boolean
-  price?: number
-}
-
-// Section yang bisa di-toggle & drag:
-type ThemeSection =
-  | "hero"              // Banner utama / foto toko
-  | "services"          // Daftar layanan (untuk jasa)
-  | "products"          // Grid produk (untuk toko)
-  | "fleet"             // Grid armada (untuk rental)
-  | "portfolio"         // Galeri karya (untuk kreatif)
-  | "booking_cta"       // Widget booking
-  | "staff"             // Profil staff
-  | "about"             // Tentang toko
-  | "reviews"           // Ulasan pelanggan
-  | "location"          // Peta + jam buka
-  | "faq"               // FAQ
-  | "contact"           // Tombol WA + sosmed
-```
 
 ---
 

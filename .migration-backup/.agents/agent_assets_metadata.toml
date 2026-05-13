@@ -1,8 +1,0 @@
-uploads = []
-generated = []
-
-[[outputs]]
-id = "mQWyJ88slYyxRQc6GFzJE"
-uri = "file://PRD_MARKETPLACE.md"
-type = "text"
-title = "PRD — Platform Marketplace Multi-Kategori (v2.0 Final)"

@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package } from "lucide-react";
+import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 import { addToCart } from "@/lib/marketplace-cart";
@@ -43,6 +44,8 @@ type Product = {
   ingredients: string | null;
   bpom_number: string | null;
   size_chart: { label: string; sizes: { size: string; [key: string]: string }[] } | null;
+  item_type: string | null;
+  preview_image_url: string | null;
 };
 
 type PricePoint = { recorded_at: string; price: number };
@@ -135,7 +138,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -355,6 +358,16 @@ function ProductDetailPage() {
           </div>
         )}
 
+        {/* M-13: Digital Preview */}
+        {product && product.item_type === "digital" && (
+          <DigitalPreview product={product} />
+        )}
+
+        {/* M-07: Frequently Bought Together */}
+        {product && shop && (
+          <FrequentlyBoughtTogether productId={product.id} shopId={shop.id} shopSlug={shop.slug} />
+        )}
+
         {product && shop && (
           <section className="mt-12">
             <h2 className="text-xl font-semibold mb-4">Tanya &amp; Jawab</h2>
@@ -471,6 +484,153 @@ function WishlistButton({ productId }: { productId: string }) {
   );
 }
 
+function CompareButton({ product }: { product: Product }) {
+  const [inCompare, setInCompare] = useState(() => isInCompare(product.id));
+
+  const toggle = () => {
+    if (inCompare) {
+      removeFromCompare(product.id);
+      setInCompare(false);
+      toast.success("Dihapus dari perbandingan");
+    } else {
+      const ok = addToCompare({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image_url: product.image_url,
+        shop_id: product.shop_id,
+      });
+      if (ok) {
+        setInCompare(true);
+        toast.success("Ditambahkan ke perbandingan", {
+          action: { label: "Bandingkan", onClick: () => window.open("/bandingkan", "_blank") },
+        });
+      } else {
+        toast.error("Maksimal 4 produk bisa dibandingkan");
+      }
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={toggle}
+      className={`h-11 w-11 shrink-0 ${inCompare ? "text-blue-600 border-blue-300 bg-blue-50 hover:bg-blue-100" : ""}`}
+      title={inCompare ? "Hapus dari perbandingan" : "Bandingkan produk ini"}
+    >
+      <Scale className={`h-5 w-5 ${inCompare ? "fill-current" : ""}`} />
+    </Button>
+  );
+}
+
+function FrequentlyBoughtTogether({ productId, shopId, shopSlug }: { productId: string; shopId: string; shopSlug: string }) {
+  type RelatedProduct = { id: string; name: string; price: number; image_url: string | null };
+  const [related, setRelated] = useState<RelatedProduct[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("menu_items")
+        .select("id, name, price, image_url")
+        .eq("shop_id" as any, shopId)
+        .eq("is_available" as any, true)
+        .neq("id", productId)
+        .limit(4) as any;
+      setRelated((data ?? []) as RelatedProduct[]);
+      setLoaded(true);
+    })();
+  }, [productId, shopId]);
+
+  if (!loaded || related.length === 0) return null;
+
+  return (
+    <section className="mt-10">
+      <h3 className="text-base font-semibold flex items-center gap-2 mb-4">
+        <Package className="h-4 w-4 text-primary" /> Sering Dibeli Bersama
+      </h3>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {related.map((item) => (
+          <Link
+            key={item.id}
+            to="/toko/$slug/produk/$productId"
+            params={{ slug: shopSlug, productId: item.id }}
+            className="group rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
+          >
+            <div className="aspect-square bg-muted/40 overflow-hidden">
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground">
+                  <Store className="h-6 w-6" />
+                </div>
+              )}
+            </div>
+            <div className="p-2.5">
+              <p className="text-xs font-medium line-clamp-2 leading-snug">{item.name}</p>
+              <p className="mt-1 text-xs font-bold text-primary">
+                Rp {Number(item.price).toLocaleString("id-ID")}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DigitalPreview({ product }: { product: Product }) {
+  const [revealed, setRevealed] = useState(false);
+
+  const previewSrc = product.preview_image_url ?? product.image_url;
+  if (!previewSrc) return null;
+
+  return (
+    <div className="mt-8 rounded-xl border border-border overflow-hidden">
+      <div className="flex items-center gap-2 bg-muted/40 px-4 py-2.5 border-b border-border">
+        <Play className="h-4 w-4 text-primary" />
+        <span className="text-sm font-semibold">Preview Produk Digital</span>
+        <span className="ml-auto text-xs text-muted-foreground">Sample watermarked</span>
+      </div>
+      <div className="relative">
+        <img
+          src={previewSrc}
+          alt="Preview"
+          className={`w-full object-cover transition-all duration-300 ${revealed ? "blur-none" : "blur-md"}`}
+          style={{ maxHeight: 320 }}
+        />
+        {!revealed && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
+            <div className="rounded-xl bg-white/90 dark:bg-black/80 px-6 py-4 text-center shadow-lg">
+              <Lock className="mx-auto h-7 w-7 text-primary mb-2" />
+              <p className="text-sm font-semibold">Pratinjau terkunci</p>
+              <p className="mt-1 text-xs text-muted-foreground">Beli produk untuk akses penuh</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-3 text-xs"
+                onClick={() => setRevealed(true)}
+              >
+                Lihat sample blur
+              </Button>
+            </div>
+          </div>
+        )}
+        {revealed && (
+          <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-3 py-1 text-xs text-white font-semibold select-none pointer-events-none">
+            SAMPLE — Beli untuk versi lengkap
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AddToCartBlock({ product, shopSlug, shop }: { product: Product; shopSlug: string; shop?: Shop | null }) {
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -529,6 +689,7 @@ function AddToCartBlock({ product, shopSlug, shop }: { product: Product; shopSlu
         <WishlistButton productId={product.id} />
         <PriceAlertButton productId={product.id} productName={product.name} productPrice={Number(product.price)} />
         {shop && <ShareButton product={product} shop={shop as Shop} />}
+        <CompareButton product={product} />
         <Button
           size="lg"
           variant="outline"
