@@ -76,6 +76,9 @@ type ShopRow = {
   receipt_footer: string | null;
   auto_reply_enabled: boolean;
   auto_reply_message: string | null;
+  deposit_enabled: boolean;
+  deposit_percent: number;
+  deposit_min_total: number;
 };
 
 function SettingsPage() {
