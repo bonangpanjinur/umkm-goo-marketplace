@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X } from "lucide-react";
+import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X, ArrowLeftRight, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { toast } from "sonner";
@@ -71,7 +71,22 @@ function PortfolioPage() {
   const [saving, setSaving]     = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadTarget, setUploadTarget] = useState<"main"|"before"|"after">("main");
+  const [dims, setDims] = useState<{ before?: { w: number; h: number }; after?: { w: number; h: number } }>({});
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const ALLOWED_FORMATS = ["image/jpeg", "image/png", "image/webp"];
+  const MAX_BYTES = 5 * 1024 * 1024;
+  const MIN_DIM = 400;
+
+  function readImageMeta(file: File): Promise<{ w: number; h: number }> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { resolve({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
+      img.onerror = () => { reject(new Error("File gambar tidak valid")); URL.revokeObjectURL(url); };
+      img.src = url;
+    });
+  }
 
   useEffect(() => {
     if (!shop?.id) return;
@@ -101,16 +116,37 @@ function PortfolioPage() {
 
   async function handleUpload(file: File) {
     if (!shop?.id) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("File terlalu besar (maks 5 MB)"); return; }
+    if (!ALLOWED_FORMATS.includes(file.type)) {
+      toast.error("Format tidak didukung. Gunakan JPG, PNG, atau WebP.");
+      return;
+    }
+    if (file.size > MAX_BYTES) { toast.error("File terlalu besar (maks 5 MB)"); return; }
     setUploading(true);
     try {
+      const meta = await readImageMeta(file);
+      if (meta.w < MIN_DIM || meta.h < MIN_DIM) {
+        toast.error(`Resolusi terlalu kecil (${meta.w}×${meta.h}). Minimal ${MIN_DIM}×${MIN_DIM} px.`);
+        setUploading(false);
+        return;
+      }
+      if (uploadTarget === "before" || uploadTarget === "after") {
+        const other = uploadTarget === "before" ? dims.after : dims.before;
+        if (other) {
+          const ar1 = meta.w / meta.h;
+          const ar2 = other.w / other.h;
+          const diff = Math.abs(ar1 - ar2) / Math.max(ar1, ar2);
+          if (diff > 0.2) {
+            toast.warning("Aspek rasio Sebelum & Sesudah berbeda jauh — slider mungkin terpotong.");
+          }
+        }
+      }
       const ext  = file.name.split(".").pop();
       const path = `portfolio/${shop.id}/${Date.now()}-${uploadTarget}.${ext}`;
       const { error: upErr } = await supabase.storage.from("shop-assets").upload(path, file, { upsert: true });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("shop-assets").getPublicUrl(path);
-      if (uploadTarget === "before") setBeforeUrl(urlData.publicUrl);
-      else if (uploadTarget === "after") setAfterUrl(urlData.publicUrl);
+      if (uploadTarget === "before") { setBeforeUrl(urlData.publicUrl); setDims(d => ({ ...d, before: meta })); }
+      else if (uploadTarget === "after") { setAfterUrl(urlData.publicUrl); setDims(d => ({ ...d, after: meta })); }
       else setImgUrl(urlData.publicUrl);
       toast.success("Gambar berhasil diunggah");
     } catch (e: any) {
@@ -120,10 +156,18 @@ function PortfolioPage() {
     }
   }
 
+  function swapBeforeAfter() {
+    const b = beforeUrl;
+    setBeforeUrl(afterUrl);
+    setAfterUrl(b);
+    setDims(d => ({ before: d.after, after: d.before }));
+  }
+
   function openAdd() {
     setEditItem(null);
     setImgUrl(""); setCaption(""); setCategory("");
     setIsBA(false); setBeforeUrl(""); setAfterUrl("");
+    setDims({});
     setShowAdd(true);
   }
 
@@ -135,6 +179,7 @@ function PortfolioPage() {
     setIsBA(Boolean(item.is_before_after));
     setBeforeUrl(item.before_image_url ?? "");
     setAfterUrl(item.after_image_url ?? "");
+    setDims({});
     setShowAdd(true);
   }
 
@@ -303,35 +348,59 @@ function PortfolioPage() {
             </div>
 
             {isBA ? (
-              <div className="grid grid-cols-2 gap-3">
-                {(["before","after"] as const).map(side => {
-                  const url = side === "before" ? beforeUrl : afterUrl;
-                  const setUrl = side === "before" ? setBeforeUrl : setAfterUrl;
-                  return (
-                    <div key={side}>
-                      <Label className="capitalize">{side === "before" ? "Sebelum" : "Sesudah"}</Label>
-                      {url && (
-                        <div className="relative mt-1 mb-2 aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                          <img src={url} alt={side} className="h-full w-full object-cover" />
-                          <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setUrl("")}>
-                            <X className="h-3 w-3" />
-                          </button>
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 p-2.5 text-[11px] text-amber-800">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <div>
+                    Format JPG/PNG/WebP, maks 5 MB, min 400×400 px. Pakai aspek rasio dan sudut pengambilan yang sama agar slider tampil rapi. Urutan: <strong>Sebelum</strong> di kiri, <strong>Sesudah</strong> di kanan.
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["before","after"] as const).map(side => {
+                    const url = side === "before" ? beforeUrl : afterUrl;
+                    const setUrl = side === "before" ? setBeforeUrl : setAfterUrl;
+                    const meta = side === "before" ? dims.before : dims.after;
+                    return (
+                      <div key={side}>
+                        <Label className="capitalize">{side === "before" ? "Sebelum" : "Sesudah"}</Label>
+                        {url && (
+                          <div className="relative mt-1 mb-2 aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                            <img src={url} alt={side} className="h-full w-full object-cover" />
+                            <span className="absolute top-1 left-1 rounded-full bg-black/60 text-white px-1.5 py-0.5 text-[9px] font-medium">
+                              {side === "before" ? "Sebelum" : "Sesudah"}{meta ? ` · ${meta.w}×${meta.h}` : ""}
+                            </span>
+                            <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => { setUrl(""); setDims(d => ({ ...d, [side]: undefined })); }}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex gap-1 mt-1">
+                          <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL…" className="flex-1 text-xs" />
+                          <Button variant="outline" size="icon" disabled={uploading}
+                            onClick={() => { setUploadTarget(side); fileRef.current?.click(); }}>
+                            {uploading && uploadTarget === side ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                          </Button>
                         </div>
-                      )}
-                      <div className="flex gap-1 mt-1">
-                        <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL…" className="flex-1 text-xs" />
-                        <Button variant="outline" size="icon" disabled={uploading}
-                          onClick={() => { setUploadTarget(side); fileRef.current?.click(); }}>
-                          {uploading && uploadTarget === side ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        </Button>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
                 {beforeUrl && afterUrl && (
-                  <div className="col-span-2">
-                    <Label className="text-xs text-muted-foreground">Pratinjau slider</Label>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-muted-foreground">Pratinjau slider</Label>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={swapBeforeAfter}>
+                        <ArrowLeftRight className="h-3 w-3" /> Tukar urutan
+                      </Button>
+                    </div>
                     <BeforeAfterSlider beforeUrl={beforeUrl} afterUrl={afterUrl} className="aspect-video mt-1" />
+                    {dims.before && dims.after && (() => {
+                      const ar1 = dims.before.w / dims.before.h;
+                      const ar2 = dims.after.w / dims.after.h;
+                      const diff = Math.abs(ar1 - ar2) / Math.max(ar1, ar2);
+                      if (diff > 0.2) return <p className="mt-1 text-[11px] text-amber-700">⚠️ Aspek rasio kedua foto berbeda jauh ({Math.round(diff*100)}%) — slider mungkin terpotong.</p>;
+                      return null;
+                    })()}
                   </div>
                 )}
               </div>
@@ -355,7 +424,7 @@ function PortfolioPage() {
                 </div>
               </div>
             )}
-            <input ref={fileRef} type="file" accept="image/*" className="hidden"
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
 
             <div>
