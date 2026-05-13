@@ -348,35 +348,59 @@ function PortfolioPage() {
             </div>
 
             {isBA ? (
-              <div className="grid grid-cols-2 gap-3">
-                {(["before","after"] as const).map(side => {
-                  const url = side === "before" ? beforeUrl : afterUrl;
-                  const setUrl = side === "before" ? setBeforeUrl : setAfterUrl;
-                  return (
-                    <div key={side}>
-                      <Label className="capitalize">{side === "before" ? "Sebelum" : "Sesudah"}</Label>
-                      {url && (
-                        <div className="relative mt-1 mb-2 aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                          <img src={url} alt={side} className="h-full w-full object-cover" />
-                          <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => setUrl("")}>
-                            <X className="h-3 w-3" />
-                          </button>
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 p-2.5 text-[11px] text-amber-800">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <div>
+                    Format JPG/PNG/WebP, maks 5 MB, min 400×400 px. Pakai aspek rasio dan sudut pengambilan yang sama agar slider tampil rapi. Urutan: <strong>Sebelum</strong> di kiri, <strong>Sesudah</strong> di kanan.
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["before","after"] as const).map(side => {
+                    const url = side === "before" ? beforeUrl : afterUrl;
+                    const setUrl = side === "before" ? setBeforeUrl : setAfterUrl;
+                    const meta = side === "before" ? dims.before : dims.after;
+                    return (
+                      <div key={side}>
+                        <Label className="capitalize">{side === "before" ? "Sebelum" : "Sesudah"}</Label>
+                        {url && (
+                          <div className="relative mt-1 mb-2 aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                            <img src={url} alt={side} className="h-full w-full object-cover" />
+                            <span className="absolute top-1 left-1 rounded-full bg-black/60 text-white px-1.5 py-0.5 text-[9px] font-medium">
+                              {side === "before" ? "Sebelum" : "Sesudah"}{meta ? ` · ${meta.w}×${meta.h}` : ""}
+                            </span>
+                            <button className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white" onClick={() => { setUrl(""); setDims(d => ({ ...d, [side]: undefined })); }}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex gap-1 mt-1">
+                          <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL…" className="flex-1 text-xs" />
+                          <Button variant="outline" size="icon" disabled={uploading}
+                            onClick={() => { setUploadTarget(side); fileRef.current?.click(); }}>
+                            {uploading && uploadTarget === side ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                          </Button>
                         </div>
-                      )}
-                      <div className="flex gap-1 mt-1">
-                        <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL…" className="flex-1 text-xs" />
-                        <Button variant="outline" size="icon" disabled={uploading}
-                          onClick={() => { setUploadTarget(side); fileRef.current?.click(); }}>
-                          {uploading && uploadTarget === side ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        </Button>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
                 {beforeUrl && afterUrl && (
-                  <div className="col-span-2">
-                    <Label className="text-xs text-muted-foreground">Pratinjau slider</Label>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-muted-foreground">Pratinjau slider</Label>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={swapBeforeAfter}>
+                        <ArrowLeftRight className="h-3 w-3" /> Tukar urutan
+                      </Button>
+                    </div>
                     <BeforeAfterSlider beforeUrl={beforeUrl} afterUrl={afterUrl} className="aspect-video mt-1" />
+                    {dims.before && dims.after && (() => {
+                      const ar1 = dims.before.w / dims.before.h;
+                      const ar2 = dims.after.w / dims.after.h;
+                      const diff = Math.abs(ar1 - ar2) / Math.max(ar1, ar2);
+                      if (diff > 0.2) return <p className="mt-1 text-[11px] text-amber-700">⚠️ Aspek rasio kedua foto berbeda jauh ({Math.round(diff*100)}%) — slider mungkin terpotong.</p>;
+                      return null;
+                    })()}
                   </div>
                 )}
               </div>
