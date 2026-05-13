@@ -244,6 +244,7 @@ function MenuPage() {
       flash_price: fpNum,
       flash_starts_at: fpNum != null && flashStarts ? new Date(flashStarts).toISOString() : null,
       flash_ends_at: fpNum != null && flashEnds ? new Date(flashEnds).toISOString() : null,
+      accepts_custom_order: acceptsCustomOrder,
     };
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
