@@ -116,6 +116,22 @@ function CheckoutPage() {
       if (sz[0]) init[sid] = sz[0].id;
     }
     setShipping(init);
+
+    // Auto-fetch active memberships per shop (for discount preview)
+    if (!anonymous) {
+      const { data: memData } = await supabase.rpc("get_my_active_memberships" as any, { _shop_ids: shopIds });
+      if (memData) {
+        const memMap: Record<string, { tier_name: string; discount_percent: number; expires_at: string }> = {};
+        for (const m of (memData as any[])) {
+          // RPC orders by discount DESC — first per shop wins
+          if (!memMap[m.shop_id]) {
+            memMap[m.shop_id] = { tier_name: m.tier_name, discount_percent: Number(m.discount_percent), expires_at: m.expires_at };
+          }
+        }
+        setMemberships(memMap);
+      }
+    }
+
     setLoading(false);
   }
 
