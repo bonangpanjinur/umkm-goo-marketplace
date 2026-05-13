@@ -160,10 +160,10 @@ function OnboardingPage() {
     setKycUploading(true);
     try {
       const ext = kycFile.name.split(".").pop() || "jpg";
-      const path = `kyc/${shopId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("shop-assets").upload(path, kycFile, { upsert: true });
+      const path = `${shopId}/kyc-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("shop-verifications").upload(path, kycFile, { upsert: true });
       if (upErr) throw upErr;
-      const { data: urlData } = supabase.storage.from("shop-assets").getPublicUrl(path);
+      const { data: urlData } = supabase.storage.from("shop-verifications").getPublicUrl(path);
 
       await (supabase as any).from("coffee_shops").update({
         kyc_document_url: urlData.publicUrl,
