@@ -5087,6 +5087,7 @@ export type Database = {
         Returns: Json
       }
       send_booking_reminders: { Args: never; Returns: Json }
+      send_membership_expiry_reminders: { Args: never; Returns: number }
       send_order_message: {
         Args: { _attachment_url?: string; _body: string; _order_id: string }
         Returns: string
