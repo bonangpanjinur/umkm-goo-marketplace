@@ -95,11 +95,15 @@ function PortfolioGallery({ shopId }: { shopId: string }) {
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div className="max-w-3xl w-full" onClick={e => e.stopPropagation()}>
-            <img
-              src={items[lightbox].image_url}
-              alt={items[lightbox].caption ?? "Portofolio"}
-              className="w-full max-h-[80vh] object-contain rounded-xl"
-            />
+            {items[lightbox].is_before_after && items[lightbox].before_image_url && items[lightbox].after_image_url ? (
+              <BeforeAfterSlider beforeUrl={items[lightbox].before_image_url!} afterUrl={items[lightbox].after_image_url!} className="aspect-video w-full" />
+            ) : (
+              <img
+                src={items[lightbox].image_url}
+                alt={items[lightbox].caption ?? "Portofolio"}
+                className="w-full max-h-[80vh] object-contain rounded-xl"
+              />
+            )}
             {items[lightbox].caption && (
               <p className="mt-3 text-center text-sm text-white/80">{items[lightbox].caption}</p>
             )}
