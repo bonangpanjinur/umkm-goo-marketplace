@@ -652,7 +652,6 @@ export default function PublicBookingPage() {
                           setStep(afterSlot);
                         }
                       }}
-<<<<<<< HEAD
                       className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
                         isFull
                           ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 hover:border-amber-400"
@@ -660,8 +659,6 @@ export default function PublicBookingPage() {
                             ? "border-primary bg-primary/5 ring-2 ring-primary"
                             : "border-border hover:border-primary/50"
                       }`}
-=======
->>>>>>> f6797d3 (Add upselling recommendations to the cart page)
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
