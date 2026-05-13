@@ -473,6 +473,8 @@ function CheckoutPage() {
                     const selectedZoneId = shipping[shopId];
                     const selectedZone = shopZones.find((z) => z.id === selectedZoneId);
                     const ongkir = fulfillment === "delivery" ? selectedZone?.fee ?? 0 : 0;
+                    const mem = memberships[shopId];
+                    const memDisc = membershipDiscountByShop[shopId] ?? 0;
                     return (
                       <div key={shopId} className="rounded-lg border border-border">
                         <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
@@ -482,6 +484,11 @@ function CheckoutPage() {
                             <Store className="h-4 w-4" />
                           )}
                           <span className="text-xs font-semibold">{shop.name}</span>
+                          {mem && (
+                            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                              <Crown className="h-3 w-3" /> {mem.tier_name} · -{mem.discount_percent}%
+                            </span>
+                          )}
                         </div>
                         <ul className="divide-y divide-border text-sm">
                           {shopItems.map((it) => (
