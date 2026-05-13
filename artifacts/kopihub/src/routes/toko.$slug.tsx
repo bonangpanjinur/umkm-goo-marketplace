@@ -13,9 +13,10 @@ import {
   TrustCertCard,
   computeTrustCert,
 } from "@/components/TrustCertBadge";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { Trophy, Medal } from "lucide-react";
 
-type PortfolioItem = { id: string; image_url: string; caption: string | null; category: string | null; sort_order: number };
+type PortfolioItem = { id: string; image_url: string; caption: string | null; category: string | null; sort_order: number; before_image_url?: string | null; after_image_url?: string | null; is_before_after?: boolean | null };
 
 function PortfolioGallery({ shopId }: { shopId: string }) {
   const [items, setItems]     = useState<PortfolioItem[]>([]);
