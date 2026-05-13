@@ -66,6 +66,7 @@ function CustomOrderForm() {
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    try { localStorage.setItem(`kopihub:custom-order-contact:${slug}`, contact.trim()); } catch {}
     setSubmitted(true);
   }
 
@@ -85,9 +86,14 @@ function CustomOrderForm() {
             <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
             <h1 className="mt-4 text-xl font-bold">Permintaan terkirim!</h1>
             <p className="mt-2 text-sm text-muted-foreground">Tim {shop.name} akan menghubungi kamu di {contact} secepatnya.</p>
-            <Link to="/toko/$slug" params={{ slug }}>
-              <Button className="mt-6">Kembali ke toko</Button>
-            </Link>
+            <div className="mt-6 flex flex-wrap gap-2 justify-center">
+              <Link to="/toko/$slug" params={{ slug }}>
+                <Button variant="outline">Kembali ke toko</Button>
+              </Link>
+              <Link to="/toko/$slug/custom-order/status" params={{ slug }}>
+                <Button>Lihat Status Permintaan</Button>
+              </Link>
+            </div>
           </div>
         ) : (
           <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-6 space-y-4">
@@ -96,6 +102,13 @@ function CustomOrderForm() {
               <p className="text-sm text-muted-foreground mt-1">
                 Kirim brief pesanan khusus ke {shop.name}{product ? ` untuk produk "${product.name}"` : ""}.
               </p>
+              <Link
+                to="/toko/$slug/custom-order/status"
+                params={{ slug }}
+                className="text-xs text-primary hover:underline mt-2 inline-block"
+              >
+                Sudah pernah kirim? Cek status permintaanmu →
+              </Link>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3">

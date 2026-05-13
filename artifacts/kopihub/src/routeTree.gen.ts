@@ -173,6 +173,7 @@ import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$o
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
 import { Route as AdminHealthScoreShopIdRouteImport } from './routes/admin.health-score.$shopId'
 import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug.produk.$productId'
+import { Route as TokoSlugCustomOrderStatusRouteImport } from './routes/toko.$slug.custom-order.status'
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
@@ -1001,6 +1002,12 @@ const TokoSlugProdukProductIdRoute = TokoSlugProdukProductIdRouteImport.update({
   path: '/produk/$productId',
   getParentRoute: () => TokoSlugRoute,
 } as any)
+const TokoSlugCustomOrderStatusRoute =
+  TokoSlugCustomOrderStatusRouteImport.update({
+    id: '/status',
+    path: '/status',
+    getParentRoute: () => TokoSlugCustomOrderRoute,
+  } as any)
 const SSlugPayOrderIdRoute = SSlugPayOrderIdRouteImport.update({
   id: '/pay/$orderId',
   path: '/pay/$orderId',
@@ -1176,7 +1183,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
-  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRoute
+  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1184,6 +1191,7 @@ export interface FileRoutesByFullPath {
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
+  '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -1340,7 +1348,7 @@ export interface FileRoutesByTo {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
-  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRoute
+  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
@@ -1348,6 +1356,7 @@ export interface FileRoutesByTo {
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
+  '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
 }
 export interface FileRoutesById {
@@ -1510,7 +1519,7 @@ export interface FileRoutesById {
   '/s/$slug/orders': typeof SSlugOrdersRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
-  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRoute
+  '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1518,6 +1527,7 @@ export interface FileRoutesById {
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
+  '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
 }
 export interface FileRouteTypes {
@@ -1689,6 +1699,7 @@ export interface FileRouteTypes {
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
+    | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1853,6 +1864,7 @@ export interface FileRouteTypes {
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
+    | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
   id:
     | '__root__'
@@ -2022,6 +2034,7 @@ export interface FileRouteTypes {
     | '/admin/plans/$id/matrix'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
+    | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -3204,6 +3217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TokoSlugProdukProductIdRouteImport
       parentRoute: typeof TokoSlugRoute
     }
+    '/toko/$slug/custom-order/status': {
+      id: '/toko/$slug/custom-order/status'
+      path: '/status'
+      fullPath: '/toko/$slug/custom-order/status'
+      preLoaderRoute: typeof TokoSlugCustomOrderStatusRouteImport
+      parentRoute: typeof TokoSlugCustomOrderRoute
+    }
     '/s/$slug/pay/$orderId': {
       id: '/s/$slug/pay/$orderId'
       path: '/pay/$orderId'
@@ -3631,10 +3651,21 @@ const SSlugRouteChildren: SSlugRouteChildren = {
 
 const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
 
+interface TokoSlugCustomOrderRouteChildren {
+  TokoSlugCustomOrderStatusRoute: typeof TokoSlugCustomOrderStatusRoute
+}
+
+const TokoSlugCustomOrderRouteChildren: TokoSlugCustomOrderRouteChildren = {
+  TokoSlugCustomOrderStatusRoute: TokoSlugCustomOrderStatusRoute,
+}
+
+const TokoSlugCustomOrderRouteWithChildren =
+  TokoSlugCustomOrderRoute._addFileChildren(TokoSlugCustomOrderRouteChildren)
+
 interface TokoSlugRouteChildren {
   TokoSlugBookingRoute: typeof TokoSlugBookingRoute
   TokoSlugChatRoute: typeof TokoSlugChatRoute
-  TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRoute
+  TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRouteWithChildren
   TokoSlugMapRoute: typeof TokoSlugMapRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
@@ -3642,7 +3673,7 @@ interface TokoSlugRouteChildren {
 const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugBookingRoute: TokoSlugBookingRoute,
   TokoSlugChatRoute: TokoSlugChatRoute,
-  TokoSlugCustomOrderRoute: TokoSlugCustomOrderRoute,
+  TokoSlugCustomOrderRoute: TokoSlugCustomOrderRouteWithChildren,
   TokoSlugMapRoute: TokoSlugMapRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }
