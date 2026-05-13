@@ -179,6 +179,13 @@ function CustomOrderStatusPage() {
                       <p className="whitespace-pre-line">{r.owner_note}</p>
                     </div>
                   )}
+
+                  {r.history && r.history.length > 0 && (
+                    <div className="mt-4 border-t border-border pt-3">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Riwayat status</p>
+                      <CustomOrderTimeline history={r.history} />
+                    </div>
+                  )}
                 </div>
               );
             })
