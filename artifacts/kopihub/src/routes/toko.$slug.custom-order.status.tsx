@@ -91,12 +91,14 @@ function CustomOrderStatusPage() {
     if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY(slug), v);
   }
 
-  // Realtime: refresh saat ada perubahan request atau riwayat status
+  // Realtime: refresh saat ada perubahan request atau riwayat status.
+  // Channel name di-suffix dengan hash kontak supaya event tidak menyebar antar customer/tab.
   useEffect(() => {
     if (!rows || rows.length === 0) return;
     const ids = new Set(rows.map(r => r.id));
+    const contactKey = contact.replace(/\D/g, "").slice(-10) || "anon";
     const ch = supabase
-      .channel(`cor-customer-${slug}`)
+      .channel(`cor-customer-${slug}-${contactKey}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "custom_order_requests" },
