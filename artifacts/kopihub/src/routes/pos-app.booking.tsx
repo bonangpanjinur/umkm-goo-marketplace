@@ -35,7 +35,12 @@ import {
   Ticket,
   Trash2,
   Tag,
+  BarChart2,
+  TrendingDown,
+  Percent,
+  ShoppingBag,
 } from "lucide-react";
+import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/booking")({ component: BookingPage });
 
@@ -128,6 +133,64 @@ function BookingPage() {
     valid_until: "",
     description: "",
   });
+
+  // ── Voucher analytics ──────────────────────────────────────────────
+  type VoucherStat = {
+    code: string;
+    redemptions: number;
+    totalDiscount: number;
+    totalOriginalPrice: number;
+  };
+  const [analyticsRange, setAnalyticsRange] = useState<"7" | "30" | "90" | "all">("30");
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [voucherStats, setVoucherStats] = useState<VoucherStat[]>([]);
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
+
+  const loadAnalytics = useCallback(async () => {
+    if (!shop?.id) return;
+    setAnalyticsLoading(true);
+    try {
+      let query = (supabase as any)
+        .from("bookings")
+        .select("voucher_code, voucher_discount, booking_slots!inner(shop_id, price, slot_date)")
+        .eq("booking_slots.shop_id", shop.id)
+        .not("voucher_code", "is", null);
+
+      if (analyticsRange !== "all") {
+        const from = new Date();
+        from.setDate(from.getDate() - Number(analyticsRange));
+        query = query.gte("booking_slots.slot_date", from.toISOString().split("T")[0]);
+      }
+
+      const { data } = await query;
+      const rows = (data ?? []) as Array<{
+        voucher_code: string;
+        voucher_discount: number;
+        booking_slots: { price: number; slot_date: string };
+      }>;
+
+      const map = new Map<string, VoucherStat>();
+      for (const r of rows) {
+        const code = r.voucher_code;
+        const existing = map.get(code) ?? { code, redemptions: 0, totalDiscount: 0, totalOriginalPrice: 0 };
+        existing.redemptions += 1;
+        existing.totalDiscount += Number(r.voucher_discount ?? 0);
+        existing.totalOriginalPrice += Number(r.booking_slots?.price ?? 0);
+        map.set(code, existing);
+      }
+
+      setVoucherStats(Array.from(map.values()).sort((a, b) => b.redemptions - a.redemptions));
+      setAnalyticsLoaded(true);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, [shop?.id, analyticsRange]);
+
+  useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
+
+  const totalRedemptions = voucherStats.reduce((s, v) => s + v.redemptions, 0);
+  const totalDiscount    = voucherStats.reduce((s, v) => s + v.totalDiscount, 0);
+  const totalOriginal    = voucherStats.reduce((s, v) => s + v.totalOriginalPrice, 0);
 
   const loadVouchers = useCallback(async () => {
     if (!shop?.id) return;
@@ -421,6 +484,125 @@ function BookingPage() {
               );
             })}
           </div>
+        )}
+      </Card>
+
+      {/* ─── Voucher Analytics Card ─── */}
+      <Card className="p-5 space-y-4 border-indigo-200/60 bg-indigo-50/20 dark:bg-indigo-950/10">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <BarChart2 className="h-5 w-5 text-indigo-600" />
+            <div>
+              <p className="font-semibold text-sm">Analitik Voucher</p>
+              <p className="text-xs text-muted-foreground">Pantau dampak diskon voucher terhadap booking</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
+            {(["7", "30", "90", "all"] as const).map(r => (
+              <button
+                key={r}
+                onClick={() => setAnalyticsRange(r)}
+                className={`rounded-md px-2.5 py-1 text-xs transition-colors ${analyticsRange === r ? "bg-background shadow-sm font-medium text-indigo-700" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {r === "all" ? "Semua" : `${r}h`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {analyticsLoading ? (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : !analyticsLoaded || (voucherStats.length === 0 && totalRedemptions === 0) ? (
+          <div className="text-center py-6 text-sm text-muted-foreground">
+            Belum ada booking yang menggunakan voucher
+            {analyticsRange !== "all" && ` dalam ${analyticsRange} hari terakhir`}
+          </div>
+        ) : (
+          <>
+            {/* ── Summary stat cards ── */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-indigo-200/60 bg-white dark:bg-card p-3">
+                <div className="flex items-center gap-1.5 text-indigo-600 mb-1">
+                  <ShoppingBag className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-medium uppercase tracking-wide">Pemakaian</span>
+                </div>
+                <p className="text-2xl font-bold text-indigo-700">{totalRedemptions}×</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Total pemakaian voucher</p>
+              </div>
+              <div className="rounded-xl border border-rose-200/60 bg-white dark:bg-card p-3">
+                <div className="flex items-center gap-1.5 text-rose-600 mb-1">
+                  <TrendingDown className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-medium uppercase tracking-wide">Total Diskon</span>
+                </div>
+                <p className="text-xl font-bold text-rose-700 leading-tight">{formatIDR(totalDiscount)}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Nilai diskon diberikan</p>
+              </div>
+              <div className="rounded-xl border border-emerald-200/60 bg-white dark:bg-card p-3">
+                <div className="flex items-center gap-1.5 text-emerald-600 mb-1">
+                  <Percent className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-medium uppercase tracking-wide">Dampak</span>
+                </div>
+                <p className="text-xl font-bold text-emerald-700 leading-tight">
+                  {totalOriginal > 0 ? `${Math.round((totalDiscount / totalOriginal) * 100)}%` : "—"}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Dari total booking</p>
+              </div>
+            </div>
+
+            {/* ── Per-voucher breakdown ── */}
+            {voucherStats.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Per Kode Voucher</p>
+                {voucherStats.map(stat => {
+                  const discountPct = stat.totalOriginalPrice > 0
+                    ? Math.round((stat.totalDiscount / stat.totalOriginalPrice) * 100)
+                    : 0;
+                  const barWidth = totalDiscount > 0
+                    ? Math.round((stat.totalDiscount / totalDiscount) * 100)
+                    : 0;
+                  return (
+                    <div key={stat.code} className="rounded-xl border border-border bg-white dark:bg-card px-4 py-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                          <span className="font-mono font-bold text-sm tracking-wide text-indigo-700">{stat.code}</span>
+                          <Badge variant="secondary" className="text-[10px] bg-indigo-100 text-indigo-700">
+                            {stat.redemptions}× pakai
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-right">
+                          <div>
+                            <p className="text-muted-foreground">Diskon diberikan</p>
+                            <p className="font-semibold text-rose-600">{formatIDR(stat.totalDiscount)}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Dari total booking</p>
+                            <p className="font-semibold">{formatIDR(stat.totalOriginalPrice)}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Dampak</p>
+                            <p className="font-semibold text-emerald-600">{discountPct}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Progress bar showing share of total discount */}
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-500 transition-all duration-500"
+                          style={{ width: `${barWidth}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        {barWidth}% dari total diskon yang diberikan
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </Card>
 
