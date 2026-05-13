@@ -146,6 +146,15 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/reviews", label: "Ulasan Pembeli", icon: Award, hint: "Balas ulasan, analisis sentimen, moderasi konten tidak relevan" },
       { to: "/pos-app/qa", label: "Q&A Produk", icon: HelpCircle, hint: "Jawab pertanyaan calon pembeli dari halaman produk" },
       { to: "/pos-app/iklan", label: "Iklan & Promosi", icon: Megaphone },
+      { to: "/pos-app/waitlist", label: "Antrian Waitlist", icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh" },
+    ],
+  },
+  {
+    id: "storefront",
+    label: "Tampilan Toko",
+    items: [
+      { to: "/pos-app/portfolio", label: "Portofolio / Galeri", icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli" },
+      { to: "/pos-app/happy-hour", label: "Happy Hour", icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam" },
     ],
   },
   {

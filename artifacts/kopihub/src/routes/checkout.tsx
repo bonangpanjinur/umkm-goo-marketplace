@@ -89,7 +89,12 @@ function CheckoutPage() {
       }
     }
 
-    const d = await listCart();
+    const allItems = await listCart();
+    const selectedRaw = sessionStorage.getItem("checkout_selected_ids");
+    const selectedIds = selectedRaw ? new Set(JSON.parse(selectedRaw) as string[]) : null;
+    const d = selectedIds && selectedIds.size > 0 && selectedIds.size < allItems.length
+      ? allItems.filter(i => selectedIds.has(i.id))
+      : allItems;
     setItems(d);
     if (d.length === 0) {
       navigate({ to: "/keranjang" });
@@ -165,6 +170,7 @@ function CheckoutPage() {
         toast.error("Gagal membuat pesanan.");
         return;
       }
+      sessionStorage.removeItem("checkout_selected_ids");
       toast.success(`${ids.length} pesanan berhasil dibuat`);
 
       if (saveNewAddress && user && !isGuest && address.trim()) {

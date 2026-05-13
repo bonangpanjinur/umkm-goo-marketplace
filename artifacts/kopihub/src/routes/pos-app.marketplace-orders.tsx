@@ -12,6 +12,7 @@ import {
   Loader2, ShoppingCart, Phone, MapPin, RefreshCw,
   AlertOctagon, MessageSquare, Check, ChevronRight,
   Truck, Store, Clock, PackageCheck, Bike, ShieldCheck,
+  CheckSquare, Square, ChevronsRight, XSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
@@ -121,6 +122,8 @@ function MarketplaceOrdersPage() {
   const [tab, setTab]         = useState<string>("active");
   const [chatFor, setChatFor] = useState<string | null>(null);
   const [resolveFor, setResolveFor] = useState<any>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
@@ -227,6 +230,60 @@ function MarketplaceOrdersPage() {
     orders.filter(o => !["completed", "cancelled", "delivered"].includes(o.status)).length,
     [orders]);
 
+  const advanceableFiltered = filtered.filter(o => NEXT_STATUS[o.status]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === advanceableFiltered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(advanceableFiltered.map(o => o.id)));
+  };
+
+  const bulkAdvance = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    const toAdvance = filtered.filter(o => selectedIds.has(o.id) && NEXT_STATUS[o.status]);
+    let success = 0;
+    for (const o of toAdvance) {
+      const next = NEXT_STATUS[o.status];
+      if (!next) continue;
+      const { error } = await supabase.from("orders").update({ status: next as any }).eq("id", o.id);
+      if (!error) {
+        await writeStatusLog(o.id, next);
+        success++;
+      }
+    }
+    toast.success(`${success} pesanan diperbarui ke status berikutnya`);
+    setSelectedIds(new Set());
+    setBulkLoading(false);
+    load();
+  };
+
+  const bulkCancel = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Batalkan ${selectedIds.size} pesanan terpilih?`)) return;
+    setBulkLoading(true);
+    const toCancel = filtered.filter(o => selectedIds.has(o.id) && !["completed","cancelled","delivered"].includes(o.status));
+    let success = 0;
+    for (const o of toCancel) {
+      const { error } = await supabase.from("orders").update({ status: "cancelled" as any }).eq("id", o.id);
+      if (!error) {
+        await writeStatusLog(o.id, "cancelled", "Dibatalkan massal oleh penjual");
+        success++;
+      }
+    }
+    toast.success(`${success} pesanan dibatalkan`);
+    setSelectedIds(new Set());
+    setBulkLoading(false);
+    load();
+  };
+
   if (!user) return null;
 
   return (
@@ -246,11 +303,60 @@ function MarketplaceOrdersPage() {
               )}
             </h2>
           </div>
-          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {advanceableFiltered.length > 0 && (
+              <button
+                onClick={toggleSelectAll}
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {selectedIds.size === advanceableFiltered.length
+                  ? <CheckSquare className="h-4 w-4 text-primary" />
+                  : <Square className="h-4 w-4" />
+                }
+                Pilih Semua
+              </button>
+            )}
+            <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
+
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5">
+            <span className="text-sm font-medium text-primary">{selectedIds.size} pesanan terpilih</span>
+            <div className="ml-auto flex gap-2">
+              <Button
+                size="sm"
+                className="gap-1.5 h-8 text-xs"
+                onClick={bulkAdvance}
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronsRight className="h-3.5 w-3.5" />}
+                Lanjutkan Status
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="gap-1.5 h-8 text-xs"
+                onClick={bulkCancel}
+                disabled={bulkLoading}
+              >
+                <XSquare className="h-3.5 w-3.5" />
+                Batalkan
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 text-xs"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Batal Pilih
+              </Button>
+            </div>
+          </div>
+        )}
 
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
@@ -284,11 +390,25 @@ function MarketplaceOrdersPage() {
                 <Card key={o.id} className={`transition-all ${dActive ? "border-destructive/60" : isTerminal ? "opacity-80" : "border-primary/20"}`}>
                   <CardHeader className="pb-2">
                     <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <CardTitle className="text-base font-bold">{o.order_no}</CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {new Date(o.created_at).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                        </p>
+                      <div className="flex items-start gap-2">
+                        {!isTerminal && (
+                          <button
+                            onClick={() => toggleSelect(o.id)}
+                            className="mt-0.5 shrink-0 text-primary"
+                            aria-label={selectedIds.has(o.id) ? "Batal pilih" : "Pilih pesanan"}
+                          >
+                            {selectedIds.has(o.id)
+                              ? <CheckSquare className="h-4.5 w-4.5" />
+                              : <Square className="h-4.5 w-4.5 text-muted-foreground" />
+                            }
+                          </button>
+                        )}
+                        <div>
+                          <CardTitle className="text-base font-bold">{o.order_no}</CardTitle>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {new Date(o.created_at).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="outline" className="text-xs gap-1">

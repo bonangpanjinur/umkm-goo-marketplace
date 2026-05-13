@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, getLastCartActivity, markCartActivity, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
-import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X, Share2, Check } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X, Share2, Check, CheckSquare, Square } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/keranjang")({
@@ -58,11 +58,13 @@ function CartPage() {
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [showAbandonedBanner, setShowAbandonedBanner] = useState(false);
   const [cartShared, setCartShared] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const refresh = async () => {
     try {
       const data = await listCart();
       setItems(data);
+      setSelectedIds(new Set(data.map(i => i.id)));
       if (data.length > 0) {
         const shopIds = Array.from(new Set(data.map((i) => i.shop_id)));
         const dsArr = await listShopDeliverySettings(shopIds);
@@ -95,12 +97,43 @@ function CartPage() {
     (acc[it.shop_id] ||= []).push(it);
     return acc;
   }, {});
-  const total = items.reduce((s, it) => s + Number(it.unit_price) * it.quantity, 0);
+
+  const selectedItems = items.filter(it => selectedIds.has(it.id));
+  const total = selectedItems.reduce((s, it) => s + Number(it.unit_price) * it.quantity, 0);
+  const allSelected = items.length > 0 && selectedIds.size === items.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < items.length;
+
+  const toggleAll = () => {
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(items.map(i => i.id)));
+  };
+
+  const toggleItem = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const setQty = async (id: string, qty: number) => {
-    if (qty <= 0) await removeCartItem(id);
-    else await updateCartItem(id, qty);
+    if (qty <= 0) {
+      await removeCartItem(id);
+      setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+    } else {
+      await updateCartItem(id, qty);
+    }
     refresh();
+  };
+
+  const goCheckout = () => {
+    if (selectedIds.size === 0) {
+      toast.error("Pilih setidaknya 1 item untuk checkout.");
+      return;
+    }
+    sessionStorage.setItem("checkout_selected_ids", JSON.stringify([...selectedIds]));
+    navigate({ to: "/checkout" });
   };
 
   return (
@@ -140,10 +173,30 @@ function CartPage() {
         ) : (
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-4">
+              {/* Select All */}
+              <div className="flex items-center gap-2 px-1">
+                <button
+                  onClick={toggleAll}
+                  className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  {allSelected
+                    ? <CheckSquare className="h-4.5 w-4.5 text-primary" />
+                    : someSelected
+                      ? <CheckSquare className="h-4.5 w-4.5 text-primary/50" />
+                      : <Square className="h-4.5 w-4.5 text-muted-foreground" />
+                  }
+                  {allSelected ? "Batal Pilih Semua" : "Pilih Semua"}
+                </button>
+                {selectedIds.size > 0 && selectedIds.size < items.length && (
+                  <span className="text-xs text-muted-foreground">({selectedIds.size} dari {items.length} terpilih)</span>
+                )}
+              </div>
+
               {Object.entries(grouped).map(([shopId, shopItems]) => {
                 const shop = shopItems[0].shop!;
                 const ds = deliveryMap[shopId];
-                const shopSubtotal = shopItems.reduce(
+                const selectedShopItems = shopItems.filter(it => selectedIds.has(it.id));
+                const shopSubtotal = selectedShopItems.reduce(
                   (s, i) => s + Number(i.unit_price) * i.quantity,
                   0,
                 );
@@ -167,52 +220,65 @@ function CartPage() {
                     {ds && <DeliveryChip ds={ds} />}
 
                     <ul className="divide-y divide-border">
-                      {shopItems.map((it) => (
-                        <li key={it.id} className="flex items-center gap-3 p-4">
-                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted/40">
-                            {it.product?.image_url ? (
-                              <img src={it.product.image_url} alt={it.product.name} className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="flex h-full items-center justify-center text-muted-foreground">
-                                <Store className="h-5 w-5" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="line-clamp-2 text-sm font-medium">{it.product?.name}</div>
-                            <div className="mt-0.5 text-sm font-semibold text-primary">
-                              Rp {Number(it.unit_price).toLocaleString("id-ID")}
+                      {shopItems.map((it) => {
+                        const isSelected = selectedIds.has(it.id);
+                        return (
+                          <li key={it.id} className={`flex items-center gap-3 p-4 transition-colors ${isSelected ? "" : "opacity-60 bg-muted/20"}`}>
+                            <button
+                              onClick={() => toggleItem(it.id)}
+                              className="shrink-0 text-primary"
+                              aria-label={isSelected ? "Batalkan pilihan" : "Pilih item"}
+                            >
+                              {isSelected
+                                ? <CheckSquare className="h-5 w-5" />
+                                : <Square className="h-5 w-5 text-muted-foreground" />
+                              }
+                            </button>
+                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted/40">
+                              {it.product?.image_url ? (
+                                <img src={it.product.image_url} alt={it.product.name} className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-muted-foreground">
+                                  <Store className="h-5 w-5" />
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          <div className="flex items-center rounded-lg border border-border">
+                            <div className="min-w-0 flex-1">
+                              <div className="line-clamp-2 text-sm font-medium">{it.product?.name}</div>
+                              <div className="mt-0.5 text-sm font-semibold text-primary">
+                                Rp {Number(it.unit_price).toLocaleString("id-ID")}
+                              </div>
+                            </div>
+                            <div className="flex items-center rounded-lg border border-border">
+                              <button
+                                className="flex h-8 w-8 items-center justify-center text-muted-foreground"
+                                onClick={() => setQty(it.id, it.quantity - 1)}
+                                aria-label="Kurangi"
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </button>
+                              <span className="w-9 text-center text-sm font-medium">{it.quantity}</span>
+                              <button
+                                className="flex h-8 w-8 items-center justify-center text-muted-foreground"
+                                onClick={() => setQty(it.id, it.quantity + 1)}
+                                aria-label="Tambah"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                             <button
-                              className="flex h-8 w-8 items-center justify-center text-muted-foreground"
-                              onClick={() => setQty(it.id, it.quantity - 1)}
-                              aria-label="Kurangi"
+                              onClick={() => setQty(it.id, 0)}
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label="Hapus"
                             >
-                              <Minus className="h-3.5 w-3.5" />
+                              <Trash2 className="h-4 w-4" />
                             </button>
-                            <span className="w-9 text-center text-sm font-medium">{it.quantity}</span>
-                            <button
-                              className="flex h-8 w-8 items-center justify-center text-muted-foreground"
-                              onClick={() => setQty(it.id, it.quantity + 1)}
-                              aria-label="Tambah"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => setQty(it.id, 0)}
-                            className="text-muted-foreground hover:text-destructive"
-                            aria-label="Hapus"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </li>
-                      ))}
+                          </li>
+                        );
+                      })}
                     </ul>
                     <div className="border-t border-border bg-muted/20 px-4 py-2 text-right text-xs text-muted-foreground">
-                      Subtotal toko: <span className="font-semibold text-foreground">Rp {shopSubtotal.toLocaleString("id-ID")}</span>
+                      Subtotal terpilih: <span className="font-semibold text-foreground">Rp {shopSubtotal.toLocaleString("id-ID")}</span>
                     </div>
                   </div>
                 );
@@ -223,7 +289,9 @@ function CartPage() {
               <h3 className="text-sm font-semibold">Ringkasan</h3>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Item ({items.length})</span>
+                  <span className="text-muted-foreground">
+                    Item terpilih ({selectedIds.size}/{items.length})
+                  </span>
                   <span>Rp {total.toLocaleString("id-ID")}</span>
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
@@ -235,13 +303,23 @@ function CartPage() {
                 <span>Total</span>
                 <span className="text-primary">Rp {total.toLocaleString("id-ID")}</span>
               </div>
-              <Link to="/checkout" className="mt-5 block">
-                <Button size="lg" className="w-full">Lanjut ke Checkout</Button>
-              </Link>
+              <Button
+                size="lg"
+                className="mt-5 w-full"
+                disabled={selectedIds.size === 0}
+                onClick={goCheckout}
+              >
+                {selectedIds.size === 0
+                  ? "Pilih item untuk checkout"
+                  : selectedIds.size === items.length
+                    ? "Lanjut ke Checkout"
+                    : `Checkout ${selectedIds.size} item terpilih`
+                }
+              </Button>
               <button
                 type="button"
                 onClick={async () => {
-                  const itemSummary = items
+                  const itemSummary = selectedItems
                     .map(i => `• ${i.quantity}× ${i.product?.name ?? "Produk"} (Rp ${Number(i.unit_price).toLocaleString("id-ID")})`)
                     .join("\n");
                   const totalFmt = `Rp ${total.toLocaleString("id-ID")}`;

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useSeo } from "@/lib/use-seo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,100 @@ import {
   computeTrustCert,
 } from "@/components/TrustCertBadge";
 import { Trophy, Medal } from "lucide-react";
+
+type PortfolioItem = { id: string; image_url: string; caption: string | null; category: string | null; sort_order: number };
+
+function PortfolioGallery({ shopId }: { shopId: string }) {
+  const [items, setItems]     = useState<PortfolioItem[]>([]);
+  const [loaded, setLoaded]   = useState(false);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!shopId) return;
+    (async () => {
+      const { data, error } = await (supabase as any)
+        .from("shop_portfolio")
+        .select("id, image_url, caption, category, sort_order")
+        .eq("shop_id", shopId)
+        .order("sort_order")
+        .limit(24);
+      if (!error) setItems((data ?? []) as PortfolioItem[]);
+      setLoaded(true);
+    })();
+  }, [shopId]);
+
+  if (!loaded || items.length === 0) return null;
+
+  const categories = Array.from(new Set(items.map(i => i.category).filter(Boolean))) as string[];
+
+  const prev = () => setLightbox(lb => lb !== null ? (lb - 1 + items.length) % items.length : null);
+  const next = () => setLightbox(lb => lb !== null ? (lb + 1) % items.length : null);
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-8 border-b border-border">
+      <div className="flex items-center gap-2 mb-4">
+        <Images className="h-5 w-5 text-primary" />
+        <h2 className="text-xl font-bold tracking-tight">Galeri / Portofolio</h2>
+        {categories.length > 0 && (
+          <div className="ml-2 flex gap-1.5 flex-wrap">
+            {categories.map(c => (
+              <span key={c} className="rounded-full bg-primary/10 text-primary text-[11px] font-medium px-2.5 py-0.5">{c}</span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 md:grid-cols-6">
+        {items.map((item, idx) => (
+          <button
+            key={item.id}
+            className="group relative aspect-square overflow-hidden rounded-xl bg-muted/40 border border-border hover:border-primary/50 transition-all"
+            onClick={() => setLightbox(idx)}
+          >
+            <img
+              src={item.image_url}
+              alt={item.caption ?? "Portofolio"}
+              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+              onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Foto"; }}
+            />
+            {item.caption && (
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-[10px] text-white line-clamp-2">{item.caption}</p>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {lightbox !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" onClick={() => setLightbox(null)}>
+            <X className="h-5 w-5" />
+          </button>
+          <button className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" onClick={e => { e.stopPropagation(); prev(); }}>
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="max-w-3xl w-full" onClick={e => e.stopPropagation()}>
+            <img
+              src={items[lightbox].image_url}
+              alt={items[lightbox].caption ?? "Portofolio"}
+              className="w-full max-h-[80vh] object-contain rounded-xl"
+            />
+            {items[lightbox].caption && (
+              <p className="mt-3 text-center text-sm text-white/80">{items[lightbox].caption}</p>
+            )}
+            <p className="mt-1 text-center text-xs text-white/50">{lightbox + 1} / {items.length}</p>
+          </div>
+          <button className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" onClick={e => { e.stopPropagation(); next(); }}>
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function computeShopTier(shop: { kyc_status?: string | null; rating_avg?: number | null; rating_count?: number | null }) {
   const r = Number(shop.rating_avg ?? 0);
@@ -286,6 +380,8 @@ function ShopPage() {
           )}
         </div>
       </section>
+
+      <PortfolioGallery shopId={shop?.id ?? ""} />
 
       <section className="mx-auto max-w-7xl px-4 py-10">
         <h2 className="mb-4 text-xl font-bold tracking-tight">Produk</h2>
