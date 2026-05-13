@@ -578,10 +578,13 @@ function CheckoutPage() {
                         </div>
                         <div className="border-t border-border bg-muted/20 px-3 py-2 text-right text-xs space-y-0.5">
                           <div>Subtotal: <span className="font-semibold">Rp {sub.toLocaleString("id-ID")}</span></div>
+                          {memDisc > 0 && (
+                            <div className="text-amber-700">Diskon Member ({mem!.discount_percent}%): <span className="font-semibold">−Rp {memDisc.toLocaleString("id-ID")}</span></div>
+                          )}
                           {fulfillment === "delivery" && (
                             <div>Ongkir: <span className="font-semibold">Rp {ongkir.toLocaleString("id-ID")}</span></div>
                           )}
-                          <div className="text-sm">Total toko: <span className="font-bold text-primary">Rp {(sub + ongkir).toLocaleString("id-ID")}</span></div>
+                          <div className="text-sm">Total toko: <span className="font-bold text-primary">Rp {(sub - memDisc + ongkir).toLocaleString("id-ID")}</span></div>
                         </div>
                       </div>
                     );
