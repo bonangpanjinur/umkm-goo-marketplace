@@ -105,11 +105,13 @@ function PortfolioPage() {
     setUploading(true);
     try {
       const ext  = file.name.split(".").pop();
-      const path = `portfolio/${shop.id}/${Date.now()}.${ext}`;
+      const path = `portfolio/${shop.id}/${Date.now()}-${uploadTarget}.${ext}`;
       const { error: upErr } = await supabase.storage.from("shop-assets").upload(path, file, { upsert: true });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("shop-assets").getPublicUrl(path);
-      setImgUrl(urlData.publicUrl);
+      if (uploadTarget === "before") setBeforeUrl(urlData.publicUrl);
+      else if (uploadTarget === "after") setAfterUrl(urlData.publicUrl);
+      else setImgUrl(urlData.publicUrl);
       toast.success("Gambar berhasil diunggah");
     } catch (e: any) {
       toast.error(e.message);
@@ -121,6 +123,7 @@ function PortfolioPage() {
   function openAdd() {
     setEditItem(null);
     setImgUrl(""); setCaption(""); setCategory("");
+    setIsBA(false); setBeforeUrl(""); setAfterUrl("");
     setShowAdd(true);
   }
 
@@ -129,6 +132,9 @@ function PortfolioPage() {
     setImgUrl(item.image_url);
     setCaption(item.caption ?? "");
     setCategory(item.category ?? "");
+    setIsBA(Boolean(item.is_before_after));
+    setBeforeUrl(item.before_image_url ?? "");
+    setAfterUrl(item.after_image_url ?? "");
     setShowAdd(true);
   }
 
