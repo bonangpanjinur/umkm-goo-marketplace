@@ -106,6 +106,7 @@ import { Route as KatalogSlugRouteImport } from './routes/katalog.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DownloadTokenRouteImport } from './routes/download.$token'
 import { Route as AkunWishlistRouteImport } from './routes/akun.wishlist'
+import { Route as AkunSaldoRouteImport } from './routes/akun.saldo'
 import { Route as AkunRiwayatRouteImport } from './routes/akun.riwayat'
 import { Route as AkunReturnsRouteImport } from './routes/akun.returns'
 import { Route as AkunReferralRouteImport } from './routes/akun.referral'
@@ -667,6 +668,11 @@ const AkunWishlistRoute = AkunWishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunSaldoRoute = AkunSaldoRouteImport.update({
+  id: '/saldo',
+  path: '/saldo',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunRiwayatRoute = AkunRiwayatRouteImport.update({
   id: '/riwayat',
   path: '/riwayat',
@@ -1096,6 +1102,7 @@ export interface FileRoutesByFullPath {
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
+  '/akun/saldo': typeof AkunSaldoRoute
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1265,6 +1272,7 @@ export interface FileRoutesByTo {
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
+  '/akun/saldo': typeof AkunSaldoRoute
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1436,6 +1444,7 @@ export interface FileRoutesById {
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
+  '/akun/saldo': typeof AkunSaldoRoute
   '/akun/wishlist': typeof AkunWishlistRoute
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1610,6 +1619,7 @@ export interface FileRouteTypes {
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
+    | '/akun/saldo'
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
@@ -1779,6 +1789,7 @@ export interface FileRouteTypes {
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
+    | '/akun/saldo'
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
@@ -1949,6 +1960,7 @@ export interface FileRouteTypes {
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
+    | '/akun/saldo'
     | '/akun/wishlist'
     | '/download/$token'
     | '/invite/$token'
@@ -2772,6 +2784,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunWishlistRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/saldo': {
+      id: '/akun/saldo'
+      path: '/saldo'
+      fullPath: '/akun/saldo'
+      preLoaderRoute: typeof AkunSaldoRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/riwayat': {
       id: '/akun/riwayat'
       path: '/riwayat'
@@ -3411,6 +3430,7 @@ interface AkunRouteChildren {
   AkunReferralRoute: typeof AkunReferralRoute
   AkunReturnsRoute: typeof AkunReturnsRoute
   AkunRiwayatRoute: typeof AkunRiwayatRoute
+  AkunSaldoRoute: typeof AkunSaldoRoute
   AkunWishlistRoute: typeof AkunWishlistRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunPesananOrderIdRoute: typeof AkunPesananOrderIdRoute
@@ -3427,6 +3447,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunReferralRoute: AkunReferralRoute,
   AkunReturnsRoute: AkunReturnsRoute,
   AkunRiwayatRoute: AkunRiwayatRoute,
+  AkunSaldoRoute: AkunSaldoRoute,
   AkunWishlistRoute: AkunWishlistRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunPesananOrderIdRoute: AkunPesananOrderIdRoute,
