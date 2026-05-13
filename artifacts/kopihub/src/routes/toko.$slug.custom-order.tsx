@@ -102,6 +102,13 @@ function CustomOrderForm() {
               <p className="text-sm text-muted-foreground mt-1">
                 Kirim brief pesanan khusus ke {shop.name}{product ? ` untuk produk "${product.name}"` : ""}.
               </p>
+              <Link
+                to="/toko/$slug/custom-order/status"
+                params={{ slug }}
+                className="text-xs text-primary hover:underline mt-2 inline-block"
+              >
+                Sudah pernah kirim? Cek status permintaanmu →
+              </Link>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3">
