@@ -268,6 +268,35 @@ function CheckoutPage() {
         } catch (_) {}
       }
 
+      // Tulis info DP per order (best-effort, tidak blokir alur sukses)
+      if (hasDeposit && ids.length > 0) {
+        try {
+          const { data: createdOrders } = await supabase
+            .from("orders")
+            .select("id, shop_id, total")
+            .in("id", ids);
+          if (createdOrders) {
+            await Promise.all(
+              (createdOrders as any[]).map(async (o) => {
+                const dp = depositByShop[o.shop_id];
+                if (!dp || dp <= 0) return;
+                const total = Number(o.total);
+                const dpClamped = Math.min(dp, total);
+                const balance = Math.max(0, total - dpClamped);
+                await supabase
+                  .from("orders")
+                  .update({
+                    requires_deposit: true,
+                    deposit_amount: dpClamped,
+                    balance_due: balance,
+                  } as any)
+                  .eq("id", o.id);
+              })
+            );
+          }
+        } catch { /* abaikan error post-process DP */ }
+      }
+
       navigate({ to: "/checkout/sukses/$orderId", params: { orderId: ids[0] }, search: { all: ids.join(",") } as any });
     } catch (e: any) {
       toast.error(e.message ?? "Checkout gagal");
