@@ -1,6 +1,6 @@
 # PRD — UMKMgo / KopiHub
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
-**Versi:** 5.0 | **Diperbarui:** Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
+**Versi:** 5.1 | **Diperbarui:** 13 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
 
 ---
 
@@ -22,13 +22,19 @@
 
 ## RINGKASAN EKSEKUTIF
 
-Platform ini sudah sangat kuat dari sisi infrastruktur. **60–70% fitur inti sudah ada.** Gap terbesar bukan di fitur yang rumit, tapi di pengalaman pengguna yang lengkap:
+Platform ini sudah sangat kuat dari sisi infrastruktur. **70–75% fitur inti sudah ada.** Gap terbesar bukan di fitur yang rumit, tapi di pengalaman pengguna yang lengkap:
 
-1. **Sistem booking masih setengah jalan** — merchant bisa kelola, tapi pembeli tidak bisa self-serve. Ini gap paling kritis untuk semua usaha jasa.
-2. **Viral loop belum ada** — tidak ada cara mudah untuk pembeli share produk, share keranjang, atau ajak teman beli bareng. Fitur ini hampir nol effort tapi dampaknya besar.
-3. **Fitur per industri masih generik** — semua toko diperlakukan sama padahal kebutuhan restoran, salon, fotografer, dan toko fashion sangat berbeda.
-4. **Kepercayaan pembeli perlu diperkuat** — histori harga, foto ulasan, BPOM/ingredient list, size chart adalah fitur kecil yang langsung naikkan konversi.
-5. **Super Admin sudah lengkap** — gap utama hanya di otomasi (payout otomatis, onboarding sequence, health score per toko).
+1. **Sistem booking sudah solid** ✅ — halaman publik self-serve ada, pilih staff ada, deposit ada, voucher khusus booking ada. Gap yang tersisa: reschedule/batal mandiri, reminder otomatis, riwayat booking di akun pembeli, dan integrasi payment gateway untuk deposit.
+2. **Viral loop sudah ada** ✅ — share produk, share keranjang, referral, wishlist, alert harga turun sudah dibangun di Sprint 9.
+3. **Fitur per industri sudah dimulai** ✅ — size chart (fashion), ingredient list + BPOM (skincare), alergen tag (F&B), pilih staff (jasa) sudah ada. Yang masih kurang: galeri portofolio, paket layanan, rental date-range, klinik antrian.
+4. **Kepercayaan pembeli sudah diperkuat** ✅ — histori harga, BPOM, size chart, alergen, rating, tier badge sudah ada.
+5. **Gap terbesar saat ini:**
+   - Integrasi payment gateway untuk deposit booking (Midtrans/Xendit)
+   - Reschedule & batal mandiri oleh pelanggan
+   - Portofolio/galeri karya toko (M-02) — kritis untuk jasa kreatif & salon
+   - Reminder otomatis H-1/H-3 (M-03) — kritis untuk retensi booking
+   - Waitlist virtual (M-12) — kritis untuk F&B saat penuh
+   - Upselling engine (M-07) — dampak langsung ke AOV
 
 ---
 
@@ -72,7 +78,7 @@ Dashboard KPI · Manajemen KYC merchant · Manajemen toko (suspend/unsuspend) ·
 
 **Engagement:** Q&A produk + FAQ pin + auto-reply · Ulasan + sentiment analysis · Balas ulasan · Leaderboard
 
-**Booking:** Slot layanan + manajemen booking (sisi merchant) · Reservasi meja + table maps
+**Booking:** Slot layanan + manajemen booking (sisi merchant) · Reservasi meja + table maps · Halaman booking publik self-serve · Pilih staff · Deposit wajib (konfirmasi manual) · Voucher khusus booking + analitik per kode
 
 **Keuangan:** Wallet · Escrow · Penarikan · Rekening bank · Billing plan
 
@@ -146,6 +152,10 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 13 Mei 2026 | Sprint 9 | **Tombol Booking** di halaman toko marketplace — menonjol mengarah ke halaman booking publik | ✅ |
 | 14 Mei 2026 | Sprint 10 | **M-05 Perbandingan Produk** — `/bandingkan` side-by-side hingga 4 produk + `lib/compare.ts` | ✅ |
 | 14 Mei 2026 | Sprint 10 | **M-15 Katalog Link Shareable** — `/katalog/:slug` halaman publik + filter kategori + tombol share | ✅ |
+| 13 Mei 2026 | Sprint 11 | **M-01 Pilih Staff/Resource saat Booking** — dropdown pilih staff + preferensi "siapa saja" di halaman booking publik | ✅ |
+| 13 Mei 2026 | Sprint 11 | **M-10 Deposit Booking Online** — SQL: `require_deposit`, `deposit_percent`, `deposit_notes` di `coffee_shops`; `deposit_required`, `deposit_amount`, `deposit_status` di `bookings`; pengaturan DP di POS; step konfirmasi DP + transfer di halaman booking publik | ✅ |
+| 13 Mei 2026 | Sprint 11 | **Voucher Khusus Booking (M-VB)** — tabel `booking_vouchers` + RLS + fungsi atomik `fn_use_booking_voucher()`; manajemen voucher di POS (buat/aktif/nonaktif/hapus); input kode voucher di halaman booking publik dengan diskon otomatis; kolom `voucher_code` + `voucher_discount` di `bookings` | ✅ |
+| 13 Mei 2026 | Sprint 11 | **Voucher Analytics Panel** — panel analitik di POS booking: pemakaian per kode, total diskon diberikan, dampak % revenue, filter rentang 7/30/90 hari / semua waktu, progress bar share per voucher | ✅ |
 
 ---
 
@@ -311,8 +321,10 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Tabel `booking_slots` dan `bookings` di Supabase | ✅ |
 | Reservasi meja restoran (library `reservations.ts`) | ✅ |
 | **Halaman booking publik untuk pembeli** (`/toko/:slug/booking`) | ✅ Selesai Sprint 9 |
-| Pilih staff/resource saat booking | ❌ |
-| Deposit payment saat booking | ❌ |
+| Pilih staff/resource saat booking | ✅ Selesai Sprint 11 |
+| Deposit payment saat booking | ✅ Selesai Sprint 11 (SQL + UI pengaturan POS + step konfirmasi DP) |
+| Voucher diskon khusus booking | ✅ Selesai Sprint 11 (booking_vouchers + fn_use_booking_voucher + UI) |
+| Analitik voucher booking per kode | ✅ Selesai Sprint 11 |
 | Reminder otomatis H-1 / H-3 | ❌ |
 | Reschedule & batal mandiri oleh pembeli | ❌ |
 | Riwayat booking di akun pembeli | ❌ |
@@ -321,21 +333,26 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 ### 4.2 Roadmap Booking Lengkap
 
 #### Fase A — Halaman Booking Publik ✅ Selesai
-URL: `/toko/:slug/booking` — wizard 3 langkah: kalender tanggal → pilih slot → isi data & konfirmasi.
+URL: `/toko/:slug/booking` — wizard 3 langkah: kalender tanggal → pilih slot → isi data & konfirmasi. Termasuk: pilih staff, voucher diskon, pengaturan DP di POS, step konfirmasi DP + info transfer ke pelanggan.
 
-#### Fase B — Manajemen Lanjutan (~3 hari)
-- Reschedule mandiri (minimal H-24 sebelum jadwal)
-- Pembatalan dengan kebijakan refund yang bisa dikonfigurasi
-- Reminder otomatis H-3 dan H-1 (notif in-app + template WA)
-- Riwayat booking di akun pembeli (`/akun/bookings`)
-- Status: Menunggu → Dikonfirmasi → Selesai → Dibatalkan
+#### Fase A+ — Booking Enhancements ✅ Selesai (Sprint 11)
+- ✅ Pilih staff/resource saat booking (dropdown + "siapa saja")
+- ✅ Deposit wajib — pengaturan % DP per toko + step konfirmasi DP di booking
+- ✅ Voucher khusus booking — buat/kelola di POS, input kode di halaman publik, diskon atomik via RPC
+- ✅ Analitik voucher — pemakaian, total diskon, dampak revenue, filter rentang waktu
 
-#### Fase C — Fitur Lanjutan (~5 hari)
-- Deposit payment via Midtrans/Xendit
-- Paket + add-on saat booking (pilih layanan ekstra)
-- Portofolio galeri terintegrasi
-- Review post-booking (notif H+1 setelah layanan)
-- Kalender sync (Google Calendar export .ics)
+#### Fase B — Manajemen Lanjutan (~3 hari) ❌ Belum
+- ❌ Reschedule mandiri (minimal H-24 sebelum jadwal)
+- ❌ Pembatalan mandiri oleh pelanggan via link aman (secure token)
+- ❌ Reminder otomatis H-3 dan H-1 (notif in-app + template WA)
+- ❌ Riwayat booking di akun pembeli (`/akun/bookings`)
+
+#### Fase C — Fitur Lanjutan (~5 hari) ❌ Belum
+- ❌ Deposit payment terintegrasi Midtrans/Xendit (saat ini: konfirmasi manual via WA)
+- ❌ Paket + add-on saat booking (pilih layanan ekstra)
+- ❌ Portofolio galeri terintegrasi
+- ❌ Review post-booking (notif H+1 setelah layanan)
+- ❌ Kalender sync (Google Calendar export .ics)
 
 ### 4.3 Konfigurasi Booking per Toko (Dashboard Merchant)
 ```
@@ -400,21 +417,22 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 
 | # | Fitur | Role | Impact | Status |
 |---|---|---|---|---|
-| M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ✅ Selesai |
+| M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ✅ Selesai (Sprint 11) |
 | M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ❌ |
 | M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ❌ |
 | M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ❌ |
-| M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai |
+| M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai (Sprint 10) |
 | M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ❌ |
 | M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ❌ |
 | M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan | ❌ |
 | M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ❌ |
-| M-10 | **Deposit Booking Online** via Midtrans/Xendit | Jasa/Rental | Komitmen | ❌ |
+| M-10 | **Deposit Booking Online** — pengaturan % DP per toko, step konfirmasi DP, kolom DB | Jasa/Rental | Komitmen | ✅ Selesai (Sprint 11) — *integrasi Midtrans/Xendit masih ❌* |
 | M-11 | **Happy Hour / Time-based Pricing** (harga berubah per jam) | F&B | Pendapatan | ❌ |
 | M-12 | **Waitlist / Antrian Virtual** (daftar antrian saat penuh, notif saat giliran tiba) | F&B/Jasa | Retensi | ❌ |
 | M-13 | **Preview Produk Digital** (sample watermarked sebelum beli) | Digital | Konversi | ❌ |
 | M-14 | **Cashback Wallet** (cashback % per transaksi, dipakai di order berikutnya) | Pembeli | Retensi | ❌ |
-| M-15 | **Katalog PDF / Link Shareable** (export produk aktif jadi PDF/link public) | Merchant | Pemasaran | ✅ Selesai |
+| M-15 | **Katalog PDF / Link Shareable** (export produk aktif jadi PDF/link public) | Merchant | Pemasaran | ✅ Selesai (Sprint 10) |
+| M-VB | **Voucher Khusus Booking** — kode diskon eksklusif untuk booking online + analitik | Jasa | Konversi | ✅ Selesai (Sprint 11) |
 
 ### 🟢 Masa Depan (Dampak Besar, Effort Besar — 3+ hari)
 
@@ -452,7 +470,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 **Detail backlog F&B:**
 | # | Fitur | Ada? | Prioritas |
 |---|---|---|---|
-| R-01 | **Reservasi Meja Publik** dari marketplace | ⚠️ Merchant-side only | 🔥 KRITIS |
+| R-01 | **Reservasi Meja Publik** dari marketplace | ⚠️ Merchant-side only (meja), ✅ booking layanan publik ada | 🔥 TINGGI |
 | R-02 | **Tag Alergen & Dietary** per menu item | ✅ Selesai Sprint 9 | — |
 | R-03 | **Waitlist / Antrian Virtual** | ❌ | 🔥 TINGGI |
 | R-04 | **Happy Hour / Harga Waktu** (otomatis berlaku & berakhir) | ❌ | 🔥 TINGGI |
@@ -474,16 +492,16 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 **Detail backlog Salon & Barber:**
 | # | Fitur | Ada? | Prioritas |
 |---|---|---|---|
-| SB-01 | Booking layanan per slot waktu | ⚠️ Merchant-side only | 🔥 TINGGI |
-| SB-02 | Pilih stylist/barber spesifik saat booking | ❌ | 🔥 TINGGI |
+| SB-01 | Booking layanan per slot waktu | ✅ Selesai Sprint 9 — publik self-serve via `/toko/:slug/booking` | — |
+| SB-02 | Pilih stylist/barber spesifik saat booking | ✅ Selesai Sprint 11 | — |
 | SB-03 | Durasi layanan berbeda per jenis (potong 30 menit, warna 2 jam) | ⚠️ Dasar ada | TINGGI |
 | SB-04 | Galeri hasil karya (before/after foto) | ❌ | 🔥 TINGGI |
 | SB-05 | Membership / Paket Langganan (beli 10 potong bayar 8) | ❌ | SEDANG |
 | SB-06 | Pengingat potong rambut (notif 4 minggu setelah kunjungan terakhir) | ❌ | SEDANG |
 | SB-07 | Catatan pelanggan per kunjungan (riwayat warna, produk digunakan) | ❌ | SEDANG |
 | SB-08 | Booking bisa reschedule mandiri oleh pelanggan | ❌ | TINGGI |
-| SB-09 | Konfirmasi booking via WhatsApp otomatis | ❌ | 🔥 TINGGI |
-| SB-10 | Pembayaran deposit online saat booking | ❌ | SEDANG |
+| SB-09 | Konfirmasi booking via WhatsApp otomatis | ⚠️ Tombol manual "Konfirmasi via WA" ada di halaman booking | TINGGI |
+| SB-10 | Pembayaran deposit online saat booking | ✅ Selesai Sprint 11 (konfirmasi manual; integrasi gateway ❌) | SEDANG |
 
 ### 6.3 Fotografer & Studio Kreatif
 - **Paket sesi** (Basic 1 jam, Standard 2 jam, Premium full day)
@@ -497,12 +515,12 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 **Detail backlog Studio Foto:**
 | # | Fitur | Ada? | Prioritas |
 |---|---|---|---|
-| SF-01 | Booking sesi foto (foto produk, wisuda, prewedding, dll.) | ⚠️ Merchant-side only | 🔥 KRITIS |
+| SF-01 | Booking sesi foto (foto produk, wisuda, prewedding, dll.) | ✅ Selesai Sprint 9 — self-serve publik via `/toko/:slug/booking` | — |
 | SF-02 | Pilih paket sesi (Basic 1 jam, Standard 2 jam, Premium full day) | ❌ | 🔥 TINGGI |
 | SF-03 | Pilih lokasi (studio indoor, outdoor, lokasi pilihan klien) | ❌ | TINGGI |
 | SF-04 | Portofolio galeri hasil foto per fotografer/studio | ❌ | 🔥 TINGGI |
 | SF-05 | Upload file hasil foto ke klien (link download) | ❌ | TINGGI |
-| SF-06 | Deposit wajib saat booking (misal 50% dari total) | ❌ | TINGGI |
+| SF-06 | Deposit wajib saat booking (misal 50% dari total) | ✅ Selesai Sprint 11 (konfirmasi manual; integrasi gateway ❌) | TINGGI |
 | SF-07 | Contract/agreement digital saat booking | ❌ | SEDANG |
 | SF-08 | Add-on saat booking (editing ekstra, album cetak, dll.) | ❌ | SEDANG |
 | SF-09 | Kalender ketersediaan fotografer | ❌ | 🔥 TINGGI |
@@ -695,7 +713,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | Payment gateway | Midtrans + Xendit keduanya; secret key diubah via UI Super Admin (terenkripsi) |
 | Verifikasi toko | Wajib upload KTP sebelum toko aktif |
 | Jadwal penarikan | Kapan saja (Pro+); bulanan (Gratis/Starter); biaya admin dikonfigurasi Super Admin |
-| Booking | Halaman publik `/toko/:slug/booking` sudah ada; fitur lanjutan (staff, deposit) masih dikembangkan |
+| Booking | Halaman publik `/toko/:slug/booking` ✅ · Pilih staff ✅ · Deposit manual ✅ · Voucher booking ✅ · Analitik voucher ✅ · Integrasi payment gateway ❌ · Reschedule/batal mandiri ❌ · Reminder otomatis ❌ |
 
 ---
 
