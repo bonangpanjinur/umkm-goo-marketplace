@@ -10,7 +10,7 @@ import { listCart, checkout, listShopZones, listShopDeliverySettings, type CartI
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
 import { useAuth } from "@/lib/auth";
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
-import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,6 +28,7 @@ function CheckoutPage() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [shipping, setShipping] = useState<Record<string, string>>({});
+  const [memberships, setMemberships] = useState<Record<string, { tier_name: string; discount_percent: number; expires_at: string }>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -115,6 +116,22 @@ function CheckoutPage() {
       if (sz[0]) init[sid] = sz[0].id;
     }
     setShipping(init);
+
+    // Auto-fetch active memberships per shop (for discount preview)
+    if (!anonymous) {
+      const { data: memData } = await supabase.rpc("get_my_active_memberships" as any, { _shop_ids: shopIds });
+      if (memData) {
+        const memMap: Record<string, { tier_name: string; discount_percent: number; expires_at: string }> = {};
+        for (const m of (memData as any[])) {
+          // RPC orders by discount DESC — first per shop wins
+          if (!memMap[m.shop_id]) {
+            memMap[m.shop_id] = { tier_name: m.tier_name, discount_percent: Number(m.discount_percent), expires_at: m.expires_at };
+          }
+        }
+        setMemberships(memMap);
+      }
+    }
+
     setLoading(false);
   }
 
@@ -144,7 +161,16 @@ function CheckoutPage() {
           return s + (z ? z.fee : 0);
         }, 0)
       : 0;
-  const grandTotal = itemsTotal + shippingTotal;
+  // Per-shop membership discount (auto-applied on subtotal)
+  const membershipDiscountByShop: Record<string, number> = {};
+  for (const [shopId, shopItems] of Object.entries(grouped)) {
+    const m = memberships[shopId];
+    if (!m) continue;
+    const sub = shopItems.reduce((s, i) => s + Number(i.unit_price) * i.quantity, 0);
+    membershipDiscountByShop[shopId] = Math.round((sub * m.discount_percent) / 100);
+  }
+  const membershipTotal = Object.values(membershipDiscountByShop).reduce((s, v) => s + v, 0);
+  const grandTotal = itemsTotal + shippingTotal - membershipTotal;
 
   const submit = async () => {
     if (!recipientName.trim() || !phone.trim() || (fulfillment === "delivery" && !address.trim())) {
@@ -447,6 +473,8 @@ function CheckoutPage() {
                     const selectedZoneId = shipping[shopId];
                     const selectedZone = shopZones.find((z) => z.id === selectedZoneId);
                     const ongkir = fulfillment === "delivery" ? selectedZone?.fee ?? 0 : 0;
+                    const mem = memberships[shopId];
+                    const memDisc = membershipDiscountByShop[shopId] ?? 0;
                     return (
                       <div key={shopId} className="rounded-lg border border-border">
                         <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
@@ -456,6 +484,11 @@ function CheckoutPage() {
                             <Store className="h-4 w-4" />
                           )}
                           <span className="text-xs font-semibold">{shop.name}</span>
+                          {mem && (
+                            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                              <Crown className="h-3 w-3" /> {mem.tier_name} · -{mem.discount_percent}%
+                            </span>
+                          )}
                         </div>
                         <ul className="divide-y divide-border text-sm">
                           {shopItems.map((it) => (
@@ -545,10 +578,13 @@ function CheckoutPage() {
                         </div>
                         <div className="border-t border-border bg-muted/20 px-3 py-2 text-right text-xs space-y-0.5">
                           <div>Subtotal: <span className="font-semibold">Rp {sub.toLocaleString("id-ID")}</span></div>
+                          {memDisc > 0 && (
+                            <div className="text-amber-700">Diskon Member ({mem!.discount_percent}%): <span className="font-semibold">−Rp {memDisc.toLocaleString("id-ID")}</span></div>
+                          )}
                           {fulfillment === "delivery" && (
                             <div>Ongkir: <span className="font-semibold">Rp {ongkir.toLocaleString("id-ID")}</span></div>
                           )}
-                          <div className="text-sm">Total toko: <span className="font-bold text-primary">Rp {(sub + ongkir).toLocaleString("id-ID")}</span></div>
+                          <div className="text-sm">Total toko: <span className="font-bold text-primary">Rp {(sub - memDisc + ongkir).toLocaleString("id-ID")}</span></div>
                         </div>
                       </div>
                     );
@@ -564,7 +600,13 @@ function CheckoutPage() {
                   <span className="text-muted-foreground">Total item</span>
                   <span>Rp {itemsTotal.toLocaleString("id-ID")}</span>
                 </div>
-              <div className="flex justify-between">
+                {membershipTotal > 0 && (
+                  <div className="flex justify-between text-amber-700">
+                    <span className="flex items-center gap-1"><Crown className="h-3.5 w-3.5" /> Diskon Member</span>
+                    <span className="font-semibold">−Rp {membershipTotal.toLocaleString("id-ID")}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">Ongkir</span>
                   <span>{fulfillment === "delivery" ? `Rp ${shippingTotal.toLocaleString("id-ID")}` : "Pickup"}</span>
                 </div>

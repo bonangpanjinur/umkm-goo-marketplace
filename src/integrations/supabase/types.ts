@@ -2366,6 +2366,9 @@ export type Database = {
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id: string
           marketplace_order: boolean | null
+          membership_discount: number
+          membership_discount_percent: number
+          membership_tier_id: string | null
           net_to_shop: number | null
           note: string | null
           order_no: string
@@ -2422,6 +2425,9 @@ export type Database = {
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           marketplace_order?: boolean | null
+          membership_discount?: number
+          membership_discount_percent?: number
+          membership_tier_id?: string | null
           net_to_shop?: number | null
           note?: string | null
           order_no: string
@@ -2478,6 +2484,9 @@ export type Database = {
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           marketplace_order?: boolean | null
+          membership_discount?: number
+          membership_discount_percent?: number
+          membership_tier_id?: string | null
           net_to_shop?: number | null
           note?: string | null
           order_no?: string
@@ -2510,6 +2519,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_membership_tier_id_fkey"
+            columns: ["membership_tier_id"]
+            isOneToOne: false
+            referencedRelation: "shop_membership_tiers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_outlet_id_fkey"
             columns: ["outlet_id"]
@@ -4884,6 +4900,16 @@ export type Database = {
           orders: number
           shop_id: string
           shop_name: string
+        }[]
+      }
+      get_my_active_memberships: {
+        Args: { _shop_ids: string[] }
+        Returns: {
+          discount_percent: number
+          expires_at: string
+          shop_id: string
+          tier_id: string
+          tier_name: string
         }[]
       }
       get_or_create_marketplace_cart: { Args: never; Returns: string }
