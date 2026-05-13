@@ -14,6 +14,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/portfolio")({
