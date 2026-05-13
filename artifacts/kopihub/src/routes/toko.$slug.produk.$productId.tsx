@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles } from "lucide-react";
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -46,6 +46,7 @@ type Product = {
   size_chart: { label: string; sizes: { size: string; [key: string]: string }[] } | null;
   item_type: string | null;
   preview_image_url: string | null;
+  accepts_custom_order?: boolean | null;
 };
 
 type PricePoint = { recorded_at: string; price: number };
@@ -139,7 +140,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -317,6 +318,23 @@ function ProductDetailPage() {
 
               <DeliveryEstimate shopId={shop.id} />
               <AddToCartBlock product={product} shopSlug={shop.slug} shop={shop} qty={cartQty} onQtyChange={setCartQty} />
+              {product.accepts_custom_order && (
+                <Link
+                  to="/toko/$slug/custom-order"
+                  params={{ slug: shop.slug }}
+                  search={{ produk: product.id }}
+                  className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 hover:bg-primary/10 transition-colors"
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-foreground">Mau pesan custom?</div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">Kirim brief khusus (ukuran, warna, jumlah) — penjual akan balas via WhatsApp.</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold text-primary shrink-0">Mulai →</span>
+                </Link>
+              )}
             </div>
           </div>
         ) : null}
