@@ -976,6 +976,120 @@ Merchant bisa:
 
 ---
 
+## BAGIAN 14: DETAIL PER FITUR
+
+### G-3 Upselling Engine ("Sering Dibeli Bersama")
+
+**Tujuan:** Naikkan AOV dengan menampilkan rekomendasi produk yang sering dibeli bersama produk yang sedang dilihat — campuran data otomatis (co-occurrence pesanan) dan kurasi manual oleh merchant.
+
+**Skema tabel `product_upsell_suggestions`:**
+
+| Kolom | Tipe | Catatan |
+|---|---|---|
+| `id` | uuid PK | `gen_random_uuid()` |
+| `shop_id` | uuid NOT NULL | Auto-isi dari `menu_items.shop_id` via trigger `upsell_fill_shop_id()` |
+| `product_id` | uuid NOT NULL | FK `menu_items(id)` ON DELETE CASCADE |
+| `suggested_id` | uuid NOT NULL | FK `menu_items(id)` ON DELETE CASCADE |
+| `score` | numeric(10,2) | Jumlah co-purchase (untuk source `auto`) |
+| `position` | smallint | Urutan tampil (1 = paling atas) |
+| `source` | text | `auto` atau `manual` (CHECK) |
+| `is_pinned` | boolean | Jika `true`, tidak ditimpa job otomatis |
+| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger `touch_updated_at()` |
+
+**Constraint:** UNIQUE `(product_id, suggested_id)` · CHECK `product_id <> suggested_id` (`upsell_no_self`).
+
+**Index:** `(product_id, position)`, `(shop_id)`, `(source)`.
+
+**RLS:**
+- `upsell_public_read` — semua orang (anon + authenticated) boleh `SELECT`.
+- `upsell_owner_manage` — `ALL` hanya untuk `auth.uid()` yang merupakan `coffee_shops.owner_id` dari `shop_id` baris.
+
+**Fungsi `compute_upsell_suggestions()` (SECURITY DEFINER, dijalankan cron):**
+1. `DELETE` baris `source='auto' AND is_pinned=false` (manual & pinned dipertahankan).
+2. CTE `recent_items` — distinct `(order_id, menu_item_id)` dari `order_items ⋈ orders` 90 hari terakhir, kecuali status `cancelled/refunded/draft/pending`.
+3. CTE `pairs` — self-join pada `order_id`, hitung `COUNT(*)` per pasangan, filter `>= 2`.
+4. CTE `ranked` — `ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY score DESC)`, hanya pasangan dengan kedua produk `is_available = true` dan `shop_id` sama (intra-shop).
+5. `INSERT` top-6 per produk dengan `ON CONFLICT (product_id, suggested_id) DO UPDATE` (refresh score & position).
+6. Return `(processed_products, inserted_pairs)`.
+
+**Jadwal cron:** `compute-upsell-weekly` — `0 3 * * 0` UTC = **Minggu pukul 10:00 WIB**.
+
+**Pemicu manual:** fungsi sudah di-`REVOKE` dari `PUBLIC/anon/authenticated` — hanya bisa dipanggil service role / owner DB lewat SQL editor.
+
+---
+
+**Contoh query baca dari klien (halaman produk publik `/toko/$slug/produk/$productId`):**
+
+```ts
+// 1) Ambil saran ter-precompute (urut: pinned dulu, lalu posisi)
+const { data: suggestions } = await supabase
+  .from("product_upsell_suggestions")
+  .select("suggested_id, position, score, source, is_pinned")
+  .eq("product_id", productId)
+  .order("is_pinned", { ascending: false })
+  .order("position", { ascending: true })
+  .limit(6);
+
+const ids = (suggestions ?? []).map((s) => s.suggested_id);
+
+// 2) Ambil detail produk dari menu_items (hanya yang aktif)
+const { data: products } = await supabase
+  .from("menu_items")
+  .select("id, name, price, image_url")
+  .in("id", ids)
+  .eq("is_available", true);
+
+// 3) Susun ulang sesuai urutan suggestion
+const ordered = ids
+  .map((id) => products?.find((p) => p.id === id))
+  .filter(Boolean);
+```
+
+**Contoh query untuk panel merchant (`/pos-app/upsell`):**
+
+```ts
+// List saran satu produk + status pin & sumber
+const { data } = await supabase
+  .from("product_upsell_suggestions")
+  .select("id, suggested_id, score, position, source, is_pinned")
+  .eq("product_id", selectedProductId)
+  .order("is_pinned", { ascending: false })
+  .order("position", { ascending: true });
+
+// Tambah saran manual (selalu pinned)
+await supabase.from("product_upsell_suggestions").insert({
+  product_id: selectedProductId,
+  suggested_id: pickedId,
+  source: "manual",
+  is_pinned: true,
+  position: nextPosition,
+}); // shop_id auto-terisi via trigger upsell_fill_shop_id()
+
+// Pin / unpin
+await supabase
+  .from("product_upsell_suggestions")
+  .update({ is_pinned: !current.is_pinned })
+  .eq("id", current.id);
+
+// Hapus saran
+await supabase
+  .from("product_upsell_suggestions")
+  .delete()
+  .eq("id", suggestionId);
+```
+
+**Strategi fallback di komponen `FrequentlyBoughtTogether`:**
+1. Coba baca dari `product_upsell_suggestions` (precomputed). Jika ≥ 2 item → render.
+2. Fallback co-occurrence client-side (scan max 200 order, 500 item).
+3. Fallback terakhir: 4 produk dari toko yang sama (urut `sort_order`).
+
+**Metrik sukses (target 30 hari setelah live):**
+- ≥ 40% halaman produk menampilkan blok "Sering Dibeli Bersama".
+- ≥ 8% klik dari blok berakhir tambah ke keranjang.
+- AOV merchant pengguna naik ≥ 5% dibanding 30 hari sebelumnya.
+
+---
+
 ## GLOSARIUM
 
 | Istilah | Definisi |
