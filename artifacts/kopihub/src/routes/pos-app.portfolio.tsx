@@ -139,22 +139,30 @@ function PortfolioPage() {
   }
 
   async function save() {
-    if (!imgUrl.trim()) { toast.error("Masukkan URL gambar atau unggah foto."); return; }
+    if (isBA && (!beforeUrl.trim() || !afterUrl.trim())) {
+      toast.error("Foto Sebelum & Sesudah wajib diisi.");
+      return;
+    }
+    if (!isBA && !imgUrl.trim()) { toast.error("Masukkan URL gambar atau unggah foto."); return; }
     if (!shop?.id) return;
     setSaving(true);
+    const baseImg = isBA ? (afterUrl.trim() || beforeUrl.trim()) : imgUrl.trim();
+    const payload = {
+      image_url: baseImg,
+      caption: caption.trim() || null,
+      category: category.trim() || null,
+      is_before_after: isBA,
+      before_image_url: isBA ? beforeUrl.trim() : null,
+      after_image_url: isBA ? afterUrl.trim() : null,
+    };
     try {
       if (editItem) {
-        const { error } = await (supabase as any)
-          .from("shop_portfolio")
-          .update({ image_url: imgUrl.trim(), caption: caption.trim() || null, category: category.trim() || null })
-          .eq("id", editItem.id);
+        const { error } = await (supabase as any).from("shop_portfolio").update(payload).eq("id", editItem.id);
         if (error) throw error;
         toast.success("Portofolio diperbarui!");
       } else {
         const maxSort = items.length > 0 ? Math.max(...items.map(i => i.sort_order)) + 1 : 0;
-        const { error } = await (supabase as any)
-          .from("shop_portfolio")
-          .insert({ shop_id: shop.id, image_url: imgUrl.trim(), caption: caption.trim() || null, category: category.trim() || null, sort_order: maxSort });
+        const { error } = await (supabase as any).from("shop_portfolio").insert({ shop_id: shop.id, sort_order: maxSort, ...payload });
         if (error) throw error;
         toast.success("Foto berhasil ditambahkan!");
       }
