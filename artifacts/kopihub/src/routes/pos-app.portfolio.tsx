@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X } from "lucide-react";
+import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X, ArrowLeftRight, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { toast } from "sonner";
@@ -71,7 +71,22 @@ function PortfolioPage() {
   const [saving, setSaving]     = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadTarget, setUploadTarget] = useState<"main"|"before"|"after">("main");
+  const [dims, setDims] = useState<{ before?: { w: number; h: number }; after?: { w: number; h: number } }>({});
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const ALLOWED_FORMATS = ["image/jpeg", "image/png", "image/webp"];
+  const MAX_BYTES = 5 * 1024 * 1024;
+  const MIN_DIM = 400;
+
+  function readImageMeta(file: File): Promise<{ w: number; h: number }> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { resolve({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
+      img.onerror = () => { reject(new Error("File gambar tidak valid")); URL.revokeObjectURL(url); };
+      img.src = url;
+    });
+  }
 
   useEffect(() => {
     if (!shop?.id) return;
