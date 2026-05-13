@@ -13,7 +13,7 @@ import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
-  Ticket, Tag, X,
+  Ticket, Tag, X, XCircle,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -107,8 +107,10 @@ export default function PublicBookingPage() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [cancellationToken, setCancellationToken] = useState<string | null>(null);
   const [confirmingDeposit, setConfirmingDeposit] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [cancelLinkCopied, setCancelLinkCopied] = useState(false);
 
   // Voucher state
   const [voucherInput, setVoucherInput] = useState("");
@@ -291,7 +293,7 @@ export default function PublicBookingPage() {
             voucher_discount: appliedVoucher.discountAmount,
           } : {}),
         } as any)
-        .select("id")
+        .select("id, cancellation_token")
         .maybeSingle() as any;
       if (error) throw error;
 
@@ -317,6 +319,7 @@ export default function PublicBookingPage() {
         } as any);
 
       setBookingId(bk?.id ?? "ok");
+      setCancellationToken(bk?.cancellation_token ?? null);
       if (needsDeposit) {
         setStep("deposit");
       } else {
@@ -973,6 +976,33 @@ export default function PublicBookingPage() {
             <p className="text-xs text-center text-muted-foreground">
               Setelah transfer, klik tombol di atas agar toko segera memverifikasi pembayaran Anda
             </p>
+
+            {/* ─── Cancellation link (deposit step) ─── */}
+            {cancellationToken && (
+              <div className="rounded-xl border border-rose-200/60 bg-rose-50/40 dark:bg-rose-950/10 p-4 space-y-2 text-left">
+                <p className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
+                  <XCircle className="h-3.5 w-3.5" /> Perlu batalkan booking?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Simpan link ini sebelum meninggalkan halaman. Gunakan untuk membatalkan booking secara mandiri.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 truncate text-[10px] bg-white dark:bg-card border border-rose-200 rounded px-2 py-1 text-rose-700 font-mono">
+                    {`${window.location.origin}/booking/cancel/${cancellationToken}`}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/booking/cancel/${cancellationToken}`);
+                      setCancelLinkCopied(true);
+                      setTimeout(() => setCancelLinkCopied(false), 2000);
+                    }}
+                    className="shrink-0 text-xs px-2 py-1 rounded border border-rose-300 text-rose-700 hover:bg-rose-100 transition-colors flex items-center gap-1"
+                  >
+                    {cancelLinkCopied ? <><Check className="h-3 w-3" /> Disalin</> : <><Copy className="h-3 w-3" /> Salin</>}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1043,6 +1073,33 @@ export default function PublicBookingPage() {
               </Button>
             )}
 
+            {/* ─── Cancellation link ─── */}
+            {cancellationToken && (
+              <div className="rounded-xl border border-rose-200/60 bg-rose-50/40 dark:bg-rose-950/10 p-4 max-w-sm mx-auto space-y-2 text-left">
+                <p className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
+                  <XCircle className="h-3.5 w-3.5" /> Perlu batalkan booking?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Simpan link ini — kamu bisa gunakan untuk membatalkan booking secara mandiri kapan saja sebelum jadwal.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 truncate text-[10px] bg-white dark:bg-card border border-rose-200 rounded px-2 py-1 text-rose-700 font-mono">
+                    {`${window.location.origin}/booking/cancel/${cancellationToken}`}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/booking/cancel/${cancellationToken}`);
+                      setCancelLinkCopied(true);
+                      setTimeout(() => setCancelLinkCopied(false), 2000);
+                    }}
+                    className="shrink-0 text-xs px-2 py-1 rounded border border-rose-300 text-rose-700 hover:bg-rose-100 transition-colors flex items-center gap-1"
+                  >
+                    {cancelLinkCopied ? <><Check className="h-3 w-3" /> Disalin</> : <><Copy className="h-3 w-3" /> Salin</>}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3 justify-center flex-wrap">
               <Button
                 variant="outline"
@@ -1053,6 +1110,8 @@ export default function PublicBookingPage() {
                   setSelectedStaffId(NO_PREF_STAFF_ID);
                   setName(""); setPhone(""); setPartySize("1"); setNotes("");
                   setBookingId(null);
+                  setCancellationToken(null);
+                  setCancelLinkCopied(false);
                   setAppliedVoucher(null);
                   setVoucherInput("");
                   loadSlots(shop.id);

@@ -163,6 +163,7 @@ import { Route as PesananOrderIdChatRouteImport } from './routes/pesanan.$orderI
 import { Route as OrderSlugCheckoutRouteImport } from './routes/order.$slug.checkout'
 import { Route as OrderSlugCartRouteImport } from './routes/order.$slug.cart'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
+import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
 import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug.produk.$productId'
@@ -944,6 +945,11 @@ const CheckoutSuksesOrderIdRoute = CheckoutSuksesOrderIdRouteImport.update({
   path: '/sukses/$orderId',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const BookingCancelTokenRoute = BookingCancelTokenRouteImport.update({
+  id: '/booking/cancel/$token',
+  path: '/booking/cancel/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AkunPesananOrderIdRoute = AkunPesananOrderIdRouteImport.update({
   id: '/pesanan/$orderId',
   path: '/pesanan/$orderId',
@@ -1113,6 +1119,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/': typeof PosAppIndexRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -1270,6 +1277,7 @@ export interface FileRoutesByTo {
   '/pos-app': typeof PosAppIndexRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -1433,6 +1441,7 @@ export interface FileRoutesById {
   '/pos-app/': typeof PosAppIndexRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -1597,6 +1606,7 @@ export interface FileRouteTypes {
     | '/pos-app/'
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
+    | '/booking/cancel/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -1754,6 +1764,7 @@ export interface FileRouteTypes {
     | '/pos-app'
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
+    | '/booking/cancel/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -1916,6 +1927,7 @@ export interface FileRouteTypes {
     | '/pos-app/'
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
+    | '/booking/cancel/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -1967,6 +1979,7 @@ export interface RootRouteChildren {
   TokoSlugRoute: typeof TokoSlugRouteWithChildren
   TrackOrderIdRoute: typeof TrackOrderIdRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
+  BookingCancelTokenRoute: typeof BookingCancelTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -3049,6 +3062,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutSuksesOrderIdRouteImport
       parentRoute: typeof CheckoutRoute
     }
+    '/booking/cancel/$token': {
+      id: '/booking/cancel/$token'
+      path: '/booking/cancel/$token'
+      fullPath: '/booking/cancel/$token'
+      preLoaderRoute: typeof BookingCancelTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/akun/pesanan/$orderId': {
       id: '/akun/pesanan/$orderId'
       path: '/pesanan/$orderId'
@@ -3522,6 +3542,7 @@ const rootRouteChildren: RootRouteChildren = {
   TokoSlugRoute: TokoSlugRouteWithChildren,
   TrackOrderIdRoute: TrackOrderIdRoute,
   KategoriIndexRoute: KategoriIndexRoute,
+  BookingCancelTokenRoute: BookingCancelTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
