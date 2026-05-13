@@ -117,6 +117,9 @@ function SettingsPage() {
           receipt_footer: data.receipt_footer ?? null,
           auto_reply_enabled: Boolean((data as any).auto_reply_enabled ?? false),
           auto_reply_message: (data as any).auto_reply_message ?? null,
+          deposit_enabled: Boolean((data as any).deposit_enabled ?? false),
+          deposit_percent: Number((data as any).deposit_percent ?? 30),
+          deposit_min_total: Number((data as any).deposit_min_total ?? 0),
         } as ShopRow);
       }
       setLoading(false);
