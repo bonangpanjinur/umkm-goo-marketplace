@@ -611,6 +611,9 @@ export type Database = {
           custom_domain: string | null
           custom_domain_verified_at: string | null
           custom_domain_verify_token: string | null
+          deposit_enabled: boolean
+          deposit_min_total: number
+          deposit_percent: number
           description: string | null
           email: string | null
           id: string
@@ -667,6 +670,9 @@ export type Database = {
           custom_domain?: string | null
           custom_domain_verified_at?: string | null
           custom_domain_verify_token?: string | null
+          deposit_enabled?: boolean
+          deposit_min_total?: number
+          deposit_percent?: number
           description?: string | null
           email?: string | null
           id?: string
@@ -723,6 +729,9 @@ export type Database = {
           custom_domain?: string | null
           custom_domain_verified_at?: string | null
           custom_domain_verify_token?: string | null
+          deposit_enabled?: boolean
+          deposit_min_total?: number
+          deposit_percent?: number
           description?: string | null
           email?: string | null
           id?: string
@@ -2343,6 +2352,9 @@ export type Database = {
       orders: {
         Row: {
           amount_tendered: number | null
+          balance_due: number
+          balance_paid: boolean
+          balance_paid_at: string | null
           business_date: string
           cashier_id: string | null
           change_due: number
@@ -2360,6 +2372,9 @@ export type Database = {
           delivery_fee: number
           delivery_proof_url: string | null
           delivery_zone_id: string | null
+          deposit_amount: number
+          deposit_paid: boolean
+          deposit_paid_at: string | null
           discount: number
           escrow_released_at: string | null
           escrow_status: string | null
@@ -2384,6 +2399,7 @@ export type Database = {
           points_redeemed: number
           promo_code: string | null
           promo_id: string | null
+          requires_deposit: boolean
           scheduled_for: string | null
           service_charge: number
           shift_id: string | null
@@ -2402,6 +2418,9 @@ export type Database = {
         }
         Insert: {
           amount_tendered?: number | null
+          balance_due?: number
+          balance_paid?: boolean
+          balance_paid_at?: string | null
           business_date?: string
           cashier_id?: string | null
           change_due?: number
@@ -2419,6 +2438,9 @@ export type Database = {
           delivery_fee?: number
           delivery_proof_url?: string | null
           delivery_zone_id?: string | null
+          deposit_amount?: number
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
           discount?: number
           escrow_released_at?: string | null
           escrow_status?: string | null
@@ -2443,6 +2465,7 @@ export type Database = {
           points_redeemed?: number
           promo_code?: string | null
           promo_id?: string | null
+          requires_deposit?: boolean
           scheduled_for?: string | null
           service_charge?: number
           shift_id?: string | null
@@ -2461,6 +2484,9 @@ export type Database = {
         }
         Update: {
           amount_tendered?: number | null
+          balance_due?: number
+          balance_paid?: boolean
+          balance_paid_at?: string | null
           business_date?: string
           cashier_id?: string | null
           change_due?: number
@@ -2478,6 +2504,9 @@ export type Database = {
           delivery_fee?: number
           delivery_proof_url?: string | null
           delivery_zone_id?: string | null
+          deposit_amount?: number
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
           discount?: number
           escrow_released_at?: string | null
           escrow_status?: string | null
@@ -2502,6 +2531,7 @@ export type Database = {
           points_redeemed?: number
           promo_code?: string | null
           promo_id?: string | null
+          requires_deposit?: boolean
           scheduled_for?: string | null
           service_charge?: number
           shift_id?: string | null
