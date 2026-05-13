@@ -34,7 +34,7 @@ Platform ini sudah sangat kuat dari sisi infrastruktur. **70–75% fitur inti su
    - Portofolio/galeri karya toko (M-02) — kritis untuk jasa kreatif & salon
    - Reminder otomatis H-1/H-3 (M-03) — kritis untuk retensi booking
    - ~~Waitlist virtual (M-12)~~ ✅ **Sudah selesai Sprint 11**
-   - Upselling engine (M-07) — dampak langsung ke AOV
+   - ~~Upselling engine (M-07)~~ ✅ **Sudah selesai Sprint 12**
 
 ---
 
@@ -158,6 +158,8 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 13 Mei 2026 | Sprint 11 | **Voucher Analytics Panel** — panel analitik di POS booking: pemakaian per kode, total diskon diberikan, dampak % revenue, filter rentang 7/30/90 hari / semua waktu, progress bar share per voucher | ✅ |
 | 13 Mei 2026 | Sprint 11 | **Fase B Pembatalan Mandiri** — kolom `cancellation_token UUID UNIQUE` + `cancelled_at` di `bookings` (migration m11); halaman publik `/booking/cancel/:token` dengan 5 state (view/confirm/cancelling/done/already_cancelled/past); dekremen `booked_count` saat batal; notif pemilik toko otomatis; link cancel + tombol salin muncul di success step dan deposit step | ✅ |
 | 13 Mei 2026 | Sprint 11 | **M-12 Waitlist Virtual** — tabel `booking_waitlist` + RLS (migration m12); slot penuh tampil amber di kalender + grid slot dengan badge "Daftar Antre"; form antrean + posisi nomor urut; notif pemilik saat ada yang daftar antre; trigger otomatis saat booking dibatalkan (cek antrean → notif pemilik); panel antrean di POS per slot (expand/collapse, notif WA, hapus entry, tandai sudah dinotifikasi) | ✅ |
+| 13 Mei 2026 | Sprint 12 | **Booking infra (G-1)** — tabel `booking_slots`, `bookings`, `booking_waitlist` dibuat penuh (sebelumnya route memakai `as any` tanpa tabel); RLS publik untuk slot aktif, pelanggan kelola booking sendiri, pemilik kelola semua; fungsi `booking_cancel_by_token()` (auto-tolak < 24 jam); fungsi `send_booking_reminders()` H-1 & H-3 dengan tracking `reminded_h1_at` / `reminded_h3_at` + dedup `dedupe_key`; pg_cron harian `0 2 * * *` UTC = **09:00 WIB**; trigger `bookings_fill_shop_id()` auto-isi `shop_id`; semua `SECURITY DEFINER` di-revoke dari `PUBLIC/anon/authenticated` | ✅ |
+| 13 Mei 2026 | Sprint 12 | **M-07 Upselling Engine (G-3)** — tabel `product_upsell_suggestions` (kolom: `shop_id`, `product_id`, `suggested_id`, `score`, `position`, `source` `auto`/`manual`, `is_pinned`, unique `(product_id, suggested_id)`, check `product_id <> suggested_id`); RLS public read + owner manage via `coffee_shops.owner_id`; trigger `upsell_fill_shop_id()` auto-isi `shop_id` dari produk; fungsi `compute_upsell_suggestions()` analisis co-occurrence `order_items` 90 hari terakhir (skip `cancelled/refunded/draft/pending`), minimal 2× co-purchase, top-6 per produk, hanya intra-shop, hanya produk `is_available = true`, baris `auto` non-pin di-DELETE & dihitung ulang sementara `manual`/`is_pinned` dipertahankan; pg_cron mingguan `0 3 * * 0` UTC = **Minggu 10:00 WIB** (`compute-upsell-weekly`); halaman merchant `/pos-app/upsell` (pilih produk → list saran dengan badge OTO/MANUAL + co-purchase count, tambah/hapus/pin saran); component `FrequentlyBoughtTogether` di halaman produk publik `/toko/$slug/produk/$productId` baca `product_upsell_suggestions` dulu (urut `is_pinned DESC, position ASC`), fallback ke perhitungan client-side, fallback same-shop; sidebar POS section "Tampilan Toko" dapat menu "Sering Dibeli Bersama" | ✅ |
 
 ---
 
@@ -427,7 +429,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ✅ Selesai (`booking.cancel.$token.tsx` + `akun.bookings.tsx`) |
 | M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai (Sprint 10) |
 | M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ✅ Selesai (`akun.returns.tsx`) |
-| M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ✅ Selesai (`pos-app.upsell.tsx` + tabel `product_upsell_suggestions` + cron mingguan `compute_upsell_suggestions`) |
+| M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ✅ Selesai Sprint 12 — tabel `product_upsell_suggestions` + fungsi `compute_upsell_suggestions()` (co-occurrence 90 hari, top-6 intra-shop) + cron mingguan `0 3 * * 0` UTC + panel `pos-app.upsell.tsx` (pin/manual override) + component publik baca precomputed dulu |
 | M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan | ✅ Selesai (`pos-app.bulk-pricing.tsx`) |
 | M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ✅ Selesai (`pos-app.rental-availability.tsx`) |
 | M-10 | **Deposit Booking Online** — pengaturan % DP per toko, step konfirmasi DP, kolom DB | Jasa/Rental | Komitmen | ✅ Selesai (Sprint 11) — *integrasi Midtrans/Xendit masih ❌* |
