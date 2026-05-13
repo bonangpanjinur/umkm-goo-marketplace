@@ -40,7 +40,9 @@ function Dashboard() {
   const [recent, setRecent] = useState<Order[]>([]);
   const [lowStock, setLowStock] = useState<{ id: string; name: string; current_stock: number; unit: string }[]>([]);
   const [lowOpen, setLowOpen] = useState(false);
-  const [trendDays, setTrendDays] = useState<7 | 30>(7);
+  const [trendDays, setTrendDays] = useState<7 | 30 | 0>(7);
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
   const [trend, setTrend] = useState<DayStat[]>([]);
 
   useEffect(() => {
@@ -98,48 +100,61 @@ function Dashboard() {
   // Fetch trend data
   useEffect(() => {
     if (!shop) return;
+    if (trendDays === 0) return; // custom range triggered separately
     (async () => {
       const now = new Date();
       const from = new Date(now);
       from.setDate(from.getDate() - trendDays);
       const fromISO = new Date(from.getTime() - from.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-
-      const { data } = await supabase
-        .from("orders")
-        .select("total, business_date")
-        .eq("shop_id", shop.id)
-        .eq("status", "completed")
-        .gte("business_date", fromISO)
-        .order("business_date");
-
-      const byDate = new Map<string, { total: number; count: number }>();
-      // Pre-fill all dates
-      for (let d = 0; d < trendDays; d++) {
-        const dt = new Date(from);
-        dt.setDate(dt.getDate() + d + 1);
-        const key = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-        byDate.set(key, { total: 0, count: 0 });
-      }
-      (data ?? []).forEach((o: { total: number; business_date: string }) => {
-        const cur = byDate.get(o.business_date) ?? { total: 0, count: 0 };
-        cur.total += Number(o.total);
-        cur.count += 1;
-        byDate.set(o.business_date, cur);
-      });
-      const result: DayStat[] = [];
-      byDate.forEach((v, k) => {
-        const dt = new Date(k + "T00:00:00");
-        result.push({
-          date: k,
-          label: dt.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
-          total: v.total,
-          count: v.count,
-        });
-      });
-      result.sort((a, b) => a.date.localeCompare(b.date));
-      setTrend(result);
+      await fetchTrend(fromISO, now.toISOString().slice(0, 10), trendDays);
     })();
   }, [shop, trendDays]);
+
+  async function fetchTrend(fromISO: string, toISO: string, days: number) {
+    const { data } = await supabase
+      .from("orders")
+      .select("total, business_date")
+      .eq("shop_id", shop!.id)
+      .eq("status", "completed")
+      .gte("business_date", fromISO)
+      .lte("business_date", toISO)
+      .order("business_date");
+
+    const byDate = new Map<string, { total: number; count: number }>();
+    // Pre-fill all dates in range
+    const start = new Date(fromISO + "T00:00:00");
+    for (let d = 0; d <= days; d++) {
+      const dt = new Date(start);
+      dt.setDate(dt.getDate() + d);
+      const key = dt.toISOString().slice(0, 10);
+      byDate.set(key, { total: 0, count: 0 });
+    }
+    (data ?? []).forEach((o: { total: number; business_date: string }) => {
+      const cur = byDate.get(o.business_date) ?? { total: 0, count: 0 };
+      cur.total += Number(o.total);
+      cur.count += 1;
+      byDate.set(o.business_date, cur);
+    });
+    const result: DayStat[] = [];
+    byDate.forEach((v, k) => {
+      const dt = new Date(k + "T00:00:00");
+      result.push({
+        date: k,
+        label: dt.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+        total: v.total,
+        count: v.count,
+      });
+    });
+    result.sort((a, b) => a.date.localeCompare(b.date));
+    setTrend(result);
+  }
+
+  async function applyCustomRange() {
+    if (!customFrom || !customTo) return;
+    if (customTo < customFrom) return;
+    const days = Math.round((new Date(customTo).getTime() - new Date(customFrom).getTime()) / 86400000);
+    await fetchTrend(customFrom, customTo, days);
+  }
 
   // Period comparison
   const comparison = useMemo(() => {
@@ -186,7 +201,7 @@ function Dashboard() {
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-sm font-semibold">Tren Penjualan</h3>
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1 items-center">
             <button
               onClick={() => setTrendDays(7)}
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${trendDays === 7 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground hover:bg-accent/80"}`}
@@ -199,6 +214,22 @@ function Dashboard() {
             >
               30 Hari
             </button>
+            <button
+              onClick={() => setTrendDays(0)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${trendDays === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground hover:bg-accent/80"}`}
+            >
+              Kustom
+            </button>
+            {trendDays === 0 && (
+              <div className="flex items-center gap-1 mt-1 sm:mt-0">
+                <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="h-7 rounded-md border border-input bg-background px-2 text-xs" />
+                <span className="text-xs text-muted-foreground">–</span>
+                <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} min={customFrom} className="h-7 rounded-md border border-input bg-background px-2 text-xs" />
+                <button onClick={applyCustomRange} className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                  Terapkan
+                </button>
+              </div>
+            )}
           </div>
         </div>
         {comparison && (

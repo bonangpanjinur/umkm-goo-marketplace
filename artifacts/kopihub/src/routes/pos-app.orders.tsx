@@ -3,7 +3,7 @@ import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
-import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2, MessageCircle } from "lucide-react";
+import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2, MessageCircle, CheckSquare, Square, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,8 @@ function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<OrderDetail | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
   async function load() {
     if (!outlet) return;
@@ -98,6 +100,37 @@ function OrdersPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outlet?.id]);
+
+  function toggleCheck(id: string) {
+    setCheckedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (checkedIds.size === orders.length) {
+      setCheckedIds(new Set());
+    } else {
+      setCheckedIds(new Set(orders.map(o => o.id)));
+    }
+  }
+
+  async function bulkUpdateStatus(status: string) {
+    if (checkedIds.size === 0) { toast.error("Pilih pesanan terlebih dahulu"); return; }
+    setBulkUpdating(true);
+    const { error } = await supabase
+      .from("orders")
+      .update({ status } as any)
+      .in("id", Array.from(checkedIds));
+    if (error) { toast.error(error.message); } else {
+      toast.success(`${checkedIds.size} pesanan diperbarui ke status "${status}"`);
+      setCheckedIds(new Set());
+      load();
+    }
+    setBulkUpdating(false);
+  }
 
   async function openDetail(o: Order) {
     const { data } = await supabase
@@ -157,10 +190,40 @@ function OrdersPage() {
           <h2 className="text-lg font-semibold">Belum ada order hari ini</h2>
         </div>
       ) : (
+        <>
+        {/* Bulk Action Bar */}
+        {checkedIds.size > 0 && (
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5">
+            <span className="text-sm font-medium">{checkedIds.size} dipilih</span>
+            <div className="ml-auto flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={() => bulkUpdateStatus("completed")} disabled={bulkUpdating}>
+                <CheckSquare className="h-3.5 w-3.5" /> Selesai
+              </Button>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 text-amber-600" onClick={() => bulkUpdateStatus("pending")} disabled={bulkUpdating}>
+                Pending
+              </Button>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 text-red-500" onClick={() => bulkUpdateStatus("voided")} disabled={bulkUpdating}>
+                <XCircle className="h-3.5 w-3.5" /> Void
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setCheckedIds(new Set())} disabled={bulkUpdating}>
+                Batal Pilih
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/30 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="px-4 py-2 text-left w-8">
+                  <button onClick={toggleAll} className="text-muted-foreground hover:text-foreground">
+                    {checkedIds.size === orders.length && orders.length > 0
+                      ? <CheckSquare className="h-4 w-4 text-primary" />
+                      : <Square className="h-4 w-4" />
+                    }
+                  </button>
+                </th>
                 <th className="px-4 py-2 text-left">No</th>
                 <th className="px-4 py-2 text-left">Waktu</th>
                 <th className="px-4 py-2 text-left">Bayar</th>
@@ -171,8 +234,14 @@ function OrdersPage() {
             <tbody className="divide-y divide-border">
               {orders.map((o) => {
                 const voided = o.status === "voided" || o.status === "cancelled";
+                const isChecked = checkedIds.has(o.id);
                 return (
-                <tr key={o.id} className={`hover:bg-muted/30 ${voided ? "opacity-60" : ""}`}>
+                <tr key={o.id} className={`hover:bg-muted/30 ${voided ? "opacity-60" : ""} ${isChecked ? "bg-primary/5" : ""}`}>
+                  <td className="px-4 py-2.5">
+                    <button onClick={() => toggleCheck(o.id)} className="text-muted-foreground hover:text-foreground">
+                      {isChecked ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
+                    </button>
+                  </td>
                   <td className="px-4 py-2.5 font-medium">
                     #{o.order_no}
                     {voided && <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">VOID</span>}
@@ -205,6 +274,7 @@ function OrdersPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {selected && shop && outlet && (

@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search, Image, Tv2, Users, ShieldAlert, TrendingUp, TrendingDown, FileSpreadsheet, ShieldX, Bell, SearchX } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search, Image, Tv2, Users, ShieldAlert, TrendingUp, TrendingDown, FileSpreadsheet, ShieldX, Bell, SearchX, Tags } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
@@ -23,6 +23,7 @@ const NAV = [
   { to: "/admin/disputes", label: "Sengketa", icon: AlertOctagon },
   { to: "/admin/plans", label: "Paket", icon: Package },
   { to: "/admin/catalog", label: "Katalog", icon: Blocks },
+  { to: "/admin/categories", label: "Kategori Usaha", icon: Tags },
   { to: "/admin/commission", label: "Konfigurasi Komisi", icon: Percent },
   { to: "/admin/payment-config", label: "Payment Gateway", icon: CreditCard },
   { to: "/admin/branding", label: "Branding Platform", icon: Palette },

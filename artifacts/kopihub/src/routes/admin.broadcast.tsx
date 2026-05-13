@@ -20,6 +20,7 @@ function AdminBroadcast() {
   const [severity, setSeverity] = useState("info");
   const [link, setLink] = useState("");
   const [audience, setAudience] = useState("all");
+  const [targetType, setTargetType] = useState<"merchant" | "buyer">("merchant");
   const [sending, setSending] = useState(false);
   const [history, setHistory] = useState<Array<{ id: string; title: string; body: string; severity: string; created_at: string }>>([]);
 
@@ -34,35 +35,49 @@ function AdminBroadcast() {
     if (!title.trim()) { toast.error("Judul wajib diisi"); return; }
     setSending(true);
     try {
-      // Get target shops based on audience
-      let shopQuery = supabase.from("coffee_shops").select("id");
-      if (audience !== "all") {
-        shopQuery = shopQuery.eq("plan", audience);
+      if (targetType === "buyer") {
+        // Broadcast ke pembeli via notifications table
+        const { data: buyers } = await (supabase as any)
+          .from("customer_profiles")
+          .select("user_id")
+          .limit(5000);
+        if (!buyers || buyers.length === 0) { toast.error("Tidak ada pembeli ditemukan"); setSending(false); return; }
+        const notifications = buyers.map((b: any) => ({
+          user_id: b.user_id,
+          type: "broadcast",
+          title: title.trim(),
+          body: body.trim(),
+          severity,
+          link: link.trim() || null,
+          is_read: false,
+          created_at: new Date().toISOString(),
+        }));
+        const { error } = await (supabase as any).from("notifications").insert(notifications);
+        if (error) throw error;
+        await (supabase as any).from("system_audit").insert({ event_type: "broadcast_sent_buyer", actor_id: user?.id, payload: { title: title.trim(), recipient_count: buyers.length } });
+        toast.success(`Broadcast terkirim ke ${buyers.length} pembeli`);
+      } else {
+        // Get target shops based on audience (merchant broadcast)
+        let shopQuery = supabase.from("coffee_shops").select("id");
+        if (audience !== "all") {
+          shopQuery = shopQuery.eq("plan" as any, audience);
+        }
+        const { data: shops } = await shopQuery;
+        if (!shops || shops.length === 0) { toast.error("Tidak ada toko ditemukan"); setSending(false); return; }
+        const notifications = shops.map((s) => ({
+          shop_id: s.id,
+          type: "broadcast",
+          title: title.trim(),
+          body: body.trim(),
+          severity,
+          link: link.trim() || null,
+          dedupe_key: `broadcast_${Date.now()}`,
+        }));
+        const { error } = await supabase.from("owner_notifications").insert(notifications);
+        if (error) throw error;
+        await (supabase as any).from("system_audit").insert({ event_type: "broadcast_sent", actor_id: user?.id, payload: { audience, title: title.trim(), recipient_count: shops.length } });
+        toast.success(`Broadcast terkirim ke ${shops.length} toko`);
       }
-      const { data: shops } = await shopQuery;
-      if (!shops || shops.length === 0) { toast.error("Tidak ada toko ditemukan"); setSending(false); return; }
-
-      const notifications = shops.map((s) => ({
-        shop_id: s.id,
-        type: "broadcast",
-        title: title.trim(),
-        body: body.trim(),
-        severity,
-        link: link.trim() || null,
-        dedupe_key: `broadcast_${Date.now()}`,
-      }));
-
-      const { error } = await supabase.from("owner_notifications").insert(notifications);
-      if (error) throw error;
-
-      // Log to system_audit
-      await supabase.from("system_audit").insert({
-        event_type: "broadcast_sent",
-        actor_id: user?.id,
-        payload: { audience, title: title.trim(), recipient_count: shops.length },
-      });
-
-      toast.success(`Broadcast terkirim ke ${shops.length} toko`);
       setTitle(""); setBody(""); setLink("");
       loadHistory();
     } catch (err: unknown) {
@@ -76,10 +91,23 @@ function AdminBroadcast() {
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
       <div className="flex items-center gap-2 mb-6">
         <Megaphone className="h-6 w-6 text-amber-500" />
-        <h1 className="text-2xl font-bold">Broadcast ke Owner</h1>
+        <h1 className="text-2xl font-bold">Broadcast Notifikasi</h1>
       </div>
 
       <Card className="p-5 space-y-4 mb-8">
+        {/* Target Type Toggle */}
+        <div>
+          <Label className="text-xs mb-2 block">Kirim ke</Label>
+          <div className="flex gap-1 rounded-xl bg-muted p-1 text-sm w-fit">
+            <button onClick={() => setTargetType("merchant")} className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${targetType === "merchant" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              🏪 Merchant
+            </button>
+            <button onClick={() => setTargetType("buyer")} className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${targetType === "buyer" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              👤 Pembeli
+            </button>
+          </div>
+        </div>
+
         <div><Label>Judul</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Pengumuman penting..." /></div>
         <div><Label>Isi Pesan</Label><Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Tulis pesan broadcast..." /></div>
         <div className="grid sm:grid-cols-3 gap-3">
@@ -94,23 +122,30 @@ function AdminBroadcast() {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label>Audiens</Label>
-            <Select value={audience} onValueChange={setAudience}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Toko</SelectItem>
-                <SelectItem value="free">Plan Free</SelectItem>
-                <SelectItem value="pro">Plan Pro</SelectItem>
-                <SelectItem value="pro_plus">Plan Pro Plus</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div><Label>Link (opsional)</Label><Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/pos-app/billing" /></div>
+          {targetType === "merchant" && (
+            <div>
+              <Label>Audiens Toko</Label>
+              <Select value={audience} onValueChange={setAudience}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Toko</SelectItem>
+                  <SelectItem value="free">Plan Free</SelectItem>
+                  <SelectItem value="pro">Plan Pro</SelectItem>
+                  <SelectItem value="pro_plus">Plan Pro Plus</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {targetType === "buyer" && (
+            <div className="flex items-end">
+              <p className="text-xs text-muted-foreground">Broadcast ke semua pembeli terdaftar</p>
+            </div>
+          )}
+          <div><Label>Link (opsional)</Label><Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={targetType === "buyer" ? "/kategori/kafe" : "/pos-app/billing"} /></div>
         </div>
         <Button onClick={send} disabled={sending} className="w-full">
           {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
-          Kirim Broadcast
+          Kirim ke {targetType === "buyer" ? "Pembeli" : "Merchant"}
         </Button>
       </Card>
 

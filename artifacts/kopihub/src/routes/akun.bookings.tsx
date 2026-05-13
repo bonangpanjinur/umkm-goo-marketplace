@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone, ChevronDown, ChevronUp, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/akun/bookings")({
@@ -68,6 +69,10 @@ function BookingsPage() {
   const [phoneInput, setPhoneInput] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<{ id: string; service_name: string; slot_date: string; slot_time: string; price: number | null; capacity: number; booked: number }[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [rescheduling, setRescheduling] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -107,6 +112,43 @@ function BookingsPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function openReschedule(b: Booking) {
+    setRescheduleBooking(b);
+    setSelectedSlot("");
+    const shopId = (b.slot as any)?.shop_id;
+    if (!shopId && !b.slot?.shop?.slug) { toast.error("Tidak dapat memuat slot toko ini"); return; }
+    const today = new Date().toISOString().slice(0, 10);
+    // fetch available future slots for same shop
+    let query = (supabase as any)
+      .from("booking_slots")
+      .select("id, service_name, slot_date, slot_time, price, capacity")
+      .gte("slot_date", today)
+      .eq("is_active", true)
+      .neq("id", b.slot ? undefined : undefined)
+      .order("slot_date")
+      .order("slot_time")
+      .limit(30);
+    if (shopId) query = query.eq("shop_id", shopId);
+    const { data } = await query;
+    const slots = ((data ?? []) as any[]).map(s => ({ ...s, booked: 0 }));
+    setAvailableSlots(slots);
+  }
+
+  async function confirmReschedule() {
+    if (!selectedSlot || !rescheduleBooking) return;
+    setRescheduling(true);
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({ slot_id: selectedSlot, status: "pending" })
+      .eq("id", rescheduleBooking.id);
+    if (error) { toast.error(error.message); } else {
+      toast.success("Booking berhasil dijadwalkan ulang");
+      setRescheduleBooking(null);
+      loadBookings(phone);
+    }
+    setRescheduling(false);
   }
 
   async function cancelBooking(id: string) {
@@ -168,11 +210,48 @@ function BookingsPage() {
         </div>
       )}
 
+      {/* Reschedule Dialog */}
+      <Dialog open={!!rescheduleBooking} onOpenChange={open => !open && setRescheduleBooking(null)}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Jadwalkan Ulang Booking</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-3">
+            <p className="text-sm text-muted-foreground">Pilih jadwal baru untuk booking <strong>{rescheduleBooking?.slot?.service_name}</strong>.</p>
+            {availableSlots.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                Tidak ada slot tersedia untuk toko ini.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {availableSlots.map(s => (
+                  <button key={s.id} onClick={() => setSelectedSlot(s.id)}
+                    className={`w-full rounded-xl border p-3 text-left text-sm transition-colors ${selectedSlot === s.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
+                    <p className="font-medium">{s.service_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(s.slot_date).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" })} · {s.slot_time.slice(0,5)}
+                      {s.price != null && ` · Rp ${Number(s.price).toLocaleString("id-ID")}`}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleBooking(null)}>Batal</Button>
+            <Button onClick={confirmReschedule} disabled={!selectedSlot || rescheduling} className="gap-2">
+              {rescheduling && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+              Konfirmasi Jadwal Baru
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {upcoming.length > 0 && (
         <div>
           <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Mendatang</h3>
           <div className="space-y-3">
-            {upcoming.map(b => <BookingCard key={b.id} booking={b} expanded={expanded === b.id} onToggle={() => setExpanded(expanded === b.id ? null : b.id)} onCancel={cancelBooking} cancelling={cancelling === b.id} />)}
+            {upcoming.map(b => <BookingCard key={b.id} booking={b} expanded={expanded === b.id} onToggle={() => setExpanded(expanded === b.id ? null : b.id)} onCancel={cancelBooking} cancelling={cancelling === b.id} onReschedule={openReschedule} />)}
           </div>
         </div>
       )}
@@ -189,12 +268,13 @@ function BookingsPage() {
   );
 }
 
-function BookingCard({ booking: b, expanded, onToggle, onCancel, cancelling }: {
+function BookingCard({ booking: b, expanded, onToggle, onCancel, cancelling, onReschedule }: {
   booking: Booking;
   expanded: boolean;
   onToggle: () => void;
   onCancel: (id: string) => void;
   cancelling: boolean;
+  onReschedule?: (b: Booking) => void;
 }) {
   const Icon = STATUS_ICON[b.status] ?? CalendarCheck;
   const canCancel = ["pending","confirmed"].includes(b.status);
@@ -247,7 +327,17 @@ function BookingCard({ booking: b, expanded, onToggle, onCancel, cancelling }: {
             </div>
           )}
           {canCancel && (
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-1 flex-wrap">
+              {onReschedule && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => onReschedule(b)}
+                >
+                  <CalendarDays className="h-3.5 w-3.5" /> Jadwalkan Ulang
+                </Button>
+              )}
               <Button
                 variant="destructive"
                 size="sm"

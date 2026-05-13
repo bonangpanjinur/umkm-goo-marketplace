@@ -147,6 +147,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/qa", label: "Q&A Produk", icon: HelpCircle, hint: "Jawab pertanyaan calon pembeli dari halaman produk" },
       { to: "/pos-app/iklan", label: "Iklan & Promosi", icon: Megaphone },
       { to: "/pos-app/waitlist", label: "Antrian Waitlist", icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh" },
+      { to: "/pos-app/rental-availability", label: "Ketersediaan Rental", icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal" },
+      { to: "/pos-app/booking-reminders", label: "Reminder Booking", icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan" },
     ],
   },
   {
