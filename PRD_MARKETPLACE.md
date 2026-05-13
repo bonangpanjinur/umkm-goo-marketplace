@@ -78,6 +78,15 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 12 Mei 2026 | Fase 7 | Manajemen Buyer, Moderasi Konten, Revenue Intelligence, Churn & Retensi, Laporan Pajak, Fraud Detection, Auto-renewal, Revenue Leakage | ✅ |
 | 13 Mei 2026 | Sprint 8 | Notifikasi Keranjang Terbengkalai, Badge Tier Toko (Platinum/Gold/Top Seller), Label Pelanggan Auto (VIP/Reguler/Baru/Tidak Aktif), Alert Harga Turun, Platform Voucher Admin UI | ✅ |
 | 13 Mei 2026 | Sprint 8 | **Voucher Toko** — merchant CRUD voucher khusus tokonya | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-01 Halaman Booking Publik** (`/toko/:slug/booking`) — wizard 3 langkah: kalender tanggal, pilih slot, isi data; notif in-app ke merchant; tombol konfirmasi WA | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-05 WA Notif Order** — tombol "WA ke Pelanggan" di detail order merchant, pesan template terisi otomatis (nama, item, total) | ✅ |
+| 13 Mei 2026 | Sprint 9 | **Tombol Booking** di halaman toko marketplace — tombol "Booking Layanan" menonjol mengarah ke halaman booking publik | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-03 Share Keranjang** — tombol "Bagikan Keranjang" di sidebar cart, pakai native share API atau copy ringkasan item+total | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-04 Pesan sebagai Hadiah** — checkbox di checkout: nama penerima hadiah + pesan ucapan yang dicetak di slip | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-06 Histori Harga** — grafik line chart di halaman produk, query tabel `menu_item_price_history`, graceful empty state | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-07 Size Chart** — tabel ukuran dinamis di halaman produk (dari field `size_chart` JSON di `menu_items`) | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-08 Tag Alergen & Dietary** — badge Halal/Vegan/Vegetarian + daftar alergen (⚠️) di halaman produk | ✅ |
+| 13 Mei 2026 | Sprint 9 | **P-09 Ingredient List & BPOM** — nomor BPOM + daftar komposisi/bahan dari field `bpom_number`/`ingredients` di `menu_items` | ✅ |
 
 ---
 

@@ -3,7 +3,7 @@ import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
-import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2 } from "lucide-react";
+import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -385,6 +385,23 @@ function DetailDialog({
             </>
           )}
           <ReceiptPaperPicker className="mr-auto" />
+          {order.customer_name && (
+            <Button
+              variant="outline"
+              className="gap-1.5 text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+              onClick={() => {
+                const itemsList = items.map(i => `• ${i.quantity}× ${i.name}`).join("\n");
+                const msg = `Halo ${order.customer_name}! 👋\n\nTerima kasih sudah memesan di *${shopName}*.\n\n*Order #${order.order_no}*\n${itemsList}\n\n*Total: ${formatIDR(order.total)}*\n\nPesanan Anda sedang kami proses. Terima kasih! 🙏`;
+                const waNum = order.customer_phone?.replace(/\D/g, "") ?? "";
+                const url = waNum
+                  ? `https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`
+                  : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                window.open(url, "_blank");
+              }}
+            >
+              <MessageCircle className="h-4 w-4" /> WA ke Pelanggan
+            </Button>
+          )}
           <Button variant="outline" onClick={handlePrintTicket}>
             <ChefHat className="mr-2 h-4 w-4" /> Tiket Dapur
           </Button>

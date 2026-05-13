@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck } from "lucide-react";
 import { useSeo } from "@/lib/use-seo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -248,6 +248,12 @@ function ShopPage() {
                 >
                   <Heart className={`h-3.5 w-3.5 ${followed ? "fill-current text-red-500" : ""}`} />
                   {followed ? "Mengikuti" : "Ikuti Toko"}
+                </Button>
+                <Button asChild size="sm" variant="default" className="gap-1.5">
+                  <Link to="/toko/$slug/booking" params={{ slug }}>
+                    <CalendarCheck className="h-3.5 w-3.5" />
+                    Booking Layanan
+                  </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
                   <Link to="/toko/$slug/chat" params={{ slug }}>

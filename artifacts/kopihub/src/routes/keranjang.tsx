@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, getLastCartActivity, markCartActivity, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
-import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X, Share2, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/keranjang")({
@@ -57,6 +57,7 @@ function CartPage() {
   const [loading, setLoading] = useState(true);
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [showAbandonedBanner, setShowAbandonedBanner] = useState(false);
+  const [cartShared, setCartShared] = useState(false);
 
   const refresh = async () => {
     try {
@@ -237,6 +238,29 @@ function CartPage() {
               <Link to="/checkout" className="mt-5 block">
                 <Button size="lg" className="w-full">Lanjut ke Checkout</Button>
               </Link>
+              <button
+                type="button"
+                onClick={async () => {
+                  const itemSummary = items
+                    .map(i => `• ${i.quantity}× ${i.product?.name ?? "Produk"} (Rp ${Number(i.unit_price).toLocaleString("id-ID")})`)
+                    .join("\n");
+                  const totalFmt = `Rp ${total.toLocaleString("id-ID")}`;
+                  const msg = `🛒 *Keranjang Belanjaanku di UMKMgo*\n\n${itemSummary}\n\n*Total: ${totalFmt}*\n\nTambahkan ke keranjangmu juga: ${window.location.origin}/keranjang`;
+                  if (navigator.share) {
+                    try { await navigator.share({ title: "Keranjang UMKMgo", text: msg }); return; } catch {}
+                  }
+                  await navigator.clipboard.writeText(msg);
+                  setCartShared(true);
+                  toast.success("Link keranjang disalin!");
+                  setTimeout(() => setCartShared(false), 2500);
+                }}
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+              >
+                {cartShared
+                  ? <><Check className="h-3.5 w-3.5 text-green-500" /> Disalin!</>
+                  : <><Share2 className="h-3.5 w-3.5" /> Bagikan Keranjang</>
+                }
+              </button>
               <p className="mt-2 text-center text-[11px] text-muted-foreground">
                 Pesanan akan dipisah per toko.
               </p>

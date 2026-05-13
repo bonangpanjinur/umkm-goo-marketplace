@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 import { addToCart } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
@@ -37,7 +38,76 @@ type Product = {
   rating_count: number | null;
   stock: number | null;
   track_stock: boolean;
+  allergens: string[] | null;
+  dietary_tags: string[] | null;
+  ingredients: string | null;
+  bpom_number: string | null;
+  size_chart: { label: string; sizes: { size: string; [key: string]: string }[] } | null;
 };
+
+type PricePoint = { recorded_at: string; price: number };
+
+function PriceHistory({ productId, currentPrice }: { productId: string; currentPrice: number }) {
+  const [history, setHistory] = useState<PricePoint[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("menu_item_price_history" as any)
+        .select("recorded_at, price")
+        .eq("menu_item_id" as any, productId)
+        .order("recorded_at" as any, { ascending: true })
+        .limit(30) as any;
+      setHistory((data ?? []) as PricePoint[]);
+      setLoaded(true);
+    })();
+  }, [productId]);
+
+  if (!loaded) return null;
+
+  const chartData = [
+    ...(history as PricePoint[]).map(h => ({
+      date: new Date(h.recorded_at).toLocaleDateString("id-ID", { month: "short", day: "numeric" }),
+      price: Number(h.price),
+    })),
+    { date: "Sekarang", price: currentPrice },
+  ];
+
+  if (chartData.length < 2) return null;
+
+  const lowestPrice = Math.min(...chartData.map(d => d.price));
+  const hasDropped = chartData.length > 1 && chartData[0].price > currentPrice;
+
+  return (
+    <div className="mt-6 rounded-xl border border-border p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold flex items-center gap-1.5">
+          <TrendingDown className="h-4 w-4 text-primary" /> Histori Harga
+        </h3>
+        {hasDropped && (
+          <span className="text-xs font-medium text-emerald-600 bg-emerald-100 rounded-full px-2 py-0.5">Harga turun!</span>
+        )}
+      </div>
+      <ResponsiveContainer width="100%" height={100}>
+        <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+          <YAxis hide domain={["auto", "auto"]} />
+          <Tooltip
+            formatter={(v: number) => [`Rp ${v.toLocaleString("id-ID")}`, "Harga"]}
+            contentStyle={{ fontSize: 12, borderRadius: 8 }}
+          />
+          <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
+      {lowestPrice < currentPrice && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Harga terendah 30 hari: <span className="font-semibold text-emerald-600">Rp {lowestPrice.toLocaleString("id-ID")}</span>
+        </p>
+      )}
+    </div>
+  );
+}
 
 type Shop = { id: string; slug: string; name: string; logo_url: string | null };
 
@@ -65,7 +135,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -191,11 +261,100 @@ function ProductDetailPage() {
                   {product.description}
                 </p>
               )}
+
+              {/* P-08: Dietary & Allergen tags */}
+              {((product.dietary_tags && product.dietary_tags.length > 0) || (product.allergens && product.allergens.length > 0)) && (
+                <div className="mt-5 space-y-2">
+                  {product.dietary_tags && product.dietary_tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.dietary_tags.map((tag: string) => (
+                        <span key={tag} className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          tag === "Halal" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" :
+                          tag === "Vegan" ? "bg-green-100 text-green-700" :
+                          tag === "Vegetarian" ? "bg-lime-100 text-lime-700" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  {product.allergens && product.allergens.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">⚠️ Mengandung alergen:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {product.allergens.map((a: string) => (
+                          <span key={a} className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* P-09: Ingredient list & BPOM */}
+              {(product.ingredients || product.bpom_number) && (
+                <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4 space-y-2.5 text-sm">
+                  {product.bpom_number && (
+                    <div className="flex items-start gap-2">
+                      <span className="inline-flex shrink-0 items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">BPOM</span>
+                      <span className="text-muted-foreground font-mono text-xs pt-0.5">{product.bpom_number}</span>
+                    </div>
+                  )}
+                  {product.ingredients && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-1">Komposisi / Bahan</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{product.ingredients}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <DeliveryEstimate shopId={shop.id} />
               <AddToCartBlock product={product} shopSlug={shop.slug} shop={shop} />
             </div>
           </div>
         ) : null}
+        {/* P-06: Price History Chart */}
+        {product && <PriceHistory productId={product.id} currentPrice={product.price} />}
+
+        {/* P-07: Size Chart */}
+        {product?.size_chart && (
+          <div className="mt-8 rounded-xl border border-border p-5">
+            <h3 className="text-base font-semibold flex items-center gap-2 mb-4">
+              <Ruler className="h-4 w-4 text-primary" /> {product.size_chart.label ?? "Tabel Ukuran"}
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-muted/60">
+                    <th className="border border-border px-3 py-2 text-left font-semibold">Ukuran</th>
+                    {product.size_chart.sizes[0] && Object.keys(product.size_chart.sizes[0])
+                      .filter(k => k !== "size")
+                      .map(col => (
+                        <th key={col} className="border border-border px-3 py-2 text-left font-semibold capitalize">{col}</th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.size_chart.sizes.map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "" : "bg-muted/30"}>
+                      <td className="border border-border px-3 py-2 font-semibold">{row.size}</td>
+                      {Object.entries(row).filter(([k]) => k !== "size").map(([k, v]) => (
+                        <td key={k} className="border border-border px-3 py-2 text-muted-foreground">{v}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3 text-amber-500" />
+              Ukuran bisa berbeda ±1–2 cm. Hubungi toko untuk konsultasi ukuran.
+            </p>
+          </div>
+        )}
+
         {product && shop && (
           <section className="mt-12">
             <h2 className="text-xl font-semibold mb-4">Tanya &amp; Jawab</h2>

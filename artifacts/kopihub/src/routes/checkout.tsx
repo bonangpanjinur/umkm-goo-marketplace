@@ -10,7 +10,7 @@ import { listCart, checkout, listShopZones, listShopDeliverySettings, type CartI
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
 import { useAuth } from "@/lib/auth";
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
-import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,6 +37,10 @@ function CheckoutPage() {
   const [guestEmail, setGuestEmail] = useState("");
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
   const [notes, setNotes] = useState("");
+
+  const [isGift, setIsGift] = useState(false);
+  const [giftRecipientName, setGiftRecipientName] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
 
   const [paymentMethod, setPaymentMethod] = useState("transfer");
   const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
@@ -344,6 +348,45 @@ function CheckoutPage() {
                 <div className="mt-4">
                   <Label>Catatan untuk toko</Label>
                   <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Opsional" />
+                </div>
+
+                {/* P-04: Pesan sebagai Hadiah */}
+                <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isGift}
+                      onChange={(e) => setIsGift(e.target.checked)}
+                      className="h-4 w-4 rounded"
+                    />
+                    <span className="flex items-center gap-2 font-medium text-sm">
+                      <Gift className="h-4 w-4 text-pink-500" /> Pesan sebagai Hadiah
+                    </span>
+                  </label>
+                  {isGift && (
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <Label>Nama penerima hadiah</Label>
+                        <Input
+                          className="mt-1"
+                          placeholder="contoh: Budi Santoso"
+                          value={giftRecipientName}
+                          onChange={(e) => setGiftRecipientName(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Pesan ucapan <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                        <Textarea
+                          className="mt-1"
+                          rows={3}
+                          placeholder="Selamat ulang tahun! Semoga hari-harimu selalu menyenangkan. 🎉"
+                          value={giftMessage}
+                          onChange={(e) => setGiftMessage(e.target.value)}
+                        />
+                        <p className="mt-1 text-xs text-muted-foreground">Pesan ini akan dicetak pada slip hadiah oleh merchant.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 
