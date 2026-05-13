@@ -126,6 +126,7 @@ function MarketplaceOrdersPage() {
   const [resolveFor, setResolveFor] = useState<any>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [trackingFor, setTrackingFor] = useState<any>(null);
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
