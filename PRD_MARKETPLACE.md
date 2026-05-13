@@ -422,21 +422,22 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | # | Fitur | Role | Impact | Status |
 |---|---|---|---|---|
 | M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ✅ Selesai (Sprint 11) |
-| M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ❌ |
-| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ❌ |
-| M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ❌ |
+| M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ✅ Selesai (`pos-app.portfolio.tsx`) |
+| M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ⚠️ Panel manual ada (`pos-app.booking-reminders.tsx`) — *cron otomatis masih ❌* |
+| M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ✅ Selesai (`booking.cancel.$token.tsx` + `akun.bookings.tsx`) |
 | M-05 | **Perbandingan Produk** (2–4 produk side-by-side) | Pembeli | Konversi | ✅ Selesai (Sprint 10) |
-| M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ❌ |
+| M-06 | **Return Self-Service** (foto + alasan → auto-notif toko, toko 24 jam respons) | Pembeli | Kepercayaan | ✅ Selesai (`akun.returns.tsx`) |
 | M-07 | **Upselling Engine** ("Sering dibeli bersama" per produk) | Merchant | AOV | ❌ |
-| M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan | ❌ |
-| M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ❌ |
+| M-08 | **Harga Grosir / Bulk Pricing** (harga beda per tier kuantitas) | Merchant | Pendapatan | ✅ Selesai (`pos-app.bulk-pricing.tsx`) |
+| M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ✅ Selesai (`pos-app.rental-availability.tsx`) |
 | M-10 | **Deposit Booking Online** — pengaturan % DP per toko, step konfirmasi DP, kolom DB | Jasa/Rental | Komitmen | ✅ Selesai (Sprint 11) — *integrasi Midtrans/Xendit masih ❌* |
-| M-11 | **Happy Hour / Time-based Pricing** (harga berubah per jam) | F&B | Pendapatan | ❌ |
+| M-11 | **Happy Hour / Time-based Pricing** (harga berubah per jam) | F&B | Pendapatan | ✅ Selesai (`pos-app.happy-hour.tsx`) |
 | M-12 | **Waitlist / Antrian Virtual** (daftar antrian saat penuh, notif WA saat slot terbuka, panel antrean di POS) | F&B/Jasa | Retensi | ✅ |
 | M-13 | **Preview Produk Digital** (sample watermarked sebelum beli) | Digital | Konversi | ❌ |
-| M-14 | **Cashback Wallet** (cashback % per transaksi, dipakai di order berikutnya) | Pembeli | Retensi | ❌ |
+| M-14 | **Cashback Wallet** (cashback % per transaksi, dipakai di order berikutnya) | Pembeli | Retensi | ✅ Selesai (`akun.cashback.tsx`) |
 | M-15 | **Katalog PDF / Link Shareable** (export produk aktif jadi PDF/link public) | Merchant | Pemasaran | ✅ Selesai (Sprint 10) |
 | M-VB | **Voucher Khusus Booking** — kode diskon eksklusif untuk booking online + analitik | Jasa | Konversi | ✅ Selesai (Sprint 11) |
+| **Riwayat Booking di Akun Pembeli** (`/akun/bookings`) | Pembeli | UX | ✅ Selesai (`akun.bookings.tsx`) |
 
 ### 🟢 Masa Depan (Dampak Besar, Effort Besar — 3+ hari)
 
