@@ -678,7 +678,6 @@ export default function PublicBookingPage() {
                           )}
                         </div>
                       </div>
-<<<<<<< HEAD
                       <div className="mt-2 flex items-center justify-between">
                         {isFull ? (
                           <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200 gap-1">
@@ -693,16 +692,6 @@ export default function PublicBookingPage() {
                           </Badge>
                         )}
                         {slot.notes && (
-=======
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <Badge
-                          variant="secondary"
-                          className={`text-xs shrink-0 ${isFull ? "bg-red-100 text-red-700" : remaining <= 2 ? "bg-orange-100 text-orange-700" : ""}`}
-                        >
-                          {isFull ? "Penuh" : `${remaining} tempat tersisa`}
-                        </Badge>
-                        {slot.notes && !isFull && (
->>>>>>> f6797d3 (Add upselling recommendations to the cart page)
                           <p className="text-xs text-muted-foreground truncate max-w-[120px]">{slot.notes}</p>
                         )}
                         {isFull && (
