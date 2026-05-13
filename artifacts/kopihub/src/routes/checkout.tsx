@@ -29,6 +29,7 @@ function CheckoutPage() {
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [shipping, setShipping] = useState<Record<string, string>>({});
   const [memberships, setMemberships] = useState<Record<string, { tier_name: string; discount_percent: number; expires_at: string }>>({});
+  const [depositSettings, setDepositSettings] = useState<Record<string, { enabled: boolean; percent: number; min_total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -131,6 +132,26 @@ function CheckoutPage() {
     }
     setShipping(init);
 
+    // Load deposit (DP) settings per shop
+    try {
+      const { data: shopRows } = await supabase
+        .from("coffee_shops")
+        .select("id, deposit_enabled, deposit_percent, deposit_min_total")
+        .in("id", shopIds);
+      if (shopRows) {
+        const map: Record<string, { enabled: boolean; percent: number; min_total: number }> = {};
+        for (const s of shopRows as any[]) {
+          map[s.id] = {
+            enabled: Boolean(s.deposit_enabled),
+            percent: Number(s.deposit_percent ?? 30),
+            min_total: Number(s.deposit_min_total ?? 0),
+          };
+        }
+        setDepositSettings(map);
+      }
+    } catch { /* tabel lama tanpa kolom DP — abaikan */ }
+
+
     // Auto-fetch active memberships per shop (for discount preview)
     if (!anonymous) {
       const { data: memData } = await supabase.rpc("get_my_active_memberships" as any, { _shop_ids: shopIds });
@@ -186,6 +207,26 @@ function CheckoutPage() {
   const membershipTotal = Object.values(membershipDiscountByShop).reduce((s, v) => s + v, 0);
   const grandTotal = itemsTotal + shippingTotal - membershipTotal;
 
+  // Per-shop deposit (DP) calculation
+  const depositByShop: Record<string, number> = {};
+  for (const [shopId, shopItems] of Object.entries(grouped)) {
+    const cfg = depositSettings[shopId];
+    if (!cfg?.enabled) continue;
+    const sub = shopItems.reduce((s, i) => s + Number(i.unit_price) * i.quantity, 0);
+    const ship = fulfillment === "delivery"
+      ? (zones.find((z) => z.id === shipping[shopId])?.fee ?? 0)
+      : 0;
+    const memDisc = membershipDiscountByShop[shopId] ?? 0;
+    const shopTotal = sub + ship - memDisc;
+    if (shopTotal < cfg.min_total) continue;
+    const dp = Math.round((shopTotal * cfg.percent) / 100);
+    if (dp > 0) depositByShop[shopId] = dp;
+  }
+  const depositTotal = Object.values(depositByShop).reduce((s, v) => s + v, 0);
+  const balanceTotal = grandTotal - depositTotal;
+  const hasDeposit = depositTotal > 0;
+
+
   const submit = async () => {
     if (!recipientName.trim() || !phone.trim() || (fulfillment === "delivery" && !address.trim())) {
       toast.error("Lengkapi data penerima.");
@@ -225,6 +266,35 @@ function CheckoutPage() {
             { onConflict: "user_id" }
           );
         } catch (_) {}
+      }
+
+      // Tulis info DP per order (best-effort, tidak blokir alur sukses)
+      if (hasDeposit && ids.length > 0) {
+        try {
+          const { data: createdOrders } = await supabase
+            .from("orders")
+            .select("id, shop_id, total")
+            .in("id", ids);
+          if (createdOrders) {
+            await Promise.all(
+              (createdOrders as any[]).map(async (o) => {
+                const dp = depositByShop[o.shop_id];
+                if (!dp || dp <= 0) return;
+                const total = Number(o.total);
+                const dpClamped = Math.min(dp, total);
+                const balance = Math.max(0, total - dpClamped);
+                await supabase
+                  .from("orders")
+                  .update({
+                    requires_deposit: true,
+                    deposit_amount: dpClamped,
+                    balance_due: balance,
+                  } as any)
+                  .eq("id", o.id);
+              })
+            );
+          }
+        } catch { /* abaikan error post-process DP */ }
       }
 
       navigate({ to: "/checkout/sukses/$orderId", params: { orderId: ids[0] }, search: { all: ids.join(",") } as any });
@@ -641,6 +711,26 @@ function CheckoutPage() {
                 <span>Estimasi Total</span>
                 <span className="text-primary">Rp {grandTotal.toLocaleString("id-ID")}</span>
               </div>
+
+              {hasDeposit && (
+                <div className="mt-3 rounded-lg border border-amber-300/60 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20 p-3 text-xs">
+                  <div className="mb-1.5 flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300">
+                    <Wallet className="h-3.5 w-3.5" /> Bayar dengan DP
+                  </div>
+                  <div className="flex justify-between">
+                    <span>DP dibayar sekarang</span>
+                    <span className="font-semibold">Rp {depositTotal.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Sisa pelunasan</span>
+                    <span>Rp {balanceTotal.toLocaleString("id-ID")}</span>
+                  </div>
+                  <p className="mt-1.5 text-[10px] text-amber-800/80 dark:text-amber-300/80">
+                    Sisa dilunasi saat pesanan diterima atau sesuai kesepakatan dengan toko.
+                  </p>
+                </div>
+              )}
+
               <p className="mt-3 text-[11px] text-muted-foreground">
                 Pembayaran via transfer manual ke toko. Setelah pesanan dibuat, kamu akan dihubungi toko untuk konfirmasi pembayaran.
               </p>

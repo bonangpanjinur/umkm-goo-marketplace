@@ -133,7 +133,7 @@ function MarketplaceOrdersPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, escrow_status, tracking_number, courier_name, tracking_url, tracking_set_at, items:order_items(id, name, qty, price, total)")
+      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, escrow_status, tracking_number, courier_name, tracking_url, tracking_set_at, requires_deposit, deposit_amount, deposit_paid, deposit_paid_at, balance_due, balance_paid, balance_paid_at, items:order_items(id, name, qty, price, total)")
       .eq("shop_id", shop.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -219,6 +219,33 @@ function MarketplaceOrdersPage() {
       toast.success("Dibatalkan");
       load();
     }
+    setAdvancing(null);
+  };
+
+  const markDepositPaid = async (o: any) => {
+    setAdvancing(o.id);
+    const { error } = await supabase
+      .from("orders")
+      .update({ deposit_paid: true, deposit_paid_at: new Date().toISOString() } as any)
+      .eq("id", o.id);
+    if (error) toast.error(error.message);
+    else { toast.success(`DP ${o.order_no} dicatat lunas`); load(); }
+    setAdvancing(null);
+  };
+
+  const markBalancePaid = async (o: any) => {
+    setAdvancing(o.id);
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        balance_paid: true,
+        balance_paid_at: new Date().toISOString(),
+        payment_status: "paid" as any,
+        paid_at: new Date().toISOString(),
+      } as any)
+      .eq("id", o.id);
+    if (error) toast.error(error.message);
+    else { toast.success(`Pelunasan ${o.order_no} dicatat`); load(); }
     setAdvancing(null);
   };
 
@@ -528,6 +555,34 @@ function MarketplaceOrdersPage() {
                       </div>
                     )}
 
+                    {/* Deposit / DP info */}
+                    {o.requires_deposit && (
+                      <div className="rounded-lg border border-amber-300/60 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20 px-3 py-2 text-xs space-y-1">
+                        <div className="flex items-center justify-between font-semibold text-amber-800 dark:text-amber-300">
+                          <span>Pembayaran DP</span>
+                          <span>
+                            {o.deposit_paid && o.balance_paid
+                              ? "Lunas penuh"
+                              : o.deposit_paid
+                                ? "DP lunas · sisa belum"
+                                : "DP belum dibayar"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>DP</span>
+                          <span className={o.deposit_paid ? "text-emerald-700 font-semibold" : "font-semibold"}>
+                            {formatIDR(o.deposit_amount || 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Sisa</span>
+                          <span className={o.balance_paid ? "text-emerald-700 font-semibold" : "font-semibold"}>
+                            {formatIDR(o.balance_due || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-1">
                       {next && (
@@ -539,6 +594,16 @@ function MarketplaceOrdersPage() {
                         >
                           {isAdv ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronRight className="h-3.5 w-3.5" />}
                           {NEXT_LABEL[o.status] ?? `→ ${STATUS_LABEL[next]}`}
+                        </Button>
+                      )}
+                      {o.requires_deposit && !o.deposit_paid && (
+                        <Button size="sm" variant="outline" onClick={() => markDepositPaid(o)} disabled={isAdv}>
+                          Tandai DP Lunas
+                        </Button>
+                      )}
+                      {o.requires_deposit && o.deposit_paid && !o.balance_paid && (
+                        <Button size="sm" variant="outline" onClick={() => markBalancePaid(o)} disabled={isAdv}>
+                          Tandai Pelunasan
                         </Button>
                       )}
                       {o.fulfillment === "delivery" && !["pending","cancelled"].includes(o.status) && !o.tracking_number && (

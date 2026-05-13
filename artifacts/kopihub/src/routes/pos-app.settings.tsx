@@ -76,6 +76,9 @@ type ShopRow = {
   receipt_footer: string | null;
   auto_reply_enabled: boolean;
   auto_reply_message: string | null;
+  deposit_enabled: boolean;
+  deposit_percent: number;
+  deposit_min_total: number;
 };
 
 function SettingsPage() {
@@ -99,7 +102,7 @@ function SettingsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("coffee_shops")
-        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message")
+        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percent, deposit_min_total")
         .eq("id", shop.id)
         .maybeSingle();
       if (data) {
@@ -114,6 +117,9 @@ function SettingsPage() {
           receipt_footer: data.receipt_footer ?? null,
           auto_reply_enabled: Boolean((data as any).auto_reply_enabled ?? false),
           auto_reply_message: (data as any).auto_reply_message ?? null,
+          deposit_enabled: Boolean((data as any).deposit_enabled ?? false),
+          deposit_percent: Number((data as any).deposit_percent ?? 30),
+          deposit_min_total: Number((data as any).deposit_min_total ?? 0),
         } as ShopRow);
       }
       setLoading(false);
@@ -226,6 +232,9 @@ function SettingsPage() {
         receipt_footer: form.receipt_footer,
         auto_reply_enabled: form.auto_reply_enabled,
         auto_reply_message: form.auto_reply_message,
+        deposit_enabled: form.deposit_enabled,
+        deposit_percent: form.deposit_percent,
+        deposit_min_total: form.deposit_min_total,
       } as never)
       .eq("id", shop.id);
     setSaving(false);
@@ -476,7 +485,53 @@ function SettingsPage() {
         </div>
       </Section>
 
-      {/* Pajak & Service Charge */}
+      {/* Down Payment / DP */}
+      <Section icon={CreditCard} title="Down Payment (DP)" desc="Aktifkan untuk meminta pelanggan bayar uang muka saat checkout. Sisa dilunasi setelah pesanan diterima.">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+            <div>
+              <div className="text-sm font-medium">Aktifkan DP otomatis</div>
+              <p className="text-xs text-muted-foreground">Order yang memenuhi minimum total akan otomatis dihitung DP-nya.</p>
+            </div>
+            <Switch
+              checked={form.deposit_enabled}
+              onCheckedChange={(v) => update("deposit_enabled", Boolean(v))}
+            />
+          </div>
+
+          {form.deposit_enabled && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Persentase DP (%)</Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={100}
+                  value={form.deposit_percent}
+                  onChange={(e) => update("deposit_percent", Math.max(1, Math.min(100, Number(e.target.value || 0))))}
+                  placeholder="30"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Mis. 30 = pelanggan bayar 30% di awal.</p>
+              </div>
+              <div>
+                <Label>Minimum total (Rp)</Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  value={form.deposit_min_total}
+                  onChange={(e) => update("deposit_min_total", Math.max(0, Number(e.target.value || 0)))}
+                  placeholder="0"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">DP berlaku jika total ≥ nilai ini. Isi 0 untuk semua order.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </Section>
+
+
       <Section icon={ReceiptIcon} title="Pajak & Service Charge" desc="Diterapkan otomatis saat checkout POS dan online.">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
