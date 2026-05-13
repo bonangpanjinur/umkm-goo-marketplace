@@ -29,6 +29,7 @@ function CheckoutPage() {
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [shipping, setShipping] = useState<Record<string, string>>({});
   const [memberships, setMemberships] = useState<Record<string, { tier_name: string; discount_percent: number; expires_at: string }>>({});
+  const [depositSettings, setDepositSettings] = useState<Record<string, { enabled: boolean; percent: number; min_total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
