@@ -28,6 +28,7 @@ function CheckoutPage() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [deliveryMap, setDeliveryMap] = useState<Record<string, DeliverySettings>>({});
   const [shipping, setShipping] = useState<Record<string, string>>({});
+  const [memberships, setMemberships] = useState<Record<string, { tier_name: string; discount_percent: number; expires_at: string }>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
