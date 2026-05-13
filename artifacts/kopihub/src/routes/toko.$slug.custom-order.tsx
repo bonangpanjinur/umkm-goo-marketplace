@@ -66,6 +66,7 @@ function CustomOrderForm() {
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    try { localStorage.setItem(`kopihub:custom-order-contact:${slug}`, contact.trim()); } catch {}
     setSubmitted(true);
   }
 
