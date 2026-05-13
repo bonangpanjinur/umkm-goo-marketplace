@@ -222,6 +222,33 @@ function MarketplaceOrdersPage() {
     setAdvancing(null);
   };
 
+  const markDepositPaid = async (o: any) => {
+    setAdvancing(o.id);
+    const { error } = await supabase
+      .from("orders")
+      .update({ deposit_paid: true, deposit_paid_at: new Date().toISOString() } as any)
+      .eq("id", o.id);
+    if (error) toast.error(error.message);
+    else { toast.success(`DP ${o.order_no} dicatat lunas`); load(); }
+    setAdvancing(null);
+  };
+
+  const markBalancePaid = async (o: any) => {
+    setAdvancing(o.id);
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        balance_paid: true,
+        balance_paid_at: new Date().toISOString(),
+        payment_status: "paid" as any,
+        paid_at: new Date().toISOString(),
+      } as any)
+      .eq("id", o.id);
+    if (error) toast.error(error.message);
+    else { toast.success(`Pelunasan ${o.order_no} dicatat`); load(); }
+    setAdvancing(null);
+  };
+
   const filtered = useMemo(() => {
     if (tab === "active")    return orders.filter(o => !["completed", "cancelled", "delivered"].includes(o.status));
     if (tab === "done")      return orders.filter(o => ["completed", "delivered"].includes(o.status));
