@@ -47,6 +47,9 @@ type PortfolioItem = {
   caption: string | null;
   category: string | null;
   sort_order: number;
+  before_image_url?: string | null;
+  after_image_url?: string | null;
+  is_before_after?: boolean | null;
 };
 
 function PortfolioPage() {
