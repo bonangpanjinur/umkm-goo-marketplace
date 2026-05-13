@@ -2,16 +2,147 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
-import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, getLastCartActivity, markCartActivity, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
+import { listCart, updateCartItem, removeCartItem, listShopDeliverySettings, getLastCartActivity, markCartActivity, addToCart, type CartItem, type DeliverySettings } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
-import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X, Share2, Check, CheckSquare, Square } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, Store, Truck, PackageCheck, Clock, Bell, X, Share2, Check, CheckSquare, Square, Package } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/keranjang")({
   head: () => ({ meta: [{ title: "Keranjang — Marketplace" }] }),
   component: CartPage,
 });
+
+type SuggestedProduct = { id: string; name: string; price: number; image_url: string | null; shop_id: string; slug: string; shop_slug: string };
+
+function CartUpsellCard({ product, onAdded }: { product: SuggestedProduct; onAdded: () => void }) {
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded]   = useState(false);
+
+  const handleAdd = async () => {
+    setAdding(true);
+    try {
+      await addToCart({ shop_id: product.shop_id, product_id: product.id, unit_price: product.price, quantity: 1 });
+      setAdded(true);
+      toast.success(`${product.name} ditambahkan!`);
+      setTimeout(() => { setAdded(false); onAdded(); }, 1500);
+    } catch {
+      toast.error("Gagal menambahkan ke keranjang");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+      <Link to="/toko/$slug/produk/$productId" params={{ slug: product.shop_slug, productId: product.id }}>
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted/40">
+          {product.image_url
+            ? <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+            : <div className="flex h-full w-full items-center justify-center"><Store className="h-5 w-5 text-muted-foreground" /></div>
+          }
+        </div>
+      </Link>
+      <div className="min-w-0 flex-1">
+        <Link to="/toko/$slug/produk/$productId" params={{ slug: product.shop_slug, productId: product.id }}>
+          <p className="text-xs font-medium line-clamp-2 hover:text-primary transition-colors">{product.name}</p>
+        </Link>
+        <p className="mt-0.5 text-xs font-bold text-primary">Rp {Number(product.price).toLocaleString("id-ID")}</p>
+      </div>
+      <Button
+        size="sm"
+        variant={added ? "default" : "outline"}
+        className={`shrink-0 gap-1.5 text-xs h-8 ${added ? "bg-emerald-500 border-emerald-500 hover:bg-emerald-600" : ""}`}
+        onClick={handleAdd}
+        disabled={adding}
+      >
+        {adding
+          ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          : added
+            ? <><Check className="h-3.5 w-3.5" /> Ditambahkan</>
+            : <><Plus className="h-3.5 w-3.5" /> Tambah</>
+        }
+      </Button>
+    </div>
+  );
+}
+
+function CartUpsell({ cartItems }: { cartItems: CartItem[] }) {
+  const [suggestions, setSuggestions] = useState<SuggestedProduct[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (cartItems.length === 0) return;
+    const cartProductIds = cartItems.map(i => i.product_id).filter(Boolean);
+    const cartProductIdsSet = new Set(cartProductIds);
+
+    (async () => {
+      try {
+        const { data: refs } = await supabase
+          .from("order_items" as any)
+          .select("order_id")
+          .in("menu_item_id" as any, cartProductIds)
+          .limit(200) as any;
+
+        const orderIds: string[] = (refs ?? []).map((r: any) => r.order_id).filter(Boolean);
+        if (orderIds.length === 0) return;
+
+        const { data: coItems } = await supabase
+          .from("order_items" as any)
+          .select("menu_item_id")
+          .in("order_id" as any, orderIds)
+          .not("menu_item_id" as any, "is", null)
+          .limit(500) as any;
+
+        const freq = new Map<string, number>();
+        for (const item of (coItems ?? []) as any[]) {
+          if (item.menu_item_id && !cartProductIdsSet.has(item.menu_item_id)) {
+            freq.set(item.menu_item_id, (freq.get(item.menu_item_id) ?? 0) + 1);
+          }
+        }
+
+        const topIds = [...freq.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4)
+          .map(([id]) => id);
+
+        if (topIds.length < 2) return;
+
+        const { data: products } = await supabase
+          .from("menu_items")
+          .select("id, name, price, image_url, shop_id, slug, coffee_shops(slug)")
+          .in("id", topIds)
+          .eq("is_available" as any, true) as any;
+
+        setSuggestions(
+          ((products ?? []) as any[]).map((p: any) => ({
+            ...p,
+            shop_slug: p.coffee_shops?.slug ?? "",
+          }))
+        );
+      } catch {
+        // silent
+      }
+    })();
+  }, [cartItems.length, refreshKey]);
+
+  if (suggestions.length === 0) return null;
+
+  return (
+    <div className="mt-6 space-y-3">
+      <div className="flex items-center gap-2">
+        <Package className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold">Sering Dibeli Bersama</h3>
+      </div>
+      <div className="space-y-2">
+        {suggestions.map(p => (
+          <CartUpsellCard key={p.id} product={p} onAdded={() => setRefreshKey(k => k + 1)} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DeliveryChip({ ds }: { ds: DeliverySettings }) {
   const win = ds.open_time && ds.close_time
@@ -284,6 +415,9 @@ function CartPage() {
                 );
               })}
             </div>
+
+            {/* Cart upsell — items frequently bought alongside what's in cart */}
+            <CartUpsell cartItems={items} />
 
             <aside className="h-fit rounded-xl border border-border bg-card p-5">
               <h3 className="text-sm font-semibold">Ringkasan</h3>

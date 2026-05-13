@@ -610,6 +610,77 @@ function BulkPricingTiers({ productId, basePrice, activeQty }: { productId: stri
   );
 }
 
+function RelatedItemCard({ item, shopId, shopSlug }: {
+  item: { id: string; name: string; price: number; image_url: string | null };
+  shopId: string;
+  shopSlug: string;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded]   = useState(false);
+
+  const handleQuickAdd = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAdding(true);
+    try {
+      await addToCart({ shop_id: shopId, product_id: item.id, unit_price: item.price, quantity: 1 });
+      setAdded(true);
+      toast.success(`${item.name} ditambahkan ke keranjang`);
+      setTimeout(() => setAdded(false), 2000);
+    } catch {
+      toast.error("Gagal menambahkan ke keranjang");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className="group relative rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors">
+      <Link
+        to="/toko/$slug/produk/$productId"
+        params={{ slug: shopSlug, productId: item.id }}
+        className="block"
+      >
+        <div className="aspect-square bg-muted/40 overflow-hidden">
+          {item.image_url ? (
+            <img
+              src={item.image_url}
+              alt={item.name}
+              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-muted-foreground">
+              <Store className="h-6 w-6" />
+            </div>
+          )}
+        </div>
+        <div className="p-2.5 pr-8">
+          <p className="text-xs font-medium line-clamp-2 leading-snug">{item.name}</p>
+          <p className="mt-1 text-xs font-bold text-primary">
+            Rp {Number(item.price).toLocaleString("id-ID")}
+          </p>
+        </div>
+      </Link>
+      <button
+        onClick={handleQuickAdd}
+        disabled={adding}
+        className={`absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-sm transition-all ${
+          added ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground hover:bg-primary/90"
+        }`}
+        title="Tambah ke keranjang"
+      >
+        {adding ? (
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        ) : added ? (
+          <Check className="h-3.5 w-3.5" />
+        ) : (
+          <Plus className="h-3.5 w-3.5" />
+        )}
+      </button>
+    </div>
+  );
+}
+
 function FrequentlyBoughtTogether({ productId, shopId, shopSlug }: { productId: string; shopId: string; shopSlug: string }) {
   type RelatedProduct = { id: string; name: string; price: number; image_url: string | null };
   const [related, setRelated] = useState<RelatedProduct[]>([]);
@@ -617,15 +688,67 @@ function FrequentlyBoughtTogether({ productId, shopId, shopSlug }: { productId: 
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("menu_items")
-        .select("id, name, price, image_url")
-        .eq("shop_id" as any, shopId)
-        .eq("is_available" as any, true)
-        .neq("id", productId)
-        .limit(4) as any;
-      setRelated((data ?? []) as RelatedProduct[]);
-      setLoaded(true);
+      try {
+        // Step 1: Find orders containing this product
+        const { data: refs } = await supabase
+          .from("order_items" as any)
+          .select("order_id")
+          .eq("menu_item_id" as any, productId)
+          .limit(200) as any;
+
+        const orderIds: string[] = (refs ?? []).map((r: any) => r.order_id).filter(Boolean);
+
+        let topIds: string[] = [];
+
+        if (orderIds.length > 0) {
+          // Step 2: Find co-purchased items in those orders
+          const { data: coItems } = await supabase
+            .from("order_items" as any)
+            .select("menu_item_id")
+            .in("order_id" as any, orderIds)
+            .neq("menu_item_id" as any, productId)
+            .not("menu_item_id" as any, "is", null)
+            .limit(500) as any;
+
+          // Step 3: Count frequency
+          const freq = new Map<string, number>();
+          for (const item of (coItems ?? []) as any[]) {
+            if (item.menu_item_id) {
+              freq.set(item.menu_item_id, (freq.get(item.menu_item_id) ?? 0) + 1);
+            }
+          }
+
+          topIds = [...freq.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4)
+            .map(([id]) => id);
+        }
+
+        if (topIds.length >= 2) {
+          // Step 4: Fetch product details for co-purchased IDs
+          const { data } = await supabase
+            .from("menu_items")
+            .select("id, name, price, image_url")
+            .in("id", topIds)
+            .eq("is_available" as any, true) as any;
+          setRelated((data ?? []) as RelatedProduct[]);
+        } else {
+          // Fallback: same-shop items (most recently added first)
+          const { data } = await supabase
+            .from("menu_items")
+            .select("id, name, price, image_url")
+            .eq("shop_id" as any, shopId)
+            .eq("is_available" as any, true)
+            .neq("id", productId)
+            .order("sort_order" as any, { ascending: true })
+            .limit(4) as any;
+          setRelated((data ?? []) as RelatedProduct[]);
+        }
+      } catch {
+        // silent fallback
+      } finally {
+        setLoaded(true);
+      }
     })();
   }, [productId, shopId]);
 
@@ -638,32 +761,7 @@ function FrequentlyBoughtTogether({ productId, shopId, shopSlug }: { productId: 
       </h3>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {related.map((item) => (
-          <Link
-            key={item.id}
-            to="/toko/$slug/produk/$productId"
-            params={{ slug: shopSlug, productId: item.id }}
-            className="group rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
-          >
-            <div className="aspect-square bg-muted/40 overflow-hidden">
-              {item.image_url ? (
-                <img
-                  src={item.image_url}
-                  alt={item.name}
-                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                  <Store className="h-6 w-6" />
-                </div>
-              )}
-            </div>
-            <div className="p-2.5">
-              <p className="text-xs font-medium line-clamp-2 leading-snug">{item.name}</p>
-              <p className="mt-1 text-xs font-bold text-primary">
-                Rp {Number(item.price).toLocaleString("id-ID")}
-              </p>
-            </div>
-          </Link>
+          <RelatedItemCard key={item.id} item={item} shopId={shopId} shopSlug={shopSlug} />
         ))}
       </div>
     </section>

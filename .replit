@@ -40,13 +40,13 @@ waitForPort = 5000
 name = "API Server"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd artifacts/api-server && PORT=3001 pnpm dev"
 waitForPort = 3001
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
@@ -68,7 +68,6 @@ SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 API_PORT = "3001"
 NODE_ENV = "development"
 LOG_LEVEL = "info"
-PORT = "8080"
 
 [[ports]]
 localPort = 3001

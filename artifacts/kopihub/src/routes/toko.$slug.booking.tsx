@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
-  Ticket, Tag, X, XCircle, AlertTriangle,
+
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -121,6 +122,14 @@ export default function PublicBookingPage() {
     discountAmount: number;
     finalPrice: number;
   } | null>(null);
+
+  // Waitlist state (M-12)
+  const [waitlistSlot, setWaitlistSlot] = useState<Slot | null>(null);
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistPhone, setWaitlistPhone] = useState("");
+  const [waitlistSize, setWaitlistSize] = useState("1");
+  const [waitlistSaving, setWaitlistSaving] = useState(false);
+  const [waitlistDone, setWaitlistDone] = useState(false);
 
   // Load shop
   useEffect(() => {
@@ -375,6 +384,32 @@ export default function PublicBookingPage() {
     });
   }
 
+  async function joinWaitlist() {
+    if (!waitlistSlot || !shop) return;
+    if (!waitlistName.trim()) { toast.error("Nama wajib diisi"); return; }
+    if (!waitlistPhone.trim()) { toast.error("Nomor WhatsApp wajib diisi"); return; }
+    setWaitlistSaving(true);
+    try {
+      const { error } = await (supabase as any)
+        .from("booking_waitlists")
+        .insert({
+          slot_id: waitlistSlot.id,
+          shop_id: shop.id,
+          customer_name: waitlistName.trim(),
+          customer_phone: waitlistPhone.trim(),
+          party_size: Math.max(1, Number(waitlistSize) || 1),
+          status: "waiting",
+        });
+      if (error) throw error;
+      setWaitlistDone(true);
+      toast.success("Berhasil masuk daftar tunggu! Kami akan menghubungi kamu jika ada slot kosong.");
+    } catch (e: any) {
+      toast.error(e.message ?? "Gagal mendaftar waitlist");
+    } finally {
+      setWaitlistSaving(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -598,9 +633,15 @@ export default function PublicBookingPage() {
                   const isFull = remaining <= 0;
                   const isSelected = selectedSlot?.id === slot.id;
                   return (
-                    <button
-                      key={slot.id}
+                    <div key={slot.id} className={`relative rounded-xl border p-4 transition-all ${
+                      isFull
+                        ? "border-border bg-muted/40 opacity-80"
+                        : isSelected
+                          ? "border-primary bg-primary/5 ring-2 ring-primary"
+                          : "border-border hover:border-primary/50 hover:shadow-md cursor-pointer"
+                    }`}
                       onClick={() => {
+                        if (isFull) return;
                         setSelectedSlot(slot);
                         setSelectedStaffId(NO_PREF_STAFF_ID);
                         setAppliedVoucher(null);
@@ -611,6 +652,7 @@ export default function PublicBookingPage() {
                           setStep(afterSlot);
                         }
                       }}
+<<<<<<< HEAD
                       className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
                         isFull
                           ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 hover:border-amber-400"
@@ -618,6 +660,8 @@ export default function PublicBookingPage() {
                             ? "border-primary bg-primary/5 ring-2 ring-primary"
                             : "border-border hover:border-primary/50"
                       }`}
+=======
+>>>>>>> f6797d3 (Add upselling recommendations to the cart page)
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -637,6 +681,7 @@ export default function PublicBookingPage() {
                           )}
                         </div>
                       </div>
+<<<<<<< HEAD
                       <div className="mt-2 flex items-center justify-between">
                         {isFull ? (
                           <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200 gap-1">
@@ -651,10 +696,37 @@ export default function PublicBookingPage() {
                           </Badge>
                         )}
                         {slot.notes && (
+=======
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <Badge
+                          variant="secondary"
+                          className={`text-xs shrink-0 ${isFull ? "bg-red-100 text-red-700" : remaining <= 2 ? "bg-orange-100 text-orange-700" : ""}`}
+                        >
+                          {isFull ? "Penuh" : `${remaining} tempat tersisa`}
+                        </Badge>
+                        {slot.notes && !isFull && (
+>>>>>>> f6797d3 (Add upselling recommendations to the cart page)
                           <p className="text-xs text-muted-foreground truncate max-w-[120px]">{slot.notes}</p>
                         )}
+                        {isFull && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5 text-xs h-7 shrink-0"
+                            onClick={e => {
+                              e.stopPropagation();
+                              setWaitlistSlot(slot);
+                              setWaitlistName("");
+                              setWaitlistPhone("");
+                              setWaitlistSize("1");
+                              setWaitlistDone(false);
+                            }}
+                          >
+                            <ListOrdered className="h-3 w-3" /> Masuk Waitlist
+                          </Button>
+                        )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1351,6 +1423,78 @@ export default function PublicBookingPage() {
       </div>
 
       <MarketplaceFooter />
+
+      {/* ─── Waitlist Dialog (M-12) ─── */}
+      <Dialog open={!!waitlistSlot} onOpenChange={open => { if (!open) setWaitlistSlot(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ListOrdered className="h-4 w-4 text-primary" /> Masuk Daftar Tunggu
+            </DialogTitle>
+          </DialogHeader>
+          {waitlistDone ? (
+            <div className="py-6 text-center space-y-3">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              </div>
+              <p className="font-semibold">Kamu sudah masuk daftar tunggu!</p>
+              <p className="text-sm text-muted-foreground">
+                Kami akan menghubungi kamu via WhatsApp jika ada slot kosong untuk{" "}
+                <strong>{waitlistSlot?.service_name}</strong>.
+              </p>
+              <Button className="w-full mt-2" onClick={() => setWaitlistSlot(null)}>Tutup</Button>
+            </div>
+          ) : (
+            <>
+              <div className="py-2 space-y-4">
+                <div className="rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                  <p className="font-medium">{waitlistSlot?.service_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {waitlistSlot?.slot_date ? fmtDate(waitlistSlot.slot_date) : ""} · {waitlistSlot?.slot_time ? fmtTime(waitlistSlot.slot_time) : ""}
+                  </p>
+                </div>
+                <div>
+                  <Label>Nama lengkap</Label>
+                  <Input
+                    className="mt-1"
+                    value={waitlistName}
+                    onChange={e => setWaitlistName(e.target.value)}
+                    placeholder="Nama kamu"
+                  />
+                </div>
+                <div>
+                  <Label>Nomor WhatsApp</Label>
+                  <Input
+                    className="mt-1"
+                    value={waitlistPhone}
+                    onChange={e => setWaitlistPhone(e.target.value)}
+                    placeholder="08xxxxxxxxxx"
+                    type="tel"
+                  />
+                </div>
+                <div>
+                  <Label>Jumlah orang</Label>
+                  <Input
+                    className="mt-1 w-24"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={waitlistSize}
+                    onChange={e => setWaitlistSize(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setWaitlistSlot(null)}>Batal</Button>
+                <Button onClick={joinWaitlist} disabled={waitlistSaving} className="gap-2">
+                  {waitlistSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Daftar Waitlist
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
