@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
-  ArrowLeft, ShieldCheck, Star, Scissors, UserCheck,
+  ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -31,6 +31,9 @@ type Shop = {
   rating_avg: number | null;
   rating_count: number | null;
   kyc_status: string | null;
+  require_deposit: boolean | null;
+  deposit_percent: number | null;
+  deposit_notes: string | null;
 };
 
 type Slot = {
@@ -53,7 +56,7 @@ type Staff = {
   is_available: boolean;
 };
 
-type Step = "date" | "slot" | "staff" | "form" | "success";
+type Step = "date" | "slot" | "staff" | "form" | "deposit" | "success";
 
 const NO_PREF_STAFF_ID = "__any__";
 
@@ -103,13 +106,15 @@ export default function PublicBookingPage() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [confirmingDeposit, setConfirmingDeposit] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Load shop
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase
         .from("coffee_shops" as any)
-        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status")
+        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, require_deposit, deposit_percent, deposit_notes")
         .eq("slug", slug)
         .eq("is_active", true)
         .maybeSingle();
@@ -186,6 +191,13 @@ export default function PublicBookingPage() {
 
   const afterSlot = hasStaff ? "staff" : "form";
 
+  // Computed deposit amount
+  const depositAmount = (() => {
+    if (!shop?.require_deposit || !selectedSlot) return 0;
+    const pct = shop.deposit_percent ?? 50;
+    return Math.ceil((selectedSlot.price * pct) / 100);
+  })();
+
   const submit = async () => {
     if (!selectedSlot || !shop) return;
     if (!name.trim()) { toast.error("Nama wajib diisi"); return; }
@@ -208,6 +220,7 @@ export default function PublicBookingPage() {
 
       const staffId = selectedStaffId !== NO_PREF_STAFF_ID ? selectedStaffId : null;
       const staffName = selectedStaff?.name ?? null;
+      const needsDeposit = !!(shop.require_deposit && selectedSlot.price > 0);
 
       const { data: bk, error } = await supabase
         .from("bookings" as any)
@@ -217,9 +230,14 @@ export default function PublicBookingPage() {
           customer_phone: phone.trim(),
           party_size: party,
           notes: notes.trim() || null,
-          status: "pending",
+          status: needsDeposit ? "pending" : "pending",
           ...(staffId ? { staff_id: staffId } : {}),
-        })
+          ...(needsDeposit ? {
+            deposit_required: true,
+            deposit_amount: depositAmount,
+            deposit_status: "waiting_payment",
+          } : {}),
+        } as any)
         .select("id")
         .maybeSingle() as any;
       if (error) throw error;
@@ -229,28 +247,67 @@ export default function PublicBookingPage() {
         .update({ booked_count: (fresh?.booked_count ?? 0) + 1 } as any)
         .eq("id" as any, selectedSlot.id);
 
-      if (shop?.id) {
-        await supabase
-          .from("owner_notifications" as any)
-          .insert({
-            shop_id: shop.id,
-            type: "new_booking",
-            title: `📅 Booking baru dari ${name.trim()}`,
-            body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}`,
-            severity: "info",
-            link: "/pos-app/booking",
-            dedupe_key: `booking_${bk?.id ?? Date.now()}`,
-          } as any);
-      }
+      await supabase
+        .from("owner_notifications" as any)
+        .insert({
+          shop_id: shop.id,
+          type: needsDeposit ? "new_booking_deposit" : "new_booking",
+          title: `📅 Booking baru dari ${name.trim()}`,
+          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}`,
+          severity: "info",
+          link: "/pos-app/booking",
+          dedupe_key: `booking_${bk?.id ?? Date.now()}`,
+        } as any);
 
       setBookingId(bk?.id ?? "ok");
-      setStep("success");
+      // If deposit required and slot has a price, show deposit step
+      if (needsDeposit) {
+        setStep("deposit");
+      } else {
+        setStep("success");
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Gagal membuat booking");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const confirmDeposit = async () => {
+    if (!bookingId || bookingId === "ok") { setStep("success"); return; }
+    setConfirmingDeposit(true);
+    try {
+      await supabase
+        .from("bookings" as any)
+        .update({ deposit_status: "submitted" } as any)
+        .eq("id" as any, bookingId);
+
+      if (shop?.id) {
+        await supabase.from("owner_notifications" as any).insert({
+          shop_id: shop.id,
+          type: "deposit_submitted",
+          title: `💰 Bukti DP dikirim — ${name.trim()}`,
+          body: `${selectedSlot?.service_name} · ${fmtDate(selectedSlot?.slot_date ?? "")} · DP ${formatIDR(depositAmount)} telah dikonfirmasi pelanggan`,
+          severity: "info",
+          link: "/pos-app/booking",
+          dedupe_key: `deposit_${bookingId}`,
+        } as any);
+      }
+      toast.success("Konfirmasi pembayaran terkirim!");
+      setStep("success");
+    } catch {
+      setStep("success");
+    } finally {
+      setConfirmingDeposit(false);
+    }
+  };
+
+  function copyText(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   if (loading) {
     return (
@@ -725,6 +782,89 @@ export default function PublicBookingPage() {
           </div>
         )}
 
+        {/* ─── Step: Deposit ─── */}
+        {step === "deposit" && selectedSlot && shop && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Banknote className="h-5 w-5 text-primary" /> Bayar Uang Muka (DP)
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Booking dikonfirmasi setelah DP diterima toko
+                </p>
+              </div>
+            </div>
+
+            {/* DP Amount Card */}
+            <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Jumlah DP yang harus dibayar</p>
+              <p className="text-4xl font-bold text-primary">{formatIDR(depositAmount)}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                ({shop.deposit_percent ?? 50}% dari {formatIDR(selectedSlot.price)})
+              </p>
+            </div>
+
+            {/* Payment Info */}
+            {shop.deposit_notes && (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <Banknote className="h-4 w-4 text-primary" /> Informasi Pembayaran
+                </p>
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{shop.deposit_notes}</p>
+                </div>
+                <button
+                  onClick={() => copyText(shop.deposit_notes ?? "")}
+                  className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Tersalin!" : "Salin info rekening"}
+                </button>
+              </div>
+            )}
+
+            {/* Booking summary */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-1.5 text-sm">
+              <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">Detail Booking</p>
+              <p><span className="text-muted-foreground">Layanan:</span> <span className="font-medium">{selectedSlot.service_name}</span></p>
+              <p><span className="text-muted-foreground">Tanggal:</span> <span className="font-medium">{fmtDate(selectedSlot.slot_date)} · {fmtTime(selectedSlot.slot_time)}</span></p>
+              <p><span className="text-muted-foreground">Nama:</span> <span className="font-medium">{name}</span></p>
+              <p><span className="text-muted-foreground">WhatsApp:</span> <span className="font-medium">{phone}</span></p>
+            </div>
+
+            <div className="space-y-2.5">
+              <Button
+                className="w-full h-12 text-base gap-2"
+                onClick={confirmDeposit}
+                disabled={confirmingDeposit}
+              >
+                {confirmingDeposit ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Memproses…</>
+                ) : (
+                  <><Check className="h-4 w-4" /> Saya Sudah Transfer DP</>
+                )}
+              </Button>
+              {shop.phone && (
+                <Button variant="outline" className="w-full gap-2" asChild>
+                  <a
+                    href={`https://wa.me/${shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                      `Halo ${shop.name}, saya baru booking ${selectedSlot.service_name} untuk ${fmtDate(selectedSlot.slot_date)} jam ${fmtTime(selectedSlot.slot_time)}. Nama: ${name} (${phone}). Saya akan kirim bukti transfer DP ${formatIDR(depositAmount)}.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Phone className="h-4 w-4" /> Konfirmasi via WhatsApp
+                  </a>
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-center text-muted-foreground">
+              Setelah transfer, klik tombol di atas agar toko segera memverifikasi pembayaran Anda
+            </p>
+          </div>
+        )}
+
         {/* ─── Step: Success ─── */}
         {step === "success" && selectedSlot && (
           <div className="py-8 text-center space-y-5">
@@ -757,6 +897,11 @@ export default function PublicBookingPage() {
                 <p><span className="font-medium text-foreground">Nama:</span> {name}</p>
                 {selectedSlot.price > 0 && (
                   <p><span className="font-medium text-foreground">Harga:</span> {formatIDR(selectedSlot.price)}</p>
+                )}
+                {shop?.require_deposit && depositAmount > 0 && (
+                  <p className="flex items-center gap-1.5 font-medium text-emerald-700">
+                    <Check className="h-3.5 w-3.5" /> DP {formatIDR(depositAmount)} sudah dikonfirmasi
+                  </p>
                 )}
               </div>
             </div>

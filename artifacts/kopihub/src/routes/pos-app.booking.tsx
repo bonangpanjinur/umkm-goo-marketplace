@@ -27,6 +27,11 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Banknote,
+  Save,
+  ToggleLeft,
+  ToggleRight,
+  Loader2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/booking")({ component: BookingPage });
@@ -53,6 +58,9 @@ type Booking = {
   notes: string | null;
   created_at: string;
   slot?: Slot;
+  deposit_required?: boolean;
+  deposit_amount?: number;
+  deposit_status?: string;
 };
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
@@ -84,6 +92,47 @@ function BookingPage() {
   const [savingBooking, setSavingBooking] = useState(false);
 
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+
+  // Deposit settings
+  const [depositEnabled, setDepositEnabled] = useState(false);
+  const [depositPercent, setDepositPercent] = useState("50");
+  const [depositNotes, setDepositNotes] = useState("");
+  const [savingDeposit, setSavingDeposit] = useState(false);
+  const [depositLoaded, setDepositLoaded] = useState(false);
+
+  // Load deposit settings when shop loads
+  useEffect(() => {
+    if (!shop?.id || depositLoaded) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("coffee_shops")
+        .select("require_deposit, deposit_percent, deposit_notes")
+        .eq("id", shop.id)
+        .maybeSingle();
+      if (data) {
+        setDepositEnabled(!!data.require_deposit);
+        setDepositPercent(String(data.deposit_percent ?? 50));
+        setDepositNotes(data.deposit_notes ?? "");
+      }
+      setDepositLoaded(true);
+    })();
+  }, [shop?.id, depositLoaded]);
+
+  const saveDepositSettings = async () => {
+    if (!shop?.id) return;
+    setSavingDeposit(true);
+    const { error } = await (supabase as any)
+      .from("coffee_shops")
+      .update({
+        require_deposit: depositEnabled,
+        deposit_percent: Number(depositPercent),
+        deposit_notes: depositNotes.trim() || null,
+      })
+      .eq("id", shop.id);
+    setSavingDeposit(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pengaturan deposit disimpan");
+  };
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
@@ -212,6 +261,85 @@ function BookingPage() {
         </div>
       </div>
 
+      {/* ─── Deposit Settings Card ─── */}
+      <Card className="p-5 space-y-4 border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Banknote className="h-5 w-5 text-amber-600" />
+            <div>
+              <p className="font-semibold text-sm">Pengaturan Uang Muka (DP)</p>
+              <p className="text-xs text-muted-foreground">Wajibkan pelanggan bayar DP saat booking online</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setDepositEnabled(!depositEnabled)}
+            className="text-amber-600 hover:text-amber-700 transition-colors"
+            title={depositEnabled ? "Nonaktifkan deposit" : "Aktifkan deposit"}
+          >
+            {depositEnabled
+              ? <ToggleRight className="h-8 w-8" />
+              : <ToggleLeft className="h-8 w-8 text-muted-foreground" />
+            }
+          </button>
+        </div>
+
+        {depositEnabled && (
+          <div className="space-y-3 pt-1 border-t border-amber-200/50">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Persentase DP (%)</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="number"
+                    min={10}
+                    max={100}
+                    step={5}
+                    value={depositPercent}
+                    onChange={(e) => setDepositPercent(e.target.value)}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">% dari harga slot</span>
+                </div>
+                <div className="flex gap-1 mt-1.5 flex-wrap">
+                  {["30", "50", "100"].map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setDepositPercent(p)}
+                      className={`text-xs px-2 py-0.5 rounded-full border transition-all ${depositPercent === p ? "bg-amber-500 text-white border-amber-500" : "border-border hover:border-amber-400"}`}
+                    >
+                      {p}%{p === "100" ? " (Lunas)" : ""}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">Info Pembayaran (rekening / VA / QRIS)</Label>
+              <Textarea
+                className="mt-1 text-sm"
+                rows={3}
+                value={depositNotes}
+                onChange={(e) => setDepositNotes(e.target.value)}
+                placeholder={"BCA 1234567890 a/n Toko Anda\nDana 0812xxx\n\nSertakan nama saat transfer"}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Info ini ditampilkan ke pelanggan saat checkout booking</p>
+            </div>
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50"
+          onClick={saveDepositSettings}
+          disabled={savingDeposit}
+        >
+          {savingDeposit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+          Simpan Pengaturan
+        </Button>
+      </Card>
+
       <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
         <Button variant="ghost" size="icon" onClick={prevDay}><ChevronLeft className="h-4 w-4" /></Button>
         <div className="text-center">
@@ -321,6 +449,33 @@ function BookingPage() {
                       {bk.slot && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{bk.slot.slot_time} — {bk.slot.service_name}</span>}
                     </div>
                     {bk.notes && <p className="text-xs text-muted-foreground mt-1 italic">"{bk.notes}"</p>}
+                    {bk.deposit_required && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <Banknote className="h-3 w-3 text-amber-500" />
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          bk.deposit_status === "submitted"
+                            ? "bg-amber-100 text-amber-700"
+                            : bk.deposit_status === "verified"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-100 text-red-700"
+                        }`}>
+                          DP {bk.deposit_amount ? `Rp ${Number(bk.deposit_amount).toLocaleString("id-ID")}` : ""} ·{" "}
+                          {bk.deposit_status === "submitted" ? "Menunggu Verifikasi" : bk.deposit_status === "verified" ? "Terverifikasi" : "Belum Bayar"}
+                        </span>
+                        {bk.deposit_status === "submitted" && (
+                          <button
+                            className="text-[10px] text-emerald-600 hover:underline font-medium"
+                            onClick={async () => {
+                              await (supabase as any).from("bookings").update({ deposit_status: "verified" }).eq("id", bk.id);
+                              toast.success("DP terverifikasi");
+                              load();
+                            }}
+                          >
+                            Verifikasi
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {bk.status === "pending" && (
