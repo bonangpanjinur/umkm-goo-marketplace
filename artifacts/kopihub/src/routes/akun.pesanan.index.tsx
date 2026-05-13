@@ -169,8 +169,19 @@ function OrdersListPage() {
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  const filtered = orders.filter(o => matchTab(o.status, tab));
+  const filtered = orders.filter(o => {
+    if (!matchTab(o.status, tab)) return false;
+    if (q.trim()) {
+      const needle = q.toLowerCase();
+      const hit = (o.order_no ?? "").toLowerCase().includes(needle) || (o.shop?.name ?? "").toLowerCase().includes(needle);
+      if (!hit) return false;
+    }
+    if (dateFrom && new Date(o.created_at).getTime() < new Date(dateFrom).getTime()) return false;
+    if (dateTo && new Date(o.created_at).getTime() > new Date(dateTo).getTime() + 86400000) return false;
+    return true;
+  });
   const activeCount = orders.filter(o => ACTIVE_STATUSES.has(o.status)).length;
+  const hasFilter = q || dateFrom || dateTo;
 
   if (loading) return <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
