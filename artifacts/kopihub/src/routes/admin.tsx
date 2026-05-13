@@ -47,6 +47,7 @@ const NAV = [
   { to: "/admin/financial-report", label: "Laporan Keuangan", icon: FileSpreadsheet },
   { to: "/admin/fraud", label: "Deteksi Fraud", icon: ShieldX },
   { to: "/admin/auto-renewal", label: "Notif Renewal Otomatis", icon: Bell },
+  { to: "/admin/push-config", label: "Push Notification (VAPID)", icon: Bell },
   { to: "/admin/revenue-leakage", label: "Revenue Leakage", icon: SearchX },
   { to: "/admin/health-score", label: "Health Score Toko", icon: Activity },
 ] as const;

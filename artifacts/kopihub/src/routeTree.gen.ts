@@ -125,6 +125,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminRevenueLeakageRouteImport } from './routes/admin.revenue-leakage'
 import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
+import { Route as AdminPushConfigRouteImport } from './routes/admin.push-config'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
 import { Route as AdminNotificationTemplatesRouteImport } from './routes/admin.notification-templates'
@@ -766,6 +767,11 @@ const AdminReconciliationRoute = AdminReconciliationRouteImport.update({
   path: '/reconciliation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPushConfigRoute = AdminPushConfigRouteImport.update({
+  id: '/push-config',
+  path: '/push-config',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -1103,6 +1109,7 @@ export interface FileRoutesByFullPath {
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
@@ -1276,6 +1283,7 @@ export interface FileRoutesByTo {
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
@@ -1451,6 +1459,7 @@ export interface FileRoutesById {
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
@@ -1629,6 +1638,7 @@ export interface FileRouteTypes {
     | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
+    | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
     | '/admin/revenue-leakage'
@@ -1802,6 +1812,7 @@ export interface FileRouteTypes {
     | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
+    | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
     | '/admin/revenue-leakage'
@@ -1976,6 +1987,7 @@ export interface FileRouteTypes {
     | '/admin/notification-templates'
     | '/admin/payment-config'
     | '/admin/plans'
+    | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
     | '/admin/revenue-leakage'
@@ -2953,6 +2965,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReconciliationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/push-config': {
+      id: '/admin/push-config'
+      path: '/push-config'
+      fullPath: '/admin/push-config'
+      preLoaderRoute: typeof AdminPushConfigRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/plans': {
       id: '/admin/plans'
       path: '/plans'
@@ -3425,6 +3444,7 @@ interface AdminRouteChildren {
   AdminNotificationTemplatesRoute: typeof AdminNotificationTemplatesRoute
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
+  AdminPushConfigRoute: typeof AdminPushConfigRoute
   AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
   AdminRevenueLeakageRoute: typeof AdminRevenueLeakageRoute
@@ -3464,6 +3484,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminNotificationTemplatesRoute: AdminNotificationTemplatesRoute,
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,
   AdminPlansRoute: AdminPlansRouteWithChildren,
+  AdminPushConfigRoute: AdminPushConfigRoute,
   AdminReconciliationRoute: AdminReconciliationRoute,
   AdminRevenueRoute: AdminRevenueRoute,
   AdminRevenueLeakageRoute: AdminRevenueLeakageRoute,
