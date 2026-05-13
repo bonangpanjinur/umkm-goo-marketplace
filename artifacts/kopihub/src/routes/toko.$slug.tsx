@@ -155,6 +155,8 @@ function ShopPage() {
   const [followBusy, setFollowBusy] = useState(false);
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
   const [showCertDetail, setShowCertDetail] = useState(false);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
   const loadFollowStatus = async (shopId: string) => {
     const [countRes, followedRes] = await Promise.all([
