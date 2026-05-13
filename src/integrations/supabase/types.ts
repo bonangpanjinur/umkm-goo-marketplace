@@ -1564,7 +1564,12 @@ export type Database = {
           length_cm: number | null
           low_stock_threshold: number | null
           name: string
+          pre_order_close_at: string | null
+          pre_order_current_qty: number
           pre_order_days: number | null
+          pre_order_estimated_ship_at: string | null
+          pre_order_min_qty: number | null
+          pre_order_open_at: string | null
           price: number
           rating_avg: number | null
           rating_count: number | null
@@ -1608,7 +1613,12 @@ export type Database = {
           length_cm?: number | null
           low_stock_threshold?: number | null
           name: string
+          pre_order_close_at?: string | null
+          pre_order_current_qty?: number
           pre_order_days?: number | null
+          pre_order_estimated_ship_at?: string | null
+          pre_order_min_qty?: number | null
+          pre_order_open_at?: string | null
           price?: number
           rating_avg?: number | null
           rating_count?: number | null
@@ -1652,7 +1662,12 @@ export type Database = {
           length_cm?: number | null
           low_stock_threshold?: number | null
           name?: string
+          pre_order_close_at?: string | null
+          pre_order_current_qty?: number
           pre_order_days?: number | null
+          pre_order_estimated_ship_at?: string | null
+          pre_order_min_qty?: number | null
+          pre_order_open_at?: string | null
           price?: number
           rating_avg?: number | null
           rating_count?: number | null
