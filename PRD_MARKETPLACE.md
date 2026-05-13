@@ -331,10 +331,10 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Analitik voucher booking per kode | ✅ Selesai Sprint 11 |
 | Pembatalan mandiri via link token | ✅ Selesai Sprint 11 (Fase B — cancellation_token + halaman publik /booking/cancel/:token) |
 | Waitlist virtual saat slot penuh | ✅ Selesai Sprint 11 (M-12 — booking_waitlist + form antrean + panel POS + notif otomatis) |
-| Reminder otomatis H-1 / H-3 | ❌ |
-| Reschedule & batal mandiri oleh pembeli | ❌ |
-| Riwayat booking di akun pembeli | ❌ |
-| Kalender ketersediaan real-time | ❌ |
+| Reminder otomatis H-1 / H-3 | ✅ Selesai Sprint 12 G-1 (`send_booking_reminders()` + pg_cron `0 2 * * *` UTC) |
+| Reschedule & batal mandiri oleh pembeli | ✅ Selesai Sprint 11 (`booking.cancel.$token.tsx`) |
+| Riwayat booking di akun pembeli | ✅ Selesai (`akun.bookings.tsx`) |
+| Kalender ketersediaan real-time | ✅ (kalender slot di `toko.$slug.booking.tsx` baca `booking_slots` real-time) |
 
 ### 4.2 Roadmap Booking Lengkap
 
