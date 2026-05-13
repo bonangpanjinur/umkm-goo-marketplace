@@ -33,7 +33,7 @@ Platform ini sudah sangat kuat dari sisi infrastruktur. **70–75% fitur inti su
    - Reschedule & batal mandiri oleh pelanggan
    - Portofolio/galeri karya toko (M-02) — kritis untuk jasa kreatif & salon
    - Reminder otomatis H-1/H-3 (M-03) — kritis untuk retensi booking
-   - Waitlist virtual (M-12) — kritis untuk F&B saat penuh
+   - ~~Waitlist virtual (M-12)~~ ✅ **Sudah selesai Sprint 11**
    - Upselling engine (M-07) — dampak langsung ke AOV
 
 ---
@@ -156,6 +156,8 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 13 Mei 2026 | Sprint 11 | **M-10 Deposit Booking Online** — SQL: `require_deposit`, `deposit_percent`, `deposit_notes` di `coffee_shops`; `deposit_required`, `deposit_amount`, `deposit_status` di `bookings`; pengaturan DP di POS; step konfirmasi DP + transfer di halaman booking publik | ✅ |
 | 13 Mei 2026 | Sprint 11 | **Voucher Khusus Booking (M-VB)** — tabel `booking_vouchers` + RLS + fungsi atomik `fn_use_booking_voucher()`; manajemen voucher di POS (buat/aktif/nonaktif/hapus); input kode voucher di halaman booking publik dengan diskon otomatis; kolom `voucher_code` + `voucher_discount` di `bookings` | ✅ |
 | 13 Mei 2026 | Sprint 11 | **Voucher Analytics Panel** — panel analitik di POS booking: pemakaian per kode, total diskon diberikan, dampak % revenue, filter rentang 7/30/90 hari / semua waktu, progress bar share per voucher | ✅ |
+| 13 Mei 2026 | Sprint 11 | **Fase B Pembatalan Mandiri** — kolom `cancellation_token UUID UNIQUE` + `cancelled_at` di `bookings` (migration m11); halaman publik `/booking/cancel/:token` dengan 5 state (view/confirm/cancelling/done/already_cancelled/past); dekremen `booked_count` saat batal; notif pemilik toko otomatis; link cancel + tombol salin muncul di success step dan deposit step | ✅ |
+| 13 Mei 2026 | Sprint 11 | **M-12 Waitlist Virtual** — tabel `booking_waitlist` + RLS (migration m12); slot penuh tampil amber di kalender + grid slot dengan badge "Daftar Antre"; form antrean + posisi nomor urut; notif pemilik saat ada yang daftar antre; trigger otomatis saat booking dibatalkan (cek antrean → notif pemilik); panel antrean di POS per slot (expand/collapse, notif WA, hapus entry, tandai sudah dinotifikasi) | ✅ |
 
 ---
 
@@ -325,6 +327,8 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Deposit payment saat booking | ✅ Selesai Sprint 11 (SQL + UI pengaturan POS + step konfirmasi DP) |
 | Voucher diskon khusus booking | ✅ Selesai Sprint 11 (booking_vouchers + fn_use_booking_voucher + UI) |
 | Analitik voucher booking per kode | ✅ Selesai Sprint 11 |
+| Pembatalan mandiri via link token | ✅ Selesai Sprint 11 (Fase B — cancellation_token + halaman publik /booking/cancel/:token) |
+| Waitlist virtual saat slot penuh | ✅ Selesai Sprint 11 (M-12 — booking_waitlist + form antrean + panel POS + notif otomatis) |
 | Reminder otomatis H-1 / H-3 | ❌ |
 | Reschedule & batal mandiri oleh pembeli | ❌ |
 | Riwayat booking di akun pembeli | ❌ |
@@ -428,7 +432,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 | M-09 | **Cek Ketersediaan Unit Rental** real-time (mobil, alat camping, kamera) | Rental | Konversi | ❌ |
 | M-10 | **Deposit Booking Online** — pengaturan % DP per toko, step konfirmasi DP, kolom DB | Jasa/Rental | Komitmen | ✅ Selesai (Sprint 11) — *integrasi Midtrans/Xendit masih ❌* |
 | M-11 | **Happy Hour / Time-based Pricing** (harga berubah per jam) | F&B | Pendapatan | ❌ |
-| M-12 | **Waitlist / Antrian Virtual** (daftar antrian saat penuh, notif saat giliran tiba) | F&B/Jasa | Retensi | ❌ |
+| M-12 | **Waitlist / Antrian Virtual** (daftar antrian saat penuh, notif WA saat slot terbuka, panel antrean di POS) | F&B/Jasa | Retensi | ✅ |
 | M-13 | **Preview Produk Digital** (sample watermarked sebelum beli) | Digital | Konversi | ❌ |
 | M-14 | **Cashback Wallet** (cashback % per transaksi, dipakai di order berikutnya) | Pembeli | Retensi | ❌ |
 | M-15 | **Katalog PDF / Link Shareable** (export produk aktif jadi PDF/link public) | Merchant | Pemasaran | ✅ Selesai (Sprint 10) |

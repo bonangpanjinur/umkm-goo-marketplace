@@ -21,6 +21,7 @@ import {
   RefreshCw,
   Clock,
   User,
+  Users,
   Phone,
   CheckCircle,
   XCircle,
@@ -39,6 +40,9 @@ import {
   TrendingDown,
   Percent,
   ShoppingBag,
+  BellRing,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -54,6 +58,16 @@ type Slot = {
   booked_count: number;
   price: number;
   notes: string | null;
+};
+
+type WaitlistEntry = {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  party_size: number;
+  notes: string | null;
+  notified_at: string | null;
+  created_at: string;
 };
 
 type Booking = {
@@ -106,6 +120,8 @@ function BookingPage() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [waitlistMap, setWaitlistMap] = useState<Record<string, WaitlistEntry[]>>({});
+  const [expandedWaitlist, setExpandedWaitlist] = useState<Record<string, boolean>>({});
 
   const [slotOpen, setSlotOpen] = useState(false);
   const [slotForm, setSlotForm] = useState({ service_name: "", slot_date: isoDate(new Date()), slot_time: "09:00", duration_min: "60", max_capacity: "1", price: "0", notes: "" });
@@ -307,16 +323,35 @@ function BookingPage() {
           .eq("booking_slots.slot_date" as any, date)
           .order("created_at", { ascending: false }) as any,
       ]);
-      setSlots(((sl.data as any[]) ?? []).map((s) => ({
+      const slotList: Slot[] = ((sl.data as any[]) ?? []).map((s) => ({
         ...s,
         price: Number(s.price),
         duration_min: Number(s.duration_min),
         max_capacity: Number(s.max_capacity),
         booked_count: Number(s.booked_count ?? 0),
-      })));
+      }));
+      setSlots(slotList);
       setBookings(
         ((bk.data as any[]) ?? []).map((b) => ({ ...b, slot: b.booking_slots }))
       );
+
+      // Load waitlist for all slots of the day
+      if (slotList.length > 0) {
+        const slotIds = slotList.map(s => s.id);
+        const { data: wlData } = await (supabase as any)
+          .from("booking_waitlist")
+          .select("*")
+          .in("slot_id", slotIds)
+          .order("created_at", { ascending: true }) as any;
+        const map: Record<string, WaitlistEntry[]> = {};
+        for (const entry of (wlData ?? []) as any[]) {
+          if (!map[entry.slot_id]) map[entry.slot_id] = [];
+          map[entry.slot_id].push(entry as WaitlistEntry);
+        }
+        setWaitlistMap(map);
+      } else {
+        setWaitlistMap({});
+      }
     } finally {
       setLoading(false);
     }
@@ -742,6 +777,9 @@ function BookingPage() {
             </div>
           ) : slots.map((slot) => {
             const avail = slot.max_capacity - slot.booked_count;
+            const wlEntries = waitlistMap[slot.id] ?? [];
+            const wlCount = wlEntries.length;
+            const isExpanded = expandedWaitlist[slot.id] ?? false;
             return (
               <Card key={slot.id} className="p-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -751,6 +789,11 @@ function BookingPage() {
                       <Badge variant={avail === 0 ? "destructive" : "outline"} className="text-[10px]">
                         {avail === 0 ? "Penuh" : `${avail} slot tersisa`}
                       </Badge>
+                      {wlCount > 0 && (
+                        <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200 gap-1">
+                          <Users className="h-2.5 w-2.5" /> {wlCount} antrean
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{slot.slot_time} ({slot.duration_min} menit)</span>
@@ -758,15 +801,107 @@ function BookingPage() {
                       {slot.price > 0 && <span>Rp {slot.price.toLocaleString("id-ID")}</span>}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    disabled={avail === 0}
-                    onClick={() => openBooking(slot)}
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" />
-                    Tambah Booking
-                  </Button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {wlCount > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                        onClick={() => setExpandedWaitlist(p => ({ ...p, [slot.id]: !p[slot.id] }))}
+                      >
+                        <Users className="h-3.5 w-3.5" />
+                        Antrean ({wlCount})
+                        {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      disabled={avail === 0}
+                      onClick={() => openBooking(slot)}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      Tambah Booking
+                    </Button>
+                  </div>
                 </div>
+
+                {/* ── Waitlist panel ── */}
+                {isExpanded && wlCount > 0 && (
+                  <div className="mt-4 border-t border-border pt-3 space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" /> Daftar Antrean
+                    </p>
+                    {wlEntries.map((entry, idx) => (
+                      <div
+                        key={entry.id}
+                        className={`rounded-lg border p-3 flex items-start justify-between gap-3 ${
+                          entry.notified_at
+                            ? "border-emerald-200 bg-emerald-50/40 dark:bg-emerald-950/10"
+                            : "border-amber-100 bg-amber-50/30 dark:bg-amber-950/10"
+                        }`}
+                      >
+                        <div className="text-xs space-y-0.5 min-w-0">
+                          <p className="font-semibold flex items-center gap-1.5">
+                            <span className="text-muted-foreground">#{idx + 1}</span>
+                            {entry.customer_name}
+                            {entry.party_size > 1 && <span className="text-muted-foreground">(×{entry.party_size})</span>}
+                          </p>
+                          <p className="text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {entry.customer_phone}
+                          </p>
+                          {entry.notes && <p className="text-muted-foreground italic truncate max-w-[200px]">"{entry.notes}"</p>}
+                          {entry.notified_at && (
+                            <p className="text-emerald-600 flex items-center gap-1">
+                              <CheckCircle className="h-3 w-3" /> Sudah dinotifikasi
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {!entry.notified_at && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[11px] gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                              asChild
+                              onClick={async () => {
+                                // Mark as notified
+                                await (supabase as any)
+                                  .from("booking_waitlist")
+                                  .update({ notified_at: new Date().toISOString() })
+                                  .eq("id", entry.id);
+                                load();
+                              }}
+                            >
+                              <a
+                                href={`https://wa.me/${entry.customer_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                                  `Halo ${entry.customer_name}, kabar baik! Ada slot yang terbuka untuk ${slot.service_name} pada ${new Date(slot.slot_date + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })} jam ${slot.slot_time}. Apakah kamu masih berminat untuk booking?`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <BellRing className="h-3 w-3" /> Notif WA
+                              </a>
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={async () => {
+                              await (supabase as any)
+                                .from("booking_waitlist")
+                                .delete()
+                                .eq("id", entry.id);
+                              load();
+                            }}
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Card>
             );
           })}

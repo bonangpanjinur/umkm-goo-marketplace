@@ -13,7 +13,7 @@ import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
-  Ticket, Tag, X, XCircle,
+  Ticket, Tag, X, XCircle, AlertTriangle,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -57,7 +57,7 @@ type Staff = {
   is_available: boolean;
 };
 
-type Step = "date" | "slot" | "staff" | "form" | "deposit" | "success";
+type Step = "date" | "slot" | "staff" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
 
 const NO_PREF_STAFF_ID = "__any__";
 
@@ -108,6 +108,7 @@ export default function PublicBookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [cancellationToken, setCancellationToken] = useState<string | null>(null);
+  const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
   const [confirmingDeposit, setConfirmingDeposit] = useState(false);
   const [copied, setCopied] = useState(false);
   const [cancelLinkCopied, setCancelLinkCopied] = useState(false);
@@ -184,12 +185,18 @@ export default function PublicBookingPage() {
       .map(s => s.slot_date)
   )];
 
+  const waitlistDates = [...new Set(
+    allSlots
+      .filter(s => s.booked_count >= s.max_capacity)
+      .map(s => s.slot_date)
+      .filter(d => !availableDates.includes(d))
+  )];
+
   const calStart = addDays(new Date(), calOffset * 7);
   const calDays = Array.from({ length: 14 }, (_, i) => isoDate(addDays(calStart, i)));
 
-  const slotsForDate = allSlots.filter(
-    s => s.slot_date === selectedDate && s.booked_count < s.max_capacity
-  );
+  // Include full slots so customers can join waitlist
+  const slotsForDate = allSlots.filter(s => s.slot_date === selectedDate);
 
   const selectedStaff = staffList.find(s => s.id === selectedStaffId) ?? null;
 
@@ -516,13 +523,15 @@ export default function PublicBookingPage() {
                   ))}
                   {calDays.map(d => {
                     const isAvail = availableDates.includes(d);
+                    const isWaitlistOnly = waitlistDates.includes(d);
+                    const isClickable = (isAvail || isWaitlistOnly) && d >= isoDate(new Date());
                     const isSelected = d === selectedDate;
                     const isPast = d < isoDate(new Date());
                     const dayNum = new Date(d + "T00:00:00").getDate();
                     return (
                       <button
                         key={d}
-                        disabled={!isAvail || isPast}
+                        disabled={!isClickable}
                         onClick={() => {
                           setSelectedDate(d);
                           setSelectedSlot(null);
@@ -533,21 +542,27 @@ export default function PublicBookingPage() {
                             ? "bg-primary text-primary-foreground shadow-md scale-105"
                             : isAvail && !isPast
                               ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
-                              : "text-muted-foreground/40 cursor-not-allowed"
+                              : isWaitlistOnly && !isPast
+                                ? "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 cursor-pointer"
+                                : "text-muted-foreground/40 cursor-not-allowed"
                         }`}
                       >
                         {dayNum}
                         {isAvail && !isPast && (
                           <span className="mt-0.5 h-1 w-1 rounded-full bg-primary opacity-70" />
                         )}
+                        {isWaitlistOnly && !isPast && (
+                          <span className="mt-0.5 h-1 w-1 rounded-full bg-amber-500 opacity-80" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
-                <p className="text-xs text-muted-foreground text-center">
-                  {availableDates.length} tanggal tersedia dalam 30 hari ke depan
-                </p>
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground flex-wrap">
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary/70 inline-block" /> {availableDates.length} tersedia</span>
+                  {waitlistDates.length > 0 && <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> {waitlistDates.length} antrean</span>}
+                </div>
               </>
             )}
           </div>
@@ -580,6 +595,7 @@ export default function PublicBookingPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {slotsForDate.map(slot => {
                   const remaining = slot.max_capacity - slot.booked_count;
+                  const isFull = remaining <= 0;
                   const isSelected = selectedSlot?.id === slot.id;
                   return (
                     <button
@@ -589,12 +605,18 @@ export default function PublicBookingPage() {
                         setSelectedStaffId(NO_PREF_STAFF_ID);
                         setAppliedVoucher(null);
                         setVoucherInput("");
-                        setStep(afterSlot);
+                        if (isFull) {
+                          setStep("waitlist");
+                        } else {
+                          setStep(afterSlot);
+                        }
                       }}
                       className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
-                        isSelected
-                          ? "border-primary bg-primary/5 ring-2 ring-primary"
-                          : "border-border hover:border-primary/50"
+                        isFull
+                          ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 hover:border-amber-400"
+                          : isSelected
+                            ? "border-primary bg-primary/5 ring-2 ring-primary"
+                            : "border-border hover:border-primary/50"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -609,19 +631,25 @@ export default function PublicBookingPage() {
                         </div>
                         <div className="text-right shrink-0">
                           {slot.price > 0 ? (
-                            <p className="font-bold text-primary">{formatIDR(slot.price)}</p>
+                            <p className={`font-bold ${isFull ? "text-muted-foreground" : "text-primary"}`}>{formatIDR(slot.price)}</p>
                           ) : (
                             <p className="text-sm font-semibold text-emerald-600">Gratis</p>
                           )}
                         </div>
                       </div>
                       <div className="mt-2 flex items-center justify-between">
-                        <Badge
-                          variant="secondary"
-                          className={`text-xs ${remaining <= 2 ? "bg-orange-100 text-orange-700" : ""}`}
-                        >
-                          {remaining} tempat tersisa
-                        </Badge>
+                        {isFull ? (
+                          <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200 gap-1">
+                            <Users className="h-3 w-3" /> Penuh · Daftar Antre
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="secondary"
+                            className={`text-xs ${remaining <= 2 ? "bg-orange-100 text-orange-700" : ""}`}
+                          >
+                            {remaining} tempat tersisa
+                          </Badge>
+                        )}
                         {slot.notes && (
                           <p className="text-xs text-muted-foreground truncate max-w-[120px]">{slot.notes}</p>
                         )}
@@ -631,6 +659,200 @@ export default function PublicBookingPage() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ─── Step: Waitlist (M-12) ─── */}
+        {step === "waitlist" && selectedSlot && shop && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStep("slot")}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Users className="h-5 w-5 text-amber-600" /> Daftar Antrean
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedSlot.service_name} · {fmtDate(selectedDate)} · {fmtTime(selectedSlot.slot_time)}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 p-4">
+              <p className="text-sm font-semibold text-amber-800 flex items-center gap-2 mb-1">
+                <AlertTriangle className="h-4 w-4" /> Slot ini sudah penuh
+              </p>
+              <p className="text-sm text-amber-700/80">
+                Daftarkan diri kamu di antrean. Pemilik toko akan menghubungi via WhatsApp jika ada slot yang terbuka.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label>Nama Lengkap</Label>
+                <Input
+                  className="mt-1"
+                  placeholder="Nama kamu"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  maxLength={80}
+                />
+              </div>
+              <div>
+                <Label>Nomor WhatsApp</Label>
+                <Input
+                  className="mt-1"
+                  placeholder="08xx..."
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  maxLength={20}
+                />
+              </div>
+              <div>
+                <Label>Jumlah Orang</Label>
+                <Input
+                  className="mt-1"
+                  type="number"
+                  min={1}
+                  max={selectedSlot.max_capacity}
+                  value={partySize}
+                  onChange={e => setPartySize(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Catatan <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                <Textarea
+                  className="mt-1 resize-none"
+                  rows={2}
+                  placeholder="Permintaan khusus, kondisi, dll."
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  maxLength={300}
+                />
+              </div>
+            </div>
+
+            <Button
+              className="w-full h-12 text-base gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+              disabled={submitting || !name.trim() || !phone.trim()}
+              onClick={async () => {
+                if (!name.trim() || !phone.trim()) return;
+                setSubmitting(true);
+                try {
+                  // Insert into waitlist
+                  await (supabase as any)
+                    .from("booking_waitlist")
+                    .insert({
+                      slot_id: selectedSlot.id,
+                      customer_name: name.trim(),
+                      customer_phone: phone.trim(),
+                      party_size: Number(partySize) || 1,
+                      notes: notes.trim() || null,
+                    });
+
+                  // Get position in queue
+                  const { count } = await (supabase as any)
+                    .from("booking_waitlist")
+                    .select("id", { count: "exact", head: true })
+                    .eq("slot_id", selectedSlot.id)
+                    .is("notified_at", null);
+
+                  setWaitlistPosition(count ?? 1);
+
+                  // Notify owner
+                  await (supabase as any)
+                    .from("owner_notifications")
+                    .insert({
+                      shop_id: shop.id,
+                      type: "waitlist_join",
+                      title: `🟡 Antrean baru: ${name.trim()}`,
+                      body: `${selectedSlot.service_name} · ${fmtDate(selectedDate)} ${fmtTime(selectedSlot.slot_time)} · WA: ${phone.trim()}`,
+                      severity: "info",
+                      link: "/pos-app/booking",
+                      dedupe_key: `waitlist_${selectedSlot.id}_${phone.trim()}_${Date.now()}`,
+                    });
+
+                  setStep("waitlist_success");
+                } catch {
+                  toast.error("Gagal mendaftar antrean. Coba lagi.");
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Mendaftarkan…</>
+              ) : (
+                <><Users className="h-4 w-4" /> Daftar Antrean Sekarang</>
+              )}
+            </Button>
+          </div>
+        )}
+
+        {/* ─── Step: Waitlist Success (M-12) ─── */}
+        {step === "waitlist_success" && selectedSlot && shop && (
+          <div className="space-y-5 text-center">
+            <div className="flex justify-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+                <Users className="h-10 w-10 text-amber-600" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">Kamu Masuk Antrean!</h2>
+              {waitlistPosition !== null && (
+                <p className="text-lg font-semibold text-amber-700 mt-1">
+                  Posisi #{waitlistPosition} dalam antrean
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">
+                Pemilik toko akan menghubungi kamu melalui WhatsApp jika ada slot yang terbuka.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 space-y-1.5 text-sm text-left">
+              <p><span className="text-muted-foreground">Layanan:</span> <span className="font-medium">{selectedSlot.service_name}</span></p>
+              <p><span className="text-muted-foreground">Tanggal:</span> <span className="font-medium">{fmtDate(selectedDate)} · {fmtTime(selectedSlot.slot_time)}</span></p>
+              <p><span className="text-muted-foreground">Nama:</span> <span className="font-medium">{name}</span></p>
+              <p><span className="text-muted-foreground">WhatsApp:</span> <span className="font-medium">{phone}</span></p>
+            </div>
+
+            {shop.phone && (
+              <Button variant="outline" className="w-full gap-2" asChild>
+                <a
+                  href={`https://wa.me/${shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                    `Halo ${shop.name}, saya baru mendaftar antrean untuk ${selectedSlot.service_name} pada ${fmtDate(selectedDate)} jam ${fmtTime(selectedSlot.slot_time)}. Nama saya ${name} (${phone}). Mohon beritahu saya jika ada slot tersedia.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Phone className="h-4 w-4" /> Konfirmasi via WhatsApp
+                </a>
+              </Button>
+            )}
+
+            <div className="flex gap-3 justify-center flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStep("date");
+                  setSelectedDate("");
+                  setSelectedSlot(null);
+                  setName(""); setPhone(""); setPartySize("1"); setNotes("");
+                  setWaitlistPosition(null);
+                  loadSlots(shop.id);
+                }}
+              >
+                Lihat Slot Lain
+              </Button>
+              <Button asChild>
+                <Link to="/toko/$slug" params={{ slug }}>Kembali ke Toko</Link>
+              </Button>
+            </div>
           </div>
         )}
 
@@ -1112,6 +1334,7 @@ export default function PublicBookingPage() {
                   setBookingId(null);
                   setCancellationToken(null);
                   setCancelLinkCopied(false);
+                  setWaitlistPosition(null);
                   setAppliedVoucher(null);
                   setVoucherInput("");
                   loadSlots(shop.id);

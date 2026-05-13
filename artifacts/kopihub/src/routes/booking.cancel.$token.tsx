@@ -150,7 +150,7 @@ function BookingCancelPage() {
         .update({ booked_count: newCount })
         .eq("id", booking.slot.id);
 
-      // Notify owner
+      // Notify owner of cancellation
       await (supabase as any)
         .from("owner_notifications")
         .insert({
@@ -162,6 +162,30 @@ function BookingCancelPage() {
           link: "/pos-app/booking",
           dedupe_key: `cancel_${booking.id}`,
         });
+
+      // Check waitlist — notify owner if someone is waiting for this slot
+      const { data: nextInLine } = await (supabase as any)
+        .from("booking_waitlist")
+        .select("id, customer_name, customer_phone, party_size")
+        .eq("slot_id", booking.slot.id)
+        .is("notified_at", null)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (nextInLine) {
+        await (supabase as any)
+          .from("owner_notifications")
+          .insert({
+            shop_id: booking.slot.shop.id,
+            type: "waitlist_slot_open",
+            title: `🟢 Slot terbuka — ${nextInLine.customer_name} sedang menunggu!`,
+            body: `${booking.slot.service_name} · ${fmtDate(booking.slot.slot_date)} ${fmtTime(booking.slot.slot_time)} · WA: ${nextInLine.customer_phone}`,
+            severity: "info",
+            link: "/pos-app/booking",
+            dedupe_key: `waitlist_open_${booking.slot.id}_${nextInLine.id}`,
+          });
+      }
 
       setStep("done");
     } catch {
