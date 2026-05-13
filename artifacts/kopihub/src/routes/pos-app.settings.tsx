@@ -232,6 +232,9 @@ function SettingsPage() {
         receipt_footer: form.receipt_footer,
         auto_reply_enabled: form.auto_reply_enabled,
         auto_reply_message: form.auto_reply_message,
+        deposit_enabled: form.deposit_enabled,
+        deposit_percent: form.deposit_percent,
+        deposit_min_total: form.deposit_min_total,
       } as never)
       .eq("id", shop.id);
     setSaving(false);
