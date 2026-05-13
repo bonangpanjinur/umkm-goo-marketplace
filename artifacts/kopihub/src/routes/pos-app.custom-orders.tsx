@@ -130,14 +130,15 @@ function CustomOrdersPage() {
   }
 
   async function updateStatus(id: string, status: string, ownerNote?: string) {
-    const patch: any = { status };
+    const patch: { status: string; owner_note?: string } = { status };
     if (typeof ownerNote === "string" && ownerNote.trim()) patch.owner_note = ownerNote.trim();
+    // Optimistic update — realtime UPDATE handler akan sync state final.
+    setItems(prev => prev.map(p => p.id === id ? { ...p, ...patch } as Req : p));
     const { error } = await supabase.from("custom_order_requests").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status diperbarui");
     setStatusNote("");
     if (historyCache[id]) await loadHistory(id);
-    load();
   }
 
   function waLink(contact: string, message: string) {
@@ -172,9 +173,10 @@ function CustomOrdersPage() {
   }
 
   async function saveNote(id: string) {
+    setItems(prev => prev.map(p => p.id === id ? { ...p, owner_note: note } : p));
     const { error } = await supabase.from("custom_order_requests").update({ owner_note: note }).eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("Catatan disimpan"); setEditing(null); load(); }
+    else { toast.success("Catatan disimpan"); setEditing(null); }
   }
 
   const filtered = useMemo(() => {
