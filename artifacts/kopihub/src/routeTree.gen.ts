@@ -128,6 +128,7 @@ import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminImpersonationRouteImport } from './routes/admin.impersonation'
+import { Route as AdminHealthScoreRouteImport } from './routes/admin.health-score'
 import { Route as AdminFraudRouteImport } from './routes/admin.fraud'
 import { Route as AdminFinancialReportRouteImport } from './routes/admin.financial-report'
 import { Route as AdminFeeSimulatorRouteImport } from './routes/admin.fee-simulator'
@@ -773,6 +774,11 @@ const AdminImpersonationRoute = AdminImpersonationRouteImport.update({
   path: '/impersonation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminHealthScoreRoute = AdminHealthScoreRouteImport.update({
+  id: '/health-score',
+  path: '/health-score',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFraudRoute = AdminFraudRouteImport.update({
   id: '/fraud',
   path: '/fraud',
@@ -1040,6 +1046,7 @@ export interface FileRoutesByFullPath {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
+  '/admin/health-score': typeof AdminHealthScoreRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1204,6 +1211,7 @@ export interface FileRoutesByTo {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
+  '/admin/health-score': typeof AdminHealthScoreRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1370,6 +1378,7 @@ export interface FileRoutesById {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
+  '/admin/health-score': typeof AdminHealthScoreRoute
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1539,6 +1548,7 @@ export interface FileRouteTypes {
     | '/admin/fee-simulator'
     | '/admin/financial-report'
     | '/admin/fraud'
+    | '/admin/health-score'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
@@ -1703,6 +1713,7 @@ export interface FileRouteTypes {
     | '/admin/fee-simulator'
     | '/admin/financial-report'
     | '/admin/fraud'
+    | '/admin/health-score'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
@@ -1868,6 +1879,7 @@ export interface FileRouteTypes {
     | '/admin/fee-simulator'
     | '/admin/financial-report'
     | '/admin/fraud'
+    | '/admin/health-score'
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
@@ -2865,6 +2877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/health-score': {
+      id: '/admin/health-score'
+      path: '/health-score'
+      fullPath: '/admin/health-score'
+      preLoaderRoute: typeof AdminHealthScoreRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fraud': {
       id: '/admin/fraud'
       path: '/fraud'
@@ -3234,6 +3253,7 @@ interface AdminRouteChildren {
   AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
   AdminFinancialReportRoute: typeof AdminFinancialReportRoute
   AdminFraudRoute: typeof AdminFraudRoute
+  AdminHealthScoreRoute: typeof AdminHealthScoreRoute
   AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
@@ -3272,6 +3292,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
   AdminFinancialReportRoute: AdminFinancialReportRoute,
   AdminFraudRoute: AdminFraudRoute,
+  AdminHealthScoreRoute: AdminHealthScoreRoute,
   AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
