@@ -240,15 +240,24 @@ function PortfolioPage() {
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
             {items.map(item => (
               <div key={item.id} className="group relative rounded-xl overflow-hidden border border-border bg-card">
-                <div className="aspect-square w-full bg-muted overflow-hidden">
-                  <img
-                    src={item.image_url}
-                    alt={item.caption ?? "Portofolio"}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/300x300?text=Foto"; }}
-                  />
-                </div>
+                {item.is_before_after && item.before_image_url && item.after_image_url ? (
+                  <div className="aspect-square w-full">
+                    <BeforeAfterSlider beforeUrl={item.before_image_url} afterUrl={item.after_image_url} className="aspect-square" />
+                  </div>
+                ) : (
+                  <div className="aspect-square w-full bg-muted overflow-hidden">
+                    <img
+                      src={item.image_url}
+                      alt={item.caption ?? "Portofolio"}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/300x300?text=Foto"; }}
+                    />
+                  </div>
+                )}
                 <div className="p-2">
+                  {item.is_before_after && (
+                    <span className="text-[10px] font-medium text-amber-700 bg-amber-100 rounded-full px-2 py-0.5 mr-1">Before/After</span>
+                  )}
                   {item.category && (
                     <span className="text-[10px] font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5">{item.category}</span>
                   )}
