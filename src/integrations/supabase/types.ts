@@ -2682,6 +2682,88 @@ export type Database = {
           },
         ]
       }
+      product_upsell_suggestions: {
+        Row: {
+          created_at: string
+          id: string
+          is_pinned: boolean
+          position: number
+          product_id: string
+          score: number
+          shop_id: string
+          source: string
+          suggested_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          position?: number
+          product_id: string
+          score?: number
+          shop_id: string
+          source?: string
+          suggested_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          position?: number
+          product_id?: string
+          score?: number
+          shop_id?: string
+          source?: string
+          suggested_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_upsell_suggestions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "product_upsell_suggestions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_upsell_suggestions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_upsell_suggestions_suggested_id_fkey"
+            columns: ["suggested_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "product_upsell_suggestions_suggested_id_fkey"
+            columns: ["suggested_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_upsell_suggestions_suggested_id_fkey"
+            columns: ["suggested_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3989,6 +4071,13 @@ export type Database = {
       close_shift: {
         Args: { _closing_cash: number; _note?: string; _shift_id: string }
         Returns: Json
+      }
+      compute_upsell_suggestions: {
+        Args: never
+        Returns: {
+          inserted_pairs: number
+          processed_products: number
+        }[]
       }
       courier_mark_delivered: {
         Args: { _order_id: string; _proof_url: string }

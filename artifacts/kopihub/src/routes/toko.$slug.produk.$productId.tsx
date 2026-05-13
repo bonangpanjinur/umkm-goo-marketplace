@@ -689,7 +689,34 @@ function FrequentlyBoughtTogether({ productId, shopId, shopSlug }: { productId: 
   useEffect(() => {
     (async () => {
       try {
-        // Step 1: Find orders containing this product
+        // Step 0: Try precomputed suggestions first (fast & curated)
+        const { data: precomputed } = await supabase
+          .from("product_upsell_suggestions" as any)
+          .select("suggested_id, position, is_pinned, source")
+          .eq("product_id" as any, productId)
+          .order("is_pinned" as any, { ascending: false })
+          .order("position" as any, { ascending: true })
+          .limit(6) as any;
+
+        const precomputedIds: string[] = (precomputed ?? [])
+          .map((r: any) => r.suggested_id)
+          .filter(Boolean);
+
+        if (precomputedIds.length >= 2) {
+          const { data } = await supabase
+            .from("menu_items")
+            .select("id, name, price, image_url")
+            .in("id", precomputedIds)
+            .eq("is_available" as any, true) as any;
+          // Preserve order from precomputed
+          const sorted = precomputedIds
+            .map((id) => (data ?? []).find((d: any) => d.id === id))
+            .filter(Boolean);
+          setRelated(sorted as RelatedProduct[]);
+          return;
+        }
+
+        // Step 1: Fallback — find orders containing this product
         const { data: refs } = await supabase
           .from("order_items" as any)
           .select("order_id")

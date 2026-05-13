@@ -158,6 +158,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/portfolio", label: "Portofolio / Galeri", icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli" },
       { to: "/pos-app/happy-hour", label: "Happy Hour", icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam" },
       { to: "/pos-app/bulk-pricing", label: "Harga Grosir / Bulk", icon: Layers, hint: "Harga bertingkat otomatis: beli lebih banyak, harga lebih murah" },
+      { to: "/pos-app/upsell", label: "Sering Dibeli Bersama", icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
     ],
   },
   {
