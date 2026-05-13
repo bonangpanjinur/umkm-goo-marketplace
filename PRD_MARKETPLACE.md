@@ -34,7 +34,7 @@ Platform ini sudah sangat kuat dari sisi infrastruktur. **70–75% fitur inti su
    - Portofolio/galeri karya toko (M-02) — kritis untuk jasa kreatif & salon
    - Reminder otomatis H-1/H-3 (M-03) — kritis untuk retensi booking
    - ~~Waitlist virtual (M-12)~~ ✅ **Sudah selesai Sprint 11**
-   - Upselling engine (M-07) — dampak langsung ke AOV
+   - ~~Upselling engine (M-07)~~ ✅ **Sudah selesai Sprint 12**
 
 ---
 
