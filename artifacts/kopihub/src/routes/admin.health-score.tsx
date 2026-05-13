@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Heart, TrendingUp, Star, Package } from "lucide-react";
@@ -84,7 +84,7 @@ function HealthScorePage() {
             {sorted.map(r => (
               <tr key={r.shop_id} className="border-t border-border hover:bg-muted/20">
                 <td className="p-3">
-                  <a href={`/toko/${r.slug}`} target="_blank" rel="noreferrer" className="font-medium hover:text-primary">{r.shop_name}</a>
+                  <Link to="/admin/health-score/$shopId" params={{ shopId: r.shop_id }} className="font-medium hover:text-primary">{r.shop_name}</Link>
                   <div className="text-[11px] text-muted-foreground">/{r.slug}</div>
                 </td>
                 <td className="p-3 text-right">

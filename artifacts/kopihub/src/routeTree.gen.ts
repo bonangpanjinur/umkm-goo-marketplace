@@ -171,6 +171,7 @@ import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.suk
 import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
+import { Route as AdminHealthScoreShopIdRouteImport } from './routes/admin.health-score.$shopId'
 import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug.produk.$productId'
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
@@ -990,6 +991,11 @@ const AdminShopsIdRoute = AdminShopsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminShopsRoute,
 } as any)
+const AdminHealthScoreShopIdRoute = AdminHealthScoreShopIdRouteImport.update({
+  id: '/$shopId',
+  path: '/$shopId',
+  getParentRoute: () => AdminHealthScoreRoute,
+} as any)
 const TokoSlugProdukProductIdRoute = TokoSlugProdukProductIdRouteImport.update({
   id: '/produk/$productId',
   path: '/produk/$productId',
@@ -1046,7 +1052,7 @@ export interface FileRoutesByFullPath {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
-  '/admin/health-score': typeof AdminHealthScoreRoute
+  '/admin/health-score': typeof AdminHealthScoreRouteWithChildren
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1151,6 +1157,7 @@ export interface FileRoutesByFullPath {
   '/akun/': typeof AkunIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/pos-app/': typeof PosAppIndexRoute
+  '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
@@ -1211,7 +1218,7 @@ export interface FileRoutesByTo {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
-  '/admin/health-score': typeof AdminHealthScoreRoute
+  '/admin/health-score': typeof AdminHealthScoreRouteWithChildren
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1314,6 +1321,7 @@ export interface FileRoutesByTo {
   '/akun': typeof AkunIndexRoute
   '/kategori': typeof KategoriIndexRoute
   '/pos-app': typeof PosAppIndexRoute
+  '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
@@ -1378,7 +1386,7 @@ export interface FileRoutesById {
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
   '/admin/fraud': typeof AdminFraudRoute
-  '/admin/health-score': typeof AdminHealthScoreRoute
+  '/admin/health-score': typeof AdminHealthScoreRouteWithChildren
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -1483,6 +1491,7 @@ export interface FileRoutesById {
   '/akun/': typeof AkunIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/pos-app/': typeof PosAppIndexRoute
+  '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
@@ -1653,6 +1662,7 @@ export interface FileRouteTypes {
     | '/akun/'
     | '/kategori/'
     | '/pos-app/'
+    | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
@@ -1816,6 +1826,7 @@ export interface FileRouteTypes {
     | '/akun'
     | '/kategori'
     | '/pos-app'
+    | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
@@ -1984,6 +1995,7 @@ export interface FileRouteTypes {
     | '/akun/'
     | '/kategori/'
     | '/pos-app/'
+    | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
@@ -3178,6 +3190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminShopsIdRouteImport
       parentRoute: typeof AdminShopsRoute
     }
+    '/admin/health-score/$shopId': {
+      id: '/admin/health-score/$shopId'
+      path: '/$shopId'
+      fullPath: '/admin/health-score/$shopId'
+      preLoaderRoute: typeof AdminHealthScoreShopIdRouteImport
+      parentRoute: typeof AdminHealthScoreRoute
+    }
     '/toko/$slug/produk/$productId': {
       id: '/toko/$slug/produk/$productId'
       path: '/produk/$productId'
@@ -3208,6 +3227,17 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminHealthScoreRouteChildren {
+  AdminHealthScoreShopIdRoute: typeof AdminHealthScoreShopIdRoute
+}
+
+const AdminHealthScoreRouteChildren: AdminHealthScoreRouteChildren = {
+  AdminHealthScoreShopIdRoute: AdminHealthScoreShopIdRoute,
+}
+
+const AdminHealthScoreRouteWithChildren =
+  AdminHealthScoreRoute._addFileChildren(AdminHealthScoreRouteChildren)
 
 interface AdminPlansRouteChildren {
   AdminPlansIdMatrixRoute: typeof AdminPlansIdMatrixRoute
@@ -3253,7 +3283,7 @@ interface AdminRouteChildren {
   AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
   AdminFinancialReportRoute: typeof AdminFinancialReportRoute
   AdminFraudRoute: typeof AdminFraudRoute
-  AdminHealthScoreRoute: typeof AdminHealthScoreRoute
+  AdminHealthScoreRoute: typeof AdminHealthScoreRouteWithChildren
   AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
@@ -3292,7 +3322,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
   AdminFinancialReportRoute: AdminFinancialReportRoute,
   AdminFraudRoute: AdminFraudRoute,
-  AdminHealthScoreRoute: AdminHealthScoreRoute,
+  AdminHealthScoreRoute: AdminHealthScoreRouteWithChildren,
   AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
