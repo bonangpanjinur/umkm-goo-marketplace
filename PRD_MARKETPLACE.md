@@ -479,7 +479,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 |---|---|---|---|
 | R-01 | **Reservasi Meja Publik** dari marketplace | ⚠️ Merchant-side only (meja), ✅ booking layanan publik ada | 🔥 TINGGI |
 | R-02 | **Tag Alergen & Dietary** per menu item | ✅ Selesai Sprint 9 | — |
-| R-03 | **Waitlist / Antrian Virtual** | ❌ | 🔥 TINGGI |
+| R-03 | **Waitlist / Antrian Virtual** | ✅ Selesai Sprint 11 M-12 (`booking_waitlist` + form antrean + panel POS + notif otomatis) | — |
 | R-04 | **Happy Hour / Harga Waktu** (otomatis berlaku & berakhir) | ❌ | 🔥 TINGGI |
 | R-05 | Pre-Order Catering (tanggal + waktu tertentu di masa depan) | ❌ | TINGGI |
 | R-06 | Menu Paket / Combo Builder (build your own combo) | ❌ | SEDANG |
