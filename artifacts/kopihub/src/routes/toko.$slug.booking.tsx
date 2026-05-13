@@ -13,6 +13,7 @@ import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
+  Ticket, Tag, X,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -109,6 +110,15 @@ export default function PublicBookingPage() {
   const [confirmingDeposit, setConfirmingDeposit] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Voucher state
+  const [voucherInput, setVoucherInput] = useState("");
+  const [voucherApplying, setVoucherApplying] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    code: string;
+    discountAmount: number;
+    finalPrice: number;
+  } | null>(null);
+
   // Load shop
   useEffect(() => {
     (async () => {
@@ -191,11 +201,50 @@ export default function PublicBookingPage() {
 
   const afterSlot = hasStaff ? "staff" : "form";
 
-  // Computed deposit amount
+  // Apply voucher code
+  const applyVoucher = async () => {
+    if (!shop?.id || !selectedSlot || !voucherInput.trim()) return;
+    setVoucherApplying(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("fn_use_booking_voucher", {
+        p_shop_id: shop.id,
+        p_code: voucherInput.trim(),
+        p_slot_price: selectedSlot.price,
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.ok) {
+        toast.error(data?.error ?? "Voucher tidak valid");
+      } else {
+        setAppliedVoucher({
+          code: data.code,
+          discountAmount: Number(data.discount_amount),
+          finalPrice: Number(data.final_price),
+        });
+        toast.success(`Voucher "${data.code}" berhasil! Hemat ${formatIDR(Number(data.discount_amount))}`);
+        setVoucherInput("");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menerapkan voucher");
+    } finally {
+      setVoucherApplying(false);
+    }
+  };
+
+  const removeVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherInput("");
+  };
+
+  // Computed effective price after voucher
+  const effectivePrice = appliedVoucher
+    ? appliedVoucher.finalPrice
+    : (selectedSlot?.price ?? 0);
+
+  // Computed deposit amount (based on effective price after voucher)
   const depositAmount = (() => {
     if (!shop?.require_deposit || !selectedSlot) return 0;
     const pct = shop.deposit_percent ?? 50;
-    return Math.ceil((selectedSlot.price * pct) / 100);
+    return Math.ceil((effectivePrice * pct) / 100);
   })();
 
   const submit = async () => {
@@ -220,7 +269,7 @@ export default function PublicBookingPage() {
 
       const staffId = selectedStaffId !== NO_PREF_STAFF_ID ? selectedStaffId : null;
       const staffName = selectedStaff?.name ?? null;
-      const needsDeposit = !!(shop.require_deposit && selectedSlot.price > 0);
+      const needsDeposit = !!(shop.require_deposit && effectivePrice > 0);
 
       const { data: bk, error } = await supabase
         .from("bookings" as any)
@@ -230,12 +279,16 @@ export default function PublicBookingPage() {
           customer_phone: phone.trim(),
           party_size: party,
           notes: notes.trim() || null,
-          status: needsDeposit ? "pending" : "pending",
+          status: "pending",
           ...(staffId ? { staff_id: staffId } : {}),
           ...(needsDeposit ? {
             deposit_required: true,
             deposit_amount: depositAmount,
             deposit_status: "waiting_payment",
+          } : {}),
+          ...(appliedVoucher ? {
+            voucher_code: appliedVoucher.code,
+            voucher_discount: appliedVoucher.discountAmount,
           } : {}),
         } as any)
         .select("id")
@@ -247,20 +300,23 @@ export default function PublicBookingPage() {
         .update({ booked_count: (fresh?.booked_count ?? 0) + 1 } as any)
         .eq("id" as any, selectedSlot.id);
 
+      const voucherNote = appliedVoucher
+        ? ` · Voucher: ${appliedVoucher.code} (-${formatIDR(appliedVoucher.discountAmount)})`
+        : "";
+
       await supabase
         .from("owner_notifications" as any)
         .insert({
           shop_id: shop.id,
           type: needsDeposit ? "new_booking_deposit" : "new_booking",
           title: `📅 Booking baru dari ${name.trim()}`,
-          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}`,
+          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
           severity: "info",
           link: "/pos-app/booking",
           dedupe_key: `booking_${bk?.id ?? Date.now()}`,
         } as any);
 
       setBookingId(bk?.id ?? "ok");
-      // If deposit required and slot has a price, show deposit step
       if (needsDeposit) {
         setStep("deposit");
       } else {
@@ -528,6 +584,8 @@ export default function PublicBookingPage() {
                       onClick={() => {
                         setSelectedSlot(slot);
                         setSelectedStaffId(NO_PREF_STAFF_ID);
+                        setAppliedVoucher(null);
+                        setVoucherInput("");
                         setStep(afterSlot);
                       }}
                       className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
@@ -704,7 +762,16 @@ export default function PublicBookingPage() {
                 </div>
               )}
               {selectedSlot.price > 0 && (
-                <p className="text-sm font-bold text-primary">{formatIDR(selectedSlot.price)}</p>
+                <div className="space-y-0.5">
+                  {appliedVoucher ? (
+                    <>
+                      <p className="text-sm line-through text-muted-foreground">{formatIDR(selectedSlot.price)}</p>
+                      <p className="text-sm font-bold text-emerald-600">{formatIDR(appliedVoucher.finalPrice)} <span className="text-xs font-normal text-emerald-600/80">(-{formatIDR(appliedVoucher.discountAmount)})</span></p>
+                    </>
+                  ) : (
+                    <p className="text-sm font-bold text-primary">{formatIDR(selectedSlot.price)}</p>
+                  )}
+                </div>
               )}
             </div>
 
@@ -763,6 +830,50 @@ export default function PublicBookingPage() {
                   onChange={e => setNotes(e.target.value)}
                 />
               </div>
+
+              {/* ─── Voucher Input ─── */}
+              {selectedSlot.price > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <Ticket className="h-3.5 w-3.5 text-violet-500" /> Kode Voucher
+                  </Label>
+                  {appliedVoucher ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2">
+                      <Tag className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-emerald-700 font-mono">{appliedVoucher.code}</p>
+                        <p className="text-xs text-emerald-600">Hemat {formatIDR(appliedVoucher.discountAmount)}</p>
+                      </div>
+                      <button
+                        onClick={removeVoucher}
+                        className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                        title="Hapus voucher"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Masukkan kode voucher"
+                        value={voucherInput}
+                        onChange={e => setVoucherInput(e.target.value.toUpperCase())}
+                        onKeyDown={e => e.key === "Enter" && applyVoucher()}
+                        className="font-mono uppercase"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={applyVoucher}
+                        disabled={voucherApplying || !voucherInput.trim()}
+                        className="shrink-0 border-violet-300 text-violet-700 hover:bg-violet-50"
+                      >
+                        {voucherApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pakai"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <Button
@@ -896,7 +1007,15 @@ export default function PublicBookingPage() {
                 )}
                 <p><span className="font-medium text-foreground">Nama:</span> {name}</p>
                 {selectedSlot.price > 0 && (
-                  <p><span className="font-medium text-foreground">Harga:</span> {formatIDR(selectedSlot.price)}</p>
+                  appliedVoucher ? (
+                    <div className="space-y-0.5">
+                      <p><span className="font-medium text-foreground">Harga asal:</span> <span className="line-through text-muted-foreground">{formatIDR(selectedSlot.price)}</span></p>
+                      <p><span className="font-medium text-foreground">Voucher:</span> <span className="text-emerald-600 font-mono">{appliedVoucher.code}</span> <span className="text-emerald-600">(-{formatIDR(appliedVoucher.discountAmount)})</span></p>
+                      <p><span className="font-medium text-foreground">Harga akhir:</span> <span className="font-bold text-emerald-600">{formatIDR(appliedVoucher.finalPrice)}</span></p>
+                    </div>
+                  ) : (
+                    <p><span className="font-medium text-foreground">Harga:</span> {formatIDR(selectedSlot.price)}</p>
+                  )
                 )}
                 {shop?.require_deposit && depositAmount > 0 && (
                   <p className="flex items-center gap-1.5 font-medium text-emerald-700">
@@ -934,6 +1053,8 @@ export default function PublicBookingPage() {
                   setSelectedStaffId(NO_PREF_STAFF_ID);
                   setName(""); setPhone(""); setPartySize("1"); setNotes("");
                   setBookingId(null);
+                  setAppliedVoucher(null);
+                  setVoucherInput("");
                   loadSlots(shop.id);
                 }}
               >

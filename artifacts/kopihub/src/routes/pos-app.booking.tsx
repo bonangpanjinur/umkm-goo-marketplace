@@ -32,6 +32,9 @@ import {
   ToggleLeft,
   ToggleRight,
   Loader2,
+  Ticket,
+  Trash2,
+  Tag,
 } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/booking")({ component: BookingPage });
@@ -61,6 +64,23 @@ type Booking = {
   deposit_required?: boolean;
   deposit_amount?: number;
   deposit_status?: string;
+  voucher_code?: string | null;
+  voucher_discount?: number | null;
+};
+
+type BookingVoucher = {
+  id: string;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: number;
+  min_slot_price: number;
+  max_uses: number | null;
+  used_count: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+  description: string | null;
+  created_at: string;
 };
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
@@ -92,6 +112,78 @@ function BookingPage() {
   const [savingBooking, setSavingBooking] = useState(false);
 
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+
+  // Voucher management
+  const [vouchers, setVouchers] = useState<BookingVoucher[]>([]);
+  const [vouchersLoading, setVouchersLoading] = useState(false);
+  const [voucherOpen, setVoucherOpen] = useState(false);
+  const [savingVoucher, setSavingVoucher] = useState(false);
+  const [voucherForm, setVoucherForm] = useState({
+    code: "",
+    discount_type: "percent" as "percent" | "fixed",
+    discount_value: "",
+    min_slot_price: "0",
+    max_uses: "",
+    valid_from: "",
+    valid_until: "",
+    description: "",
+  });
+
+  const loadVouchers = useCallback(async () => {
+    if (!shop?.id) return;
+    setVouchersLoading(true);
+    const { data } = await (supabase as any)
+      .from("booking_vouchers")
+      .select("*")
+      .eq("shop_id", shop.id)
+      .order("created_at", { ascending: false });
+    setVouchers((data ?? []) as BookingVoucher[]);
+    setVouchersLoading(false);
+  }, [shop?.id]);
+
+  useEffect(() => { loadVouchers(); }, [loadVouchers]);
+
+  const saveVoucher = async () => {
+    if (!shop?.id) return;
+    if (!voucherForm.code.trim()) { toast.error("Kode voucher wajib diisi"); return; }
+    if (!voucherForm.discount_value || Number(voucherForm.discount_value) <= 0) {
+      toast.error("Nilai diskon harus lebih dari 0"); return;
+    }
+    if (voucherForm.discount_type === "percent" && Number(voucherForm.discount_value) > 100) {
+      toast.error("Diskon persen tidak boleh lebih dari 100%"); return;
+    }
+    setSavingVoucher(true);
+    const { error } = await (supabase as any).from("booking_vouchers").insert({
+      shop_id: shop.id,
+      code: voucherForm.code.trim().toUpperCase(),
+      discount_type: voucherForm.discount_type,
+      discount_value: Number(voucherForm.discount_value),
+      min_slot_price: Number(voucherForm.min_slot_price) || 0,
+      max_uses: voucherForm.max_uses ? Number(voucherForm.max_uses) : null,
+      valid_from: voucherForm.valid_from || null,
+      valid_until: voucherForm.valid_until || null,
+      description: voucherForm.description.trim() || null,
+    });
+    setSavingVoucher(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Voucher berhasil dibuat");
+    setVoucherOpen(false);
+    setVoucherForm({ code: "", discount_type: "percent", discount_value: "", min_slot_price: "0", max_uses: "", valid_from: "", valid_until: "", description: "" });
+    loadVouchers();
+  };
+
+  const toggleVoucher = async (v: BookingVoucher) => {
+    await (supabase as any).from("booking_vouchers").update({ is_active: !v.is_active }).eq("id", v.id);
+    toast.success(v.is_active ? "Voucher dinonaktifkan" : "Voucher diaktifkan");
+    loadVouchers();
+  };
+
+  const deleteVoucher = async (v: BookingVoucher) => {
+    if (!confirm(`Hapus voucher "${v.code}"?`)) return;
+    await (supabase as any).from("booking_vouchers").delete().eq("id", v.id);
+    toast.success("Voucher dihapus");
+    loadVouchers();
+  };
 
   // Deposit settings
   const [depositEnabled, setDepositEnabled] = useState(false);
@@ -260,6 +352,77 @@ function BookingPage() {
           </Button>
         </div>
       </div>
+
+      {/* ─── Voucher Booking Card ─── */}
+      <Card className="p-5 space-y-4 border-violet-200/60 bg-violet-50/30 dark:bg-violet-950/10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Ticket className="h-5 w-5 text-violet-600" />
+            <div>
+              <p className="font-semibold text-sm">Voucher Khusus Booking</p>
+              <p className="text-xs text-muted-foreground">Buat kode diskon eksklusif untuk pelanggan yang booking online</p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 border-violet-300 text-violet-700 hover:bg-violet-50 shrink-0"
+            onClick={() => setVoucherOpen(true)}
+          >
+            <Plus className="h-3.5 w-3.5" /> Buat Voucher
+          </Button>
+        </div>
+
+        {vouchersLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        ) : vouchers.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground py-3">
+            Belum ada voucher — klik "Buat Voucher" untuk menambahkan
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {vouchers.map(v => {
+              const discLabel = v.discount_type === "percent"
+                ? `${v.discount_value}% off`
+                : `Rp ${Number(v.discount_value).toLocaleString("id-ID")} off`;
+              const usageLabel = v.max_uses
+                ? `${v.used_count}/${v.max_uses} terpakai`
+                : `${v.used_count}× terpakai`;
+              return (
+                <div key={v.id} className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${v.is_active ? "border-violet-200 bg-white dark:bg-card" : "border-border bg-muted/30 opacity-60"}`}>
+                  <Tag className="h-4 w-4 text-violet-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-bold text-sm tracking-wide">{v.code}</span>
+                      <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700">{discLabel}</Badge>
+                      {!v.is_active && <Badge variant="outline" className="text-[10px]">Nonaktif</Badge>}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {usageLabel}
+                      {v.min_slot_price > 0 && ` · min. Rp ${Number(v.min_slot_price).toLocaleString("id-ID")}`}
+                      {v.valid_until && ` · s/d ${new Date(v.valid_until).toLocaleDateString("id-ID")}`}
+                    </p>
+                    {v.description && <p className="text-xs text-muted-foreground truncate">{v.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => toggleVoucher(v)}
+                      className={`text-xs px-2 py-0.5 rounded-full border transition-all ${v.is_active ? "border-violet-300 text-violet-700 hover:bg-violet-50" : "border-border text-muted-foreground hover:border-violet-300"}`}
+                    >
+                      {v.is_active ? "Nonaktifkan" : "Aktifkan"}
+                    </button>
+                    <button onClick={() => deleteVoucher(v)} className="ml-1 text-muted-foreground hover:text-destructive transition-colors">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
       {/* ─── Deposit Settings Card ─── */}
       <Card className="p-5 space-y-4 border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10">
@@ -522,6 +685,104 @@ function BookingPage() {
           })}
         </div>
       )}
+
+      {/* ─── Create Voucher Dialog ─── */}
+      <Dialog open={voucherOpen} onOpenChange={setVoucherOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Ticket className="h-4 w-4 text-violet-600" /> Buat Voucher Booking</DialogTitle></DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div>
+              <Label className="text-xs">Kode Voucher *</Label>
+              <Input
+                className="mt-1 font-mono uppercase"
+                placeholder="cth: BOOKING10"
+                value={voucherForm.code}
+                onChange={e => setVoucherForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+              />
+              <p className="text-[10px] text-muted-foreground mt-0.5">Otomatis diubah ke huruf kapital</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Jenis Diskon</Label>
+                <select
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={voucherForm.discount_type}
+                  onChange={e => setVoucherForm(f => ({ ...f, discount_type: e.target.value as "percent" | "fixed" }))}
+                >
+                  <option value="percent">Persen (%)</option>
+                  <option value="fixed">Nominal (Rp)</option>
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs">Nilai Diskon *</Label>
+                <div className="flex items-center gap-1 mt-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={voucherForm.discount_type === "percent" ? 100 : undefined}
+                    step={voucherForm.discount_type === "percent" ? 5 : 1000}
+                    value={voucherForm.discount_value}
+                    onChange={e => setVoucherForm(f => ({ ...f, discount_value: e.target.value }))}
+                    placeholder={voucherForm.discount_type === "percent" ? "10" : "20000"}
+                  />
+                  <span className="text-sm text-muted-foreground shrink-0">{voucherForm.discount_type === "percent" ? "%" : "Rp"}</span>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Min. Harga Slot (Rp)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={5000}
+                  value={voucherForm.min_slot_price}
+                  onChange={e => setVoucherForm(f => ({ ...f, min_slot_price: e.target.value }))}
+                  className="mt-1"
+                  placeholder="0 = semua harga"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Maks. Penggunaan</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={voucherForm.max_uses}
+                  onChange={e => setVoucherForm(f => ({ ...f, max_uses: e.target.value }))}
+                  className="mt-1"
+                  placeholder="Kosong = tak terbatas"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Berlaku mulai</Label>
+                <Input type="date" value={voucherForm.valid_from} onChange={e => setVoucherForm(f => ({ ...f, valid_from: e.target.value }))} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Berlaku hingga</Label>
+                <Input type="date" value={voucherForm.valid_until} onChange={e => setVoucherForm(f => ({ ...f, valid_until: e.target.value }))} className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Deskripsi (opsional)</Label>
+              <Input
+                className="mt-1"
+                placeholder="cth: Diskon untuk pelanggan baru"
+                value={voucherForm.description}
+                onChange={e => setVoucherForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setVoucherOpen(false)}>Batal</Button>
+              <Button className="flex-1 bg-violet-600 hover:bg-violet-700" onClick={saveVoucher} disabled={savingVoucher}>
+                {savingVoucher ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Ticket className="h-3.5 w-3.5 mr-1" />}
+                {savingVoucher ? "Menyimpan…" : "Buat Voucher"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={slotOpen} onOpenChange={setSlotOpen}>
         <DialogContent className="max-w-sm">
