@@ -188,14 +188,25 @@ function CustomOrdersPage() {
                 )}
 
                 <div className="flex gap-2 flex-wrap pt-2 border-t border-border">
-                  <a href={`https://wa.me/${r.customer_contact.replace(/\D/g,"")}`} target="_blank" rel="noreferrer">
+                  <a href={waLink(r.customer_contact, `Halo ${r.customer_name}, mengenai brief custom order kamu di ${shop?.name ?? ""}…`)} target="_blank" rel="noreferrer">
                     <Button size="sm" variant="outline">Hubungi WhatsApp</Button>
                   </a>
-                  {STATUS.filter(s => s.v !== r.status).map(s => (
-                    <Button key={s.v} size="sm" variant="outline" onClick={() => updateStatus(r.id, s.v)}>
-                      Tandai {s.l}
-                    </Button>
-                  ))}
+                  {r.status === "pending" && (
+                    <>
+                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => accept(r)}>
+                        Terima &amp; kirim WA
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => reject(r)}>
+                        Tolak &amp; kirim WA
+                      </Button>
+                    </>
+                  )}
+                  {r.status === "accepted" && (
+                    <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, "completed")}>Tandai Selesai</Button>
+                  )}
+                  {(r.status === "rejected" || r.status === "completed") && (
+                    <Button size="sm" variant="ghost" onClick={() => updateStatus(r.id, "pending")}>Buka kembali</Button>
+                  )}
                 </div>
               </div>
             );
