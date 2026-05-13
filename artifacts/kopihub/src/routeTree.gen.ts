@@ -35,6 +35,7 @@ import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wi
 import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
 import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
+import { Route as PosAppUpsellRouteImport } from './routes/pos-app.upsell'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
@@ -299,6 +300,11 @@ const PosAppVouchersRoute = PosAppVouchersRouteImport.update({
 const PosAppVariantsRoute = PosAppVariantsRouteImport.update({
   id: '/variants',
   path: '/variants',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppUpsellRoute = PosAppUpsellRouteImport.update({
+  id: '/upsell',
+  path: '/upsell',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppTablesRoute = PosAppTablesRouteImport.update({
@@ -1106,6 +1112,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/upsell': typeof PosAppUpsellRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
@@ -1265,6 +1272,7 @@ export interface FileRoutesByTo {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/upsell': typeof PosAppUpsellRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
@@ -1428,6 +1436,7 @@ export interface FileRoutesById {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/upsell': typeof PosAppUpsellRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
@@ -1593,6 +1602,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/upsell'
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
@@ -1752,6 +1762,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/upsell'
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
@@ -1914,6 +1925,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/upsell'
     | '/pos-app/variants'
     | '/pos-app/vouchers'
     | '/pos-app/waitlist'
@@ -2164,6 +2176,13 @@ declare module '@tanstack/react-router' {
       path: '/variants'
       fullPath: '/pos-app/variants'
       preLoaderRoute: typeof PosAppVariantsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/upsell': {
+      id: '/pos-app/upsell'
+      path: '/upsell'
+      fullPath: '/pos-app/upsell'
+      preLoaderRoute: typeof PosAppUpsellRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/tables': {
@@ -3369,6 +3388,7 @@ interface PosAppRouteChildren {
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTableQrRoute: typeof PosAppTableQrRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
+  PosAppUpsellRoute: typeof PosAppUpsellRoute
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppVouchersRoute: typeof PosAppVouchersRoute
   PosAppWaitlistRoute: typeof PosAppWaitlistRoute
@@ -3436,6 +3456,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTableQrRoute: PosAppTableQrRoute,
   PosAppTablesRoute: PosAppTablesRoute,
+  PosAppUpsellRoute: PosAppUpsellRoute,
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppVouchersRoute: PosAppVouchersRoute,
   PosAppWaitlistRoute: PosAppWaitlistRoute,
