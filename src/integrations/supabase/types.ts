@@ -4772,6 +4772,7 @@ export type Database = {
         Returns: undefined
       }
       approve_plan_invoice: { Args: { _invoice_id: string }; Returns: Json }
+      approve_wallet_topup: { Args: { _topup_id: string }; Returns: string }
       approve_withdrawal: {
         Args: { _id: string; _proof_url?: string }
         Returns: undefined
@@ -5030,6 +5031,10 @@ export type Database = {
       }
       reject_plan_invoice: {
         Args: { _invoice_id: string; _reason?: string }
+        Returns: undefined
+      }
+      reject_wallet_topup: {
+        Args: { _reason?: string; _topup_id: string }
         Returns: undefined
       }
       reject_withdrawal: {
