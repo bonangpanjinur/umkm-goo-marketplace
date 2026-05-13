@@ -4443,6 +4443,25 @@ export type Database = {
           qris_image_url: string
         }[]
       }
+      get_customer_custom_orders: {
+        Args: { p_contact: string; p_shop_slug: string }
+        Returns: {
+          budget_max: number
+          budget_min: number
+          created_at: string
+          customer_name: string
+          deadline: string
+          description: string
+          id: string
+          owner_note: string
+          product_id: string
+          product_name: string
+          reference_image_url: string
+          shop_id: string
+          status: string
+          updated_at: string
+        }[]
+      }
       get_marketplace_admin_daily: {
         Args: { _from: string; _to: string }
         Returns: {
