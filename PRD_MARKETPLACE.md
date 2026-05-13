@@ -568,6 +568,413 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 
 ---
 
+## BAGIAN 12: ARSITEKTUR UNIFIED SHOP
+
+> **Prinsip Inti:** Satu merchant mendaftar sekali → langsung punya tiga sekaligus: website toko sendiri, halaman di marketplace, dan sistem booking. Bukan tiga produk terpisah — satu platform, satu dashboard.
+
+### 12.1 Konsep "Satu Toko, Tiga Wajah"
+
+```
+Merchant daftar → isi profil toko → pilih kategori usaha → langsung aktif di 3 tempat:
+
+┌─────────────────────────────────────────────────────────┐
+│                   SATU DASHBOARD                         │
+│              (pos-app / /app)                            │
+│                                                          │
+│  Kelola produk/layanan · Kelola pesanan · Kelola booking │
+│  Laporan · Keuangan · Pelanggan · Promo                  │
+└──────────────┬──────────────┬──────────────┬────────────┘
+               │              │              │
+               ▼              ▼              ▼
+    ┌──────────────┐  ┌─────────────┐  ┌──────────────┐
+    │   WEBSITE    │  │ MARKETPLACE │  │   BOOKING    │
+    │   SENDIRI    │  │  PLATFORM   │  │    PAGE      │
+    │              │  │             │  │              │
+    │/s/:slug      │  │/toko/:slug  │  │/toko/:slug   │
+    │atau          │  │             │  │  /booking    │
+    │tokosaya.com  │  │Tampil di    │  │Pembeli self- │
+    │              │  │search &     │  │serve booking │
+    │Tema kustom   │  │kategori     │  │langsung      │
+    │per kategori  │  │marketplace  │  │              │
+    └──────────────┘  └─────────────┘  └──────────────┘
+```
+
+### 12.2 Contoh Nyata per Jenis Usaha
+
+#### Barbershop "Cukur Bros"
+```
+Daftar → pilih kategori: Barbershop
+URL default: /s/cukur-bros  (bisa upgrade ke cukurbros.com)
+
+Website Sendiri (tema: Barber Dark):
+  → Profil toko + foto barbershop
+  → Daftar layanan (Potong Biasa Rp 25k, Skin Fade Rp 45k, dll.)
+  → Tombol "Booking Sekarang" menonjol
+  → Galeri before/after
+  → Ulasan pelanggan
+
+Halaman Marketplace (/toko/cukur-bros):
+  → Kartu toko tampil di kategori "Barbershop" di marketplace
+  → Pembeli search "barbershop" → Cukur Bros muncul
+  → Rating + jarak + harga mulai dari
+
+Halaman Booking (/toko/cukur-bros/booking):
+  → Pilih layanan: Potong Biasa / Skin Fade / Creambath
+  → Pilih barber: Budi / Andi / Reza (dengan foto & spesialisasi)
+  → Pilih tanggal & slot jam
+  → Isi nama + WA
+  → Konfirmasi → notif WA otomatis ke pembeli & toko
+
+Dashboard Merchant (sama untuk semua sumber):
+  → Booking dari website, marketplace, atau link langsung
+    → semua masuk satu inbox di /pos-app/booking
+```
+
+#### Rental Mobil "Jaya Rental"
+```
+Daftar → pilih kategori: Rental Mobil
+URL default: /s/jaya-rental  (bisa upgrade ke jayarental.com)
+
+Website Sendiri (tema: Rental Bold):
+  → Daftar armada: Avanza, Innova, Hiace (foto, kapasitas, harga/hari)
+  → Cek ketersediaan per tanggal
+  → Tombol "Pesan Sekarang"
+  → Syarat sewa (SIM, KTP, deposit)
+  → Area layanan (kota/kabupaten yang dilayani)
+
+Halaman Marketplace (/toko/jaya-rental):
+  → Tampil di kategori "Rental Kendaraan"
+  → Filter: kota, harga, kapasitas
+  → Rating + jumlah ulasan
+
+Halaman Booking (/toko/jaya-rental/booking):
+  → Pilih kendaraan: Avanza / Innova / Hiace
+  → Pilih tanggal mulai & selesai (kalender range)
+  → Cek ketersediaan otomatis (unit yang sudah dipesan tidak bisa dipilih)
+  → Dengan/tanpa sopir
+  → Lokasi ambil kendaraan
+  → Upload KTP + SIM (form)
+  → Bayar deposit online
+  → Konfirmasi + kontrak digital dikirim via WA
+
+Dashboard Merchant:
+  → Semua booking masuk satu panel
+  → Kalender armada: mana yang sedang disewa, kapan kembali
+  → Alert: armada akan kembali besok (siapkan untuk penyewa berikutnya)
+```
+
+#### Toko Kue "Dapur Manis"
+```
+Daftar → pilih kategori: Bakeri & Kue
+URL default: /s/dapur-manis
+
+Website Sendiri (tema: Bakery Warm):
+  → Foto produk yang menggiurkan (hero full-width)
+  → Menu: kue ulang tahun, kue kering, box hampers
+  → Pre-order form untuk kue custom
+  → "Order minimal H-3" tertera jelas
+  → Jam buka + kontak WA
+
+Marketplace (/toko/dapur-manis):
+  → Tampil di kategori F&B → Bakeri
+  → Produk bisa dibeli langsung (ready stock)
+  → Pre-order produk dengan tanggal siap
+
+Booking/Order:
+  → Produk ready: tambah ke keranjang → checkout biasa
+  → Kue custom: isi form (ukuran, rasa, tulisan, tema, tanggal acara)
+             → merchant review → kirim penawaran → konfirmasi
+```
+
+### 12.3 Bagaimana Data Mengalir (Unified)
+
+```
+Sumber Pesanan/Booking:
+  ├── Website Toko Sendiri (/s/:slug)      ──┐
+  ├── Marketplace (/toko/:slug)            ──┤──→ Satu database toko
+  ├── Link Booking Langsung (/toko/:slug/booking) ─┤   (shop_id = sama)
+  ├── QR Code (di meja, brosur, IG story) ──┘
+  └── POS / Kasir (walk-in langsung)      ────→ Masuk sebagai POS order
+
+Semua masuk ke Dashboard yang sama:
+  /pos-app/pesanan         → semua pesanan (POS + marketplace + website)
+  /pos-app/booking         → semua booking (dari semua sumber)
+  /pos-app/marketplace-orders → view khusus pesanan online
+```
+
+### 12.4 URL & Akses Toko
+
+| Kondisi | URL Toko | URL Marketplace | URL Booking |
+|---|---|---|---|
+| Baru daftar (gratis) | `/s/nama-toko` | `/toko/nama-toko` | `/toko/nama-toko/booking` |
+| Paket Growth+ | `/s/nama-toko` + custom path | `/toko/nama-toko` | `/toko/nama-toko/booking` |
+| Paket Pro (custom domain) | `namatoko.com` | `/toko/nama-toko` | `namatoko.com/booking` |
+
+> Marketplace (`/toko/`) selalu pakai URL platform — tidak bisa pakai custom domain di halaman marketplace. Custom domain hanya untuk website toko sendiri.
+
+### 12.5 Fitur Booking per Kategori — Tampil/Sembunyi Otomatis
+
+Fitur booking **otomatis menyesuaikan** berdasarkan kategori usaha yang dipilih saat daftar:
+
+| Kategori | Jenis Booking | Field Ekstra |
+|---|---|---|
+| Barbershop / Salon | Booking Sesi | Pilih staff · Pilih layanan · Durasi |
+| Restoran / Kafe | Reservasi Meja | Jumlah orang · Permintaan khusus |
+| Rental Mobil / Motor | Booking Rental | Tanggal mulai-selesai · Pilih unit · Upload KTP/SIM |
+| Sewa Alat Camping | Booking Rental | Tanggal mulai-selesai · Pilih item · Jumlah · Kondisi |
+| Studio Foto | Booking Sesi + Paket | Pilih paket · Brief · Pilih lokasi |
+| Klinik / Terapi | Booking Konsultasi | Keluhan awal · Pilih dokter/terapis |
+| Pet Grooming / Hotel | Booking Sesi / Rental | Info hewan (jenis, ras, berat) |
+| Kursus / Les Privat | Booking Kelas | Pilih guru · Level · Jadwal rutin |
+| Villa / Penginapan | Booking Rental | Check-in / check-out · Jumlah tamu · Kamar |
+| Gym / Fitness | Booking Kelas | Pilih kelas · Instruktur · Kapasitas |
+| Workshop / Event | Booking Kelas | Jumlah peserta · Materi · Sertifikat |
+| EO / Entertainer | Booking Jasa | Brief · Tanggal acara · Deposit |
+| F&B / Katering | Pre-order + Reservasi | Tanggal acara · Jumlah porsi · Custom |
+
+---
+
+## BAGIAN 13: RENCANA TEMA PER KATEGORI USAHA
+
+> Tema bukan sekedar warna — tema adalah identitas visual + layout + komponen yang disesuaikan dengan kebutuhan unik tiap jenis bisnis. Setiap merchant bisa pilih tema yang sesuai kategori usahanya, dan kustomisasi warna, font, logo.
+
+### 13.1 Filosofi Desain Tema
+
+```
+Satu tema = Layout + Palet Warna + Font + Komponen Khusus + Default Sections
+
+Merchant bisa:
+  → Ganti warna primer & aksen (color picker)
+  → Upload logo & banner
+  → Toggle sections on/off (hero, galeri, layanan, booking, ulasan, dll.)
+  → Atur urutan sections (drag & drop)
+  → Custom CSS (paket Pro)
+```
+
+### 13.2 Katalog Tema (35+ Tema Rencana)
+
+#### 🍽️ Tema F&B
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_cafe_cozy` | **Cozy Brew** | Kafe & Kedai Kopi | Coklat tua · Krem · Amber | Foto hero full-width · Font serif · Suasana hangat |
+| `theme_cafe_modern` | **Neo Cafe** | Kafe Modern | Hitam · Putih · Kuning mustard | Minimalis · Grid produk besar · Typography bold |
+| `theme_restaurant_premium` | **Grand Table** | Restoran & Fine Dining | Navy · Gold · Ivory | Elegan · Menu bergambar · Reservasi menonjol |
+| `theme_warung` | **Warung Nusantara** | Warung & Kedai | Merah bata · Kuning · Putih | Tradisional · POS-forward · Harga jelas |
+| `theme_bakery` | **Dough & Sweet** | Bakeri & Kue | Rose · Krem · Coklat susu | Foto produk close-up · Pre-order CTA · Warm & inviting |
+| `theme_healthy` | **Green Plate** | Makanan Sehat | Hijau sage · Putih · Aksen tomat | Clean · Nutrisi terlihat · Subscription CTA |
+
+#### ✂️ Tema Kecantikan & Perawatan
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_barber` | **The Barber** | Barbershop | Hitam · Putih · Merah | Dark maskulin · Vintage barber pole · Staff cards |
+| `theme_barber_modern` | **Fresh Cut** | Barbershop Modern | Abu gelap · Putih · Kuning | Clean modern · Before/after gallery |
+| `theme_salon_elegant` | **Belle Salon** | Salon Wanita | Blush pink · Gold · Putih | Elegan · Galeri layanan · Booking prominent |
+| `theme_salon_bold` | **Glam Studio** | Salon & Nail Art | Ungu · Hitam · Gold | Bold & luxe · Portfolio nails/makeup |
+| `theme_spa` | **Serenity** | Spa & Relaksasi | Sage green · Putih · Coklat kayu | Tenang · Foto suasana · Paket layanan cards |
+| `theme_skincare` | **Pure Glow** | Skincare & Kosmetik | Putih · Krem · Blush | Clean beauty · Ingredient highlight · Before/after |
+
+#### 🚗 Tema Otomotif & Rental
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_rental_car` | **Road Ready** | Rental Mobil | Abu gelap · Biru · Putih | Foto armada besar · Filter ketersediaan · Kalender booking |
+| `theme_rental_moto` | **Ride Free** | Rental Motor | Oranye · Hitam · Putih | Energik · Grid armada · Harga per hari |
+| `theme_workshop` | **Garage Pro** | Bengkel | Merah · Hitam · Abu | Industrial · Jenis servis grid · Booking antrian |
+| `theme_carwash` | **Sparkling** | Cuci Kendaraan | Biru · Putih · Cyan | Fresh · Paket layanan · Queue booking |
+
+#### 🏕️ Tema Rental & Outdoor
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_camping` | **Wild & Free** | Sewa Alat Camping | Hijau tua · Coklat · Krem | Adventure · Foto alam · Cek ketersediaan item |
+| `theme_outdoor_sport` | **Peak Sport** | Sewa Alat Olahraga | Biru · Hijau · Putih | Aktif · Kategori alat · Kalender rental |
+| `theme_event_rental` | **Party Pro** | Sewa Perlengkapan Event | Ungu · Gold · Putih | Event-forward · Paket bundling · CTA booking |
+
+#### 📸 Tema Kreatif & Studio
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_photographer` | **Frame & Lens** | Fotografer & Studio | Hitam · Putih · Gold | Portfolio full-screen · Paket foto cards · Booking CTA |
+| `theme_studio_dark` | **Studio Noir** | Studio Foto/Musik/Podcast | Hitam · Abu · Aksen neon | Dark & premium · Equipment list · Booking jam |
+| `theme_creative` | **Canvas** | Desainer & Ilustrator | Putih · Hitam · Aksen bebas | Portfolio masonry · Brief form · Project card |
+
+#### 🏠 Tema Properti & Hunian
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_villa` | **Escape** | Villa & Penginapan | Hijau · Coklat kayu · Putih | Foto landscape · Fasilitas grid · Kalender check-in/out |
+| `theme_kost` | **HomeBase** | Kost & Kontrakan | Biru · Putih · Abu | Clean · Spek kamar · Booking viewing |
+| `theme_coworking` | **Work Flow** | Coworking & Meeting Room | Biru gelap · Putih · Aksen kuning | Produktif · Fasilitas · Booking per jam |
+
+#### ⚕️ Tema Kesehatan & Kebugaran
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_clinic` | **MedCare** | Klinik & Praktek | Biru · Putih · Hijau muda | Clinical trust · Dokter cards · Booking konsultasi |
+| `theme_gym` | **Iron Will** | Gym & Studio Fitness | Hitam · Merah · Abu | Bold · Jadwal kelas · Membership CTA |
+| `theme_yoga` | **Breathe** | Yoga & Pilates | Putih · Sage · Pastel | Tenang · Jadwal kelas · Instruktur profiles |
+| `theme_wellness` | **Vital** | Terapi & Pijat | Hijau muda · Coklat · Putih | Wellness-forward · Layanan list · Booking sesi |
+
+#### 🐾 Tema Hewan Peliharaan
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_petshop` | **Pawsome** | Pet Shop & Grooming | Kuning · Putih · Aksen orange | Playful · Foto hewan lucu · Booking grooming |
+| `theme_pethotel` | **Happy Paws** | Pet Hotel | Hijau · Putih · Abu | Trustworthy · Kapasitas · Update foto hewan |
+
+#### 👗 Tema Fashion & Gaya
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_fashion_minimal` | **Mode** | Fashion Modern | Putih · Hitam · Aksen bebas | Lookbook · Grid foto besar · Size chart |
+| `theme_fashion_bold` | **Street** | Fashion Streetwear | Hitam · Putih · Neon | Edgy · Koleksi grid · Drop timer |
+| `theme_batik_craft` | **Nusantara** | Batik & Kerajinan | Coklat · Gold · Merah bata | Tradisional modern · Cerita pengrajin · Custom order |
+
+#### ✈️ Tema Wisata & Perjalanan
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_travel` | **Wanderlust** | Tour & Travel | Biru laut · Putih · Sunset orange | Foto destinasi · Paket wisata cards · Booking + itinerary |
+| `theme_guide` | **Local Expert** | Guide Wisata Lokal | Hijau · Coklat · Putih | Otentik · Profil guide · Review |
+
+#### 🎓 Tema Pendidikan
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_education` | **EduPath** | Bimbel & Kursus | Biru · Putih · Kuning | Trustworthy · Jadwal kelas · Daftar guru |
+| `theme_online_course` | **LearnUp** | Kursus Online | Ungu · Putih · Aksen hijau | Modern · Preview video · Progress CTA |
+
+#### 🎭 Tema Event & Hiburan
+
+| Kode Tema | Nama | Target | Palet Default | Karakteristik |
+|---|---|---|---|---|
+| `theme_event` | **Celebrate** | EO & Venue | Gold · Putih · Hitam | Mewah · Portofolio event · Paket EO · Booking |
+| `theme_entertainer` | **Spotlight** | Artis & Entertainer | Hitam · Merah · Gold | Showbiz · Video reel · Booking + rider |
+
+### 13.3 Komponen Khusus per Tema
+
+Setiap tema memiliki komponen yang spesifik untuk kebutuhan bisnis tersebut:
+
+#### Tema Barber / Salon — Komponen Ekstra
+```
+StaffCard         → Foto barber/stylist + nama + spesialisasi + tombol pilih
+BeforeAfterGallery → Slider sebelum/sesudah (drag atau swipe)
+LoyaltyStamp      → Kartu stamp digital (8 stamp = 1 gratis)
+BookingWidget     → Pilih layanan → pilih staff → pilih slot → form
+ServicePriceList  → Tabel layanan + durasi + harga (bergambar opsional)
+```
+
+#### Tema Rental (Mobil/Alat) — Komponen Ekstra
+```
+FleetGrid         → Grid kendaraan/alat + foto + spesifikasi + harga/hari
+AvailabilityCalendar → Pilih tanggal range → cek ketersediaan
+DepositBadge      → Banner "Deposit X% diperlukan"
+DocumentUpload    → Upload KTP/SIM saat booking
+UnitStatusBadge   → Tersedia / Dipesan / Dalam Perawatan
+```
+
+#### Tema Restoran — Komponen Ekstra
+```
+MenuSection       → Kategori menu dengan foto besar + harga + allergen tag
+TableReservation  → Form reservasi meja (tanggal + waktu + jumlah orang)
+HappyHourBanner   → Banner countdown happy hour aktif
+DietaryFilter     → Filter Halal / Vegetarian / Bebas Gluten
+NutritionBadge    → Info kalori per item (opsional)
+QROrderButton     → CTA scan QR untuk order di meja
+```
+
+#### Tema Fotografer / Studio — Komponen Ekstra
+```
+PortfolioMasonry  → Grid foto portfolio (bisa klik untuk fullscreen)
+PackageCard       → Paket foto (nama + durasi + include + harga + CTA)
+BriefForm         → Form pengisian konsep/kebutuhan sebelum booking
+DeliverInfo       → Info: "X foto edited, format JPG + RAW, deliver H+7"
+PhotoographerProfile → Foto fotografer + bio + pengalaman + spesialisasi
+```
+
+#### Tema Villa / Penginapan — Komponen Ekstra
+```
+PhotoGallery      → Gallery foto 5+ gambar (hero + lightbox)
+FacilityGrid      → Grid fasilitas (WiFi, kolam, dapur, dll.) dengan ikon
+CheckInOutPicker  → Date range picker check-in / check-out
+GuestSelector     → Pilih jumlah tamu (dewasa + anak)
+RoomGrid          → Tipe kamar + foto + fasilitas + harga/malam
+```
+
+### 13.4 Roadmap Pembuatan Tema
+
+#### Fase 1 — Tema Dasar (4 tema, sudah ada sebagian)
+- ✅ Classic (generik, semua kategori)
+- ✅ Modern (minimalis)
+- ✅ Bold (kontras tinggi)
+- ✅ Natural (earthy tones)
+
+#### Fase 2 — Tema Kategori Utama (bangun sekarang, ~1 minggu per tema)
+Prioritas berdasarkan jumlah kategori paling umum di UMKM Indonesia:
+
+| # | Tema | Kategori | Komponen Baru |
+|---|---|---|---|
+| 1 | **Cozy Brew** (kafe) | F&B Cafe | POS-forward layout · Menu cards · Booking meja |
+| 2 | **The Barber** | Barbershop | StaffCard · BeforeAfterGallery · BookingWidget |
+| 3 | **Road Ready** | Rental Mobil | FleetGrid · AvailabilityCalendar · DocumentUpload |
+| 4 | **Wild & Free** | Sewa Camping | ItemGrid · DateRangeBooking · DepositBadge |
+| 5 | **Frame & Lens** | Fotografer | PortfolioMasonry · PackageCard · BriefForm |
+| 6 | **Belle Salon** | Salon | StaffCard · ServicePriceList · BeforeAfterGallery |
+| 7 | **Grand Table** | Restoran | MenuSection · TableReservation · HappyHourBanner |
+| 8 | **Pure Glow** | Skincare | IngredientList · BPOMBadge · SkinTypeFilter |
+
+#### Fase 3 — Tema Kategori Lanjutan
+- MedCare (klinik), Iron Will (gym), Escape (villa), Pawsome (pet), Mode (fashion)
+- Wanderlust (travel), EduPath (pendidikan), Celebrate (event)
+
+#### Fase 4 — Tema Premium & White Label
+- Tema berbayar (Rp 99k – Rp 499k sekali beli atau Rp 29k/bulan)
+- White label: hapus semua branding platform (Enterprise only)
+- Custom tema dari Super Admin (upload komponen sendiri)
+
+### 13.5 Implementasi Teknis Tema
+
+```typescript
+// Setiap tema didefinisikan sebagai config object:
+interface ThemeConfig {
+  id: string                    // "theme_barber"
+  name: string                  // "The Barber"
+  category: string[]            // ["beauty_barber"]
+  layout: "service" | "product" | "rental" | "restaurant"
+  defaultColors: {
+    primary: string             // "#1a1a1a"
+    accent: string              // "#e63946"
+    background: string          // "#f8f8f8"
+    text: string                // "#2d2d2d"
+  }
+  defaultFont: string           // "Inter" | "Playfair Display" | "Space Grotesk"
+  sections: ThemeSection[]      // Sections yang tampil default
+  components: string[]          // Komponen ekstra yang tersedia
+  bookingType: "session" | "rental" | "reservation" | "class" | "none"
+  isPremium: boolean
+  price?: number
+}
+
+// Section yang bisa di-toggle & drag:
+type ThemeSection =
+  | "hero"              // Banner utama / foto toko
+  | "services"          // Daftar layanan (untuk jasa)
+  | "products"          // Grid produk (untuk toko)
+  | "fleet"             // Grid armada (untuk rental)
+  | "portfolio"         // Galeri karya (untuk kreatif)
+  | "booking_cta"       // Widget booking
+  | "staff"             // Profil staff
+  | "about"             // Tentang toko
+  | "reviews"           // Ulasan pelanggan
+  | "location"          // Peta + jam buka
+  | "faq"               // FAQ
+  | "contact"           // Tombol WA + sosmed
+```
+
+---
+
 ## GLOSARIUM
 
 | Istilah | Definisi |
