@@ -86,6 +86,9 @@ function OrdersListPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<FilterTab>("semua");
   const [reordering, setReordering] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   async function reorderOrder(e: React.MouseEvent, orderId: string) {
     e.preventDefault();
