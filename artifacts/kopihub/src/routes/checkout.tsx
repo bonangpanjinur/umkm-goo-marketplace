@@ -10,7 +10,7 @@ import { listCart, checkout, listShopZones, listShopDeliverySettings, type CartI
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
 import { useAuth } from "@/lib/auth";
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
-import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
