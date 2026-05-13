@@ -163,6 +163,7 @@ function MenuPage() {
     setFlashPrice("");
     setFlashStarts("");
     setFlashEnds("");
+    setAcceptsCustomOrder(false);
     setOpen(true);
   }
 
