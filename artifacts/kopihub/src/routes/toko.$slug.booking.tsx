@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
-  ArrowLeft, ShieldCheck, Star,
+  ArrowLeft, ShieldCheck, Star, Scissors, UserCheck,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -45,7 +45,17 @@ type Slot = {
   notes: string | null;
 };
 
-type Step = "date" | "slot" | "form" | "success";
+type Staff = {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  specialization: string | null;
+  is_available: boolean;
+};
+
+type Step = "date" | "slot" | "staff" | "form" | "success";
+
+const NO_PREF_STAFF_ID = "__any__";
 
 function isoDate(d: Date) {
   return d.toISOString().split("T")[0];
@@ -64,7 +74,6 @@ function fmtDate(iso: string) {
 }
 
 function fmtTime(t: string) {
-  // t is "HH:mm" or "HH:mm:ss"
   return t.slice(0, 5);
 }
 
@@ -78,11 +87,14 @@ export default function PublicBookingPage() {
   const [allSlots, setAllSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
 
+  const [staffList, setStaffList] = useState<Staff[]>([]);
+
   // Wizard state
   const [step, setStep] = useState<Step>("date");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [calOffset, setCalOffset] = useState(0); // weeks offset for calendar
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(NO_PREF_STAFF_ID);
+  const [calOffset, setCalOffset] = useState(0);
 
   // Customer form
   const [name, setName] = useState("");
@@ -107,7 +119,7 @@ export default function PublicBookingPage() {
     })();
   }, [slug]);
 
-  // Load available slots (next 30 days)
+  // Load slots (next 30 days)
   const loadSlots = useCallback(async (shopId: string) => {
     setSlotsLoading(true);
     const today = isoDate(new Date());
@@ -124,25 +136,55 @@ export default function PublicBookingPage() {
     setSlotsLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (shop?.id) loadSlots(shop.id);
-  }, [shop?.id, loadSlots]);
+  // Load staff — graceful: if table missing or empty, staffList stays []
+  const loadStaff = useCallback(async (shopId: string) => {
+    try {
+      const { data } = await supabase
+        .from("booking_staff" as any)
+        .select("id, name, photo_url, specialization, is_available")
+        .eq("shop_id" as any, shopId)
+        .eq("is_available" as any, true)
+        .order("name" as any) as any;
+      setStaffList((data ?? []) as Staff[]);
+    } catch {
+      setStaffList([]);
+    }
+  }, []);
 
-  // Available dates = dates that have at least one slot not fully booked
+  useEffect(() => {
+    if (shop?.id) {
+      loadSlots(shop.id);
+      loadStaff(shop.id);
+    }
+  }, [shop?.id, loadSlots, loadStaff]);
+
+  const hasStaff = staffList.length > 0;
+
+  // Derived
   const availableDates = [...new Set(
     allSlots
       .filter(s => s.booked_count < s.max_capacity)
       .map(s => s.slot_date)
   )];
 
-  // Calendar view — show 7 days starting from today + offset weeks
   const calStart = addDays(new Date(), calOffset * 7);
   const calDays = Array.from({ length: 14 }, (_, i) => isoDate(addDays(calStart, i)));
 
-  // Slots for selected date, not fully booked
   const slotsForDate = allSlots.filter(
     s => s.slot_date === selectedDate && s.booked_count < s.max_capacity
   );
+
+  const selectedStaff = staffList.find(s => s.id === selectedStaffId) ?? null;
+
+  // Step labels — dynamic based on whether staff selection is available
+  const stepKeys = hasStaff
+    ? (["date", "slot", "staff", "form"] as Step[])
+    : (["date", "slot", "form"] as Step[]);
+  const stepLabels = hasStaff
+    ? ["Pilih Tanggal", "Pilih Waktu", "Pilih Staff", "Isi Data"]
+    : ["Pilih Tanggal", "Pilih Waktu", "Isi Data"];
+
+  const afterSlot = hasStaff ? "staff" : "form";
 
   const submit = async () => {
     if (!selectedSlot || !shop) return;
@@ -152,7 +194,6 @@ export default function PublicBookingPage() {
 
     setSubmitting(true);
     try {
-      // Check slot still available
       const { data: fresh } = await supabase
         .from("booking_slots" as any)
         .select("booked_count, max_capacity")
@@ -165,7 +206,9 @@ export default function PublicBookingPage() {
         return;
       }
 
-      // Insert booking
+      const staffId = selectedStaffId !== NO_PREF_STAFF_ID ? selectedStaffId : null;
+      const staffName = selectedStaff?.name ?? null;
+
       const { data: bk, error } = await supabase
         .from("bookings" as any)
         .insert({
@@ -175,18 +218,17 @@ export default function PublicBookingPage() {
           party_size: party,
           notes: notes.trim() || null,
           status: "pending",
+          ...(staffId ? { staff_id: staffId } : {}),
         })
         .select("id")
         .maybeSingle() as any;
       if (error) throw error;
 
-      // Increment booked_count (best effort)
       await supabase
         .from("booking_slots" as any)
         .update({ booked_count: (fresh?.booked_count ?? 0) + 1 } as any)
         .eq("id" as any, selectedSlot.id);
 
-      // Send in-app notification to merchant (best effort)
       if (shop?.id) {
         await supabase
           .from("owner_notifications" as any)
@@ -194,7 +236,7 @@ export default function PublicBookingPage() {
             shop_id: shop.id,
             type: "new_booking",
             title: `📅 Booking baru dari ${name.trim()}`,
-            body: `${selectedSlot.service_name} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}`,
+            body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}`,
             severity: "info",
             link: "/pos-app/booking",
             dedupe_key: `booking_${bk?.id ?? Date.now()}`,
@@ -278,12 +320,11 @@ export default function PublicBookingPage() {
 
       <div className="mx-auto max-w-2xl px-4 py-6">
 
-        {/* Step indicator */}
+        {/* Step indicator — dynamic */}
         {step !== "success" && (
           <div className="mb-6 flex items-center gap-2">
-            {(["date", "slot", "form"] as Step[]).map((s, i) => {
-              const labels = ["Pilih Tanggal", "Pilih Waktu", "Isi Data"];
-              const idx = ["date", "slot", "form"].indexOf(step);
+            {stepKeys.map((s, i) => {
+              const idx = stepKeys.indexOf(step);
               const done = i < idx;
               const active = i === idx;
               return (
@@ -296,16 +337,16 @@ export default function PublicBookingPage() {
                     {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </div>
                   <span className={`text-xs font-medium hidden sm:block ${active ? "text-primary" : "text-muted-foreground"}`}>
-                    {labels[i]}
+                    {stepLabels[i]}
                   </span>
-                  {i < 2 && <div className="flex-1 h-px bg-border" />}
+                  {i < stepKeys.length - 1 && <div className="flex-1 h-px bg-border" />}
                 </div>
               );
             })}
           </div>
         )}
 
-        {/* Step: Date */}
+        {/* ─── Step: Date ─── */}
         {step === "date" && (
           <div className="space-y-4">
             <div>
@@ -334,7 +375,6 @@ export default function PublicBookingPage() {
               </Card>
             ) : (
               <>
-                {/* Calendar nav */}
                 <div className="flex items-center justify-between">
                   <Button
                     variant="ghost" size="sm"
@@ -351,12 +391,10 @@ export default function PublicBookingPage() {
                   </Button>
                 </div>
 
-                {/* Date grid */}
                 <div className="grid grid-cols-7 gap-1.5">
                   {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map(d => (
                     <div key={d} className="text-center text-[10px] font-semibold text-muted-foreground py-1">{d}</div>
                   ))}
-                  {/* Offset for first day */}
                   {Array.from({ length: new Date(calDays[0] + "T00:00:00").getDay() }, (_, i) => (
                     <div key={`pad-${i}`} />
                   ))}
@@ -399,7 +437,7 @@ export default function PublicBookingPage() {
           </div>
         )}
 
-        {/* Step: Slot */}
+        {/* ─── Step: Slot ─── */}
         {step === "slot" && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -432,7 +470,8 @@ export default function PublicBookingPage() {
                       key={slot.id}
                       onClick={() => {
                         setSelectedSlot(slot);
-                        setStep("form");
+                        setSelectedStaffId(NO_PREF_STAFF_ID);
+                        setStep(afterSlot);
                       }}
                       className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
                         isSelected
@@ -477,9 +516,9 @@ export default function PublicBookingPage() {
           </div>
         )}
 
-        {/* Step: Form */}
-        {step === "form" && selectedSlot && (
-          <div className="space-y-5">
+        {/* ─── Step: Staff (M-01) ─── */}
+        {step === "staff" && selectedSlot && (
+          <div className="space-y-4">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setStep("slot")}
@@ -487,16 +526,126 @@ export default function PublicBookingPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Scissors className="h-5 w-5 text-primary" /> Pilih Staff
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedSlot.service_name} · {fmtDate(selectedDate)} · {fmtTime(selectedSlot.slot_time)}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {/* No preference option */}
+              <button
+                onClick={() => {
+                  setSelectedStaffId(NO_PREF_STAFF_ID);
+                  setStep("form");
+                }}
+                className={`text-left rounded-xl border p-4 transition-all hover:shadow-md flex items-center gap-3 ${
+                  selectedStaffId === NO_PREF_STAFF_ID
+                    ? "border-primary bg-primary/5 ring-2 ring-primary"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted shrink-0">
+                  <UserCheck className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-semibold">Siapa saja</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Pilih staff yang tersedia saat itu</p>
+                </div>
+              </button>
+
+              {/* Individual staff cards */}
+              {staffList.map(staff => {
+                const isSelected = selectedStaffId === staff.id;
+                return (
+                  <button
+                    key={staff.id}
+                    onClick={() => {
+                      setSelectedStaffId(staff.id);
+                      setStep("form");
+                    }}
+                    className={`text-left rounded-xl border p-4 transition-all hover:shadow-md flex items-center gap-3 ${
+                      isSelected
+                        ? "border-primary bg-primary/5 ring-2 ring-primary"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {staff.photo_url ? (
+                      <img
+                        src={staff.photo_url}
+                        alt={staff.name}
+                        className="h-14 w-14 rounded-full object-cover shrink-0 ring-2 ring-border"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <User className="h-6 w-6 text-primary" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{staff.name}</p>
+                      {staff.specialization && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{staff.specialization}</p>
+                      )}
+                      <Badge variant="secondary" className="mt-1.5 text-[10px] bg-emerald-100 text-emerald-700">
+                        Tersedia
+                      </Badge>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Preferensi staff tidak menjamin ketersediaan — toko akan konfirmasi
+            </p>
+          </div>
+        )}
+
+        {/* ─── Step: Form ─── */}
+        {step === "form" && selectedSlot && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStep(hasStaff ? "staff" : "slot")}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
               <h2 className="text-xl font-bold">Isi Data Booking</h2>
             </div>
 
-            {/* Selected slot summary */}
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-1">
+            {/* Booking summary */}
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-1.5">
               <p className="font-semibold">{selectedSlot.service_name}</p>
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <CalendarCheck className="h-3.5 w-3.5" />
+                <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
                 {fmtDate(selectedDate)} · {fmtTime(selectedSlot.slot_time)} ({selectedSlot.duration_min} menit)
               </p>
+              {/* Selected staff chip */}
+              {hasStaff && (
+                <div className="flex items-center gap-1.5">
+                  {selectedStaff?.photo_url ? (
+                    <img src={selectedStaff.photo_url} alt={selectedStaff.name} className="h-5 w-5 rounded-full object-cover" />
+                  ) : (
+                    <User className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span className="text-sm text-muted-foreground">
+                    Staff: <span className="font-medium text-foreground">
+                      {selectedStaffId === NO_PREF_STAFF_ID ? "Siapa saja" : (selectedStaff?.name ?? "—")}
+                    </span>
+                  </span>
+                  <button
+                    className="ml-1 text-xs text-primary hover:underline"
+                    onClick={() => setStep("staff")}
+                  >
+                    Ubah
+                  </button>
+                </div>
+              )}
               {selectedSlot.price > 0 && (
                 <p className="text-sm font-bold text-primary">{formatIDR(selectedSlot.price)}</p>
               )}
@@ -576,7 +725,7 @@ export default function PublicBookingPage() {
           </div>
         )}
 
-        {/* Step: Success */}
+        {/* ─── Step: Success ─── */}
         {step === "success" && selectedSlot && (
           <div className="py-8 text-center space-y-5">
             <div className="flex items-center justify-center">
@@ -595,10 +744,16 @@ export default function PublicBookingPage() {
               <div className="flex items-center gap-2 font-semibold">
                 <CalendarCheck className="h-4 w-4 text-emerald-600" /> Detail Booking
               </div>
-              <div className="text-sm space-y-1 text-muted-foreground">
+              <div className="text-sm space-y-1.5 text-muted-foreground">
                 <p><span className="font-medium text-foreground">Layanan:</span> {selectedSlot.service_name}</p>
                 <p><span className="font-medium text-foreground">Tanggal:</span> {fmtDate(selectedDate)}</p>
                 <p><span className="font-medium text-foreground">Waktu:</span> {fmtTime(selectedSlot.slot_time)}</p>
+                {hasStaff && (
+                  <p>
+                    <span className="font-medium text-foreground">Staff:</span>{" "}
+                    {selectedStaffId === NO_PREF_STAFF_ID ? "Siapa saja" : (selectedStaff?.name ?? "—")}
+                  </p>
+                )}
                 <p><span className="font-medium text-foreground">Nama:</span> {name}</p>
                 {selectedSlot.price > 0 && (
                   <p><span className="font-medium text-foreground">Harga:</span> {formatIDR(selectedSlot.price)}</p>
@@ -606,7 +761,6 @@ export default function PublicBookingPage() {
               </div>
             </div>
 
-            {/* WA reminder to merchant */}
             {shop.phone && (
               <Button
                 asChild
@@ -614,7 +768,9 @@ export default function PublicBookingPage() {
                 className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
               >
                 <a
-                  href={`https://wa.me/${shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Halo ${shop.name}, saya baru saja booking ${selectedSlot.service_name} untuk ${fmtDate(selectedDate)} jam ${fmtTime(selectedSlot.slot_time)}. Nama saya ${name} (${phone}). Mohon dikonfirmasi ya. Terima kasih!`)}`}
+                  href={`https://wa.me/${shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                    `Halo ${shop.name}, saya baru saja booking ${selectedSlot.service_name}${selectedStaffId !== NO_PREF_STAFF_ID && selectedStaff ? ` dengan ${selectedStaff.name}` : ""} untuk ${fmtDate(selectedDate)} jam ${fmtTime(selectedSlot.slot_time)}. Nama saya ${name} (${phone}). Mohon dikonfirmasi ya. Terima kasih!`
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -630,6 +786,7 @@ export default function PublicBookingPage() {
                   setStep("date");
                   setSelectedDate("");
                   setSelectedSlot(null);
+                  setSelectedStaffId(NO_PREF_STAFF_ID);
                   setName(""); setPhone(""); setPartySize("1"); setNotes("");
                   setBookingId(null);
                   loadSlots(shop.id);

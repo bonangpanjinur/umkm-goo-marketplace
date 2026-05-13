@@ -400,7 +400,7 @@ booking_reminders    -- log pengiriman reminder (dedup per hari)
 
 | # | Fitur | Role | Impact | Status |
 |---|---|---|---|---|
-| M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ❌ |
+| M-01 | **Pilih Staff/Resource saat Booking** (fotografer, stylist, terapis) | Jasa | Konversi | ✅ Selesai |
 | M-02 | **Portofolio / Galeri Karya Toko** (section berbeda dari katalog produk) | Jasa/Kreatif | Kepercayaan | ❌ |
 | M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Semua jasa | Retensi | ❌ |
 | M-04 | **Reschedule & Batal Booking Mandiri** (dengan kebijakan refund) | Pembeli | UX | ❌ |
