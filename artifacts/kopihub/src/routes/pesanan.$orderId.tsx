@@ -124,6 +124,21 @@ function OrderTrackPage() {
               <span>Total</span>
               <span className="text-primary">Rp {Number(order.total).toLocaleString("id-ID")}</span>
             </div>
+            {order.requires_deposit && (
+              <div className="mt-2 rounded-lg border border-amber-300/60 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20 p-3 text-xs">
+                <div className="mb-1.5 font-semibold text-amber-800 dark:text-amber-300">
+                  Pembayaran dengan DP
+                </div>
+                <div className="flex justify-between">
+                  <span>DP {order.deposit_paid ? "(Lunas)" : "(Menunggu)"}</span>
+                  <span className="font-semibold">Rp {Number(order.deposit_amount).toLocaleString("id-ID")}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Sisa pelunasan {order.balance_paid ? "(Lunas)" : ""}</span>
+                  <span>Rp {Number(order.balance_due).toLocaleString("id-ID")}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-5 space-y-1.5 text-sm">
