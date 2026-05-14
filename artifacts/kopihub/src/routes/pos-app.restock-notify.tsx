@@ -16,6 +16,7 @@ import {
   Bell, MessageCircle, Search, Loader2, Package, RefreshCw,
   ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle,
   Trash2, Zap, ChevronRight, SkipForward, X, PartyPopper, Phone,
+  ClipboardList, Share2, Copy, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,6 +30,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/pos-app/restock-notify")({
   head: () => ({ meta: [{ title: "Notifikasi Pelanggan Menunggu — Merchant" }] }),
@@ -109,6 +116,52 @@ function formatWA(wa: string): string {
 
 function autoNotifyKey(shopId: string) {
   return `restock_auto_notify_${shopId}`;
+}
+
+// ─── Daily summary builder ───────────────────────────────────────────────────
+function buildDailySummary(groups: ProductGroup[], shopName: string): string {
+  const today = new Date().toLocaleDateString("id-ID", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+  const totalPending = groups.reduce((s, g) => s + g.pending_count, 0);
+  const outOfStock = groups.filter(
+    g => (g.track_stock && (g.stock ?? 0) <= 0) || !g.is_available,
+  );
+  const inStockPending = groups.filter(
+    g => g.pending_count > 0 && !outOfStock.includes(g),
+  );
+
+  const lines: string[] = [
+    `📋 *Ringkasan Harian Restock*`,
+    `🏪 *${shopName}*`,
+    `🗓️ ${today}`,
+    ``,
+  ];
+
+  if (outOfStock.length > 0) {
+    lines.push(`⚠️ *${outOfStock.length} produk stok habis:*`);
+    for (const g of outOfStock) {
+      const stk = g.stock !== null ? ` (sisa: ${g.stock})` : "";
+      lines.push(`• *${g.product_name}*${stk} — ${g.pending_count} pelanggan menunggu`);
+    }
+    lines.push(``);
+  } else {
+    lines.push(`✅ Semua produk yang dipantau tersedia.`);
+    lines.push(``);
+  }
+
+  if (inStockPending.length > 0) {
+    lines.push(`📦 *Kembali tersedia, belum dinotifikasi:*`);
+    for (const g of inStockPending) {
+      lines.push(`• *${g.product_name}* — ${g.pending_count} pelanggan`);
+    }
+    lines.push(``);
+  }
+
+  lines.push(`📊 *Total ${totalPending} pelanggan menunggu notifikasi*`);
+  lines.push(`_via UMKMgo_`);
+
+  return lines.join("\n");
 }
 
 // ─── Blast Mode Panel ────────────────────────────────────────────────────────
@@ -353,6 +406,10 @@ export default function RestockNotifyPage() {
   const [blastQueue, setBlastQueue] = useState<BlastItem[]>([]);
   const [blastSent, setBlastSent] = useState(0);
   const [blastSkipped, setBlastSkipped] = useState(0);
+
+  // Ringkasan harian
+  const [showRingkasan, setShowRingkasan] = useState(false);
+  const [ringkasanCopied, setRingkasanCopied] = useState(false);
 
   const groupsRef = useRef<ProductGroup[]>([]);
   const autoNotifyRef = useRef(true);
@@ -638,7 +695,7 @@ export default function RestockNotifyPage() {
             Pelanggan yang ingin dinotifikasi saat produk stok habis tersedia kembali
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           {totalPending > 0 && (
             <Button
               className="gap-2 bg-green-600 hover:bg-green-700 text-white"
@@ -651,6 +708,15 @@ export default function RestockNotifyPage() {
               </Badge>
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => setShowRingkasan(true)}
+          >
+            <ClipboardList className="h-4 w-4" />
+            Ringkasan Harian
+          </Button>
           <Button variant="outline" size="sm" onClick={load} className="gap-2">
             <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
@@ -961,6 +1027,63 @@ export default function RestockNotifyPage() {
           })}
         </div>
       )}
+
+      {/* ── Ringkasan Harian dialog ── */}
+      <Dialog open={showRingkasan} onOpenChange={setShowRingkasan}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              Ringkasan Harian Restock
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-muted/40 p-4">
+              <pre className="text-xs whitespace-pre-wrap font-sans text-foreground leading-relaxed select-all">
+                {buildDailySummary(groups, shopName ?? "Toko Kami")}
+              </pre>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  const text = buildDailySummary(groups, shopName ?? "Toko Kami");
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+                }}
+              >
+                <Share2 className="h-4 w-4" />
+                Bagikan via WhatsApp
+                <ExternalLink className="h-3 w-3 opacity-70" />
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={async () => {
+                  const text = buildDailySummary(groups, shopName ?? "Toko Kami");
+                  if (navigator.share) {
+                    try { await navigator.share({ text }); return; } catch {}
+                  }
+                  await navigator.clipboard.writeText(text);
+                  setRingkasanCopied(true);
+                  toast.success("Ringkasan disalin ke clipboard!");
+                  setTimeout(() => setRingkasanCopied(false), 2500);
+                }}
+              >
+                {ringkasanCopied
+                  ? <><Check className="h-4 w-4 text-green-600" /> Tersalin!</>
+                  : <><Copy className="h-4 w-4" /> Salin Teks</>}
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              "Bagikan via WhatsApp" membuka WA tanpa nomor — kamu bisa pilih kontak atau grup sendiri.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
