@@ -61,6 +61,14 @@ function VariantsPage() {
   const [varAvailable, setVarAvailable] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const fetchVariants = async (shopId: string) => {
+    return await supabase
+      .from("menu_item_variants" as any)
+      .select("id, menu_item_id, shop_id, name, sku, price, stock, is_available, sort_order")
+      .eq("shop_id", shopId)
+      .order("sort_order", { ascending: true });
+  };
+
   const load = async () => {
     if (!shop) return;
     setLoading(true);
@@ -73,16 +81,30 @@ function VariantsPage() {
       .order("name");
     setItems((menuData as MenuItem[]) ?? []);
 
-    // Try to load variants — gracefully handle if table missing
-    const { data: varData, error } = await supabase
-      .from("menu_item_variants" as any)
-      .select("id, menu_item_id, shop_id, name, sku, price, stock, is_available, sort_order")
-      .eq("shop_id", shop.id)
-      .order("sort_order", { ascending: true });
+    // Try to load variants — auto-reload schema cache on PGRST205 then retry
+    let { data: varData, error } = await fetchVariants(shop.id);
+
+    if (error) {
+      const code = (error as any).code;
+      const msg = error.message.toLowerCase();
+      const isSchemaCacheMiss =
+        code === "PGRST205" ||
+        msg.includes("schema cache") ||
+        msg.includes("could not find the table");
+
+      if (isSchemaCacheMiss) {
+        // Auto reload PostgREST schema cache & retry once
+        await supabase.rpc("reload_postgrest_schema" as any);
+        await new Promise(r => setTimeout(r, 800));
+        const retry = await fetchVariants(shop.id);
+        varData = retry.data;
+        error = retry.error;
+      }
+    }
 
     if (error) {
       const msg = error.message.toLowerCase();
-      if (msg.includes("does not exist") || msg.includes("relation") || msg.includes("undefined")) {
+      if (msg.includes("does not exist") || msg.includes("relation") || msg.includes("could not find the table")) {
         setTableExists(false);
       } else {
         toast.error(error.message);

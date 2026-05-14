@@ -5257,6 +5257,7 @@ export type Database = {
         Args: { _id: string; _reason: string }
         Returns: undefined
       }
+      reload_postgrest_schema: { Args: never; Returns: undefined }
       request_withdrawal: {
         Args: {
           _amount: number
