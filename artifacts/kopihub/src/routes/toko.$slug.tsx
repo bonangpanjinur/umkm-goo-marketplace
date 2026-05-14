@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { addToCart } from "@/lib/marketplace-cart";
 import { useSeo } from "@/lib/use-seo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -166,6 +168,16 @@ function ShopPage() {
   const [showCertDetail, setShowCertDetail] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  const toggleCompare = (id: string) => {
+    setCompareIds(prev =>
+      prev.includes(id)
+        ? prev.filter(x => x !== id)
+        : prev.length < 3 ? [...prev, id] : prev,
+    );
+  };
 
   const loadFollowStatus = async (shopId: string) => {
     const [countRes, followedRes] = await Promise.all([
@@ -231,7 +243,7 @@ function ShopPage() {
 
       const { data: prods } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, attributes, item_type")
+        .select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, track_stock, flash_price, flash_starts_at, flash_ends_at, attributes, item_type")
         .eq("shop_id", (s as any).id)
         .eq("is_available", true)
         .order("sort_order")
@@ -401,9 +413,24 @@ function ShopPage() {
         setSelectedSizes={setSelectedSizes}
         selectedColors={selectedColors}
         setSelectedColors={setSelectedColors}
+        compareIds={compareIds}
+        toggleCompare={toggleCompare}
       />
 
       <MarketplaceFooter />
+
+      <CompareFloatingBar
+        compareIds={compareIds}
+        products={products}
+        onCompare={() => setCompareOpen(true)}
+        onClear={() => setCompareIds([])}
+      />
+      <CompareModal
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        productIds={compareIds}
+        products={products}
+      />
     </div>
   );
 }
@@ -475,6 +502,8 @@ function ProductsSection({
   setSelectedSizes,
   selectedColors,
   setSelectedColors,
+  compareIds,
+  toggleCompare,
 }: {
   loading: boolean;
   products: any[];
@@ -482,6 +511,8 @@ function ProductsSection({
   setSelectedSizes: (v: string[]) => void;
   selectedColors: string[];
   setSelectedColors: (v: string[]) => void;
+  compareIds: string[];
+  toggleCompare: (id: string) => void;
 }) {
   const bundles = useMemo(() => products.filter((p) => p.item_type === "bundle"), [products]);
   const regulars = useMemo(() => products.filter((p) => p.item_type !== "bundle"), [products]);
@@ -523,7 +554,12 @@ function ProductsSection({
             </div>
           ) : (
             <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
-              {bundles.map((p) => <BundleCard key={p.id} product={p} />)}
+              {bundles.map((p) => (
+                <div key={p.id} className="relative">
+                  <BundleCard product={p} />
+                  <CompareToggleButton productId={p.id} compareIds={compareIds} toggleCompare={toggleCompare} maxed={compareIds.length >= 3} />
+                </div>
+              ))}
             </div>
           )}
         </section>
@@ -605,7 +641,12 @@ function ProductsSection({
         ) : (
           <>
             <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
-              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+              {filtered.map((p) => (
+                <div key={p.id} className="relative">
+                  <ProductCard product={p} />
+                  <CompareToggleButton productId={p.id} compareIds={compareIds} toggleCompare={toggleCompare} maxed={compareIds.length >= 3} />
+                </div>
+              ))}
             </div>
             {activeCount > 0 && (
               <p className="mt-3 text-xs text-muted-foreground">
@@ -616,5 +657,323 @@ function ProductsSection({
         )}
       </section>
     </div>
+  );
+}
+
+function CompareToggleButton({
+  productId,
+  compareIds,
+  toggleCompare,
+  maxed,
+}: {
+  productId: string;
+  compareIds: string[];
+  toggleCompare: (id: string) => void;
+  maxed: boolean;
+}) {
+  const selected = compareIds.includes(productId);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!selected && maxed) {
+          toast.info("Maksimal 3 produk untuk dibandingkan");
+          return;
+        }
+        toggleCompare(productId);
+      }}
+      title={selected ? "Hapus dari perbandingan" : "Bandingkan produk ini"}
+      className={`absolute left-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-md border shadow-sm transition-all ${
+        selected
+          ? "bg-primary border-primary text-primary-foreground"
+          : "bg-background/90 border-border hover:border-primary/60 text-muted-foreground hover:text-primary"
+      }`}
+    >
+      {selected ? <Check className="h-3.5 w-3.5" /> : <Scale className="h-3 w-3" />}
+    </button>
+  );
+}
+
+function CompareFloatingBar({
+  compareIds,
+  products,
+  onCompare,
+  onClear,
+}: {
+  compareIds: string[];
+  products: any[];
+  onCompare: () => void;
+  onClear: () => void;
+}) {
+  if (compareIds.length === 0) return null;
+
+  const selected = compareIds.map(id => products.find(p => p.id === id)).filter(Boolean);
+
+  return (
+    <div className="fixed bottom-0 inset-x-0 z-50 flex justify-center pb-4 px-4 pointer-events-none">
+      <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-border bg-background/95 backdrop-blur-sm shadow-2xl px-4 py-3 animate-in slide-in-from-bottom-4 duration-200">
+        {/* Thumbnails + empty slots */}
+        <div className="flex items-center gap-1.5">
+          {selected.map((p: any) => (
+            <div
+              key={p.id}
+              className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/40"
+            >
+              {p.image_url
+                ? <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                : <div className="flex h-full w-full items-center justify-center"><Store className="h-4 w-4 text-muted-foreground" /></div>
+              }
+            </div>
+          ))}
+          {Array.from({ length: 3 - compareIds.length }).map((_, i) => (
+            <div
+              key={i}
+              className="h-11 w-11 shrink-0 rounded-lg border border-dashed border-border bg-muted/20 flex items-center justify-center"
+            >
+              <span className="text-[18px] text-muted-foreground/40">+</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="h-8 w-px bg-border shrink-0" />
+
+        <div className="min-w-0 hidden sm:block">
+          <p className="text-xs font-semibold text-foreground">{compareIds.length}/3 produk dipilih</p>
+          <p className="text-[10px] text-muted-foreground">Pilih hingga 3 untuk dibandingkan</p>
+        </div>
+
+        <Button
+          size="sm"
+          onClick={onCompare}
+          disabled={compareIds.length < 2}
+          className="shrink-0 gap-1.5"
+        >
+          <Scale className="h-3.5 w-3.5" />
+          Bandingkan
+        </Button>
+
+        <button
+          onClick={onClear}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          title="Hapus semua pilihan"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CompareModal({
+  open,
+  onClose,
+  productIds,
+  products,
+}: {
+  open: boolean;
+  onClose: () => void;
+  productIds: string[];
+  products: any[];
+}) {
+  const { user } = useAuth();
+  const [bundleItems, setBundleItems] = useState<Record<string, any[]>>({});
+
+  const selected = productIds.map(id => products.find(p => p.id === id)).filter(Boolean);
+
+  useEffect(() => {
+    if (!open || selected.length === 0) return;
+    const bundleIds = selected.filter((p: any) => p.item_type === "bundle").map((p: any) => p.id);
+    if (bundleIds.length === 0) { setBundleItems({}); return; }
+
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("bundle_items")
+        .select("bundle_id, quantity, menu_item:menu_item_id(name)")
+        .in("bundle_id", bundleIds);
+
+      const grouped: Record<string, any[]> = {};
+      for (const item of (data ?? []) as any[]) {
+        if (!grouped[item.bundle_id]) grouped[item.bundle_id] = [];
+        grouped[item.bundle_id].push(item);
+      }
+      setBundleItems(grouped);
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, productIds.join(",")]);
+
+  const addCart = async (p: any) => {
+    if (!user) { toast.info("Masuk untuk berbelanja"); return; }
+    try {
+      await addToCart({ shop_id: p.shop_id, product_id: p.id, unit_price: p.price, quantity: 1 });
+      toast.success(`${p.name} ditambahkan ke keranjang`);
+    } catch { toast.error("Gagal menambahkan"); }
+  };
+
+  const prices   = selected.map((p: any) => Number(p.price));
+  const ratings  = selected.map((p: any) => Number(p.rating_avg ?? 0));
+  const lowestPrice   = selected.length > 1 ? Math.min(...prices)  : -1;
+  const highestRating = selected.length > 1 ? Math.max(...ratings) : -1;
+  const hasBundle = selected.some((p: any) => p.item_type === "bundle");
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+            <Scale className="h-4 w-4 text-primary" /> Perbandingan Produk
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="overflow-x-auto px-6 pb-6">
+          <table
+            className="w-full border-collapse"
+            style={{ minWidth: `${selected.length * 220 + 120}px` }}
+          >
+            {/* Product header row */}
+            <thead>
+              <tr>
+                <td className="w-28 pb-4" />
+                {selected.map((p: any) => (
+                  <td key={p.id} className="pb-4 px-2 align-top min-w-[180px]">
+                    <div className="overflow-hidden rounded-xl border border-border">
+                      <div className="aspect-[4/3] w-full bg-muted/40">
+                        {p.image_url
+                          ? <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                          : <div className="flex h-full w-full items-center justify-center"><Store className="h-8 w-8 text-muted-foreground" /></div>
+                        }
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-semibold leading-snug line-clamp-2">{p.name}</p>
+                        {p.item_type === "bundle" && (
+                          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                            <Package className="h-2.5 w-2.5" /> PAKET
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {/* Harga */}
+              <tr className="border-t border-border">
+                <td className="py-3 pr-3 align-middle">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Harga</span>
+                </td>
+                {selected.map((p: any) => {
+                  const price = Number(p.price);
+                  const isBest = price === lowestPrice;
+                  return (
+                    <td key={p.id} className="px-2 py-3 text-center align-middle">
+                      <div className="text-base font-bold text-primary">
+                        Rp {price.toLocaleString("id-ID")}
+                      </div>
+                      {isBest && (
+                        <div className="mt-0.5 text-[10px] font-semibold text-emerald-600">✓ Termurah</div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+
+              {/* Rating */}
+              <tr className="border-t border-border bg-muted/20">
+                <td className="py-3 pr-3 align-middle">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Rating</span>
+                </td>
+                {selected.map((p: any) => {
+                  const rat = Number(p.rating_avg ?? 0);
+                  const isBest = rat > 0 && rat === highestRating;
+                  return (
+                    <td key={p.id} className="px-2 py-3 text-center align-middle">
+                      {rat > 0
+                        ? <span className={`font-semibold ${isBest ? "text-amber-500" : ""}`}>
+                            ★ {rat.toFixed(1)}
+                            <span className="ml-1 text-xs font-normal text-muted-foreground">
+                              ({p.rating_count ?? 0})
+                            </span>
+                          </span>
+                        : <span className="text-xs text-muted-foreground">Belum ada</span>
+                      }
+                      {isBest && (
+                        <div className="mt-0.5 text-[10px] font-semibold text-amber-500">✓ Tertinggi</div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+
+              {/* Stok */}
+              <tr className="border-t border-border">
+                <td className="py-3 pr-3 align-middle">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Stok</span>
+                </td>
+                {selected.map((p: any) => (
+                  <td key={p.id} className="px-2 py-3 text-center align-middle">
+                    {p.track_stock
+                      ? <span className={`text-sm font-semibold ${Number(p.stock) > 0 ? "text-emerald-600" : "text-destructive"}`}>
+                          {Number(p.stock) > 0 ? `${p.stock} unit` : "Habis"}
+                        </span>
+                      : <span className="text-xs text-muted-foreground">Tidak dilacak</span>
+                    }
+                  </td>
+                ))}
+              </tr>
+
+              {/* Isi Paket — only when at least one bundle */}
+              {hasBundle && (
+                <tr className="border-t border-border bg-muted/20">
+                  <td className="py-3 pr-3 align-top">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Isi Paket</span>
+                  </td>
+                  {selected.map((p: any) => (
+                    <td key={p.id} className="px-2 py-3 align-top text-center">
+                      {p.item_type === "bundle"
+                        ? bundleItems[p.id]?.length > 0
+                          ? <ul className="space-y-1 text-left">
+                              {bundleItems[p.id].map((bi: any, i: number) => (
+                                <li key={i} className="flex items-start gap-1 text-xs">
+                                  <Check className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
+                                  <span>{bi.quantity > 1 ? `${bi.quantity}× ` : ""}{bi.menu_item?.name ?? "Item"}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          : <span className="text-xs text-muted-foreground">—</span>
+                        : <span className="text-xs text-muted-foreground">Produk satuan</span>
+                      }
+                    </td>
+                  ))}
+                </tr>
+              )}
+
+              {/* Actions */}
+              <tr className="border-t border-border">
+                <td className="py-4" />
+                {selected.map((p: any) => (
+                  <td key={p.id} className="px-2 py-4">
+                    <div className="flex flex-col gap-2">
+                      <Button size="sm" className="w-full gap-1.5" onClick={() => addCart(p)}>
+                        <ShoppingCart className="h-3.5 w-3.5" /> Beli Sekarang
+                      </Button>
+                      <Link
+                        to="/toko/$slug/produk/$productId"
+                        params={{ slug: p.shop?.slug ?? "", productId: p.id }}
+                        onClick={onClose}
+                      >
+                        <Button size="sm" variant="outline" className="w-full">Lihat Detail</Button>
+                      </Link>
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
