@@ -43,6 +43,8 @@ type Member = {
   role: string;
   display_name: string | null;
   avatar_url: string | null;
+  source: "account" | "manual";
+  manual_id?: string;
 };
 type Outlet = { id: string; name: string };
 
