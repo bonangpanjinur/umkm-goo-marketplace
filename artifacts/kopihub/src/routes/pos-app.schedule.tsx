@@ -48,6 +48,7 @@ type Outlet = { id: string; name: string };
 
 function SchedulePage() {
   const { shop, loading: shopLoading } = useCurrentShop();
+  const { user } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
@@ -62,6 +63,44 @@ function SchedulePage() {
   const [endT, setEndT] = useState("16:00");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Invite employee dialog
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invEmail, setInvEmail] = useState("");
+  const [invRole, setInvRole] = useState("cashier");
+  const [invOutletId, setInvOutletId] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+
+  async function inviteEmployee() {
+    if (!shop || !user || !invEmail.trim()) return;
+    setInviting(true);
+    const { data, error } = await supabase
+      .from("staff_invitations")
+      .insert({
+        shop_id: shop.id,
+        outlet_id: invOutletId || null,
+        email: invEmail.trim().toLowerCase(),
+        role: invRole as "manager" | "cashier" | "barista",
+        invited_by: user.id,
+      })
+      .select("token")
+      .single();
+    setInviting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const url = `${window.location.origin}/invite/${data!.token}`;
+    setLastInviteUrl(url);
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Undangan dibuat — tautan disalin");
+    } catch {
+      toast.success("Undangan dibuat");
+    }
+    setInvEmail("");
+  }
 
   async function load() {
     if (!shop) return;
