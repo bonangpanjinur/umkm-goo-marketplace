@@ -1890,6 +1890,7 @@ export type Database = {
           average_rating: number | null
           category_id: string | null
           compare_price: number | null
+          condition_grade: string | null
           cost_price: number | null
           created_at: string
           description: string | null
@@ -1909,6 +1910,7 @@ export type Database = {
           length_cm: number | null
           low_stock_threshold: number | null
           name: string
+          nutrition_info: Json | null
           pre_order_close_at: string | null
           pre_order_current_qty: number
           pre_order_days: number | null
@@ -1916,11 +1918,14 @@ export type Database = {
           pre_order_min_qty: number | null
           pre_order_open_at: string | null
           price: number
+          production_days: number | null
           rating_avg: number | null
           rating_count: number | null
           recipe_yield: number
+          restock_deadline: string | null
           review_count: number
           shop_id: string
+          skin_type_tags: string[] | null
           sku: string | null
           slug: string | null
           sort_order: number
@@ -1940,6 +1945,7 @@ export type Database = {
           average_rating?: number | null
           category_id?: string | null
           compare_price?: number | null
+          condition_grade?: string | null
           cost_price?: number | null
           created_at?: string
           description?: string | null
@@ -1959,6 +1965,7 @@ export type Database = {
           length_cm?: number | null
           low_stock_threshold?: number | null
           name: string
+          nutrition_info?: Json | null
           pre_order_close_at?: string | null
           pre_order_current_qty?: number
           pre_order_days?: number | null
@@ -1966,11 +1973,14 @@ export type Database = {
           pre_order_min_qty?: number | null
           pre_order_open_at?: string | null
           price?: number
+          production_days?: number | null
           rating_avg?: number | null
           rating_count?: number | null
           recipe_yield?: number
+          restock_deadline?: string | null
           review_count?: number
           shop_id: string
+          skin_type_tags?: string[] | null
           sku?: string | null
           slug?: string | null
           sort_order?: number
@@ -1990,6 +2000,7 @@ export type Database = {
           average_rating?: number | null
           category_id?: string | null
           compare_price?: number | null
+          condition_grade?: string | null
           cost_price?: number | null
           created_at?: string
           description?: string | null
@@ -2009,6 +2020,7 @@ export type Database = {
           length_cm?: number | null
           low_stock_threshold?: number | null
           name?: string
+          nutrition_info?: Json | null
           pre_order_close_at?: string | null
           pre_order_current_qty?: number
           pre_order_days?: number | null
@@ -2016,11 +2028,14 @@ export type Database = {
           pre_order_min_qty?: number | null
           pre_order_open_at?: string | null
           price?: number
+          production_days?: number | null
           rating_avg?: number | null
           rating_count?: number | null
           recipe_yield?: number
+          restock_deadline?: string | null
           review_count?: number
           shop_id?: string
+          skin_type_tags?: string[] | null
           sku?: string | null
           slug?: string | null
           sort_order?: number
