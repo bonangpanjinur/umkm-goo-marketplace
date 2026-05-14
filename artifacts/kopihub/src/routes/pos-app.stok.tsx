@@ -27,7 +27,7 @@ export const Route = createFileRoute("/pos-app/stok")({ component: StokTerpadu }
 type StokItem = {
   id: string;
   name: string;
-  stock_qty: number | null;
+  stock: number | null;
   low_stock_threshold: number | null;
   auto_disable_on_empty: boolean | null;
   is_available: boolean | null;
