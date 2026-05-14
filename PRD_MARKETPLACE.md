@@ -2695,6 +2695,55 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 ---
 
+## BAGIAN X: ANALITIK BOOKING (M-BA)
+
+> **Dirilis:** Mei 2026 | **Status:** Shipped ✅
+
+### Deskripsi
+
+Dashboard analitik khusus untuk pemilik toko yang menggunakan fitur booking sesi/layanan. Menampilkan metrik performa booking dalam satu tampilan terpadu — tanpa perlu export manual ke spreadsheet.
+
+**Route:** `/pos-app/booking-analytics`
+**Akses:** FNB & Services (`onlyFor: FNB_SVC`)
+**File:** `src/routes/pos-app.booking-analytics.tsx`
+
+### Fitur
+
+| Fitur | Keterangan |
+|---|---|
+| **KPI Cards** | Total booking, pendapatan deposit, tingkat pembatalan (%), tingkat selesai (%) |
+| **Pendapatan Deposit per Hari** | Bar chart — DP yang berhasil terkumpul per hari dalam rentang waktu |
+| **Tren Booking Harian** | Line chart — jumlah booking masuk per hari |
+| **Distribusi Status Booking** | Donut chart interaktif — proporsi pending / dikonfirmasi / dibatalkan / selesai |
+| **Tingkat Pembatalan per Hari** | Bar chart — persentase booking yang dibatalkan per hari |
+| **Jam Slot Terpopuler** | Bar chart — distribusi booking berdasarkan jam mulai (temukan peak hour) |
+| **Layanan Paling Diminati** | Horizontal bar chart — top 10 layanan berdasarkan jumlah booking |
+| **Filter Tanggal** | Pilih rentang bebas atau shortcut 7h / 30h / 90h |
+
+### Data Source
+
+Semua data di-scope per `shop_id` melalui join `bookings ← booking_slots(shop_id)`. Filter waktu berdasarkan `bookings.created_at`. Tidak ada tabel baru — menggunakan tabel `bookings` dan `booking_slots` yang sudah ada.
+
+### Query Pattern
+
+```sql
+SELECT b.*, s.slot_date, s.slot_time, s.service_name, s.price
+FROM bookings b
+JOIN booking_slots s ON s.id = b.slot_id
+WHERE s.shop_id = :shop_id
+  AND b.created_at BETWEEN :from AND :to
+```
+
+### Metrik KPI
+
+| Metrik | Definisi |
+|---|---|
+| Pendapatan Deposit | SUM(deposit_amount) WHERE deposit_status IN ('paid', 'verified') |
+| Tingkat Pembatalan | COUNT(status='cancelled') / COUNT(*) × 100 |
+| Tingkat Selesai | COUNT(status IN ('completed','done')) / COUNT(*) × 100 |
+
+---
+
 ## GLOSARIUM
 
 | Istilah | Definisi |

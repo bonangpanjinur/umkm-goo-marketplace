@@ -192,6 +192,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/rental-checklist",   label: "Checklist Kondisi",  icon: ClipboardCheck, hint: "Dokumentasi kondisi unit sebelum & sesudah sewa + tanda tangan digital", onlyFor: SVC },
       { to: "/pos-app/booking-reminders",  label: "Reminder Booking",  icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-reviews",   label: "Ulasan Booking",    icon: Star, hint: "Monitor ulasan & kirim pengingat WhatsApp minta ulasan ke pelanggan", onlyFor: FNB_SVC },
+      { to: "/pos-app/booking-analytics", label: "Analitik Booking",  icon: BarChart3, hint: "Pantau pendapatan deposit, tingkat pembatalan, jam slot terpopuler & tren booking", onlyFor: FNB_SVC },
     ],
   },
   {
