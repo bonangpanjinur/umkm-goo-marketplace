@@ -1654,6 +1654,36 @@ function EmployeesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk action confirm */}
+      <AlertDialog open={!!confirmBulk} onOpenChange={(o) => !o && !bulkRunning && setConfirmBulk(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmBulk?.kind === "activate" && `Aktifkan ${confirmBulk.count} pegawai?`}
+              {confirmBulk?.kind === "deactivate" && `Nonaktifkan ${confirmBulk.count} pegawai?`}
+              {confirmBulk?.kind === "resend" && `Kirim ulang ${confirmBulk?.count} undangan?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmBulk?.kind === "deactivate"
+                ? "Pegawai tidak akan bisa login atau muncul di jadwal sampai diaktifkan kembali."
+                : confirmBulk?.kind === "activate"
+                ? "Pegawai akan kembali bisa login dan muncul di jadwal."
+                : "Email undangan baru akan dikirim ke setiap penerima."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkRunning}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={bulkRunning}
+              onClick={(e) => { e.preventDefault(); if (confirmBulk) runBulk(confirmBulk.kind); }}
+            >
+              {bulkRunning ? "Memproses..." : "Lanjutkan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Edit login member */}
       <Dialog open={!!loginEdit} onOpenChange={(o) => !o && setLoginEdit(null)}>
         <DialogContent>
