@@ -1361,7 +1361,19 @@ function EmployeesPage() {
                 {filtered.map((u) => {
                   const outlet = outlets.find((o) => o.id === u.outlet_id);
                   return (
-                    <div key={u.key} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+                     <div key={u.key} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+                      {(() => {
+                        const selSet = u.kind === "login" ? selLogin : selManual;
+                        const setSelSet = u.kind === "login" ? setSelLogin : setSelManual;
+                        const id = u.kind === "login" ? u.raw.user_id : u.raw.id;
+                        return (
+                          <Checkbox
+                            className="mt-1"
+                            checked={selSet.has(id)}
+                            onCheckedChange={() => toggleSel(selSet, setSelSet, id)}
+                          />
+                        );
+                      })()}
                       <Avatar name={u.name} url={u.avatarUrl} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
