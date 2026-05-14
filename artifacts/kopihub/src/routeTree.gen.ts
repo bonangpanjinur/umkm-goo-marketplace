@@ -161,6 +161,7 @@ import { Route as AdminAutoRenewalRouteImport } from './routes/admin.auto-renewa
 import { Route as AdminAutoCancelRouteImport } from './routes/admin.auto-cancel'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAiSettingsRouteImport } from './routes/admin.ai-settings'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
@@ -959,6 +960,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAiSettingsRoute = AdminAiSettingsRouteImport.update({
+  id: '/ai-settings',
+  path: '/ai-settings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdsRoute = AdminAdsRouteImport.update({
   id: '/ads',
   path: '/ads',
@@ -1150,6 +1156,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/ai-settings': typeof AdminAiSettingsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
@@ -1335,6 +1342,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/ai-settings': typeof AdminAiSettingsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
@@ -1522,6 +1530,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/ai-settings': typeof AdminAiSettingsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
@@ -1712,6 +1721,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/activity'
     | '/admin/ads'
+    | '/admin/ai-settings'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
@@ -1897,6 +1907,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/activity'
     | '/admin/ads'
+    | '/admin/ai-settings'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
@@ -2083,6 +2094,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/activity'
     | '/admin/ads'
+    | '/admin/ai-settings'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/auto-cancel'
@@ -3349,6 +3361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/ai-settings': {
+      id: '/admin/ai-settings'
+      path: '/ai-settings'
+      fullPath: '/admin/ai-settings'
+      preLoaderRoute: typeof AdminAiSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/ads': {
       id: '/admin/ads'
       path: '/ads'
@@ -3628,6 +3647,7 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
   AdminAdsRoute: typeof AdminAdsRoute
+  AdminAiSettingsRoute: typeof AdminAiSettingsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminAutoCancelRoute: typeof AdminAutoCancelRoute
@@ -3668,6 +3688,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
   AdminAdsRoute: AdminAdsRoute,
+  AdminAiSettingsRoute: AdminAiSettingsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminAutoCancelRoute: AdminAutoCancelRoute,

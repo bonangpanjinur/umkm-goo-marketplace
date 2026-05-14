@@ -22,7 +22,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, UtensilsCrossed, Upload, ImageIcon, AlertTriangle, TrendingUp, TrendingDown, SlidersHorizontal, ExternalLink } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, UtensilsCrossed, Upload, ImageIcon, AlertTriangle, TrendingUp, TrendingDown, SlidersHorizontal, ExternalLink, Sparkles, X, Copy, Check } from "lucide-react";
 import { ModifierManager } from "@/components/modifier-manager";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
@@ -104,6 +104,10 @@ function MenuPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
 
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiTags, setAiTags] = useState<string[]>([]);
+  const [copiedTag, setCopiedTag] = useState<string | null>(null);
+
   async function load() {
     if (!shop) return;
     setLoading(true);
@@ -164,6 +168,7 @@ function MenuPage() {
     setFlashStarts("");
     setFlashEnds("");
     setAcceptsCustomOrder(false);
+    setAiTags([]);
     setOpen(true);
   }
 
@@ -189,7 +194,48 @@ function MenuPage() {
     setFlashStarts(toLocalInput(it.flash_starts_at));
     setFlashEnds(toLocalInput(it.flash_ends_at));
     setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
+    setAiTags([]);
     setOpen(true);
+  }
+
+  async function generateWithAI() {
+    if (!name.trim() && !imageUrl) {
+      toast.error("Isi nama produk atau upload foto terlebih dahulu.");
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const categoryName = categories.find((c) => c.id === categoryId)?.name;
+      const res = await fetch("/api/ai/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          image_url: imageUrl ?? undefined,
+          category: categoryName,
+          price: price ? Number(price) : undefined,
+        }),
+      });
+      const data = await res.json() as { description?: string; tags?: string[]; error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Gagal menghasilkan deskripsi.");
+        return;
+      }
+      if (data.description) setDesc(data.description);
+      if (data.tags?.length) setAiTags(data.tags);
+      toast.success("Deskripsi dan tag SEO berhasil dibuat!");
+    } catch {
+      toast.error("Gagal menghubungi server AI.");
+    } finally {
+      setAiGenerating(false);
+    }
+  }
+
+  function copyTag(tag: string) {
+    navigator.clipboard.writeText(tag).then(() => {
+      setCopiedTag(tag);
+      setTimeout(() => setCopiedTag(null), 1500);
+    });
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -407,14 +453,65 @@ function MenuPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="m-desc">Deskripsi (opsional)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="m-desc">Deskripsi (opsional)</Label>
+                    <button
+                      type="button"
+                      onClick={generateWithAI}
+                      disabled={aiGenerating || (!name.trim() && !imageUrl)}
+                      className="flex items-center gap-1.5 rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-900/50"
+                    >
+                      {aiGenerating ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3" />
+                      )}
+                      {aiGenerating ? "Membuat..." : "Buat dengan AI"}
+                    </button>
+                  </div>
                   <Textarea
                     id="m-desc"
-                    rows={2}
+                    rows={3}
                     value={desc}
                     onChange={(e) => setDesc(e.target.value)}
                     placeholder="Espresso + susu steam, ringan."
                   />
+                  {aiTags.length > 0 && (
+                    <div className="rounded-md border border-violet-200 bg-violet-50/60 p-2.5 dark:border-violet-800 dark:bg-violet-950/30">
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
+                          Tag SEO
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setAiTags([])}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {aiTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => copyTag(tag)}
+                            className="flex items-center gap-1 rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[11px] font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-300 dark:hover:bg-violet-900"
+                          >
+                            {copiedTag === tag ? (
+                              <Check className="h-2.5 w-2.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="h-2.5 w-2.5 opacity-50" />
+                            )}
+                            #{tag}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-1.5 text-[10px] text-muted-foreground">
+                        Klik tag untuk menyalin. Gunakan di deskripsi, media sosial, atau platform lain.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
