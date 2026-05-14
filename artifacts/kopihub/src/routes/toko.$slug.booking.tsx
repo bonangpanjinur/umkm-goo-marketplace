@@ -14,7 +14,7 @@ import {
   Store, CalendarCheck, Clock, ChevronLeft, ChevronRight,
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
-
+  AlertTriangle, Ticket, Tag, X, XCircle, Package, Plus,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -58,7 +58,24 @@ type Staff = {
   is_available: boolean;
 };
 
-type Step = "date" | "slot" | "staff" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+type Step = "date" | "slot" | "staff" | "packages" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+
+type ServicePackage = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  color: string | null;
+  sort_order: number;
+};
+
+type BookingAddon = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  sort_order: number;
+};
 
 const NO_PREF_STAFF_ID = "__any__";
 
@@ -131,6 +148,13 @@ export default function PublicBookingPage() {
   const [waitlistSaving, setWaitlistSaving] = useState(false);
   const [waitlistDone, setWaitlistDone] = useState(false);
 
+  // Packages & Add-ons state (M-17)
+  const [packages, setPackages] = useState<ServicePackage[]>([]);
+  const [addons, setAddons] = useState<BookingAddon[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(null);
+  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
+  const [packagesLoaded, setPackagesLoaded] = useState(false);
+
   // Load shop
   useEffect(() => {
     (async () => {
@@ -178,14 +202,45 @@ export default function PublicBookingPage() {
     }
   }, []);
 
+  // Load service packages + add-ons (M-17) — graceful: skip if table missing
+  const loadPackages = useCallback(async (shopId: string) => {
+    try {
+      const [pkgs, ads] = await Promise.all([
+        (supabase as any)
+          .from("booking_service_packages")
+          .select("*")
+          .eq("shop_id", shopId)
+          .eq("is_active", true)
+          .order("sort_order")
+          .order("created_at"),
+        (supabase as any)
+          .from("booking_addons")
+          .select("*")
+          .eq("shop_id", shopId)
+          .eq("is_active", true)
+          .order("sort_order")
+          .order("created_at"),
+      ]);
+      setPackages((pkgs.data ?? []) as ServicePackage[]);
+      setAddons((ads.data ?? []) as BookingAddon[]);
+    } catch {
+      setPackages([]);
+      setAddons([]);
+    } finally {
+      setPackagesLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (shop?.id) {
       loadSlots(shop.id);
       loadStaff(shop.id);
+      loadPackages(shop.id);
     }
-  }, [shop?.id, loadSlots, loadStaff]);
+  }, [shop?.id, loadSlots, loadStaff, loadPackages]);
 
-  const hasStaff = staffList.length > 0;
+  const hasStaff    = staffList.length > 0;
+  const hasPackages = packagesLoaded && (packages.length > 0 || addons.length > 0);
 
   // Derived
   const availableDates = [...new Set(
@@ -207,17 +262,25 @@ export default function PublicBookingPage() {
   // Include full slots so customers can join waitlist
   const slotsForDate = allSlots.filter(s => s.slot_date === selectedDate);
 
-  const selectedStaff = staffList.find(s => s.id === selectedStaffId) ?? null;
+  const selectedStaff  = staffList.find(s => s.id === selectedStaffId) ?? null;
+  const selectedAddons = addons.filter(a => selectedAddonIds.has(a.id));
 
-  // Step labels — dynamic based on whether staff selection is available
-  const stepKeys = hasStaff
-    ? (["date", "slot", "staff", "form"] as Step[])
-    : (["date", "slot", "form"] as Step[]);
-  const stepLabels = hasStaff
-    ? ["Pilih Tanggal", "Pilih Waktu", "Pilih Staff", "Isi Data"]
-    : ["Pilih Tanggal", "Pilih Waktu", "Isi Data"];
+  // Step labels — dynamic based on staff + packages availability
+  const stepKeys: Step[] = [
+    "date", "slot",
+    ...(hasStaff    ? ["staff"    as Step] : []),
+    ...(hasPackages ? ["packages" as Step] : []),
+    "form",
+  ];
+  const stepLabels = [
+    "Pilih Tanggal", "Pilih Waktu",
+    ...(hasStaff    ? ["Pilih Staff"]    : []),
+    ...(hasPackages ? ["Paket & Add-on"] : []),
+    "Isi Data",
+  ];
 
-  const afterSlot = hasStaff ? "staff" : "form";
+  const afterSlot  = hasStaff ? "staff" : (hasPackages ? "packages" : "form");
+  const afterStaff = hasPackages ? "packages" : "form";
 
   // Apply voucher code
   const applyVoucher = async () => {
@@ -253,12 +316,13 @@ export default function PublicBookingPage() {
     setVoucherInput("");
   };
 
-  // Computed effective price after voucher
-  const effectivePrice = appliedVoucher
-    ? appliedVoucher.finalPrice
-    : (selectedSlot?.price ?? 0);
+  // Computed effective price = slot (after voucher) + package + add-ons
+  const addonTotal    = selectedAddons.reduce((s, a) => s + a.price, 0);
+  const packageExtra  = selectedPackage?.price ?? 0;
+  const basePrice     = appliedVoucher ? appliedVoucher.finalPrice : (selectedSlot?.price ?? 0);
+  const effectivePrice = basePrice + packageExtra + addonTotal;
 
-  // Computed deposit amount (based on effective price after voucher)
+  // Computed deposit amount (based on full effective price)
   const depositAmount = (() => {
     if (!shop?.require_deposit || !selectedSlot) return 0;
     const pct = shop.deposit_percent ?? 50;
@@ -308,6 +372,16 @@ export default function PublicBookingPage() {
             voucher_code: appliedVoucher.code,
             voucher_discount: appliedVoucher.discountAmount,
           } : {}),
+          ...(selectedPackage ? {
+            package_id: selectedPackage.id,
+            package_name: selectedPackage.name,
+            package_price: selectedPackage.price,
+          } : {}),
+          ...(selectedAddons.length > 0 ? {
+            addon_ids: selectedAddons.map(a => a.id),
+            addon_names_snapshot: selectedAddons.map(a => a.name).join(", "),
+            addon_total_price: addonTotal,
+          } : {}),
         } as any)
         .select("id, cancellation_token")
         .maybeSingle() as any;
@@ -328,7 +402,7 @@ export default function PublicBookingPage() {
           shop_id: shop.id,
           type: needsDeposit ? "new_booking_deposit" : "new_booking",
           title: `📅 Booking baru dari ${name.trim()}`,
-          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
+          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""}${selectedPackage ? ` · Paket: ${selectedPackage.name}` : ""}${selectedAddons.length > 0 ? ` · Add-on: ${selectedAddons.map(a => a.name).join(", ")}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
           severity: "info",
           link: "/pos-app/booking",
           dedupe_key: `booking_${bk?.id ?? Date.now()}`,
@@ -939,7 +1013,7 @@ export default function PublicBookingPage() {
               <button
                 onClick={() => {
                   setSelectedStaffId(NO_PREF_STAFF_ID);
-                  setStep("form");
+                  setStep(afterStaff);
                 }}
                 className={`text-left rounded-xl border p-4 transition-all hover:shadow-md flex items-center gap-3 ${
                   selectedStaffId === NO_PREF_STAFF_ID
@@ -964,7 +1038,7 @@ export default function PublicBookingPage() {
                     key={staff.id}
                     onClick={() => {
                       setSelectedStaffId(staff.id);
-                      setStep("form");
+                      setStep(afterStaff);
                     }}
                     className={`text-left rounded-xl border p-4 transition-all hover:shadow-md flex items-center gap-3 ${
                       isSelected
@@ -1003,12 +1077,187 @@ export default function PublicBookingPage() {
           </div>
         )}
 
+        {/* ─── Step: Packages & Add-ons (M-17) ─── */}
+        {step === "packages" && selectedSlot && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStep(hasStaff ? "staff" : "slot")}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" /> Paket &amp; Layanan Tambahan
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedSlot.service_name} · {fmtDate(selectedDate)} · {fmtTime(selectedSlot.slot_time)}
+                </p>
+              </div>
+            </div>
+
+            {/* ── Service Packages ── */}
+            {packages.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <Star className="h-4 w-4 text-amber-500" /> Pilih Paket Layanan
+                  <span className="text-xs font-normal text-muted-foreground">(opsional)</span>
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {packages.map((pkg) => {
+                    const isSelected = selectedPackage?.id === pkg.id;
+                    const colorBorder: Record<string, string> = {
+                      blue:   "border-blue-400 bg-blue-50/60 dark:bg-blue-950/20 ring-blue-400",
+                      green:  "border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/20 ring-emerald-400",
+                      purple: "border-purple-400 bg-purple-50/60 dark:bg-purple-950/20 ring-purple-400",
+                      amber:  "border-amber-400 bg-amber-50/60 dark:bg-amber-950/20 ring-amber-400",
+                      rose:   "border-rose-400 bg-rose-50/60 dark:bg-rose-950/20 ring-rose-400",
+                    };
+                    const colorText: Record<string, string> = {
+                      blue: "text-blue-700", green: "text-emerald-700",
+                      purple: "text-purple-700", amber: "text-amber-700", rose: "text-rose-700",
+                    };
+                    const ck = pkg.color ?? "blue";
+                    return (
+                      <button
+                        key={pkg.id}
+                        onClick={() => setSelectedPackage(isSelected ? null : pkg)}
+                        className={`text-left rounded-xl border-2 p-4 transition-all hover:shadow-md ${
+                          isSelected ? `${colorBorder[ck]} ring-2` : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-semibold text-sm ${isSelected ? colorText[ck] : ""}`}>
+                              {pkg.name}
+                            </p>
+                            {pkg.description && (
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{pkg.description}</p>
+                            )}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            {pkg.price > 0 ? (
+                              <p className={`text-sm font-bold ${isSelected ? colorText[ck] : "text-foreground"}`}>
+                                +{formatIDR(pkg.price)}
+                              </p>
+                            ) : (
+                              <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">Gratis</Badge>
+                            )}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600">
+                            <Check className="h-3.5 w-3.5" /> Dipilih
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Add-ons ── */}
+            {addons.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <Plus className="h-4 w-4 text-primary" /> Layanan Tambahan (Add-on)
+                  <span className="text-xs font-normal text-muted-foreground">(bisa pilih lebih dari satu)</span>
+                </p>
+                <div className="space-y-2">
+                  {addons.map((addon) => {
+                    const isChecked = selectedAddonIds.has(addon.id);
+                    return (
+                      <button
+                        key={addon.id}
+                        onClick={() => {
+                          setSelectedAddonIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(addon.id)) next.delete(addon.id);
+                            else next.add(addon.id);
+                            return next;
+                          });
+                        }}
+                        className={`w-full text-left rounded-xl border px-4 py-3 flex items-center gap-3 transition-all hover:shadow-sm ${
+                          isChecked ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <div className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                          isChecked ? "bg-primary border-primary" : "border-muted-foreground"
+                        }`}>
+                          {isChecked && <Check className="h-3 w-3 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{addon.name}</p>
+                          {addon.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{addon.description}</p>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold shrink-0">
+                          {addon.price > 0 ? `+${formatIDR(addon.price)}` : <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">Gratis</Badge>}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Price preview ── */}
+            {(selectedPackage || selectedAddonIds.size > 0) && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 space-y-1.5 text-sm">
+                <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">Ringkasan Harga</p>
+                {selectedSlot.price > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Harga layanan dasar</span>
+                    <span>{formatIDR(selectedSlot.price)}</span>
+                  </div>
+                )}
+                {selectedPackage && selectedPackage.price > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Paket: {selectedPackage.name}</span>
+                    <span>+{formatIDR(selectedPackage.price)}</span>
+                  </div>
+                )}
+                {selectedAddons.map(a => (
+                  <div key={a.id} className="flex justify-between">
+                    <span className="text-muted-foreground">Add-on: {a.name}</span>
+                    <span>+{formatIDR(a.price)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between font-bold pt-1.5 border-t border-primary/10">
+                  <span>Total estimasi</span>
+                  <span className="text-primary">{formatIDR(selectedSlot.price + packageExtra + addonTotal)}</span>
+                </div>
+              </div>
+            )}
+
+            <Button
+              className="w-full h-12 text-base gap-2"
+              onClick={() => setStep("form")}
+            >
+              Lanjut ke Isi Data <ChevronRight className="h-4 w-4" />
+            </Button>
+            <button
+              className="w-full text-sm text-muted-foreground hover:text-foreground text-center py-1"
+              onClick={() => {
+                setSelectedPackage(null);
+                setSelectedAddonIds(new Set());
+                setStep("form");
+              }}
+            >
+              Lewati — lanjut tanpa paket tambahan
+            </button>
+          </div>
+        )}
+
         {/* ─── Step: Form ─── */}
         {step === "form" && selectedSlot && (
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setStep(hasStaff ? "staff" : "slot")}
+                onClick={() => setStep(hasPackages ? "packages" : (hasStaff ? "staff" : "slot"))}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -1055,6 +1304,32 @@ export default function PublicBookingPage() {
                     <p className="text-sm font-bold text-primary">{formatIDR(selectedSlot.price)}</p>
                   )}
                 </div>
+              )}
+              {selectedPackage && (
+                <p className="text-sm flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="text-muted-foreground">Paket:</span>
+                  <span className="font-medium">{selectedPackage.name}</span>
+                  {selectedPackage.price > 0 && <span className="text-primary font-semibold ml-auto">+{formatIDR(selectedPackage.price)}</span>}
+                </p>
+              )}
+              {selectedAddons.length > 0 && (
+                <div className="space-y-0.5">
+                  {selectedAddons.map(a => (
+                    <p key={a.id} className="text-sm flex items-center gap-1.5">
+                      <Plus className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">Add-on:</span>
+                      <span className="font-medium">{a.name}</span>
+                      {a.price > 0 && <span className="text-primary font-semibold ml-auto">+{formatIDR(a.price)}</span>}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {(selectedPackage || selectedAddons.length > 0) && effectivePrice > 0 && (
+                <p className="text-sm font-bold text-primary border-t border-primary/10 pt-1.5 flex justify-between">
+                  <span>Total</span>
+                  <span>{formatIDR(effectivePrice)}</span>
+                </p>
               )}
             </div>
 
@@ -1326,6 +1601,26 @@ export default function PublicBookingPage() {
                   ) : (
                     <p><span className="font-medium text-foreground">Harga:</span> {formatIDR(selectedSlot.price)}</p>
                   )
+                )}
+                {selectedPackage && (
+                  <p>
+                    <span className="font-medium text-foreground">Paket:</span>{" "}
+                    {selectedPackage.name}
+                    {selectedPackage.price > 0 && <span className="text-primary font-semibold"> (+{formatIDR(selectedPackage.price)})</span>}
+                  </p>
+                )}
+                {selectedAddons.length > 0 && (
+                  <p>
+                    <span className="font-medium text-foreground">Add-on:</span>{" "}
+                    {selectedAddons.map(a => a.name).join(", ")}
+                    {addonTotal > 0 && <span className="text-primary font-semibold"> (+{formatIDR(addonTotal)})</span>}
+                  </p>
+                )}
+                {(selectedPackage || selectedAddons.length > 0) && effectivePrice > 0 && (
+                  <p className="font-bold text-foreground border-t border-emerald-200 pt-1.5 mt-1">
+                    <span>Total: </span>
+                    <span className="text-primary">{formatIDR(effectivePrice)}</span>
+                  </p>
                 )}
                 {shop?.require_deposit && depositAmount > 0 && (
                   <p className="flex items-center gap-1.5 font-medium text-emerald-700">

@@ -877,7 +877,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | M-15 | **Katalog PDF / Link Shareable** | Merchant | Pemasaran | ✅ Selesai |
 | M-VB | **Voucher Khusus Booking** | Jasa T3 | Konversi | ✅ Selesai |
 | M-16 | **Upload Dokumen KTP/SIM saat Booking Rental** | Rental T4 | Legal/UX | ❌ Belum |
-| M-17 | **Paket Layanan + Add-on saat Booking** | Jasa T3 | AOV | ❌ Belum |
+| M-17 | **Paket Layanan + Add-on saat Booking** | Jasa T3 | AOV | ✅ Selesai |
 | M-18 | **Review Post-Booking Otomatis H+1** | Jasa T3&T4 | Kepercayaan | ✅ Selesai |
 | M-19 | **Galeri Portofolio tampil di halaman publik /toko/:slug** | Jasa/Kreatif | Kepercayaan | ✅ Selesai |
 | M-20 | **Halaman Produk Digital di Akun** (`/akun/digital-products`) | Digital T2 | UX | ✅ Selesai |
@@ -1569,7 +1569,7 @@ DISEMBUNYIKAN untuk F&B:
   ✗ Produk Digital
   ✗ Custom Order Form
   ✗ Portofolio Galeri Karya
-  ✗ Paket Layanan & Add-on Booking
+  ✓ Paket Layanan & Add-on Booking
 ```
 
 **Dashboard F&B — Widget Utama:**
@@ -1677,7 +1677,7 @@ SIDEBAR BOOKING SESI:
 │
 ├── 💼 LAYANAN & TIM
 │   ├── Daftar Layanan (nama, durasi, harga) [bukan "Menu Produk"]
-│   ├── Paket Layanan & Add-on [❌ belum ada]
+│   ├── Paket Layanan & Add-on [✅ selesai]
 │   ├── Staff / Terapis / Fotografer
 │   ├── Jadwal Staff (jam tersedia per hari)
 │   └── Absensi & Shift

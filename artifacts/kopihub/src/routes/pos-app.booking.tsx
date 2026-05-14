@@ -43,6 +43,10 @@ import {
   BellRing,
   ChevronDown,
   ChevronUp,
+  Package,
+  Star,
+  GripVertical,
+  Edit2,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -109,13 +113,44 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   done:      { label: "Selesai",    cls: "bg-muted text-muted-foreground" },
 };
 
+type ServicePackage = {
+  id: string;
+  shop_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  is_active: boolean;
+  sort_order: number;
+  color: string;
+  created_at: string;
+};
+
+type BookingAddon = {
+  id: string;
+  shop_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+const PKG_COLORS = [
+  { value: "blue",   label: "Biru"   },
+  { value: "green",  label: "Hijau"  },
+  { value: "purple", label: "Ungu"   },
+  { value: "amber",  label: "Kuning" },
+  { value: "rose",   label: "Merah"  },
+];
+
 function isoDate(d: Date) {
   return d.toISOString().split("T")[0];
 }
 
 function BookingPage() {
   const { shop } = useShop();
-  const [view, setView] = useState<"bookings" | "slots">("bookings");
+  const [view, setView] = useState<"bookings" | "slots" | "packages">("bookings");
   const [date, setDate] = useState(isoDate(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -133,6 +168,131 @@ function BookingPage() {
   const [savingBooking, setSavingBooking] = useState(false);
 
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+
+  // ── Packages & Add-ons management (M-17) ───────────────────────────
+  const [pkgList, setPkgList]             = useState<ServicePackage[]>([]);
+  const [addonList, setAddonList]         = useState<BookingAddon[]>([]);
+  const [pkgLoading, setPkgLoading]       = useState(false);
+  const [pkgDialogOpen, setPkgDialogOpen] = useState(false);
+  const [addonDialogOpen, setAddonDialogOpen] = useState(false);
+  const [savingPkg, setSavingPkg]         = useState(false);
+  const [savingAddon, setSavingAddon]     = useState(false);
+  const [editingPkg, setEditingPkg]       = useState<ServicePackage | null>(null);
+  const [editingAddon, setEditingAddon]   = useState<BookingAddon | null>(null);
+  const [pkgForm, setPkgForm] = useState({
+    name: "", description: "", price: "0", sort_order: "0", color: "blue",
+  });
+  const [addonForm, setAddonForm] = useState({
+    name: "", description: "", price: "0", sort_order: "0",
+  });
+
+  const loadPkgData = useCallback(async () => {
+    if (!shop?.id) return;
+    setPkgLoading(true);
+    try {
+      const [pkgs, ads] = await Promise.all([
+        (supabase as any).from("booking_service_packages").select("*").eq("shop_id", shop.id).order("sort_order").order("created_at"),
+        (supabase as any).from("booking_addons").select("*").eq("shop_id", shop.id).order("sort_order").order("created_at"),
+      ]);
+      setPkgList((pkgs.data ?? []) as ServicePackage[]);
+      setAddonList((ads.data ?? []) as BookingAddon[]);
+    } finally {
+      setPkgLoading(false);
+    }
+  }, [shop?.id]);
+
+  useEffect(() => { if (view === "packages") loadPkgData(); }, [view, loadPkgData]);
+
+  const openNewPkg = () => {
+    setEditingPkg(null);
+    setPkgForm({ name: "", description: "", price: "0", sort_order: String(pkgList.length), color: "blue" });
+    setPkgDialogOpen(true);
+  };
+  const openEditPkg = (pkg: ServicePackage) => {
+    setEditingPkg(pkg);
+    setPkgForm({ name: pkg.name, description: pkg.description ?? "", price: String(pkg.price), sort_order: String(pkg.sort_order), color: pkg.color });
+    setPkgDialogOpen(true);
+  };
+
+  const savePkg = async () => {
+    if (!shop?.id) return;
+    if (!pkgForm.name.trim()) { toast.error("Nama paket wajib diisi"); return; }
+    setSavingPkg(true);
+    const payload = {
+      shop_id: shop.id,
+      name: pkgForm.name.trim(),
+      description: pkgForm.description.trim() || null,
+      price: Number(pkgForm.price) || 0,
+      sort_order: Number(pkgForm.sort_order) || 0,
+      color: pkgForm.color,
+    };
+    const { error } = editingPkg
+      ? await (supabase as any).from("booking_service_packages").update(payload).eq("id", editingPkg.id)
+      : await (supabase as any).from("booking_service_packages").insert(payload);
+    setSavingPkg(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(editingPkg ? "Paket diperbarui" : "Paket ditambahkan");
+    setPkgDialogOpen(false);
+    loadPkgData();
+  };
+
+  const togglePkg = async (pkg: ServicePackage) => {
+    await (supabase as any).from("booking_service_packages").update({ is_active: !pkg.is_active }).eq("id", pkg.id);
+    toast.success(pkg.is_active ? "Paket dinonaktifkan" : "Paket diaktifkan");
+    loadPkgData();
+  };
+
+  const deletePkg = async (pkg: ServicePackage) => {
+    if (!confirm(`Hapus paket "${pkg.name}"?`)) return;
+    await (supabase as any).from("booking_service_packages").delete().eq("id", pkg.id);
+    toast.success("Paket dihapus");
+    loadPkgData();
+  };
+
+  const openNewAddon = () => {
+    setEditingAddon(null);
+    setAddonForm({ name: "", description: "", price: "0", sort_order: String(addonList.length) });
+    setAddonDialogOpen(true);
+  };
+  const openEditAddon = (addon: BookingAddon) => {
+    setEditingAddon(addon);
+    setAddonForm({ name: addon.name, description: addon.description ?? "", price: String(addon.price), sort_order: String(addon.sort_order) });
+    setAddonDialogOpen(true);
+  };
+
+  const saveAddon = async () => {
+    if (!shop?.id) return;
+    if (!addonForm.name.trim()) { toast.error("Nama add-on wajib diisi"); return; }
+    setSavingAddon(true);
+    const payload = {
+      shop_id: shop.id,
+      name: addonForm.name.trim(),
+      description: addonForm.description.trim() || null,
+      price: Number(addonForm.price) || 0,
+      sort_order: Number(addonForm.sort_order) || 0,
+    };
+    const { error } = editingAddon
+      ? await (supabase as any).from("booking_addons").update(payload).eq("id", editingAddon.id)
+      : await (supabase as any).from("booking_addons").insert(payload);
+    setSavingAddon(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(editingAddon ? "Add-on diperbarui" : "Add-on ditambahkan");
+    setAddonDialogOpen(false);
+    loadPkgData();
+  };
+
+  const toggleAddon = async (addon: BookingAddon) => {
+    await (supabase as any).from("booking_addons").update({ is_active: !addon.is_active }).eq("id", addon.id);
+    toast.success(addon.is_active ? "Add-on dinonaktifkan" : "Add-on diaktifkan");
+    loadPkgData();
+  };
+
+  const deleteAddon = async (addon: BookingAddon) => {
+    if (!confirm(`Hapus add-on "${addon.name}"?`)) return;
+    await (supabase as any).from("booking_addons").delete().eq("id", addon.id);
+    toast.success("Add-on dihapus");
+    loadPkgData();
+  };
 
   // Voucher management
   const [vouchers, setVouchers] = useState<BookingVoucher[]>([]);
@@ -749,8 +909,8 @@ function BookingPage() {
         </Card>
       </div>
 
-      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit">
-        {(["bookings", "slots"] as const).map((v) => (
+      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit flex-wrap">
+        {(["bookings", "slots", "packages"] as const).map((v) => (
           <button
             key={v}
             onClick={() => setView(v)}
@@ -758,7 +918,7 @@ function BookingPage() {
               view === v ? "bg-background shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {v === "bookings" ? "Booking Masuk" : "Slot Tersedia"}
+            {v === "bookings" ? "Booking Masuk" : v === "slots" ? "Slot Tersedia" : "Paket & Add-on"}
           </button>
         ))}
       </div>
@@ -768,6 +928,147 @@ function BookingPage() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />
           ))}
+        </div>
+      ) : view === "packages" ? (
+        /* ─── Packages & Add-ons Management (M-17) ─── */
+        <div className="space-y-6">
+          {pkgLoading ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}
+            </div>
+          ) : (
+            <>
+              {/* ── Service Packages ── */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold flex items-center gap-2">
+                      <Star className="h-4 w-4 text-amber-500" /> Paket Layanan
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Pembeli memilih satu paket saat booking (Basic / Standard / Premium, dll.)
+                    </p>
+                  </div>
+                  <Button size="sm" onClick={openNewPkg} className="gap-1.5 shrink-0">
+                    <Plus className="h-3.5 w-3.5" /> Tambah Paket
+                  </Button>
+                </div>
+
+                {pkgList.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
+                    Belum ada paket — klik "Tambah Paket" untuk mulai
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {pkgList.map(pkg => {
+                      const colorDot: Record<string, string> = {
+                        blue: "bg-blue-500", green: "bg-emerald-500", purple: "bg-purple-500",
+                        amber: "bg-amber-500", rose: "bg-rose-500",
+                      };
+                      return (
+                        <Card key={pkg.id} className={`p-4 ${!pkg.is_active ? "opacity-60" : ""}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`h-3 w-3 rounded-full shrink-0 ${colorDot[pkg.color] ?? "bg-blue-500"}`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-sm">{pkg.name}</span>
+                                <span className="text-xs font-semibold text-primary">
+                                  {pkg.price > 0 ? `+${formatIDR(pkg.price)}` : "Gratis"}
+                                </span>
+                                <Badge variant="outline" className="text-[10px]">Urutan #{pkg.sort_order}</Badge>
+                                {!pkg.is_active && <Badge variant="outline" className="text-[10px] text-muted-foreground">Nonaktif</Badge>}
+                              </div>
+                              {pkg.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{pkg.description}</p>}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button onClick={() => openEditPkg(pkg)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => togglePkg(pkg)}
+                                className={`text-xs px-2 py-0.5 rounded-full border transition-all ${pkg.is_active ? "border-primary/30 text-primary hover:bg-primary/5" : "border-border text-muted-foreground hover:border-primary/30"}`}
+                              >
+                                {pkg.is_active ? "Nonaktifkan" : "Aktifkan"}
+                              </button>
+                              <button onClick={() => deletePkg(pkg)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Add-ons ── */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold flex items-center gap-2">
+                      <Package className="h-4 w-4 text-primary" /> Add-on / Layanan Tambahan
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Pembeli bisa pilih satu atau lebih add-on saat booking untuk menambah nilai transaksi
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={openNewAddon} className="gap-1.5 shrink-0">
+                    <Plus className="h-3.5 w-3.5" /> Tambah Add-on
+                  </Button>
+                </div>
+
+                {addonList.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
+                    Belum ada add-on — klik "Tambah Add-on" untuk mulai
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {addonList.map(addon => (
+                      <Card key={addon.id} className={`p-4 ${!addon.is_active ? "opacity-60" : ""}`}>
+                        <div className="flex items-center gap-3">
+                          <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-sm">{addon.name}</span>
+                              <span className="text-xs font-semibold text-primary">
+                                {addon.price > 0 ? `+${formatIDR(addon.price)}` : "Gratis"}
+                              </span>
+                              {!addon.is_active && <Badge variant="outline" className="text-[10px] text-muted-foreground">Nonaktif</Badge>}
+                            </div>
+                            {addon.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{addon.description}</p>}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button onClick={() => openEditAddon(addon)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => toggleAddon(addon)}
+                              className={`text-xs px-2 py-0.5 rounded-full border transition-all ${addon.is_active ? "border-primary/30 text-primary hover:bg-primary/5" : "border-border text-muted-foreground hover:border-primary/30"}`}
+                            >
+                              {addon.is_active ? "Nonaktifkan" : "Aktifkan"}
+                            </button>
+                            <button onClick={() => deleteAddon(addon)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <p className="text-xs font-semibold text-primary flex items-center gap-1.5 mb-1">
+                  <Star className="h-3.5 w-3.5" /> Cara Kerja Paket &amp; Add-on
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Saat booking, pembeli akan melihat langkah tambahan untuk memilih paket layanan (mis. Basic/Standard/Premium) dan/atau add-on pilihan. Harga paket &amp; add-on dijumlahkan ke harga slot. Ini meningkatkan nilai transaksi rata-rata.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       ) : view === "slots" ? (
         <div className="space-y-3">
@@ -956,6 +1257,28 @@ function BookingPage() {
                         )}
                       </div>
                     )}
+                    {(bk as any).package_name && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Package className="h-3 w-3 text-primary shrink-0" />
+                        <span className="text-[10px] text-muted-foreground">
+                          Paket: <span className="font-medium text-foreground">{(bk as any).package_name}</span>
+                          {(bk as any).package_price > 0 && (
+                            <span className="text-primary"> +{formatIDR(Number((bk as any).package_price))}</span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    {(bk as any).addon_names_snapshot && (
+                      <div className="flex items-start gap-1.5 mt-0.5">
+                        <Plus className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                        <span className="text-[10px] text-muted-foreground">
+                          Add-on: <span className="font-medium text-foreground">{(bk as any).addon_names_snapshot}</span>
+                          {(bk as any).addon_total_price > 0 && (
+                            <span className="text-primary"> +{formatIDR(Number((bk as any).addon_total_price))}</span>
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {bk.status === "pending" && (
@@ -1095,6 +1418,154 @@ function BookingPage() {
               <Button className="flex-1 bg-violet-600 hover:bg-violet-700" onClick={saveVoucher} disabled={savingVoucher}>
                 {savingVoucher ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Ticket className="h-3.5 w-3.5 mr-1" />}
                 {savingVoucher ? "Menyimpan…" : "Buat Voucher"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Package Dialog ─── */}
+      <Dialog open={pkgDialogOpen} onOpenChange={setPkgDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-amber-500" />
+              {editingPkg ? "Edit Paket" : "Tambah Paket Layanan"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div>
+              <Label className="text-xs">Nama Paket *</Label>
+              <Input
+                className="mt-1"
+                placeholder="cth: Basic, Standard, Premium"
+                value={pkgForm.name}
+                onChange={e => setPkgForm(f => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Deskripsi (opsional)</Label>
+              <Textarea
+                className="mt-1 text-sm resize-none"
+                rows={2}
+                placeholder="Jelaskan apa yang termasuk dalam paket ini"
+                value={pkgForm.description}
+                onChange={e => setPkgForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Harga Tambahan (Rp)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={5000}
+                  className="mt-1"
+                  placeholder="0 = Gratis"
+                  value={pkgForm.price}
+                  onChange={e => setPkgForm(f => ({ ...f, price: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Urutan tampil</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  className="mt-1"
+                  value={pkgForm.sort_order}
+                  onChange={e => setPkgForm(f => ({ ...f, sort_order: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Warna Aksen</Label>
+              <div className="flex gap-2 mt-1.5">
+                {PKG_COLORS.map(c => {
+                  const bg: Record<string, string> = {
+                    blue: "bg-blue-500", green: "bg-emerald-500", purple: "bg-purple-500",
+                    amber: "bg-amber-500", rose: "bg-rose-500",
+                  };
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setPkgForm(f => ({ ...f, color: c.value }))}
+                      className={`h-7 w-7 rounded-full ${bg[c.value]} transition-all ${pkgForm.color === c.value ? "ring-2 ring-offset-2 ring-foreground/40 scale-110" : "opacity-60 hover:opacity-100"}`}
+                      title={c.label}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setPkgDialogOpen(false)}>Batal</Button>
+              <Button className="flex-1" onClick={savePkg} disabled={savingPkg}>
+                {savingPkg ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                {savingPkg ? "Menyimpan…" : (editingPkg ? "Simpan Perubahan" : "Tambah Paket")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Add-on Dialog ─── */}
+      <Dialog open={addonDialogOpen} onOpenChange={setAddonDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-primary" />
+              {editingAddon ? "Edit Add-on" : "Tambah Add-on"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div>
+              <Label className="text-xs">Nama Add-on *</Label>
+              <Input
+                className="mt-1"
+                placeholder="cth: Perawatan Ekstra, Foto Dokumentasi, dll."
+                value={addonForm.name}
+                onChange={e => setAddonForm(f => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Deskripsi (opsional)</Label>
+              <Textarea
+                className="mt-1 text-sm resize-none"
+                rows={2}
+                placeholder="Jelaskan apa yang termasuk dalam add-on ini"
+                value={addonForm.description}
+                onChange={e => setAddonForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Harga (Rp)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={5000}
+                  className="mt-1"
+                  placeholder="0 = Gratis"
+                  value={addonForm.price}
+                  onChange={e => setAddonForm(f => ({ ...f, price: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Urutan tampil</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  className="mt-1"
+                  value={addonForm.sort_order}
+                  onChange={e => setAddonForm(f => ({ ...f, sort_order: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setAddonDialogOpen(false)}>Batal</Button>
+              <Button className="flex-1" onClick={saveAddon} disabled={savingAddon}>
+                {savingAddon ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                {savingAddon ? "Menyimpan…" : (editingAddon ? "Simpan Perubahan" : "Tambah Add-on")}
               </Button>
             </div>
           </div>
