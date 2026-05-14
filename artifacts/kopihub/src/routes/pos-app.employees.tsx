@@ -981,6 +981,84 @@ function EmployeesPage() {
           )}
         </div>
       )}
+
+      {/* Set password dialog */}
+      <Dialog
+        open={!!pwDialog}
+        onOpenChange={(o) => {
+          if (!o) {
+            setPwDialog(null);
+            setPwValue("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ubah kata sandi · {pwDialog?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label className="text-xs">Kata sandi baru</Label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={pwValue}
+                onChange={(e) => setPwValue(e.target.value)}
+                placeholder="Min. 6 karakter"
+                maxLength={72}
+                autoFocus
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => setPwValue(genPassword(10))}>
+                Generate
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Kata sandi akan otomatis disalin ke clipboard setelah disimpan.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPwDialog(null)}>
+              Batal
+            </Button>
+            <Button onClick={setMemberPassword} disabled={pwSaving || pwValue.length < 6}>
+              {pwSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan sandi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset link result dialog */}
+      <Dialog open={!!resetLink} onOpenChange={(o) => !o && setResetLink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tautan reset · {resetLink?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Bagikan tautan ini ke pegawai. Tautan berlaku terbatas waktu.
+            </p>
+            <div className="flex gap-2">
+              <Input value={resetLink?.link ?? ""} readOnly className="text-xs font-mono" />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (resetLink) {
+                    await navigator.clipboard.writeText(resetLink.link);
+                    toast.success("Tersalin");
+                  }
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetLink(null)}>Selesai</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
