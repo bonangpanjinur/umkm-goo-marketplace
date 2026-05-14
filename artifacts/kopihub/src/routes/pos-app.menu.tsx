@@ -587,381 +587,457 @@ function MenuPage() {
                 <Plus className="mr-2 h-4 w-4" /> Menu baru
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>{editing ? "Edit menu" : "Menu baru"}</DialogTitle>
+            <DialogContent className="max-w-2xl max-h-[90vh] gap-0 p-0 overflow-hidden flex flex-col">
+              <DialogHeader className="px-6 py-4 border-b">
+                <DialogTitle className="flex items-center gap-2">
+                  <UtensilsCrossed className="h-5 w-5 text-primary" />
+                  {editing ? "Edit menu" : "Menu baru"}
+                </DialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Isi info dasar dulu — fitur lanjutan opsional dan bisa diatur kapan saja.
+                </p>
               </DialogHeader>
-              <div className="space-y-4 py-2">
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/40 transition-colors hover:bg-muted"
-                  >
-                    {imageUrl ? (
-                      <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-                    ) : uploading ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    ) : (
-                      <Upload className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </button>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFile}
-                  />
-                  <div className="flex-1 space-y-1.5">
-                    <Label htmlFor="m-name">Nama</Label>
-                    <Input
-                      id="m-name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Mis. Cappuccino"
-                    />
-                    {imageUrl && (
+
+              <Tabs defaultValue="basic" className="flex-1 flex flex-col overflow-hidden">
+                <TabsList className="mx-6 mt-3 grid grid-cols-4 w-auto">
+                  <TabsTrigger value="basic" className="text-xs gap-1.5">
+                    <Info className="h-3.5 w-3.5" /> Dasar
+                  </TabsTrigger>
+                  <TabsTrigger value="stock" className="text-xs gap-1.5">
+                    <Boxes className="h-3.5 w-3.5" /> Stok & Resep
+                  </TabsTrigger>
+                  <TabsTrigger value="promo" className="text-xs gap-1.5">
+                    <Zap className="h-3.5 w-3.5" /> Promo
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced" className="text-xs gap-1.5">
+                    <Settings2 className="h-3.5 w-3.5" /> Lanjutan
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="flex-1 overflow-y-auto px-6 py-4">
+                  {/* ===== TAB: DASAR ===== */}
+                  <TabsContent value="basic" className="mt-0 space-y-4 focus-visible:outline-none">
+                    <div className="flex gap-3">
                       <button
                         type="button"
-                        onClick={() => setImageUrl(null)}
-                        className="text-xs text-muted-foreground hover:text-destructive"
+                        onClick={() => fileRef.current?.click()}
+                        className="group relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/40 transition-colors hover:bg-muted hover:border-primary/50"
+                        aria-label="Unggah foto menu"
                       >
-                        Hapus foto
+                        {imageUrl ? (
+                          <>
+                            <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                              <span className="text-[11px] font-medium text-white">Ganti foto</span>
+                            </div>
+                          </>
+                        ) : uploading ? (
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                            <ImageIcon className="h-6 w-6" />
+                            <span className="text-[10px] font-medium">Foto menu</span>
+                          </div>
+                        )}
                       </button>
-                    )}
-                  </div>
-                </div>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFile}
+                      />
+                      <div className="flex-1 space-y-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="m-name">Nama menu <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="m-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Mis. Cappuccino"
+                            autoFocus
+                          />
+                        </div>
+                        {imageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setImageUrl(null)}
+                            className="text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            Hapus foto
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="m-price">Harga (Rp)</Label>
-                    <Input
-                      id="m-price"
-                      type="number"
-                      inputMode="numeric"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="25000"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Kategori</Label>
-                    <Select value={categoryId} onValueChange={setCategoryId}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={NO_CATEGORY}>Tanpa kategori</SelectItem>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="m-price">Harga (Rp) <span className="text-destructive">*</span></Label>
+                        <Input
+                          id="m-price"
+                          type="number"
+                          inputMode="numeric"
+                          value={price}
+                          onChange={(e) => setPrice(e.target.value)}
+                          placeholder="25000"
+                        />
+                        {price && Number(price) > 0 && (
+                          <p className="text-[11px] text-muted-foreground tabular-nums">
+                            {formatIDR(Number(price))}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Kategori</Label>
+                        <Select value={categoryId} onValueChange={setCategoryId}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={NO_CATEGORY}>Tanpa kategori</SelectItem>
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="m-desc">Deskripsi (opsional)</Label>
-                    <button
-                      type="button"
-                      onClick={generateWithAI}
-                      disabled={aiGenerating || (!name.trim() && !imageUrl)}
-                      className="flex items-center gap-1.5 rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-900/50"
-                    >
-                      {aiGenerating ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-3 w-3" />
-                      )}
-                      {aiGenerating ? "Membuat..." : "Buat dengan AI"}
-                    </button>
-                  </div>
-                  <Textarea
-                    id="m-desc"
-                    rows={3}
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                    placeholder="Espresso + susu steam, ringan."
-                  />
-                  {aiTags.length > 0 && (
-                    <div className="rounded-md border border-violet-200 bg-violet-50/60 p-2.5 dark:border-violet-800 dark:bg-violet-950/30">
-                      <div className="mb-1.5 flex items-center justify-between">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
-                          Tag SEO
-                        </span>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="m-desc">Deskripsi <span className="text-muted-foreground font-normal">(opsional)</span></Label>
                         <button
                           type="button"
-                          onClick={() => setAiTags([])}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={generateWithAI}
+                          disabled={aiGenerating || (!name.trim() && !imageUrl)}
+                          className="flex items-center gap-1.5 rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-900/50"
                         >
-                          <X className="h-3 w-3" />
+                          {aiGenerating ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3" />
+                          )}
+                          {aiGenerating ? "Membuat..." : "Buat dengan AI"}
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {aiTags.map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => copyTag(tag)}
-                            className="flex items-center gap-1 rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[11px] font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-300 dark:hover:bg-violet-900"
-                          >
-                            {copiedTag === tag ? (
-                              <Check className="h-2.5 w-2.5 text-emerald-500" />
-                            ) : (
-                              <Copy className="h-2.5 w-2.5 opacity-50" />
-                            )}
-                            #{tag}
-                          </button>
-                        ))}
-                      </div>
-                      <p className="mt-1.5 text-[10px] text-muted-foreground">
-                        Klik tag untuk menyalin. Gunakan di deskripsi, media sosial, atau platform lain.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-                  <div>
-                    <div className="text-sm font-medium">Tersedia</div>
-                    <div className="text-xs text-muted-foreground">
-                      Item nonaktif tidak muncul di POS & etalase.
-                    </div>
-                  </div>
-                  <Switch checked={available} onCheckedChange={setAvailable} />
-                </div>
-
-                {!available && (
-                  <div className="space-y-1.5 rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2.5">
-                    <Label htmlFor="m-restock-deadline" className="text-sm font-medium">
-                      Estimasi Restock (opsional)
-                    </Label>
-                    <Input
-                      id="m-restock-deadline"
-                      type="date"
-                      value={restockDeadline}
-                      onChange={(e) => setRestockDeadline(e.target.value)}
-                    />
-                    <p className="text-[11px] text-muted-foreground">
-                      Ditampilkan ke pembeli: "Estimasi tersedia kembali: Senin, 20 Mei" dan disertakan di pesan WA blast.
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-                  <div>
-                    <div className="text-sm font-medium">Lacak stok bahan</div>
-                    <div className="text-xs text-muted-foreground">
-                      Stok bahan dikurangi otomatis saat menu ini terjual.
-                    </div>
-                  </div>
-                  <Switch checked={trackStock} onCheckedChange={setTrackStock} />
-                </div>
-
-                <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-                  <div>
-                    <div className="text-sm font-medium">Terima Custom Order</div>
-                    <div className="text-xs text-muted-foreground">
-                      Pembeli bisa kirim brief khusus (ukuran, warna, request unik).
-                    </div>
-                  </div>
-                  <Switch checked={acceptsCustomOrder} onCheckedChange={setAcceptsCustomOrder} />
-                </div>
-
-                {/* R-10: Informasi Nutrisi */}
-                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
-                  <div className="text-sm font-semibold flex items-center gap-1.5">🥗 Informasi Nutrisi <span className="text-xs text-muted-foreground font-normal">(per porsi, opsional)</span></div>
-                  <div className="text-[11px] text-muted-foreground mb-2">Ditampilkan di halaman produk untuk transparansi kepada pembeli. Kosongkan jika tidak relevan.</div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <Label className="text-[11px]">Kalori (kkal)</Label>
-                      <input type="number" min={0} step="1" value={nutritionCal} onChange={e => setNutritionCal(e.target.value)} placeholder="250" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </div>
-                    <div>
-                      <Label className="text-[11px]">Protein (g)</Label>
-                      <input type="number" min={0} step="0.1" value={nutritionProtein} onChange={e => setNutritionProtein(e.target.value)} placeholder="8" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </div>
-                    <div>
-                      <Label className="text-[11px]">Karbohidrat (g)</Label>
-                      <input type="number" min={0} step="0.1" value={nutritionCarbs} onChange={e => setNutritionCarbs(e.target.value)} placeholder="35" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </div>
-                    <div>
-                      <Label className="text-[11px]">Lemak (g)</Label>
-                      <input type="number" min={0} step="0.1" value={nutritionFat} onChange={e => setNutritionFat(e.target.value)} placeholder="10" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </div>
-                    <div>
-                      <Label className="text-[11px]">Serat (g)</Label>
-                      <input type="number" min={0} step="0.1" value={nutritionFiber} onChange={e => setNutritionFiber(e.target.value)} placeholder="3" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </div>
-                  </div>
-                  <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2 text-[11px] text-muted-foreground mt-1">
-                    Butuh kolom baru di DB — jalankan sekali di Supabase SQL Editor:<br />
-                    <code className="font-mono select-all">ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS nutrition_info jsonb;</code>
-                  </div>
-                </div>
-
-                {/* FA-04: Label Pre-loved / Second */}
-                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
-                  <div className="text-sm font-semibold flex items-center gap-1.5">♻️ Label Pre-loved / Second <span className="text-xs text-muted-foreground font-normal">(opsional — FA-04)</span></div>
-                  <div className="text-[11px] text-muted-foreground mb-2">Untuk produk bekas/preloved. Tentukan kondisi barang agar pembeli tahu kualitasnya.</div>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { val: "", label: "Bukan Pre-loved", desc: "" },
-                      { val: "A", label: "Kondisi A", desc: "Seperti baru / 95%+" },
-                      { val: "B", label: "Kondisi B", desc: "Sedikit bekas / 80–94%" },
-                      { val: "C", label: "Kondisi C", desc: "Bekas pakai / 60–79%" },
-                    ].map(({ val, label, desc }) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setConditionGrade(val)}
-                        className={`flex flex-col items-start rounded-md border px-3 py-2 text-left text-xs transition-colors min-w-[100px] ${
-                          conditionGrade === val
-                            ? val === "" ? "border-border bg-muted text-foreground" : "border-emerald-400 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-300"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted/40"
-                        }`}
-                      >
-                        <span className="font-semibold">{label}</span>
-                        {desc && <span className="mt-0.5 text-[10px] opacity-70">{desc}</span>}
-                      </button>
-                    ))}
-                  </div>
-                  {conditionGrade && (
-                    <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2 text-[11px] text-muted-foreground">
-                      Butuh kolom baru di DB — jalankan sekali di Supabase SQL Editor:<br />
-                      <code className="font-mono select-all">ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS condition_grade text CHECK (condition_grade IN ('A','B','C'));</code>
-                    </div>
-                  )}
-                </div>
-
-                {/* KR-02: Estimasi Waktu Produksi */}
-                <div className="space-y-1.5">
-                  <Label className="flex items-center gap-1.5">🕐 Estimasi Waktu Produksi <span className="text-xs text-muted-foreground font-normal">(opsional)</span></Label>
-                  <div className="flex items-center gap-2">
-                    <input type="number" min={1} step="1" value={productionDays} onChange={e => setProductionDays(e.target.value)} placeholder="3" className="flex h-9 w-24 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    <span className="text-sm text-muted-foreground">hari kerja</span>
-                    {productionDays && <button type="button" onClick={() => setProductionDays("")} className="text-[11px] text-muted-foreground hover:text-destructive ml-auto">Hapus</button>}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">Ditampilkan di halaman produk: "Dibuat dalam ~3 hari kerja." Cocok untuk produk custom/handmade/kerajinan.</p>
-                  <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2 text-[11px] text-muted-foreground">
-                    <code className="font-mono select-all">ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS production_days integer;</code>
-                  </div>
-                </div>
-
-                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
-                  <div className="text-sm font-semibold">Tag Jenis Kulit (Skincare)</div>
-                  <div className="text-[11px] text-muted-foreground">Pilih jenis kulit yang cocok. Tampil di halaman produk untuk membantu pembeli memilih.</div>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {["Berminyak", "Kering", "Kombinasi", "Sensitif", "Normal", "Semua Jenis Kulit"].map(type => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setSkinTypeTags(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type])}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${skinTypeTags.includes(type) ? "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300" : "bg-muted text-muted-foreground border-border hover:bg-muted/60"}`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                  {skinTypeTags.length > 0 && (
-                    <button type="button" onClick={() => setSkinTypeTags([])} className="text-[10px] text-muted-foreground hover:text-destructive">
-                      Hapus semua tag
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label>Yield resep (porsi per resep)</Label>
-                  <Input type="number" min={1} step="1" value={recipeYield}
-                    onChange={(e) => setRecipeYield(e.target.value)} />
-                  <p className="text-[11px] text-muted-foreground">
-                    Mis. 1 batch sirup → 20 porsi. HPP per porsi = total bahan ÷ yield.
-                  </p>
-                </div>
-
-                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-semibold">Flash sale</div>
-                      <div className="text-[11px] text-muted-foreground">
-                        Set harga diskon dengan jadwal mulai & berakhir.
-                      </div>
-                    </div>
-                    {flashPrice && (
-                      <button type="button" onClick={() => { setFlashPrice(""); setFlashStarts(""); setFlashEnds(""); }}
-                        className="text-[11px] text-muted-foreground hover:text-destructive">
-                        Hapus
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <Label className="text-[11px]">Harga flash</Label>
-                      <Input type="number" inputMode="numeric" value={flashPrice}
-                        onChange={(e) => setFlashPrice(e.target.value)} placeholder="20000" />
-                    </div>
-                    <div>
-                      <Label className="text-[11px]">Mulai</Label>
-                      <Input type="datetime-local" value={flashStarts}
-                        onChange={(e) => setFlashStarts(e.target.value)} />
-                    </div>
-                    <div>
-                      <Label className="text-[11px]">Berakhir</Label>
-                      <Input type="datetime-local" value={flashEnds}
-                        onChange={(e) => setFlashEnds(e.target.value)} />
-                    </div>
-                  </div>
-                </div>
-
-                {editing && (() => {
-                  const h = hpp[editing.id];
-                  const rs = recipes.filter((r) => r.menu_item_id === editing.id);
-                  if (!h && rs.length === 0) {
-                    return (
-                      <div className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                        Belum ada resep untuk menu ini. Tambahkan di halaman <strong>Resep</strong> agar HPP & margin terhitung.
-                      </div>
-                    );
-                  }
-                  const pct = Number(h?.margin_percent ?? 0);
-                  const tone = pct >= 30 ? "text-emerald-600" : pct >= 10 ? "text-amber-600" : "text-destructive";
-                  return (
-                    <div className="rounded-md border border-border bg-muted/20 p-3 text-xs space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold uppercase tracking-wide text-muted-foreground">Breakdown HPP</span>
-                        <span className={`font-bold ${tone}`}>Margin {pct}%</span>
-                      </div>
-                      <div className="flex justify-between"><span>HPP</span><span className="tabular-nums font-medium">{formatIDR(Number(h?.hpp ?? 0))}</span></div>
-                      <div className="flex justify-between"><span>Harga</span><span className="tabular-nums font-medium">{formatIDR(Number(price) || 0)}</span></div>
-                      <div className="flex justify-between"><span>Margin</span><span className="tabular-nums font-medium">{formatIDR(Number(h?.margin ?? 0))}</span></div>
-                      {rs.length > 0 && (
-                        <div className="border-t border-border pt-1.5 mt-1.5 space-y-0.5">
-                          {rs.map((r) => {
-                            const ig = ingredients[r.ingredient_id];
-                            return (
-                              <div key={r.id} className="flex justify-between text-muted-foreground">
-                                <span>{ig?.name ?? "—"} × {r.quantity}{ig?.unit ? ` ${ig.unit}` : ""}</span>
-                                <span className="tabular-nums">{formatIDR((ig?.cost_per_unit ?? 0) * r.quantity)}</span>
-                              </div>
-                            );
-                          })}
+                      <Textarea
+                        id="m-desc"
+                        rows={3}
+                        value={desc}
+                        onChange={(e) => setDesc(e.target.value)}
+                        placeholder="Espresso + susu steam, ringan."
+                      />
+                      {aiTags.length > 0 && (
+                        <div className="rounded-md border border-violet-200 bg-violet-50/60 p-2.5 dark:border-violet-800 dark:bg-violet-950/30">
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
+                              Tag SEO
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setAiTags([])}
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {aiTags.map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => copyTag(tag)}
+                                className="flex items-center gap-1 rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[11px] font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-300 dark:hover:bg-violet-900"
+                              >
+                                {copiedTag === tag ? (
+                                  <Check className="h-2.5 w-2.5 text-emerald-500" />
+                                ) : (
+                                  <Copy className="h-2.5 w-2.5 opacity-50" />
+                                )}
+                                #{tag}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="mt-1.5 text-[10px] text-muted-foreground">
+                            Klik tag untuk menyalin.
+                          </p>
                         </div>
                       )}
                     </div>
-                  );
-                })()}
-              </div>
-              <DialogFooter>
+
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                      <div className="pr-3">
+                        <div className="text-sm font-medium">Tersedia di POS & etalase</div>
+                        <div className="text-xs text-muted-foreground">
+                          Matikan jika sedang habis atau di-pause.
+                        </div>
+                      </div>
+                      <Switch checked={available} onCheckedChange={setAvailable} />
+                    </div>
+
+                    {!available && (
+                      <div className="space-y-1.5 rounded-lg border border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2.5">
+                        <Label htmlFor="m-restock-deadline" className="text-sm flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-amber-600" />
+                          Estimasi tersedia kembali
+                        </Label>
+                        <Input
+                          id="m-restock-deadline"
+                          type="date"
+                          value={restockDeadline}
+                          onChange={(e) => setRestockDeadline(e.target.value)}
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Ditampilkan ke pembeli dan disertakan di pesan WA blast.
+                        </p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  {/* ===== TAB: STOK & RESEP ===== */}
+                  <TabsContent value="stock" className="mt-0 space-y-4 focus-visible:outline-none">
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                      <div className="pr-3">
+                        <div className="text-sm font-medium">Lacak stok bahan</div>
+                        <div className="text-xs text-muted-foreground">
+                          Stok bahan dikurangi otomatis saat menu terjual.
+                        </div>
+                      </div>
+                      <Switch checked={trackStock} onCheckedChange={setTrackStock} />
+                    </div>
+
+                    <div className="space-y-1.5 rounded-lg border border-border bg-card px-3 py-3">
+                      <Label>Yield resep <span className="text-muted-foreground font-normal">(porsi per resep)</span></Label>
+                      <Input type="number" min={1} step="1" value={recipeYield}
+                        onChange={(e) => setRecipeYield(e.target.value)} />
+                      <p className="text-[11px] text-muted-foreground">
+                        Mis. 1 batch sirup → 20 porsi. HPP per porsi = total bahan ÷ yield.
+                      </p>
+                    </div>
+
+                    {editing && (() => {
+                      const h = hpp[editing.id];
+                      const rs = recipes.filter((r) => r.menu_item_id === editing.id);
+                      if (!h && rs.length === 0) {
+                        return (
+                          <div className="rounded-lg border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground text-center">
+                            Belum ada resep. Tambahkan di halaman <strong>Resep</strong> agar HPP & margin terhitung.
+                          </div>
+                        );
+                      }
+                      const pct = Number(h?.margin_percent ?? 0);
+                      const tone = pct >= 30 ? "text-emerald-600" : pct >= 10 ? "text-amber-600" : "text-destructive";
+                      return (
+                        <div className="rounded-lg border border-border bg-muted/20 p-3 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold uppercase tracking-wide text-muted-foreground">Breakdown HPP</span>
+                            <span className={`font-bold ${tone}`}>Margin {pct}%</span>
+                          </div>
+                          <div className="flex justify-between"><span>HPP</span><span className="tabular-nums font-medium">{formatIDR(Number(h?.hpp ?? 0))}</span></div>
+                          <div className="flex justify-between"><span>Harga</span><span className="tabular-nums font-medium">{formatIDR(Number(price) || 0)}</span></div>
+                          <div className="flex justify-between"><span>Margin</span><span className="tabular-nums font-medium">{formatIDR(Number(h?.margin ?? 0))}</span></div>
+                          {rs.length > 0 && (
+                            <div className="border-t border-border pt-1.5 mt-1.5 space-y-0.5">
+                              {rs.map((r) => {
+                                const ig = ingredients[r.ingredient_id];
+                                return (
+                                  <div key={r.id} className="flex justify-between text-muted-foreground">
+                                    <span>{ig?.name ?? "—"} × {r.quantity}{ig?.unit ? ` ${ig.unit}` : ""}</span>
+                                    <span className="tabular-nums">{formatIDR((ig?.cost_per_unit ?? 0) * r.quantity)}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </TabsContent>
+
+                  {/* ===== TAB: PROMO ===== */}
+                  <TabsContent value="promo" className="mt-0 space-y-4 focus-visible:outline-none">
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400">
+                            <Zap className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold">Flash sale</div>
+                            <div className="text-[11px] text-muted-foreground">
+                              Diskon terjadwal dengan waktu mulai & berakhir.
+                            </div>
+                          </div>
+                        </div>
+                        {flashPrice && (
+                          <button type="button" onClick={() => { setFlashPrice(""); setFlashStarts(""); setFlashEnds(""); }}
+                            className="text-[11px] text-muted-foreground hover:text-destructive">
+                            Hapus
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 pt-1">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Harga flash</Label>
+                          <Input type="number" inputMode="numeric" value={flashPrice}
+                            onChange={(e) => setFlashPrice(e.target.value)} placeholder="20000" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Mulai</Label>
+                          <Input type="datetime-local" value={flashStarts}
+                            onChange={(e) => setFlashStarts(e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Berakhir</Label>
+                          <Input type="datetime-local" value={flashEnds}
+                            onChange={(e) => setFlashEnds(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                      <div className="pr-3">
+                        <div className="text-sm font-medium">Terima Custom Order</div>
+                        <div className="text-xs text-muted-foreground">
+                          Pembeli bisa kirim brief khusus (ukuran, warna, request).
+                        </div>
+                      </div>
+                      <Switch checked={acceptsCustomOrder} onCheckedChange={setAcceptsCustomOrder} />
+                    </div>
+                  </TabsContent>
+
+                  {/* ===== TAB: LANJUTAN ===== */}
+                  <TabsContent value="advanced" className="mt-0 space-y-4 focus-visible:outline-none">
+                    {/* Nutrisi */}
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                          <Apple className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">Informasi nutrisi</div>
+                          <div className="text-[11px] text-muted-foreground">Per porsi — tampil di halaman produk.</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 pt-1">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Kalori (kkal)</Label>
+                          <Input type="number" min={0} step="1" value={nutritionCal} onChange={e => setNutritionCal(e.target.value)} placeholder="250" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Protein (g)</Label>
+                          <Input type="number" min={0} step="0.1" value={nutritionProtein} onChange={e => setNutritionProtein(e.target.value)} placeholder="8" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Karbo (g)</Label>
+                          <Input type="number" min={0} step="0.1" value={nutritionCarbs} onChange={e => setNutritionCarbs(e.target.value)} placeholder="35" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Lemak (g)</Label>
+                          <Input type="number" min={0} step="0.1" value={nutritionFat} onChange={e => setNutritionFat(e.target.value)} placeholder="10" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Serat (g)</Label>
+                          <Input type="number" min={0} step="0.1" value={nutritionFiber} onChange={e => setNutritionFiber(e.target.value)} placeholder="3" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pre-loved */}
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-teal-100 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400">
+                          <Recycle className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">Label pre-loved</div>
+                          <div className="text-[11px] text-muted-foreground">Untuk produk bekas — tentukan grade kondisi.</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-4">
+                        {[
+                          { val: "", label: "Bukan", desc: "Barang baru" },
+                          { val: "A", label: "Grade A", desc: "Seperti baru" },
+                          { val: "B", label: "Grade B", desc: "Sedikit bekas" },
+                          { val: "C", label: "Grade C", desc: "Bekas pakai" },
+                        ].map(({ val, label, desc }) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setConditionGrade(val)}
+                            className={`flex flex-col items-start rounded-md border px-2.5 py-2 text-left text-xs transition-all ${
+                              conditionGrade === val
+                                ? val === "" ? "border-foreground/30 bg-muted text-foreground" : "border-emerald-400 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-300 ring-1 ring-emerald-400/30"
+                                : "border-border bg-background text-muted-foreground hover:bg-muted/40"
+                            }`}
+                          >
+                            <span className="font-semibold">{label}</span>
+                            <span className="mt-0.5 text-[10px] opacity-70">{desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Estimasi produksi */}
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                          <Clock className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">Estimasi waktu produksi</div>
+                          <div className="text-[11px] text-muted-foreground">Untuk produk custom/handmade.</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Input type="number" min={1} step="1" value={productionDays} onChange={e => setProductionDays(e.target.value)} placeholder="3" className="w-24" />
+                        <span className="text-sm text-muted-foreground">hari kerja</span>
+                        {productionDays && <button type="button" onClick={() => setProductionDays("")} className="text-[11px] text-muted-foreground hover:text-destructive ml-auto">Hapus</button>}
+                      </div>
+                    </div>
+
+                    {/* Skin type */}
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-purple-100 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
+                          <Droplet className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">Tag jenis kulit</div>
+                          <div className="text-[11px] text-muted-foreground">Khusus produk skincare.</div>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {["Berminyak", "Kering", "Kombinasi", "Sensitif", "Normal", "Semua Jenis Kulit"].map(type => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setSkinTypeTags(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type])}
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${skinTypeTags.includes(type) ? "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300" : "bg-background text-muted-foreground border-border hover:bg-muted/60"}`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                      {skinTypeTags.length > 0 && (
+                        <button type="button" onClick={() => setSkinTypeTags([])} className="text-[10px] text-muted-foreground hover:text-destructive">
+                          Hapus semua tag
+                        </button>
+                      )}
+                    </div>
+                  </TabsContent>
+                </div>
+              </Tabs>
+
+              <DialogFooter className="px-6 py-3 border-t bg-muted/20">
                 <Button variant="ghost" onClick={() => setOpen(false)}>
                   Batal
                 </Button>
                 <Button onClick={save} disabled={saving || uploading || !name.trim()}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Simpan
+                  {editing ? "Simpan perubahan" : "Tambah menu"}
                 </Button>
               </DialogFooter>
             </DialogContent>
