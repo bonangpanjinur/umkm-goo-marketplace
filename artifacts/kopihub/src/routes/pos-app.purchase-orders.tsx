@@ -596,6 +596,67 @@ function POPage() {
           </table>
         </div>
       )}
+      {/* Batch resend WhatsApp dialog */}
+      <Dialog open={batchOpen} onOpenChange={setBatchOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Repeat className="h-4 w-4" /> Kirim ulang PO via WhatsApp
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs">
+              <span className="text-muted-foreground">Template:</span>
+              <Select value={waTemplate} onValueChange={(v) => changeTemplate(v as WATemplate)}>
+                <SelectTrigger className="h-7 w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(["ringkas", "lengkap", "formal"] as WATemplate[]).map((t) => (
+                    <SelectItem key={t} value={t}>WA {WA_TEMPLATE_LABELS[t]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-muted-foreground ml-auto">{WA_TEMPLATE_DESC[waTemplate]}</span>
+            </div>
+            {batchEligible.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Tidak ada PO yang cocok dengan filter dan punya nomor WhatsApp supplier.
+              </div>
+            ) : (
+              <div className="max-h-[50vh] overflow-y-auto rounded-md border">
+                {batchEligible.map(({ po, supplier }) => {
+                  const sent = batchSent[po.id];
+                  return (
+                    <div key={po.id} className="flex items-center justify-between gap-3 border-b last:border-b-0 px-3 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{po.po_no}</span>
+                          <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium ${STATUS_BADGE[po.status]}`}>
+                            {STATUS_LABEL[po.status]}
+                          </span>
+                          {sent && <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600"><CheckCircle2 className="h-3 w-3" /> dibuka</span>}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {supplier.name} · {po.order_date} · <span className="tabular-nums">{formatIDR(po.total)}</span>
+                        </div>
+                      </div>
+                      <Button size="sm" variant={sent ? "outline" : "default"} onClick={() => sendBatchOne(po.id)}>
+                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                        {sent ? "Kirim lagi" : "Buka WA"}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground">
+              Tiap tombol membuka tab WhatsApp baru. Browser bisa memblokir popup saat banyak — izinkan popup untuk situs ini.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBatchOpen(false)}>Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
