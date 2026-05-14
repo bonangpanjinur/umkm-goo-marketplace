@@ -786,30 +786,44 @@ function PODetailPage() {
                 Belum ada riwayat aktivitas.
               </div>
             ) : (
-              <ol className="relative space-y-3 border-l border-border pl-4">
-                {audit.map((a) => (
-                  <li key={a.id} className="relative">
-                    <span className="absolute -left-[21px] top-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-primary ring-4 ring-background" />
-                    <div className="rounded-lg border border-border bg-background p-3">
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <span className="font-medium">{auditActionLabel(a.action)}</span>
-                        {a.from_status && a.to_status && (
-                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                            {auditStatusLabel(a.from_status)} <ArrowRight className="h-3 w-3" /> {auditStatusLabel(a.to_status)}
+              <ol className="relative space-y-3 border-l-2 border-border pl-5">
+                {audit.map((a) => {
+                  const dotCls =
+                    a.action === "deleted" ? "bg-destructive" :
+                    a.action === "received" ? "bg-emerald-500" :
+                    a.to_status === "cancelled" ? "bg-amber-500" :
+                    a.to_status === "ordered" ? "bg-blue-500" :
+                    a.action === "draft_edited" ? "bg-muted-foreground" :
+                    "bg-primary";
+                  return (
+                    <li key={a.id} className="relative">
+                      <span className={`absolute -left-[27px] top-2 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-4 ring-background ${dotCls}`} />
+                      <div className="rounded-lg border border-border bg-background p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{auditActionLabel(a.action)}</span>
+                            {a.from_status && a.to_status && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                {auditStatusLabel(a.from_status)} <ArrowRight className="h-3 w-3" /> {auditStatusLabel(a.to_status)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-muted-foreground tabular-nums">
+                            {new Date(a.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
                           </span>
-                        )}
-                      </div>
-                      {a.reason && (
-                        <div className="mt-1.5 rounded bg-muted/40 px-2 py-1 text-xs text-foreground">
-                          <span className="text-muted-foreground">Alasan:</span> {a.reason}
                         </div>
-                      )}
-                      <div className="mt-1.5 text-xs text-muted-foreground">
-                        {a.actor_name ?? "Sistem"} · {new Date(a.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+                        {a.reason && (
+                          <div className="mt-1.5 rounded bg-muted/40 px-2 py-1 text-xs text-foreground">
+                            <span className="text-muted-foreground">Alasan:</span> {a.reason}
+                          </div>
+                        )}
+                        <div className="mt-1.5 text-[11px] text-muted-foreground">
+                          oleh {a.actor_name ?? "Sistem"}
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ol>
             )}
           </TabsContent>
