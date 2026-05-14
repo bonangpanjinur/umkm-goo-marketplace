@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, Truck } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Truck, Building2, User, Phone, Mail, MapPin, StickyNote, Clock, CreditCard, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/suppliers")({ component: SuppliersPage });
@@ -95,44 +95,152 @@ function SuppliersPage() {
           <DialogTrigger asChild>
             <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> Supplier baru</Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>{editing ? "Edit supplier" : "Supplier baru"}</DialogTitle></DialogHeader>
-            <div className="space-y-3 py-2">
-              <div className="space-y-1.5"><Label>Nama supplier *</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Mis. CV Bahan Kopi" /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label>Kontak person</Label>
-                  <Input value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>Telepon</Label>
-                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-              </div>
-              <div className="space-y-1.5"><Label>Email</Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Lead time (hari)</Label>
-                  <Input type="number" min={0} value={form.lead_time_days}
-                    onChange={(e) => setForm({ ...form, lead_time_days: e.target.value })}
-                    placeholder="0" />
-                  <p className="text-[11px] text-muted-foreground">Estimasi waktu kirim setelah PO.</p>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Truck className="h-5 w-5" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Termin pembayaran</Label>
-                  <Input value={form.payment_terms}
-                    onChange={(e) => setForm({ ...form, payment_terms: e.target.value })}
-                    placeholder="Mis. NET 14, COD" />
+                <div>
+                  <DialogTitle>{editing ? "Edit Supplier" : "Tambah Supplier Baru"}</DialogTitle>
+                  <DialogDescription className="text-xs">
+                    {editing ? "Perbarui informasi supplier" : "Lengkapi data pemasok untuk digunakan saat membuat PO"}
+                  </DialogDescription>
                 </div>
               </div>
-              <div className="space-y-1.5"><Label>Alamat</Label>
-                <Textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
-              <div className="space-y-1.5"><Label>Catatan</Label>
-                <Textarea rows={2} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></div>
+            </DialogHeader>
+
+            <div className="overflow-y-auto px-6 py-5 space-y-6 flex-1">
+              {/* Section: Identitas */}
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Building2 className="h-3.5 w-3.5" /> Identitas
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sup-name">Nama supplier <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="sup-name"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Mis. CV Bahan Kopi Nusantara"
+                    autoFocus
+                    className={!form.name.trim() && form.name !== "" ? "border-destructive" : ""}
+                  />
+                  {form.name.length > 0 && form.name.trim().length === 0 && (
+                    <p className="flex items-center gap-1 text-[11px] text-destructive">
+                      <AlertCircle className="h-3 w-3" /> Nama tidak boleh kosong
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              {/* Section: Kontak */}
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <User className="h-3.5 w-3.5" /> Kontak
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sup-contact" className="text-xs">Kontak person</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
+                      <Input id="sup-contact" className="pl-9" value={form.contact_name}
+                        onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
+                        placeholder="Nama PIC" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sup-phone" className="text-xs">Telepon / WhatsApp</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
+                      <Input id="sup-phone" className="pl-9" value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        placeholder="08xx-xxxx-xxxx" inputMode="tel" />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sup-email" className="text-xs">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
+                    <Input id="sup-email" type="email" className="pl-9" value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="kontak@supplier.com" />
+                  </div>
+                  {form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && (
+                    <p className="flex items-center gap-1 text-[11px] text-destructive">
+                      <AlertCircle className="h-3 w-3" /> Format email tidak valid
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sup-addr" className="text-xs flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3" /> Alamat
+                  </Label>
+                  <Textarea id="sup-addr" rows={2} value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    placeholder="Alamat lengkap supplier" />
+                </div>
+              </section>
+
+              {/* Section: Syarat dagang */}
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <CreditCard className="h-3.5 w-3.5" /> Syarat Dagang
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sup-lead" className="text-xs flex items-center gap-1.5">
+                      <Clock className="h-3 w-3" /> Lead time
+                    </Label>
+                    <div className="relative">
+                      <Input id="sup-lead" type="number" min={0} value={form.lead_time_days}
+                        onChange={(e) => setForm({ ...form, lead_time_days: e.target.value })}
+                        placeholder="0" className="pr-12" />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">hari</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Estimasi waktu kirim setelah PO dibuat.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sup-term" className="text-xs">Termin pembayaran</Label>
+                    <Input id="sup-term" value={form.payment_terms}
+                      onChange={(e) => setForm({ ...form, payment_terms: e.target.value })}
+                      placeholder="Mis. NET 14, COD" list="term-suggestions" />
+                    <datalist id="term-suggestions">
+                      <option value="COD" />
+                      <option value="NET 7" />
+                      <option value="NET 14" />
+                      <option value="NET 30" />
+                      <option value="DP 50%" />
+                    </datalist>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Catatan */}
+              <section className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="sup-note" className="text-xs flex items-center gap-1.5">
+                    <StickyNote className="h-3 w-3" /> Catatan internal
+                  </Label>
+                  <Textarea id="sup-note" rows={2} value={form.note}
+                    onChange={(e) => setForm({ ...form, note: e.target.value })}
+                    placeholder="Mis. preferensi pengiriman, no rekening, dll." />
+                </div>
+              </section>
             </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setOpen(false)}>Batal</Button>
-              <Button onClick={save} disabled={saving || !form.name.trim()}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Simpan
-              </Button>
+
+            <DialogFooter className="px-6 py-4 border-t bg-muted/20 sm:justify-between gap-2">
+              <p className="text-[11px] text-muted-foreground hidden sm:flex items-center gap-1">
+                <span className="text-destructive">*</span> wajib diisi
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Batal</Button>
+                <Button onClick={save} disabled={saving || !form.name.trim()} className="gap-1.5">
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  {editing ? "Simpan Perubahan" : "Tambah Supplier"}
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
