@@ -515,7 +515,7 @@ function EmployeesPage() {
                 {lastInviteUrl && (
                   <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
                     <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                      <CheckCircle2Icon /> Tautan login siap dibagikan
+                      <Check className="h-4 w-4" /> Tautan login siap dibagikan
                     </div>
                     <div className="mt-2 flex gap-2">
                       <Input value={lastInviteUrl} readOnly className="text-xs" />
