@@ -305,6 +305,7 @@ function EmployeesPage() {
       const em = manualEmail.trim();
       if (!em) return "Email wajib diisi untuk akses login";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return "Format email tidak valid";
+      if (!manualPassword || manualPassword.length < 6) return "Kata sandi minimal 6 karakter";
     }
     return null;
   }
@@ -318,6 +319,36 @@ function EmployeesPage() {
     }
     setManualSaving(true);
     const phone = manualPhone.trim().replace(/[\s-]/g, "") || null;
+
+    // Path A: create login user via API (also auto-creates staff_members entry)
+    if (!editingId && manualWithLogin) {
+      try {
+        const em = manualEmail.trim().toLowerCase();
+        await callStaffApi("create-user", {
+          shop_id: shop.id,
+          email: em,
+          password: manualPassword,
+          full_name: manualName.trim(),
+          role: manualRole,
+          outlet_id: manualOutletId || null,
+          phone,
+          avatar_url: manualAvatar.trim() || null,
+          create_staff_member: true,
+        });
+        setLastCredentials({ email: em, password: manualPassword });
+        try {
+          await navigator.clipboard.writeText(`Email: ${em}\nKata sandi: ${manualPassword}`);
+        } catch {}
+        toast.success("Akun pegawai dibuat — kredensial siap dibagikan");
+        load();
+      } catch (e: any) {
+        toast.error(e.message || "Gagal membuat akun");
+      }
+      setManualSaving(false);
+      return; // keep dialog open so owner can copy
+    }
+
+    // Path B: insert/update staff_members row only (no login)
     const payload = {
       outlet_id: manualOutletId || null,
       name: manualName.trim(),
@@ -334,42 +365,57 @@ function EmployeesPage() {
       return;
     }
 
-    // Bonus: kalau "beri akses login" → buat undangan email + tampilkan link
-    if (!editingId && manualWithLogin && user) {
-      const em = manualEmail.trim().toLowerCase();
-      const { data: invData, error: invErr } = await supabase
-        .from("staff_invitations")
-        .insert({
-          shop_id: shop.id,
-          outlet_id: manualOutletId || null,
-          email: em,
-          role: manualRole as "manager" | "cashier" | "barista",
-          invited_by: user.id,
-        })
-        .select("token")
-        .single();
-      if (invErr) {
-        toast.error("Pegawai tersimpan, tapi gagal buat undangan: " + invErr.message);
-      } else if (invData) {
-        const url = `${window.location.origin}/invite/${invData.token}`;
-        setLastInviteUrl(url);
-        try {
-          await navigator.clipboard.writeText(url);
-          toast.success("Pegawai ditambahkan & tautan login disalin");
-        } catch {
-          toast.success("Pegawai ditambahkan — bagikan tautan login");
-        }
-        setManualSaving(false);
-        load();
-        return; // keep dialog open so owner can copy link
-      }
-    }
-
     toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
     resetManualForm();
     setManualOpen(false);
     load();
     setManualSaving(false);
+  }
+
+  async function setMemberPassword() {
+    if (!shop || !pwDialog) return;
+    if (pwValue.length < 6) {
+      toast.error("Kata sandi minimal 6 karakter");
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await callStaffApi("set-password", {
+        shop_id: shop.id,
+        user_id: pwDialog.userId,
+        password: pwValue,
+      });
+      try { await navigator.clipboard.writeText(pwValue); } catch {}
+      toast.success("Kata sandi diperbarui & disalin");
+      setPwDialog(null);
+      setPwValue("");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengubah sandi");
+    }
+    setPwSaving(false);
+  }
+
+  async function sendResetPassword(m: RoleRow) {
+    if (!shop) return;
+    setResetting(m.id);
+    try {
+      const res = await callStaffApi("reset-password", {
+        shop_id: shop.id,
+        user_id: m.user_id,
+        redirect_to: `${window.location.origin}/reset-password`,
+      });
+      const link = res.action_link as string | null;
+      if (link) {
+        try { await navigator.clipboard.writeText(link); } catch {}
+        setResetLink({ name: m.profile?.display_name ?? "Pegawai", link });
+        toast.success("Tautan reset siap dibagikan");
+      } else {
+        toast.success("Email reset terkirim");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Gagal kirim reset");
+    }
+    setResetting(null);
   }
 
   async function removeManual(id: string) {
