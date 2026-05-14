@@ -334,6 +334,7 @@ function EmployeesPage() {
       outlet_id: m.outlet_id,
       avatarUrl: m.profile?.avatar_url ?? null,
       phone: null,
+      is_active: m.is_active !== false,
       raw: m,
     }));
     const b: UnifiedRow[] = staffMembers.map((s) => ({
@@ -344,6 +345,7 @@ function EmployeesPage() {
       outlet_id: s.outlet_id,
       avatarUrl: s.avatar_url,
       phone: s.phone,
+      is_active: s.is_active !== false,
       raw: s,
     }));
     return [...a, ...b];
@@ -354,6 +356,8 @@ function EmployeesPage() {
     return unified.filter((u) => {
       if (filterKind !== "all" && u.kind !== filterKind) return false;
       if (filterRole !== "all" && u.role !== filterRole) return false;
+      if (filterStatus === "active" && !u.is_active) return false;
+      if (filterStatus === "inactive" && u.is_active) return false;
       if (filterOutlet !== "all") {
         if (filterOutlet === "none" ? u.outlet_id != null : u.outlet_id !== filterOutlet) return false;
       }
@@ -363,7 +367,7 @@ function EmployeesPage() {
       }
       return true;
     });
-  }, [unified, search, filterRole, filterOutlet, filterKind]);
+  }, [unified, search, filterRole, filterOutlet, filterKind, filterStatus]);
 
   async function invite() {
     if (!shop || !user || !email.trim()) return;
