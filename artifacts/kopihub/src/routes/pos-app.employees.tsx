@@ -123,7 +123,18 @@ function EmployeesPage() {
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [manualWithLogin, setManualWithLogin] = useState(false);
   const [manualEmail, setManualEmail] = useState("");
+  const [manualPassword, setManualPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+  const [lastCredentials, setLastCredentials] = useState<{ email: string; password: string } | null>(null);
+
+  // Password / reset dialogs for active members
+  const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [resetLink, setResetLink] = useState<{ name: string; link: string } | null>(null);
+  const [resetting, setResetting] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
