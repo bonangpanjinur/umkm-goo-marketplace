@@ -316,6 +316,213 @@ router.post("/staff/delete-user", async (req, res) => {
     `${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${user_id}&shop_id=eq.${shop_id}`,
     { method: "DELETE", headers: adminHeaders() },
   );
+  await audit(shop_id, callerId, { target_user_id: user_id, action: "remove_login" });
+  res.json({ ok: true });
+});
+
+async function audit(
+  shop_id: string,
+  actor_id: string,
+  payload: {
+    target_user_id?: string | null;
+    target_email?: string | null;
+    target_name?: string | null;
+    action: string;
+    meta?: Record<string, unknown>;
+  },
+) {
+  try {
+    await fetch(`${SUPABASE_URL()}/rest/v1/staff_audit_logs`, {
+      method: "POST",
+      headers: { ...adminHeaders(), Prefer: "return=minimal" },
+      body: JSON.stringify({
+        shop_id,
+        actor_id,
+        target_user_id: payload.target_user_id ?? null,
+        target_email: payload.target_email ?? null,
+        target_name: payload.target_name ?? null,
+        action: payload.action,
+        meta: payload.meta ?? {},
+      }),
+    });
+  } catch (e) {
+    logger.warn({ e }, "[staff] audit insert failed");
+  }
+}
+
+/**
+ * POST /api/staff/update-role
+ * body: { shop_id, user_id, role?, outlet_id?, is_active? }
+ */
+router.post("/staff/update-role", async (req, res) => {
+  if (!ensureConfigured(res)) return;
+  const callerId = await getCallerUserId(req.headers["authorization"] as string | undefined);
+  if (!callerId) { res.status(401).json({ ok: false, error: "Unauthorized" }); return; }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const shop_id = String(body["shop_id"] ?? "");
+  const user_id = String(body["user_id"] ?? "");
+  if (!shop_id || !user_id) return badRequest(res, "shop_id & user_id wajib");
+  if (!(await assertOwnsShop(callerId, shop_id))) {
+    res.status(403).json({ ok: false, error: "Bukan pemilik toko" }); return;
+  }
+  const patch: Record<string, unknown> = {};
+  if (body["role"] !== undefined) {
+    const r = String(body["role"]);
+    if (!["manager", "cashier", "barista"].includes(r)) return badRequest(res, "Peran tidak valid");
+    patch["role"] = r;
+  }
+  if (body["outlet_id"] !== undefined) patch["outlet_id"] = body["outlet_id"] ? String(body["outlet_id"]) : null;
+  if (body["is_active"] !== undefined) patch["is_active"] = !!body["is_active"];
+  if (Object.keys(patch).length === 0) return badRequest(res, "Tidak ada perubahan");
+
+  const r = await fetch(
+    `${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${user_id}&shop_id=eq.${shop_id}`,
+    { method: "PATCH", headers: { ...adminHeaders(), Prefer: "return=minimal" }, body: JSON.stringify(patch) },
+  );
+  if (!r.ok) { const t = await r.text(); res.status(500).json({ ok: false, error: t }); return; }
+  await audit(shop_id, callerId, { target_user_id: user_id, action: "update_role", meta: patch });
+  res.json({ ok: true });
+});
+
+/**
+ * POST /api/staff/resend-invitation
+ * body: { shop_id, invitation_id }
+ * Extends expires_at by 14 days and rotates the token.
+ */
+router.post("/staff/resend-invitation", async (req, res) => {
+  if (!ensureConfigured(res)) return;
+  const callerId = await getCallerUserId(req.headers["authorization"] as string | undefined);
+  if (!callerId) { res.status(401).json({ ok: false, error: "Unauthorized" }); return; }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const shop_id = String(body["shop_id"] ?? "");
+  const invitation_id = String(body["invitation_id"] ?? "");
+  if (!shop_id || !invitation_id) return badRequest(res, "shop_id & invitation_id wajib");
+  if (!(await assertOwnsShop(callerId, shop_id))) {
+    res.status(403).json({ ok: false, error: "Bukan pemilik toko" }); return;
+  }
+  const newToken = (globalThis.crypto?.randomUUID?.() ?? "").replace(/-/g, "") || `${Date.now()}${Math.random()}`.replace(/\D/g, "");
+  const newExpiry = new Date(Date.now() + 14 * 86400000).toISOString();
+  const r = await fetch(
+    `${SUPABASE_URL()}/rest/v1/staff_invitations?id=eq.${invitation_id}&shop_id=eq.${shop_id}&select=email,token,expires_at`,
+    {
+      method: "PATCH",
+      headers: { ...adminHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify({ token: newToken, expires_at: newExpiry }),
+    },
+  );
+  if (!r.ok) { res.status(500).json({ ok: false, error: await r.text() }); return; }
+  const rows = (await r.json()) as Array<{ email: string; token: string; expires_at: string }>;
+  if (rows.length === 0) { res.status(404).json({ ok: false, error: "Undangan tidak ditemukan" }); return; }
+  await audit(shop_id, callerId, {
+    target_email: rows[0].email,
+    action: "resend_invitation",
+    meta: { invitation_id, new_expires_at: newExpiry },
+  });
+  res.json({ ok: true, token: rows[0].token, expires_at: rows[0].expires_at });
+});
+
+/**
+ * POST /api/staff/promote-to-login
+ * body: { shop_id, staff_member_id, email, password }
+ * Creates auth user from a manual staff entry, links via user_roles.
+ */
+router.post("/staff/promote-to-login", async (req, res) => {
+  if (!ensureConfigured(res)) return;
+  const callerId = await getCallerUserId(req.headers["authorization"] as string | undefined);
+  if (!callerId) { res.status(401).json({ ok: false, error: "Unauthorized" }); return; }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const shop_id = String(body["shop_id"] ?? "");
+  const staff_member_id = String(body["staff_member_id"] ?? "");
+  const email = String(body["email"] ?? "").trim().toLowerCase();
+  const password = String(body["password"] ?? "");
+  if (!shop_id || !staff_member_id) return badRequest(res, "shop_id & staff_member_id wajib");
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return badRequest(res, "Email tidak valid");
+  if (!password || password.length < 6) return badRequest(res, "Kata sandi minimal 6 karakter");
+  if (!(await assertOwnsShop(callerId, shop_id))) {
+    res.status(403).json({ ok: false, error: "Bukan pemilik toko" }); return;
+  }
+
+  // Fetch the manual staff member
+  const sr = await fetch(
+    `${SUPABASE_URL()}/rest/v1/staff_members?id=eq.${staff_member_id}&shop_id=eq.${shop_id}&select=id,name,role,outlet_id,phone,avatar_url`,
+    { headers: adminHeaders() },
+  );
+  const sm = (await sr.json()) as Array<{ id: string; name: string; role: string; outlet_id: string | null; phone: string | null; avatar_url: string | null }>;
+  if (sm.length === 0) { res.status(404).json({ ok: false, error: "Pegawai manual tidak ditemukan" }); return; }
+  const member = sm[0];
+
+  // Create or fetch auth user
+  let userId: string | null = null;
+  const cRes = await fetch(`${SUPABASE_URL()}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: adminHeaders(),
+    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: member.name } }),
+  });
+  if (cRes.ok) {
+    userId = ((await cRes.json()) as { id?: string }).id ?? null;
+  } else {
+    const t = await cRes.text();
+    if (/already|exist|registered/i.test(t)) {
+      const ex = await findUserByEmail(email);
+      if (!ex) { res.status(409).json({ ok: false, error: "Email terdaftar tapi tidak ditemukan" }); return; }
+      userId = ex.id;
+      await fetch(`${SUPABASE_URL()}/auth/v1/admin/users/${userId}`, {
+        method: "PUT", headers: adminHeaders(),
+        body: JSON.stringify({ password, email_confirm: true }),
+      });
+    } else { res.status(500).json({ ok: false, error: t }); return; }
+  }
+  if (!userId) { res.status(500).json({ ok: false, error: "User ID tidak diperoleh" }); return; }
+
+  // Upsert profile
+  await fetch(`${SUPABASE_URL()}/rest/v1/profiles?on_conflict=id`, {
+    method: "POST",
+    headers: { ...adminHeaders(), Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ id: userId, display_name: member.name, avatar_url: member.avatar_url }),
+  });
+
+  // Insert role
+  await fetch(`${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${userId}&shop_id=eq.${shop_id}`, {
+    method: "DELETE", headers: adminHeaders(),
+  });
+  await fetch(`${SUPABASE_URL()}/rest/v1/user_roles`, {
+    method: "POST",
+    headers: { ...adminHeaders(), Prefer: "return=minimal" },
+    body: JSON.stringify({ user_id: userId, shop_id, role: member.role, outlet_id: member.outlet_id }),
+  });
+
+  await audit(shop_id, callerId, {
+    target_user_id: userId, target_email: email, target_name: member.name,
+    action: "promote_to_login", meta: { staff_member_id },
+  });
+  res.json({ ok: true, user_id: userId, email });
+});
+
+/**
+ * POST /api/staff/set-manual-active
+ * body: { shop_id, staff_member_id, is_active }
+ */
+router.post("/staff/set-manual-active", async (req, res) => {
+  if (!ensureConfigured(res)) return;
+  const callerId = await getCallerUserId(req.headers["authorization"] as string | undefined);
+  if (!callerId) { res.status(401).json({ ok: false, error: "Unauthorized" }); return; }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const shop_id = String(body["shop_id"] ?? "");
+  const staff_member_id = String(body["staff_member_id"] ?? "");
+  const is_active = !!body["is_active"];
+  if (!shop_id || !staff_member_id) return badRequest(res, "shop_id & staff_member_id wajib");
+  if (!(await assertOwnsShop(callerId, shop_id))) {
+    res.status(403).json({ ok: false, error: "Bukan pemilik toko" }); return;
+  }
+  const r = await fetch(
+    `${SUPABASE_URL()}/rest/v1/staff_members?id=eq.${staff_member_id}&shop_id=eq.${shop_id}`,
+    { method: "PATCH", headers: { ...adminHeaders(), Prefer: "return=minimal" }, body: JSON.stringify({ is_active }) },
+  );
+  if (!r.ok) { res.status(500).json({ ok: false, error: await r.text() }); return; }
+  await audit(shop_id, callerId, {
+    action: is_active ? "activate_manual" : "deactivate_manual",
+    meta: { staff_member_id },
+  });
   res.json({ ok: true });
 });
 

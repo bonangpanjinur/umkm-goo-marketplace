@@ -144,6 +144,7 @@ type RoleRow = {
   user_id: string;
   role: string;
   outlet_id: string | null;
+  is_active: boolean;
   profile?: { display_name: string | null; avatar_url: string | null } | null;
 };
 type Invitation = {
@@ -163,6 +164,10 @@ type StaffMember = {
   outlet_id: string | null;
   phone: string | null;
   avatar_url: string | null;
+  is_active: boolean;
+  hire_date: string | null;
+  hourly_rate: number | null;
+  notes: string | null;
   created_at: string;
 };
 
@@ -175,6 +180,7 @@ type UnifiedRow =
       outlet_id: string | null;
       avatarUrl: string | null;
       phone: null;
+      is_active: boolean;
       raw: RoleRow;
     }
   | {
@@ -185,6 +191,7 @@ type UnifiedRow =
       outlet_id: string | null;
       avatarUrl: string | null;
       phone: string | null;
+      is_active: boolean;
       raw: StaffMember;
     };
 
@@ -236,6 +243,27 @@ function EmployeesPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
   const [lastCredentials, setLastCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [manualHireDate, setManualHireDate] = useState("");
+  const [manualHourlyRate, setManualHourlyRate] = useState("");
+  const [manualNotes, setManualNotes] = useState("");
+
+  // Filter status
+  const [filterStatus, setFilterStatus] = useState<string>("active");
+
+  // Edit login member dialog
+  const [loginEdit, setLoginEdit] = useState<RoleRow | null>(null);
+  const [loginEditRole, setLoginEditRole] = useState("cashier");
+  const [loginEditOutlet, setLoginEditOutlet] = useState("");
+  const [loginEditActive, setLoginEditActive] = useState(true);
+  const [loginEditSaving, setLoginEditSaving] = useState(false);
+
+  // Promote-to-login dialog
+  const [promoteTarget, setPromoteTarget] = useState<StaffMember | null>(null);
+  const [promoteEmail, setPromoteEmail] = useState("");
+  const [promotePassword, setPromotePassword] = useState("");
+  const [promoteShowPw, setPromoteShowPw] = useState(false);
+  const [promoteSaving, setPromoteSaving] = useState(false);
+  const [resending, setResending] = useState<string | null>(null);
 
   // Password / reset dialogs
   const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
@@ -256,7 +284,7 @@ function EmployeesPage() {
     if (!shop) return;
     setLoading(true);
     const [r, i, o, s] = await Promise.all([
-      supabase.from("user_roles").select("id, user_id, role, outlet_id").eq("shop_id", shop.id),
+      supabase.from("user_roles").select("id, user_id, role, outlet_id, is_active").eq("shop_id", shop.id),
       supabase
         .from("staff_invitations")
         .select("id, email, role, token, expires_at, accepted_at, created_at")
@@ -265,7 +293,7 @@ function EmployeesPage() {
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
       supabase
         .from("staff_members")
-        .select("id, name, role, outlet_id, phone, avatar_url, created_at")
+        .select("id, name, role, outlet_id, phone, avatar_url, is_active, hire_date, hourly_rate, notes, created_at")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
     ]);
@@ -306,6 +334,7 @@ function EmployeesPage() {
       outlet_id: m.outlet_id,
       avatarUrl: m.profile?.avatar_url ?? null,
       phone: null,
+      is_active: m.is_active !== false,
       raw: m,
     }));
     const b: UnifiedRow[] = staffMembers.map((s) => ({
@@ -316,6 +345,7 @@ function EmployeesPage() {
       outlet_id: s.outlet_id,
       avatarUrl: s.avatar_url,
       phone: s.phone,
+      is_active: s.is_active !== false,
       raw: s,
     }));
     return [...a, ...b];
@@ -326,6 +356,8 @@ function EmployeesPage() {
     return unified.filter((u) => {
       if (filterKind !== "all" && u.kind !== filterKind) return false;
       if (filterRole !== "all" && u.role !== filterRole) return false;
+      if (filterStatus === "active" && !u.is_active) return false;
+      if (filterStatus === "inactive" && u.is_active) return false;
       if (filterOutlet !== "all") {
         if (filterOutlet === "none" ? u.outlet_id != null : u.outlet_id !== filterOutlet) return false;
       }
@@ -335,7 +367,7 @@ function EmployeesPage() {
       }
       return true;
     });
-  }, [unified, search, filterRole, filterOutlet, filterKind]);
+  }, [unified, search, filterRole, filterOutlet, filterKind, filterStatus]);
 
   async function invite() {
     if (!shop || !user || !email.trim()) return;
@@ -398,6 +430,9 @@ function EmployeesPage() {
     setShowPassword(false);
     setLastInviteUrl(null);
     setLastCredentials(null);
+    setManualHireDate("");
+    setManualHourlyRate("");
+    setManualNotes("");
   }
 
   function openEditManual(sm: StaffMember) {
@@ -413,7 +448,125 @@ function EmployeesPage() {
     setShowPassword(false);
     setLastInviteUrl(null);
     setLastCredentials(null);
+    setManualHireDate(sm.hire_date ?? "");
+    setManualHourlyRate(sm.hourly_rate != null ? String(sm.hourly_rate) : "");
+    setManualNotes(sm.notes ?? "");
     setManualOpen(true);
+  }
+
+  function openLoginEdit(m: RoleRow) {
+    setLoginEdit(m);
+    setLoginEditRole(m.role);
+    setLoginEditOutlet(m.outlet_id ?? "");
+    setLoginEditActive(m.is_active !== false);
+  }
+
+  async function saveLoginEdit() {
+    if (!shop || !loginEdit) return;
+    setLoginEditSaving(true);
+    try {
+      await callStaffApi("update-role", {
+        shop_id: shop.id,
+        user_id: loginEdit.user_id,
+        role: loginEditRole,
+        outlet_id: loginEditOutlet || null,
+        is_active: loginEditActive,
+      });
+      toast.success("Pegawai diperbarui");
+      setLoginEdit(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal menyimpan");
+    }
+    setLoginEditSaving(false);
+  }
+
+  async function toggleManualActive(sm: StaffMember) {
+    if (!shop) return;
+    try {
+      await callStaffApi("set-manual-active", {
+        shop_id: shop.id,
+        staff_member_id: sm.id,
+        is_active: !(sm.is_active !== false),
+      });
+      toast.success(sm.is_active !== false ? "Pegawai dinonaktifkan" : "Pegawai diaktifkan");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengubah status");
+    }
+  }
+
+  async function toggleLoginActive(m: RoleRow) {
+    if (!shop) return;
+    try {
+      await callStaffApi("update-role", {
+        shop_id: shop.id,
+        user_id: m.user_id,
+        is_active: !(m.is_active !== false),
+      });
+      toast.success(m.is_active !== false ? "Akses dinonaktifkan" : "Akses diaktifkan");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengubah status");
+    }
+  }
+
+  async function resendInvitation(inv: Invitation) {
+    if (!shop) return;
+    setResending(inv.id);
+    try {
+      const res = await callStaffApi("resend-invitation", {
+        shop_id: shop.id,
+        invitation_id: inv.id,
+      });
+      const newToken = res.token as string;
+      try {
+        await navigator.clipboard.writeText(`${window.location.origin}/invite/${newToken}`);
+      } catch {}
+      toast.success("Tautan baru disalin & masa berlaku diperpanjang");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengirim ulang");
+    }
+    setResending(null);
+  }
+
+  function openPromote(sm: StaffMember) {
+    setPromoteTarget(sm);
+    setPromoteEmail("");
+    setPromotePassword(genPassword(10));
+    setPromoteShowPw(true);
+  }
+
+  async function doPromote() {
+    if (!shop || !promoteTarget) return;
+    const em = promoteEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      toast.error("Format email tidak valid");
+      return;
+    }
+    if (promotePassword.length < 6) {
+      toast.error("Kata sandi minimal 6 karakter");
+      return;
+    }
+    setPromoteSaving(true);
+    try {
+      await callStaffApi("promote-to-login", {
+        shop_id: shop.id,
+        staff_member_id: promoteTarget.id,
+        email: em,
+        password: promotePassword,
+      });
+      try {
+        await navigator.clipboard.writeText(`Email: ${em}\nKata sandi: ${promotePassword}`);
+      } catch {}
+      toast.success("Akun login dibuat & kredensial disalin");
+      setPromoteTarget(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal membuat akun");
+    }
+    setPromoteSaving(false);
   }
 
   async function handleAvatarUpload(file: File) {
@@ -505,6 +658,9 @@ function EmployeesPage() {
       role: manualRole as "manager" | "cashier" | "barista",
       phone,
       avatar_url: manualAvatar.trim() || null,
+      hire_date: manualHireDate || null,
+      hourly_rate: manualHourlyRate ? Number(manualHourlyRate) : null,
+      notes: manualNotes.trim() || null,
     };
     const { error } = editingId
       ? await supabase.from("staff_members").update(payload).eq("id", editingId)
@@ -730,6 +886,33 @@ function EmployeesPage() {
                     inputMode="tel"
                     placeholder="08xxxxxxxxxx"
                     maxLength={20}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Tanggal masuk</Label>
+                    <Input type="date" value={manualHireDate} onChange={(e) => setManualHireDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Upah / jam (Rp)</Label>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={manualHourlyRate}
+                      onChange={(e) => setManualHourlyRate(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder="cth. 25000"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Catatan internal (opsional)</Label>
+                  <textarea
+                    value={manualNotes}
+                    onChange={(e) => setManualNotes(e.target.value)}
+                    placeholder="Catatan untuk owner saja…"
+                    maxLength={500}
+                    rows={2}
+                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
                 {!editingId && (
@@ -969,14 +1152,18 @@ function EmployeesPage() {
               />
             </div>
             <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua peran</SelectItem>
-                {ROLES.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
+                {ROLES.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Aktif</SelectItem>
+                <SelectItem value="inactive">Nonaktif</SelectItem>
+                <SelectItem value="all">Semua status</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterOutlet} onValueChange={setFilterOutlet}>
@@ -1071,9 +1258,11 @@ function EmployeesPage() {
                           <td className="px-4 py-3 text-right">
                             <RowActions
                               row={u}
-                              onEdit={() => u.kind === "manual" && openEditManual(u.raw)}
+                              onEdit={() => u.kind === "manual" ? openEditManual(u.raw) : openLoginEdit(u.raw)}
                               onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
                               onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
+                              onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                              onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
                               onRemove={() => {
                                 if (u.kind === "login") setConfirmRemoveLogin(u.raw);
                                 else setConfirmRemoveManual(u.raw);
@@ -1100,9 +1289,11 @@ function EmployeesPage() {
                           <div className="truncate font-medium">{u.name}</div>
                           <RowActions
                             row={u}
-                            onEdit={() => u.kind === "manual" && openEditManual(u.raw)}
+                            onEdit={() => u.kind === "manual" ? openEditManual(u.raw) : openLoginEdit(u.raw)}
                             onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
                             onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
+                            onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                            onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
                             onRemove={() => {
                               if (u.kind === "login") setConfirmRemoveLogin(u.raw);
                               else setConfirmRemoveManual(u.raw);
@@ -1362,6 +1553,84 @@ function EmployeesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Edit login member */}
+      <Dialog open={!!loginEdit} onOpenChange={(o) => !o && setLoginEdit(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit pegawai login · {loginEdit?.profile?.display_name ?? "—"}</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Peran</Label>
+                <Select value={loginEditRole} onValueChange={setLoginEditRole}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Outlet</Label>
+                <Select value={loginEditOutlet || "_none"} onValueChange={(v) => setLoginEditOutlet(v === "_none" ? "" : v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Semua outlet</SelectItem>
+                    {outlets.map((o) => (<SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={loginEditActive} onChange={(e) => setLoginEditActive(e.target.checked)} className="h-4 w-4 accent-primary" />
+              Akses aktif (bisa login & muncul di Jadwal)
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLoginEdit(null)}>Batal</Button>
+            <Button onClick={saveLoginEdit} disabled={loginEditSaving}>
+              {loginEditSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promote manual → login */}
+      <Dialog open={!!promoteTarget} onOpenChange={(o) => !o && setPromoteTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Aktifkan akun login · {promoteTarget?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input type="email" value={promoteEmail} onChange={(e) => setPromoteEmail(e.target.value)} placeholder="pegawai@toko.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Kata sandi awal</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    type={promoteShowPw ? "text" : "password"}
+                    value={promotePassword}
+                    onChange={(e) => setPromotePassword(e.target.value)}
+                    className="pr-9"
+                  />
+                  <button type="button" onClick={() => setPromoteShowPw((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {promoteShowPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setPromotePassword(genPassword(10)); setPromoteShowPw(true); }}>Generate</Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Kredensial otomatis disalin setelah dibuat.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPromoteTarget(null)}>Batal</Button>
+            <Button onClick={doPromote} disabled={promoteSaving}>
+              {promoteSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Buat akun login
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1371,6 +1640,8 @@ function RowActions({
   onEdit,
   onChangePw,
   onResetPw,
+  onPromote,
+  onToggleActive,
   onRemove,
   resetting,
 }: {
@@ -1378,6 +1649,8 @@ function RowActions({
   onEdit: () => void;
   onChangePw: () => void;
   onResetPw: () => void;
+  onPromote: () => void;
+  onToggleActive: () => void;
   onRemove: () => void;
   resetting: boolean;
 }) {
@@ -1389,14 +1662,14 @@ function RowActions({
           <span className="sr-only">Aksi</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Aksi pegawai</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel>
+          Aksi pegawai {!row.is_active && <span className="ml-1 text-[10px] text-amber-600">(Nonaktif)</span>}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {row.kind === "manual" && (
-          <DropdownMenuItem onClick={onEdit}>
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit info
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit info
+        </DropdownMenuItem>
         {row.kind === "login" && (
           <>
             <DropdownMenuItem onClick={onChangePw}>
@@ -1407,6 +1680,15 @@ function RowActions({
             </DropdownMenuItem>
           </>
         )}
+        {row.kind === "manual" && (
+          <DropdownMenuItem onClick={onPromote}>
+            <ShieldCheck className="mr-2 h-3.5 w-3.5" /> Aktifkan akun login
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={onToggleActive}>
+          {row.is_active ? <EyeOff className="mr-2 h-3.5 w-3.5" /> : <Eye className="mr-2 h-3.5 w-3.5" />}
+          {row.is_active ? "Nonaktifkan" : "Aktifkan"}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
           <Trash2 className="mr-2 h-3.5 w-3.5" />
