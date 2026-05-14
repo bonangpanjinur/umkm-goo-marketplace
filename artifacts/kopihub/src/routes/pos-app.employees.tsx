@@ -107,14 +107,6 @@ function EmployeesPage() {
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
     ]);
-      supabase.from("user_roles").select("id, user_id, role, outlet_id").eq("shop_id", shop.id),
-      supabase
-        .from("staff_invitations")
-        .select("id, email, role, token, expires_at, accepted_at, created_at")
-        .eq("shop_id", shop.id)
-        .order("created_at", { ascending: false }),
-      supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
-    ]);
     const rows = (r.data ?? []) as RoleRow[];
     // Hydrate profiles
     const userIds = [...new Set(rows.map((x) => x.user_id))];
@@ -131,7 +123,11 @@ function EmployeesPage() {
     setMembers(rows);
     setInvitations((i.data ?? []) as Invitation[]);
     setOutlets((o.data ?? []) as Outlet[]);
-    if (!outletId && o.data && o.data.length > 0) setOutletId(o.data[0].id);
+    setStaffMembers((s.data ?? []) as StaffMember[]);
+    if (!outletId && o.data && o.data.length > 0) {
+      setOutletId(o.data[0].id);
+      setManualOutletId(o.data[0].id);
+    }
     setLoading(false);
   }
 
