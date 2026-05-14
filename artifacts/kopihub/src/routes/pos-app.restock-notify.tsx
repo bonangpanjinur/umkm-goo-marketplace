@@ -81,6 +81,7 @@ type ProductGroup = {
   is_available: boolean;
   track_stock: boolean;
   image_url: string | null;
+  restock_deadline: string | null;
   subscribers: Subscriber[];
   notified_count: number;
   pending_count: number;
@@ -99,10 +100,18 @@ function waLink(phone: string, message: string) {
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
 
-function buildBlastMessage(productName: string, shopName: string): string {
+function formatRestockDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function buildBlastMessage(productName: string, shopName: string, restockDeadline?: string | null): string {
+  const deadlineLine = restockDeadline
+    ? `\n⏰ Dijadwalkan tersedia: *${formatRestockDate(restockDeadline)}*`
+    : "";
   return `Halo! 👋
 
-Kabar gembira — *${productName}* di *${shopName}* kini sudah tersedia kembali! 🎉
+Kabar gembira — *${productName}* di *${shopName}* kini sudah tersedia kembali! 🎉${deadlineLine}
 
 Stok terbatas, segera pesan sebelum habis lagi ya.
 
@@ -453,11 +462,11 @@ export default function RestockNotifyPage() {
       const subscribers: Subscriber[] = subs ?? [];
       const productIds = [...new Set(subscribers.map((s: Subscriber) => s.product_id))];
 
-      let itemMap: Record<string, { stock: number | null; is_available: boolean; track_stock: boolean; image_url: string | null }> = {};
+      let itemMap: Record<string, { stock: number | null; is_available: boolean; track_stock: boolean; image_url: string | null; restock_deadline: string | null }> = {};
       if (productIds.length > 0) {
         const { data: items } = await supabase
           .from("menu_items")
-          .select("id, stock_qty, is_available, track_stock, image_url")
+          .select("id, stock_qty, is_available, track_stock, image_url, restock_deadline")
           .in("id", productIds);
         for (const it of items ?? []) {
           itemMap[(it as any).id] = {
@@ -465,6 +474,7 @@ export default function RestockNotifyPage() {
             is_available: (it as any).is_available ?? true,
             track_stock: (it as any).track_stock ?? false,
             image_url: (it as any).image_url ?? null,
+            restock_deadline: (it as any).restock_deadline ?? null,
           };
         }
       }
@@ -480,6 +490,7 @@ export default function RestockNotifyPage() {
             is_available: info?.is_available ?? true,
             track_stock: info?.track_stock ?? false,
             image_url: info?.image_url ?? null,
+            restock_deadline: info?.restock_deadline ?? null,
             subscribers: [],
             notified_count: 0,
             pending_count: 0,
@@ -550,7 +561,7 @@ export default function RestockNotifyPage() {
             productName: group.product_name,
             customerWa: sub.customer_wa,
             customerName: sub.customer_name,
-            blastMsg: buildBlastMessage(group.product_name, shopName ?? "Toko Kami"),
+            blastMsg: buildBlastMessage(group.product_name, shopName ?? "Toko Kami", group.restock_deadline),
           });
         }
       }
@@ -825,7 +836,7 @@ export default function RestockNotifyPage() {
         <div className="space-y-5">
           {filtered.map(group => {
             const isOutOfStock = (group.track_stock && (group.stock ?? 0) <= 0) || !group.is_available;
-            const blastMsg = buildBlastMessage(group.product_name, shopName ?? "Toko Kami");
+            const blastMsg = buildBlastMessage(group.product_name, shopName ?? "Toko Kami", group.restock_deadline);
             const pendingSubs = group.subscribers.filter(s => !s.notified_at);
 
             return (

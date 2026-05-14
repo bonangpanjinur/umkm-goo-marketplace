@@ -51,6 +51,7 @@ type Product = {
   flash_price?: number | null;
   flash_starts_at?: string | null;
   flash_ends_at?: string | null;
+  restock_deadline?: string | null;
 };
 
 type PricePoint = { recorded_at: string; price: number };
@@ -292,7 +293,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags, restock_deadline")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -485,7 +486,7 @@ function ProductDetailPage() {
 
               {/* FA-07: Restock notification */}
               {product.track_stock && product.stock !== null && product.stock <= 0 && (
-                <StockAlertSection productId={product.id} productName={product.name} shopId={product.shop_id} />
+                <StockAlertSection productId={product.id} productName={product.name} shopId={product.shop_id} restockDeadline={product.restock_deadline} />
               )}
 
               {/* P-09: Ingredient list & BPOM */}
@@ -628,7 +629,12 @@ function saveStockAlerts(d: Record<string, { productName: string; contact: strin
   try { localStorage.setItem(STOCK_ALERTS_KEY, JSON.stringify(d)); } catch {}
 }
 
-function StockAlertSection({ productId, productName, shopId }: { productId: string; productName: string; shopId: string }) {
+function formatRestockDeadline(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function StockAlertSection({ productId, productName, shopId, restockDeadline }: { productId: string; productName: string; shopId: string; restockDeadline?: string | null }) {
   const [subscribed, setSubscribed] = useState(false);
   const [contact, setContact] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -688,6 +694,12 @@ function StockAlertSection({ productId, productName, shopId }: { productId: stri
         <Bell className="h-4 w-4 text-muted-foreground" />
         Produk ini sedang habis — mau diberitahu saat tersedia?
       </div>
+      {restockDeadline && (
+        <div className="flex items-center gap-1.5 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+          <Package className="h-4 w-4 shrink-0" />
+          <span>Estimasi tersedia kembali: <strong>{formatRestockDeadline(restockDeadline)}</strong></span>
+        </div>
+      )}
       {showForm ? (
         <div className="flex gap-2">
           <input

@@ -47,6 +47,7 @@ type MenuItem = {
   flash_ends_at: string | null;
   accepts_custom_order?: boolean | null;
   skin_type_tags?: string[] | null;
+  restock_deadline?: string | null;
 };
 
 type HPPRow = {
@@ -103,6 +104,7 @@ function MenuPage() {
   const [flashEnds, setFlashEnds] = useState<string>("");
   const [acceptsCustomOrder, setAcceptsCustomOrder] = useState(false);
   const [skinTypeTags, setSkinTypeTags] = useState<string[]>([]);
+  const [restockDeadline, setRestockDeadline] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -133,7 +135,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -183,6 +185,7 @@ function MenuPage() {
     setFlashEnds("");
     setAcceptsCustomOrder(false);
     setSkinTypeTags([]);
+    setRestockDeadline("");
     setAiTags([]);
     setOpen(true);
   }
@@ -210,6 +213,7 @@ function MenuPage() {
     setFlashEnds(toLocalInput(it.flash_ends_at));
     setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
     setSkinTypeTags((it as any).skin_type_tags ?? []);
+    setRestockDeadline(it.restock_deadline ?? "");
     setAiTags([]);
     setOpen(true);
   }
@@ -428,6 +432,7 @@ function MenuPage() {
       flash_ends_at: fpNum != null && flashEnds ? new Date(flashEnds).toISOString() : null,
       accepts_custom_order: acceptsCustomOrder,
       skin_type_tags: skinTypeTags.length > 0 ? skinTypeTags : null,
+      restock_deadline: restockDeadline || null,
     };
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
@@ -698,6 +703,23 @@ function MenuPage() {
                   </div>
                   <Switch checked={available} onCheckedChange={setAvailable} />
                 </div>
+
+                {!available && (
+                  <div className="space-y-1.5 rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2.5">
+                    <Label htmlFor="m-restock-deadline" className="text-sm font-medium">
+                      Estimasi Restock (opsional)
+                    </Label>
+                    <Input
+                      id="m-restock-deadline"
+                      type="date"
+                      value={restockDeadline}
+                      onChange={(e) => setRestockDeadline(e.target.value)}
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Ditampilkan ke pembeli: "Estimasi tersedia kembali: Senin, 20 Mei" dan disertakan di pesan WA blast.
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
                   <div>
