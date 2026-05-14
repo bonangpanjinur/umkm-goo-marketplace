@@ -73,16 +73,42 @@ export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
 });
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[] };
+type NavItem = {
+  to: string; label: string; icon: typeof LayoutDashboard;
+  exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[];
+  /** If set, only show this item when shop's category type is in this list */
+  onlyFor?: string[];
+};
 type NavGroup = { id: string; label: string; items: NavItem[] };
+
+// ─── Map business_categories.slug → simplified type ─────────────────────────
+function deriveCategoryType(slug: string | null | undefined): string {
+  if (!slug) return "general";
+  const s = slug.toLowerCase();
+  if (/fnb|kuliner|makanan|minuman|cafe|kafe|restoran|bakery|food|kopi|warung|catering|beverage/.test(s)) return "fnb";
+  if (/fashion|pakaian|clothing|busana|sepatu|aksesoris/.test(s)) return "fashion";
+  if (/digital|software|konten|content|saas|aplikasi|pendidikan/.test(s)) return "digital";
+  if (/jasa|laundry|salon|bengkel|beauty|kecantikan|otomotif/.test(s)) return "services";
+  if (/kerajinan|handmade|craft|seni|dekorasi|art/.test(s)) return "craft";
+  if (/elektronik|gadget|komputer|tech/.test(s)) return "electronics";
+  return "general";
+}
+
+// Category type groups for onlyFor references
+const FNB         = ["fnb"];
+const FNB_SVC     = ["fnb", "services"];
+const DIGITAL_SVC = ["digital", "services"];
+const SVC         = ["services"];
+const SVC_CRAFT   = ["services", "craft"];
+const PHYSICAL    = ["fnb", "fashion", "craft", "electronics", "general"];
 
 const NAV_GROUPS: NavGroup[] = [
   {
     id: "dashboard",
     label: "Utama",
     items: [
-      { to: "/pos-app", label: "Dashboard", icon: LayoutDashboard, exact: true },
-      { to: "/pos-app/pos", label: "POS Kasir", icon: ShoppingBag },
+      { to: "/pos-app",     label: "Dashboard",  icon: LayoutDashboard, exact: true },
+      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag },
     ],
   },
   {
@@ -90,126 +116,126 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Pesanan",
     items: [
       { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
-      { to: "/pos-app/kds", label: "Kitchen (KDS)", icon: ChefHat },
+      { to: "/pos-app/kds",    label: "Kitchen (KDS)", icon: ChefHat, onlyFor: FNB },
     ],
   },
   {
     id: "catalog",
     label: "Katalog & Stok",
     items: [
-      { to: "/pos-app/menu", label: "Menu / Produk", icon: UtensilsCrossed },
-      { to: "/pos-app/menu/import", label: "Import Menu CSV", icon: Upload },
-      { to: "/pos-app/variants", label: "Varian Produk", icon: SlidersHorizontal },
-      { to: "/pos-app/categories", label: "Kategori", icon: Tags },
-      { to: "/pos-app/digital", label: "Produk Digital", icon: Download },
-      { to: "/pos-app/atribut", label: "Atribut Produk", icon: Tag },
-      { to: "/pos-app/stok", label: "Stok Terpadu", icon: Layers },
-      { to: "/pos-app/inventory", label: "Inventori", icon: Package },
-      { to: "/pos-app/bundles", label: "Bundle / Paket", icon: Layers },
-      { to: "/pos-app/recipes", label: "Resep", icon: ChefHat },
-      { to: "/pos-app/suppliers", label: "Supplier", icon: Building2 },
-      { to: "/pos-app/purchase-orders", label: "Purchase Order", icon: FileText },
+      { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed },
+      { to: "/pos-app/menu/import",    label: "Import Menu CSV", icon: Upload },
+      { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal },
+      { to: "/pos-app/categories",     label: "Kategori",        icon: Tags },
+      { to: "/pos-app/digital",        label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC },
+      { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag },
+      { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers },
+      { to: "/pos-app/inventory",      label: "Inventori",       icon: Package },
+      { to: "/pos-app/bundles",        label: "Bundle / Paket",  icon: Layers },
+      { to: "/pos-app/recipes",        label: "Resep",           icon: ChefHat, onlyFor: FNB },
+      { to: "/pos-app/suppliers",      label: "Supplier",        icon: Building2 },
+      { to: "/pos-app/purchase-orders",label: "Purchase Order",  icon: FileText },
     ],
   },
   {
     id: "team",
     label: "Tim",
     items: [
-      { to: "/pos-app/employees", label: "Pegawai", icon: Users },
-      { to: "/pos-app/schedule", label: "Jadwal", icon: CalendarDays },
-      { to: "/pos-app/booking", label: "Booking Jadwal", icon: CalendarCheck },
-      { to: "/pos-app/attendance", label: "Absensi", icon: Clock },
-      { to: "/pos-app/shifts", label: "Shift Kasir", icon: Wallet },
+      { to: "/pos-app/employees",  label: "Pegawai",       icon: Users },
+      { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
+      { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
+      { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
+      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet },
     ],
   },
   {
     id: "delivery",
     label: "Pengiriman",
     items: [
-      { to: "/pos-app/delivery", label: "Delivery", icon: Truck },
-      { to: "/pos-app/couriers", label: "Kurir", icon: Bike },
-      { to: "/pos-app/courier", label: "Pengantaran", icon: Navigation },
+      { to: "/pos-app/delivery", label: "Delivery",     icon: Truck },
+      { to: "/pos-app/couriers", label: "Kurir",        icon: Bike },
+      { to: "/pos-app/courier",  label: "Pengantaran",  icon: Navigation },
     ],
   },
   {
     id: "customers",
     label: "Pelanggan",
     items: [
-      { to: "/pos-app/customers", label: "Pelanggan", icon: UserCheck },
-      { to: "/pos-app/inbox", label: "Inbox Chat", icon: MessageCircle },
-      { to: "/pos-app/promos", label: "Promo", icon: TicketPercent },
-      { to: "/pos-app/vouchers", label: "Voucher Toko", icon: Ticket },
-      { to: "/pos-app/promo-calendar", label: "Kalender Promo", icon: CalendarDays },
-      { to: "/pos-app/loyalty", label: "Loyalty", icon: Award },
-      { to: "/pos-app/membership", label: "Membership", icon: Award, hint: "Tier berlangganan dengan diskon otomatis & perks" },
-      { to: "/pos-app/wallet-config", label: "Top-up Saldo", icon: Award, hint: "Atur preset top-up saldo dengan bonus" },
-      { to: "/pos-app/wallet-approvals", label: "Approval Top-up", icon: Award, hint: "Setujui pembayaran top-up pelanggan" },
-      { to: "/pos-app/email-marketing", label: "Email Marketing", icon: Bell, proOnly: true },
+      { to: "/pos-app/customers",          label: "Pelanggan",         icon: UserCheck },
+      { to: "/pos-app/inbox",              label: "Inbox Chat",        icon: MessageCircle },
+      { to: "/pos-app/promos",             label: "Promo",             icon: TicketPercent },
+      { to: "/pos-app/vouchers",           label: "Voucher Toko",      icon: Ticket },
+      { to: "/pos-app/promo-calendar",     label: "Kalender Promo",    icon: CalendarDays },
+      { to: "/pos-app/loyalty",            label: "Loyalty",           icon: Award },
+      { to: "/pos-app/membership",         label: "Membership",        icon: Award, hint: "Tier berlangganan dengan diskon otomatis & perks" },
+      { to: "/pos-app/wallet-config",      label: "Top-up Saldo",      icon: Award, hint: "Atur preset top-up saldo dengan bonus" },
+      { to: "/pos-app/wallet-approvals",   label: "Approval Top-up",   icon: Award, hint: "Setujui pembayaran top-up pelanggan" },
+      { to: "/pos-app/email-marketing",    label: "Email Marketing",   icon: Bell, proOnly: true },
       { to: "/pos-app/wishlist-analytics", label: "Analitik Wishlist", icon: Award },
-      { to: "/pos-app/reviews", label: "Ulasan Pembeli", icon: Award, hint: "Balas ulasan, analisis sentimen, moderasi konten tidak relevan" },
-      { to: "/pos-app/qa", label: "Q&A Produk", icon: HelpCircle, hint: "Jawab pertanyaan calon pembeli dari halaman produk" },
-      { to: "/pos-app/iklan", label: "Iklan & Promosi", icon: Megaphone },
-      { to: "/pos-app/waitlist", label: "Antrian Waitlist", icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh" },
-      { to: "/pos-app/rental-availability", label: "Ketersediaan Rental", icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal" },
-      { to: "/pos-app/booking-reminders", label: "Reminder Booking", icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan" },
+      { to: "/pos-app/reviews",            label: "Ulasan Pembeli",    icon: Award, hint: "Balas ulasan, analisis sentimen, moderasi konten tidak relevan" },
+      { to: "/pos-app/qa",                 label: "Q&A Produk",        icon: HelpCircle, hint: "Jawab pertanyaan calon pembeli dari halaman produk" },
+      { to: "/pos-app/iklan",              label: "Iklan & Promosi",   icon: Megaphone },
+      { to: "/pos-app/waitlist",           label: "Antrian Waitlist",  icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh", onlyFor: FNB_SVC },
+      { to: "/pos-app/rental-availability",label: "Ketersediaan Rental",icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal", onlyFor: SVC },
+      { to: "/pos-app/booking-reminders",  label: "Reminder Booking",  icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
     ],
   },
   {
     id: "storefront",
     label: "Tampilan Toko",
     items: [
-      { to: "/pos-app/portfolio", label: "Portofolio / Galeri", icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli" },
-      { to: "/pos-app/happy-hour", label: "Happy Hour", icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam" },
-      { to: "/pos-app/bulk-pricing", label: "Harga Grosir / Bulk", icon: Layers, hint: "Harga bertingkat otomatis: beli lebih banyak, harga lebih murah" },
-      { to: "/pos-app/upsell", label: "Sering Dibeli Bersama", icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
-      { to: "/pos-app/pre-orders", label: "Pre-Order Mode", icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch" },
-      { to: "/pos-app/custom-orders", label: "Permintaan Custom", icon: FileText, hint: "Kelola permintaan custom order dari pembeli" },
+      { to: "/pos-app/portfolio",     label: "Portofolio / Galeri",    icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli", onlyFor: SVC_CRAFT },
+      { to: "/pos-app/happy-hour",    label: "Happy Hour",             icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam", onlyFor: FNB },
+      { to: "/pos-app/bulk-pricing",  label: "Harga Grosir / Bulk",    icon: Layers, hint: "Harga bertingkat otomatis: beli lebih banyak, harga lebih murah" },
+      { to: "/pos-app/upsell",        label: "Sering Dibeli Bersama",  icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
+      { to: "/pos-app/pre-orders",    label: "Pre-Order Mode",         icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch", onlyFor: [...FNB, "craft"] },
+      { to: "/pos-app/custom-orders", label: "Permintaan Custom",      icon: FileText, hint: "Kelola permintaan custom order dari pembeli", onlyFor: [...SVC_CRAFT, "fnb"] },
     ],
   },
   {
     id: "finance",
     label: "Keuangan & Laporan",
     items: [
-      { to: "/pos-app/keuangan", label: "Keuangan", icon: Banknote },
-      { to: "/pos-app/keuangan/tarik", label: "Tarik Saldo", icon: ArrowDownToLine },
-      { to: "/pos-app/rekening-bank", label: "Rekening Bank", icon: Building2 },
-      { to: "/pos-app/billing", label: "Plan & Tagihan", icon: CreditCard },
-      { to: "/pos-app/reports", label: "Laporan Penjualan", icon: BarChart3 },
-      { to: "/pos-app/reports/profit", label: "Profit & Margin", icon: BarChart3 },
-      { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace", icon: BarChart3 },
-      { to: "/pos-app/laporan-harian", label: "Laporan Harian", icon: BarChart3, hint: "Ringkasan omset, top menu & stok kritis harian. Bagikan via WhatsApp." },
-      { to: "/pos-app/invoice", label: "Invoice PDF", icon: FileText },
+      { to: "/pos-app/keuangan",              label: "Keuangan",              icon: Banknote },
+      { to: "/pos-app/keuangan/tarik",        label: "Tarik Saldo",           icon: ArrowDownToLine },
+      { to: "/pos-app/rekening-bank",         label: "Rekening Bank",         icon: Building2 },
+      { to: "/pos-app/billing",               label: "Plan & Tagihan",        icon: CreditCard },
+      { to: "/pos-app/reports",               label: "Laporan Penjualan",     icon: BarChart3 },
+      { to: "/pos-app/reports/profit",        label: "Profit & Margin",       icon: BarChart3 },
+      { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace",  icon: BarChart3 },
+      { to: "/pos-app/laporan-harian",        label: "Laporan Harian",        icon: BarChart3, hint: "Ringkasan omset, top menu & stok kritis harian. Bagikan via WhatsApp." },
+      { to: "/pos-app/invoice",               label: "Invoice PDF",           icon: FileText },
     ],
   },
   {
     id: "delivery_ext",
     label: "Pengiriman Lanjutan",
     items: [
-      { to: "/pos-app/rajaongkir", label: "RajaOngkir", icon: Truck },
-      { to: "/pos-app/shipping-labels", label: "Label Pengiriman", icon: Printer },
+      { to: "/pos-app/rajaongkir",      label: "RajaOngkir",       icon: Truck,    onlyFor: PHYSICAL },
+      { to: "/pos-app/shipping-labels", label: "Label Pengiriman",  icon: Printer,  onlyFor: PHYSICAL },
     ],
   },
   {
     id: "verification",
     label: "Akun & Verifikasi",
     items: [
-      { to: "/pos-app/kyc", label: "Verifikasi KTP (KYC)", icon: ShieldCheck },
-      { to: "/pos-app/notifikasi", label: "Notifikasi Toko", icon: Bell },
+      { to: "/pos-app/kyc",        label: "Verifikasi KTP (KYC)", icon: ShieldCheck },
+      { to: "/pos-app/notifikasi", label: "Notifikasi Toko",      icon: Bell },
     ],
   },
   {
     id: "settings",
     label: "Pengaturan Toko",
     items: [
-      { to: "/pos-app/table-qr", label: "QR Code Meja", icon: QrCode },
-      { to: "/pos-app/printers", label: "Printer", icon: Printer },
-      { to: "/pos-app/appearance", label: "Tampilan Toko", icon: Palette },
-      { to: "/pos-app/storefront-builder", label: "Storefront Builder", icon: LayoutDashboard },
-      { to: "/pos-app/custom-css", label: "Custom CSS", icon: Lock, proOnly: true },
-      { to: "/pos-app/outlets", label: "Multi-Outlet", icon: Building2 },
-      { to: "/pos-app/domain", label: "Domain Kustom", icon: Globe, proOnly: true },
-      { to: "/pos-app/backup", label: "Backup Data", icon: Database },
-      { to: "/pos-app/settings", label: "Pengaturan", icon: Settings },
+      { to: "/pos-app/table-qr",          label: "QR Code Meja",    icon: QrCode, onlyFor: FNB },
+      { to: "/pos-app/printers",          label: "Printer",          icon: Printer },
+      { to: "/pos-app/appearance",        label: "Tampilan Toko",    icon: Palette },
+      { to: "/pos-app/storefront-builder",label: "Storefront Builder",icon: LayoutDashboard },
+      { to: "/pos-app/custom-css",        label: "Custom CSS",       icon: Lock, proOnly: true },
+      { to: "/pos-app/outlets",           label: "Multi-Outlet",     icon: Building2 },
+      { to: "/pos-app/domain",            label: "Domain Kustom",    icon: Globe, proOnly: true },
+      { to: "/pos-app/backup",            label: "Backup Data",      icon: Database },
+      { to: "/pos-app/settings",          label: "Pengaturan",       icon: Settings },
     ],
   },
 ];
@@ -248,6 +274,7 @@ function AppLayoutInner() {
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
+  const [shopCategoryType, setShopCategoryType] = useState<string>("general");
 
   useEffect(() => {
     if (loading) return;
@@ -259,11 +286,12 @@ function AppLayoutInner() {
       // Owner flow
       const { data } = await supabase
         .from("coffee_shops")
-        .select("id, name, logo_url, suspended_at, suspended_reason")
+        .select("id, name, logo_url, suspended_at, suspended_reason, business_category:business_categories(slug)")
         .eq("owner_id", user.id)
         .maybeSingle();
       if (data) {
-        setShop(data);
+        setShop(data as any);
+        setShopCategoryType(deriveCategoryType((data as any).business_category?.slug));
         setChecking(false);
         if (data.suspended_at && location.pathname !== "/pos-app/billing") {
           toast.error("Toko Anda dinonaktifkan oleh admin. Hubungi admin.");
@@ -276,11 +304,12 @@ function AppLayoutInner() {
       if (staff.isStaff && staff.shopId) {
         const { data: s } = await supabase
           .from("coffee_shops")
-          .select("name, logo_url, suspended_at, suspended_reason")
+          .select("name, logo_url, suspended_at, suspended_reason, business_category:business_categories(slug)")
           .eq("id", staff.shopId)
           .maybeSingle();
         if (s) {
-          setShop(s);
+          setShop(s as any);
+          setShopCategoryType(deriveCategoryType((s as any).business_category?.slug));
           setChecking(false);
           return;
         }
@@ -382,14 +411,19 @@ function AppLayoutInner() {
     return () => { supabase.removeChannel(ch); };
   }, [shop?.id, navigate]);
 
-  // Filter nav for staff (per-item allowed modules)
+  // Filter nav: by staff permissions AND by shop category type
   const visibleGroups = useMemo(() => {
-    const allowed = (it: NavItem) =>
-      staff.isOwner || !staff.isStaff ? true : isModuleAllowed(it.to, staff.allowedModules);
+    const allowed = (it: NavItem) => {
+      // Staff permission check
+      if (!staff.isOwner && staff.isStaff && !isModuleAllowed(it.to, staff.allowedModules)) return false;
+      // Category type check — only filter if onlyFor is specified
+      if (it.onlyFor && it.onlyFor.length > 0 && !it.onlyFor.includes(shopCategoryType)) return false;
+      return true;
+    };
     return NAV_GROUPS
       .map((g) => ({ ...g, items: g.items.filter(allowed) }))
       .filter((g) => g.items.length > 0);
-  }, [staff.isOwner, staff.isStaff, staff.allowedModules]);
+  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType]);
 
   // Track which group is open; auto-open the group that contains the active route
   const matchItem = (it: NavItem, path: string) => {
@@ -443,6 +477,18 @@ function AppLayoutInner() {
           )}
         </div>
         <span className="text-sm font-semibold">UMKMgo</span>
+        {shopCategoryType !== "general" && (
+          <span className="ml-auto shrink-0 rounded-full bg-sidebar-accent px-2 py-0.5 text-[10px] font-semibold capitalize text-sidebar-accent-foreground">
+            {{
+              fnb: "F&B",
+              fashion: "Fashion",
+              digital: "Digital",
+              services: "Jasa",
+              craft: "Kerajinan",
+              electronics: "Elektronik",
+            }[shopCategoryType] ?? shopCategoryType}
+          </span>
+        )}
       </div>
 
       <OutletSwitcher shopName={shop?.name} />

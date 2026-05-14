@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Category = { id: string; slug: string; name: string; description: string | null; icon_url: string | null };
-type Shop = { id: string; slug: string; name: string; tagline: string | null; logo_url: string | null; rating_avg: number | null; rating_count: number | null; is_featured?: boolean; kyc_status?: string };
+type Shop = { id: string; slug: string; name: string; tagline: string | null; logo_url: string | null; rating_avg: number | null; rating_count: number | null; is_featured?: boolean; kyc_status?: string; business_category_id?: string | null };
 type Product = { id: string; shop_id: string; name: string; price: number; image_url: string | null; slug: string | null; rating_avg: number | null; flash_price?: number | null; flash_starts_at?: string | null; flash_ends_at?: string | null; shop?: { slug: string; name: string } };
 type Banner = { id: string; title: string; subtitle: string | null; cta_text: string | null; cta_link: string | null; image_url: string | null; bg_color: string | null; sort_order: number };
 type AdSpot = { id: string; ad_type: "product" | "shop"; target_id: string; target_name: string; target_image: string | null; position: string; shop_name: string };
@@ -267,6 +267,8 @@ function MarketplaceHome() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [sponsoredAds, setSponsoredAds] = useState<AdSpot[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [catCounts, setCatCounts] = useState<Record<string, number>>({});
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
   const [newShops, setNewShops] = useState<Shop[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -299,20 +301,40 @@ function MarketplaceHome() {
         }
       } catch { /* no ads table yet, skip gracefully */ }
 
-      const [cats, shopsRes, newShopsRes, prodRes, flashRes, shopCount, prodCount] = await Promise.all([
+      const [cats, shopsRes, newShopsRes, prodRes, flashRes, shopCount, prodCount, allShopCats] = await Promise.all([
         supabase.from("business_categories").select("id, slug, name, description, icon_url").eq("is_active", true).order("sort_order"),
-        (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured, kyc_status").eq("is_active", true).eq("is_featured", true).order("rating_avg", { ascending: false, nullsFirst: false }).limit(8),
-        (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status").eq("is_active", true).order("created_at", { ascending: false }).limit(6),
+        (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured, kyc_status, business_category_id").eq("is_active", true).eq("is_featured", true).order("rating_avg", { ascending: false, nullsFirst: false }).limit(32),
+        (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, business_category_id").eq("is_active", true).order("created_at", { ascending: false }).limit(6),
         supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").eq("is_available", true).order("is_featured", { ascending: false }).order("rating_avg", { ascending: false, nullsFirst: false }).limit(12),
         supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").eq("is_available", true).not("flash_price", "is", null).lt("flash_starts_at", now).gt("flash_ends_at", now).order("flash_ends_at", { ascending: true }).limit(8),
         supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("is_active", true),
         supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("is_available", true),
+        supabase.from("coffee_shops").select("business_category_id").eq("is_active", true),
       ]);
 
-      setCategories((cats.data as Category[]) ?? []);
+      // Aggregate shop counts per category
+      const countMap: Record<string, number> = {};
+      for (const r of (allShopCats.data as any[]) ?? []) {
+        if (!r.business_category_id) continue;
+        countMap[r.business_category_id] = (countMap[r.business_category_id] ?? 0) + 1;
+      }
+      setCatCounts(countMap);
+
+      // Sort categories: non-zero first by count desc, then zero-count ones
+      const rawCats = (cats.data as Category[]) ?? [];
+      const sortedCats = [...rawCats].sort((a, b) => {
+        const ca = countMap[a.id] ?? 0;
+        const cb = countMap[b.id] ?? 0;
+        if (ca === 0 && cb === 0) return 0;
+        if (ca === 0) return 1;
+        if (cb === 0) return -1;
+        return cb - ca;
+      });
+      setCategories(sortedCats);
+
       const featuredShops = (shopsRes.data as Shop[]) ?? [];
       const allNewShops = (newShopsRes.data as Shop[]) ?? [];
-      setShops(featuredShops.length > 0 ? featuredShops : allNewShops.slice(0, 8));
+      setShops(featuredShops.length > 0 ? featuredShops : allNewShops.slice(0, 32));
       setNewShops(allNewShops);
       setProducts((prodRes.data as any) ?? []);
       setFlashProds((flashRes.data as any) ?? []);
@@ -432,23 +454,77 @@ function MarketplaceHome() {
         )}
       </section>
 
-      {/* ── Featured Shops ── */}
+      {/* ── Category Filter + Featured Shops ── */}
       <section className="mx-auto max-w-7xl px-4 py-10 border-t border-border">
-        <div className="mb-5 flex items-end justify-between">
+        <div className="mb-4 flex items-end justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-bold tracking-tight">Toko Unggulan</h2>
           </div>
           <Link to="/search" search={{ sort: "rating" }} className="text-sm text-primary hover:underline">Semua toko →</Link>
         </div>
+
+        {/* Horizontal scrollable category filter chips */}
+        {!loading && categories.some(c => (catCounts[c.id] ?? 0) > 0) && (
+          <div className="mb-5 -mx-1 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              onClick={() => setSelectedCatId(null)}
+              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                selectedCatId === null
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5"
+              }`}
+            >
+              Semua
+            </button>
+            {categories
+              .filter(c => (catCounts[c.id] ?? 0) > 0)
+              .map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCatId(prev => prev === c.id ? null : c.id)}
+                  className={`shrink-0 flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                    selectedCatId === c.id
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                      : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5"
+                  }`}
+                >
+                  {c.icon_url && <img src={c.icon_url} alt="" className="h-3.5 w-3.5 opacity-80" />}
+                  {c.name}
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
+                    selectedCatId === c.id ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                  }`}>
+                    {catCounts[c.id]}
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+        )}
+
         {loading ? <SkeletonGrid cols={4} count={4} />
-          : shops.length === 0
-            ? <p className="text-sm text-muted-foreground">Belum ada toko. <Link to="/signup" className="text-primary hover:underline">Jadilah yang pertama!</Link></p>
-            : (
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-                {shops.map(s => <ShopCard key={s.id} shop={s} />)}
-              </div>
-            )
+          : (() => {
+              const filtered = selectedCatId
+                ? shops.filter(s => s.business_category_id === selectedCatId)
+                : shops;
+              const selectedCat = selectedCatId ? categories.find(c => c.id === selectedCatId) : null;
+              return filtered.length === 0
+                ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {selectedCat
+                        ? <>Belum ada toko unggulan di kategori <strong>{selectedCat.name}</strong>. <Link to={`/kategori/${selectedCat.slug}`} className="text-primary hover:underline">Jelajahi semua →</Link></>
+                        : <>Belum ada toko. <Link to="/signup" className="text-primary hover:underline">Jadilah yang pertama!</Link></>
+                      }
+                    </p>
+                  </div>
+                )
+                : (
+                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                    {filtered.slice(0, 8).map(s => <ShopCard key={s.id} shop={s} />)}
+                  </div>
+                );
+            })()
         }
       </section>
 
