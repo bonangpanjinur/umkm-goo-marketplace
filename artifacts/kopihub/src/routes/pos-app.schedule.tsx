@@ -130,6 +130,7 @@ function SchedulePage() {
     setMembers(mems);
     setOutlets((o.data ?? []) as Outlet[]);
     if (!outletId && o.data && o.data.length > 0) setOutletId(o.data[0].id);
+    if (!invOutletId && o.data && o.data.length > 0) setInvOutletId(o.data[0].id);
     setLoading(false);
   }
 
