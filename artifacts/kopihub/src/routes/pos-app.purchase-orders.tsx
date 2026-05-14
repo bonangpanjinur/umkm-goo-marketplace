@@ -92,6 +92,10 @@ function POPage() {
   const [batchSent, setBatchSent] = useState<Record<string, boolean>>({});
   function changeTemplate(t: WATemplate) { setWaTemplate(t); saveTemplate(t); }
 
+  // Delete confirmation modal
+  const [deleteTarget, setDeleteTarget] = useState<PO | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
 
   async function load() {
     if (!shop) return;
