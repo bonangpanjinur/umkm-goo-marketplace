@@ -154,6 +154,36 @@ function SchedulePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shop?.id]);
 
+  // Realtime: refresh kandidat & assignment saat data pegawai manual / shift berubah
+  useEffect(() => {
+    if (!shop) return;
+    const channel = supabase
+      .channel(`schedule-sync-${shop.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "staff_members", filter: `shop_id=eq.${shop.id}` },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shifts", filter: `shop_id=eq.${shop.id}` },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_roles", filter: `shop_id=eq.${shop.id}` },
+        () => load(),
+      )
+      .subscribe();
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shop?.id]);
+
   function openNew(uid: string, dow: number) {
     setEditing(null);
     setUserId(uid);
