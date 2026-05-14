@@ -1258,9 +1258,11 @@ function EmployeesPage() {
                           <td className="px-4 py-3 text-right">
                             <RowActions
                               row={u}
-                              onEdit={() => u.kind === "manual" && openEditManual(u.raw)}
+                              onEdit={() => u.kind === "manual" ? openEditManual(u.raw) : openLoginEdit(u.raw)}
                               onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
                               onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
+                              onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                              onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
                               onRemove={() => {
                                 if (u.kind === "login") setConfirmRemoveLogin(u.raw);
                                 else setConfirmRemoveManual(u.raw);
