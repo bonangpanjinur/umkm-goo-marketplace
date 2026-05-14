@@ -48,6 +48,7 @@ type MenuItem = {
   accepts_custom_order?: boolean | null;
   skin_type_tags?: string[] | null;
   restock_deadline?: string | null;
+  condition_grade?: string | null;
   nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
   production_days?: number | null;
 };
@@ -113,6 +114,7 @@ function MenuPage() {
   const [nutritionFat, setNutritionFat] = useState<string>("");
   const [nutritionFiber, setNutritionFiber] = useState<string>("");
   const [productionDays, setProductionDays] = useState<string>("");
+  const [conditionGrade, setConditionGrade] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -143,7 +145,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -196,6 +198,7 @@ function MenuPage() {
     setRestockDeadline("");
     setNutritionCal(""); setNutritionProtein(""); setNutritionCarbs(""); setNutritionFat(""); setNutritionFiber("");
     setProductionDays("");
+    setConditionGrade("");
     setAiTags([]);
     setOpen(true);
   }
@@ -231,6 +234,7 @@ function MenuPage() {
     setNutritionFat(ni.fat != null ? String(ni.fat) : "");
     setNutritionFiber(ni.fiber != null ? String(ni.fiber) : "");
     setProductionDays((it as any).production_days != null ? String((it as any).production_days) : "");
+    setConditionGrade((it as any).condition_grade ?? "");
     setAiTags([]);
     setOpen(true);
   }
@@ -458,6 +462,7 @@ function MenuPage() {
         ...(nutritionFiber ? { fiber: Number(nutritionFiber) } : {}),
       } : null,
       production_days: productionDays ? Number(productionDays) : null,
+      condition_grade: conditionGrade || null,
     } as any;
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
@@ -798,6 +803,40 @@ function MenuPage() {
                   </div>
                 </div>
 
+                {/* FA-04: Label Pre-loved / Second */}
+                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+                  <div className="text-sm font-semibold flex items-center gap-1.5">♻️ Label Pre-loved / Second <span className="text-xs text-muted-foreground font-normal">(opsional — FA-04)</span></div>
+                  <div className="text-[11px] text-muted-foreground mb-2">Untuk produk bekas/preloved. Tentukan kondisi barang agar pembeli tahu kualitasnya.</div>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { val: "", label: "Bukan Pre-loved", desc: "" },
+                      { val: "A", label: "Kondisi A", desc: "Seperti baru / 95%+" },
+                      { val: "B", label: "Kondisi B", desc: "Sedikit bekas / 80–94%" },
+                      { val: "C", label: "Kondisi C", desc: "Bekas pakai / 60–79%" },
+                    ].map(({ val, label, desc }) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setConditionGrade(val)}
+                        className={`flex flex-col items-start rounded-md border px-3 py-2 text-left text-xs transition-colors min-w-[100px] ${
+                          conditionGrade === val
+                            ? val === "" ? "border-border bg-muted text-foreground" : "border-emerald-400 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-300"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted/40"
+                        }`}
+                      >
+                        <span className="font-semibold">{label}</span>
+                        {desc && <span className="mt-0.5 text-[10px] opacity-70">{desc}</span>}
+                      </button>
+                    ))}
+                  </div>
+                  {conditionGrade && (
+                    <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2 text-[11px] text-muted-foreground">
+                      Butuh kolom baru di DB — jalankan sekali di Supabase SQL Editor:<br />
+                      <code className="font-mono select-all">ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS condition_grade text CHECK (condition_grade IN ('A','B','C'));</code>
+                    </div>
+                  )}
+                </div>
+
                 {/* KR-02: Estimasi Waktu Produksi */}
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1.5">🕐 Estimasi Waktu Produksi <span className="text-xs text-muted-foreground font-normal">(opsional)</span></Label>
@@ -991,6 +1030,12 @@ function MenuPage() {
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <span className="text-sm font-medium">{formatIDR(it.price)}</span>
+                    {(it as any).condition_grade && (
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                        title={`Pre-loved Kondisi ${(it as any).condition_grade}`}>
+                        ♻️ Kond. {(it as any).condition_grade}
+                      </span>
+                    )}
                     {hasHpp && (
                       <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${marginTone}`}
                         title={`HPP ${formatIDR(Number(h.hpp))} · Margin ${formatIDR(Number(h.margin))}`}>

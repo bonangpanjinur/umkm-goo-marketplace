@@ -65,6 +65,12 @@ import {
   GraduationCap,
   ScrollText,
   History,
+  Target,
+  ImageIcon,
+  Stethoscope,
+  Scissors,
+  Receipt,
+  BadgeCheck,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -109,6 +115,9 @@ const DIGITAL_SVC = ["digital", "services"];
 const SVC         = ["services"];
 const SVC_CRAFT   = ["services", "craft"];
 const PHYSICAL    = ["fnb", "fashion", "craft", "electronics", "general"];
+const FASHION     = ["fashion"];
+const FASHION_SVC = ["fashion", "services"];
+const CRAFT       = ["craft"];
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -124,7 +133,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Pesanan",
     items: [
       { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
-      { to: "/pos-app/kds",    label: "Kitchen (KDS)", icon: ChefHat, onlyFor: FNB },
+      { to: "/pos-app/kds",          label: "Kitchen (KDS)",       icon: ChefHat, onlyFor: FNB },
+      { to: "/pos-app/kitchen-load", label: "Beban Dapur (KLM)",  icon: Stethoscope, hint: "Pantau estimasi waktu tunggu & beban per slot waktu secara realtime", onlyFor: FNB },
     ],
   },
   {
@@ -142,10 +152,18 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag },
       { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers },
       { to: "/pos-app/inventory",      label: "Inventori",       icon: Package },
-      { to: "/pos-app/bundles",        label: "Bundle / Paket",  icon: Layers },
-      { to: "/pos-app/recipes",        label: "Resep",           icon: ChefHat, onlyFor: FNB },
-      { to: "/pos-app/suppliers",      label: "Supplier",        icon: Building2 },
-      { to: "/pos-app/purchase-orders",label: "Purchase Order",  icon: FileText },
+      { to: "/pos-app/bundles",          label: "Bundle / Paket",       icon: Layers },
+      { to: "/pos-app/combo-builder",    label: "Paket & Combo F&B",    icon: UtensilsCrossed, hint: "Buat set hemat dari beberapa menu dengan harga bundel & diskon otomatis", onlyFor: FNB },
+      { to: "/pos-app/recipes",          label: "Resep",                icon: ChefHat, onlyFor: FNB },
+      { to: "/pos-app/size-guide",       label: "Panduan Ukuran",       icon: SlidersHorizontal, hint: "Kalkulator ukuran interaktif: Tinggi 165cm → pilih M — tampil di halaman produk", onlyFor: FASHION },
+      { to: "/pos-app/lookbook",         label: "Lookbook / Foto Model",icon: ImageIcon, hint: "Upload foto model pakai produkmu — tampil di halaman toko & produk", onlyFor: FASHION },
+      { to: "/pos-app/skin-quiz",        label: "Quiz Rekomendasi Produk", icon: HelpCircle, hint: "Quiz jenis kulit → rekomendasi produk otomatis untuk pembeli", onlyFor: FASHION_SVC },
+      { to: "/pos-app/verified-claims",  label: "Klaim Terverifikasi",  icon: BadgeCheck, hint: "Label klaim uji klinis: 'Dermatologically Tested', 'Hypoallergenic', dll", onlyFor: FASHION_SVC },
+      { to: "/pos-app/limited-editions", label: "Edisi Terbatas",       icon: Zap, hint: "Produk limited dengan counter stok visible — ciptakan urgensi pembelian", onlyFor: [...FASHION, ...CRAFT] },
+      { to: "/pos-app/wip-gallery",      label: "Galeri Proses Buat",   icon: Layers, hint: "Tampilkan proses pembuatan karya — bangun kepercayaan pembeli", onlyFor: CRAFT },
+      { to: "/pos-app/certificates",     label: "Sertifikat Keaslian",  icon: Award, hint: "Certificate of Authenticity digital — dikirim otomatis ke pembeli", onlyFor: CRAFT },
+      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2 },
+      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText },
     ],
   },
   {
@@ -193,8 +211,17 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/waitlist",           label: "Antrian Waitlist",  icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh", onlyFor: FNB_SVC },
       { to: "/pos-app/rental-availability",label: "Ketersediaan Rental",icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal", onlyFor: SVC },
       { to: "/pos-app/rental-checklist",   label: "Checklist Kondisi",  icon: ClipboardCheck, hint: "Dokumentasi kondisi unit sebelum & sesudah sewa + tanda tangan digital", onlyFor: SVC },
-      { to: "/pos-app/rental-tnc",         label: "Syarat & Ketentuan", icon: ScrollText, hint: "Kelola T&C sewa: deposit %, denda keterlambatan, dan teks syarat penuh", onlyFor: SVC },
-      { to: "/pos-app/booking-reminders",  label: "Reminder Booking",  icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
+      { to: "/pos-app/rental-tnc",            label: "Syarat & Ketentuan",  icon: ScrollText, hint: "Kelola T&C sewa: deposit %, denda keterlambatan, dan teks syarat penuh", onlyFor: SVC },
+      { to: "/pos-app/rental-deposit-config", label: "Konfigurasi Deposit", icon: Banknote, hint: "Atur deposit otomatis per unit rental — harga × durasi × % — RT-04", onlyFor: SVC },
+      { to: "/pos-app/rental-extend",         label: "Perpanjangan Sewa",   icon: CalendarDays, hint: "Kelola permintaan perpanjangan sewa mandiri dari penyewa — RT-05", onlyFor: SVC },
+      { to: "/pos-app/rental-fines",          label: "Denda Keterlambatan", icon: Clock, hint: "Hitung & tagih denda keterlambatan pengembalian unit rental — RT-07", onlyFor: SVC },
+      { to: "/pos-app/rental-unit-ready",     label: "Notif Unit Siap",     icon: BellRing, hint: "Kirim notifikasi WhatsApp ke penyewa bahwa unit sudah siap diambil — RT-10", onlyFor: SVC },
+      { to: "/pos-app/anamnesis",             label: "Anamnesis Digital",   icon: FileText, hint: "Form keluhan & riwayat medis pre-konsultasi — diisi oleh pasien — KL-02", onlyFor: SVC },
+      { to: "/pos-app/medical-invoice",       label: "Tagihan & Resep",     icon: Receipt, hint: "Buat tagihan & resep digital per pasien dengan tanda tangan dokter — KL-05", onlyFor: SVC },
+      { to: "/pos-app/followup-reminders",    label: "Reminder Kunjungan",  icon: Scissors, hint: "Reminder potong rambut (4 minggu) atau kontrol ulang klinik otomatis — SB-06/KL-07", onlyFor: FNB_SVC },
+      { to: "/pos-app/milestones",            label: "Milestone & Escrow",  icon: Target, hint: "Kelola milestone proyek & escrow bayar bertahap untuk jasa digital — JU-06/JU-07", onlyFor: DIGITAL_SVC },
+      { to: "/pos-app/contracts",             label: "Kontrak Digital",     icon: ScrollText, hint: "Buat & tanda tangani kontrak freelance digital per order — JU-08", onlyFor: DIGITAL_SVC },
+      { to: "/pos-app/booking-reminders",     label: "Reminder Booking",    icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-reviews",   label: "Ulasan Booking",    icon: Star, hint: "Monitor ulasan & kirim pengingat WhatsApp minta ulasan ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-analytics", label: "Analitik Booking",  icon: BarChart3, hint: "Pantau pendapatan deposit, tingkat pembatalan, jam slot terpopuler & tren booking", onlyFor: FNB_SVC },
     ],

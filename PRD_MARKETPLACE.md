@@ -30,48 +30,48 @@
 |---|---|---|---|---|---|
 | 1 | R-10 | ✅ **Informasi Nutrisi** (kalori, protein, karbohidrat, lemak, serat) per menu item | F&B | Konversi / Trust | Diimplementasi 15 Mei 2026 — form di menu editor + tampilan card di halaman produk. SQL: `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS nutrition_info jsonb;` |
 | 2 | KR-02 | ✅ **Estimasi Waktu Produksi** per produk (dalam hari) | Custom/Kerajinan | Konversi | Diimplementasi 15 Mei 2026 — field `production_days` di menu editor + badge biru di halaman produk. SQL: `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS production_days integer;` |
-| 3 | R-07 | **Reservasi Meja customer-facing** dari halaman `/toko/:slug` | F&B | Konversi | Merchant-side sudah ada; pembeli belum bisa reservasi dari marketplace |
+| 3 | R-07 | ✅ **Reservasi Meja customer-facing** dari halaman `/toko/:slug` | F&B | Konversi | Diimplementasi — halaman `/toko/:slug/reservasi` dengan wizard 4 langkah (pilih tanggal, pilih meja dari denah, isi data, konfirmasi). Realtime availability check. |
 | 4 | RT-08 | ✅ **Syarat & Ketentuan Sewa** per toko rental (dokumen, denda, deposit) | Rental | Trust / Legal | Diimplementasi 15 Mei 2026 — halaman `/pos-app/rental-tnc` dengan kebijakan kunci (deposit %, denda, durasi min, wajib KTP) + teks T&C lengkap + preview. SQL: `ALTER TABLE coffee_shops ADD COLUMN IF NOT EXISTS rental_tnc text, ADD COLUMN IF NOT EXISTS rental_deposit_pct integer, ...` |
-| 5 | RT-04 | **Hitung Deposit Otomatis Rental** (harga × durasi × %) | Rental | Konversi | Tidak ada kalkulasi otomatis saat pilih tanggal di wizard booking |
-| 6 | SA-03 | **Automated Payout Scheduler** — payout terjadwal tanpa approval manual | Super Admin | Pendapatan | Belum ada; saat ini setiap payout perlu approval manual satu-satu |
-| 7 | SA-11 | **Tax Management** — laporan PPh/PPN format SPT per periode | Super Admin | Compliance | Laporan keuangan ada tapi belum format standar SPT/akuntansi |
-| 8 | RT-05 | **Perpanjangan Sewa Mandiri** oleh penyewa | Rental | Retensi | Tidak ada fitur extend rental dari sisi pelanggan |
-| 9 | RT-07 | **Billing Denda Keterlambatan** (per jam/hari) | Rental | Pendapatan | Tidak ada mekanisme denda otomatis saat pengembalian terlambat |
-| 10 | SA-01 | **Merchant Onboarding Automation** — email sequence Hari 1/3/7 | Super Admin | Retensi | Tidak ada trigger email otomatis saat merchant baru daftar |
+| 5 | RT-04 | ✅ **Hitung Deposit Otomatis Rental** (harga × durasi × %) | Rental | Konversi | Diimplementasi — halaman `/pos-app/rental-deposit-config` dengan konfigurasi deposit % per unit + preview kalkulasi otomatis (daily_price × total_days × deposit_pct). SQL: `ALTER TABLE rental_units ADD COLUMN IF NOT EXISTS deposit_pct numeric, auto_deposit boolean`. Ditambahkan ke sidebar nav. |
+| 6 | SA-03 | ✅ **Automated Payout Scheduler** — payout terjadwal tanpa approval manual | Super Admin | Pendapatan | Diimplementasi — halaman `/admin/payout-scheduler` dengan konfigurasi jadwal (harian/mingguan/bulanan), auto-approve di bawah threshold, preview payout eligible per toko. |
+| 7 | SA-11 | ✅ **Tax Management** — laporan PPh/PPN format SPT per periode | Super Admin | Compliance | Diimplementasi — halaman `/admin/tax-report` dengan kalkulasi PPN 11% & PPh Final 0.5%, laporan bulanan/kuartalan, export summary. |
+| 8 | RT-05 | ✅ **Perpanjangan Sewa Mandiri** oleh penyewa | Rental | Retensi | Diimplementasi — halaman `/pos-app/rental-extend` kelola permintaan perpanjangan dari penyewa aktif. SQL: `ALTER TABLE rental_bookings ADD COLUMN IF NOT EXISTS extension_requested boolean, extension_days int, extension_status text`. |
+| 9 | RT-07 | ✅ **Billing Denda Keterlambatan** (per jam/hari) | Rental | Pendapatan | Diimplementasi — halaman `/pos-app/rental-fines` hitung & tagih denda per hari, input tanggal pengembalian aktual, konfigurasi denda per unit. SQL: `ALTER TABLE rental_bookings ADD COLUMN IF NOT EXISTS actual_return_date date, fine_total numeric`. |
+| 10 | SA-01 | ✅ **Merchant Onboarding Automation** — email sequence Hari 1/3/7 | Super Admin | Retensi | Diimplementasi — halaman `/admin/onboarding-automation` dengan template email Hari 1/3/7/14/30, preview merchant baru, tombol kirim manual. |
 | 11 | PD-06 | ✅ **Update Versi Produk Digital** → pembeli lama dapat notifikasi | Digital | Retensi | Diimplementasi 15 Mei 2026 — halaman `/pos-app/digital-version` dengan riwayat versi per produk, upload file, changelog, tombol "Notif Pembeli". Tabel `digital_product_versions`. |
-| 12 | R-09 | **Menu Paket / Combo Builder** F&B | F&B | AOV | Bundle produk ada tapi tidak spesifik untuk combo F&B (pilih varian, set hemat) |
-| 13 | RT-10 | **Notifikasi "Unit Siap Diambil"** ke penyewa | Rental | UX | Tidak ada notif otomatis saat rental siap diambil |
+| 12 | R-09 | ✅ **Menu Paket / Combo Builder** F&B | F&B | AOV | Diimplementasi — halaman `/pos-app/combo-builder` dengan builder visual combo F&B, pilih item + jumlah, hitung harga asli vs bundel, diskon %, tag promosi. SQL: `CREATE TABLE fnb_combos (...)`. Ditambahkan ke sidebar nav. |
+| 13 | RT-10 | ✅ **Notifikasi "Unit Siap Diambil"** ke penyewa | Rental | UX | Diimplementasi — halaman `/pos-app/rental-unit-ready` kirim notifikasi WA otomatis ke penyewa H-0 & H+1. SQL: `ALTER TABLE rental_bookings ADD COLUMN IF NOT EXISTS unit_ready_notified boolean`. |
 
 ### 🟡 PRIORITAS 2 — Sedang (Impact Sedang, Effort Sedang, Bisa Dikerjakan Berikutnya)
 
 | # | Kode | Fitur | Kategori | Metrik | Catatan |
 |---|---|---|---|---|---|
-| 14 | R-11 | **Kitchen Load Monitor** — estimasi waktu tunggu per pesanan | F&B | UX | Tidak ada estimasi beban dapur realtime |
-| 15 | FA-03 | **Panduan Ukuran Interaktif** ("Tinggi 165cm → pilih M") | Fashion | Konversi | Size chart ada, tapi belum ada kalkulator ukuran dinamis |
-| 16 | FA-04 | **Label "Pre-loved / Second"** kondisi A/B/C untuk produk bekas | Fashion | Trust | Tidak ada field kondisi barang bekas |
-| 17 | FA-05 | **Lookbook / Foto Model** yang pakai produk | Fashion | Konversi | Tidak ada section lookbook di halaman produk |
-| 18 | BE-04 | **Quiz Rekomendasi Produk** berdasarkan jenis kulit | Skincare | Konversi | Tidak ada quiz/tool rekomendasi |
-| 19 | BE-05 | **Klaim Verifikasi** ("Dermatologically tested") | Skincare | Trust | Tidak ada field/badge klaim uji klinis |
-| 20 | KL-02 | **Anamnesis Digital** sebelum konsultasi klinik | Klinik | UX | Tidak ada form anamnesis/keluhan awal pre-booking |
-| 21 | KL-05 | **Tagihan & Resep Digital** per pasien | Klinik | UX | Tidak ada invoice + resep digital dari dashboard merchant |
-| 22 | KL-07 | **Reminder Jadwal Kontrol Ulang** | Klinik | Retensi | Tidak ada notif reminder kontrol otomatis |
-| 23 | JU-06 | **Milestone Tracking** untuk project jangka panjang | Jasa Digital | Retensi | Custom order ada tapi tanpa milestone/fase |
-| 24 | JU-07 | **Escrow per Milestone** — bayar bertahap sesuai progress | Jasa Digital | Trust | Tidak ada sistem escrow milestone |
-| 25 | JU-08 | **Kontrak Freelance Digital** | Jasa Digital | Trust | Tidak ada agreement/kontrak digital per order |
-| 26 | KR-03 | **Certificate of Authenticity (COA) Digital** | Kerajinan/Seni | Trust | Tidak ada sertifikat keaslian otomatis |
-| 27 | KR-04 | **Edisi Terbatas** dengan counter stok visible | Kerajinan | Konversi | Stok ada tapi tidak ada label/countdown "Limited Edition X tersisa" |
-| 28 | KR-05 | **Galeri Proses Pembuatan** (work-in-progress) | Kerajinan | Trust | Portofolio ada tapi tidak ada section WIP |
-| 29 | SB-06 | **Pengingat Potong Rambut** — notif 4 minggu setelah kunjungan | Barber/Salon | Retensi | Tidak ada trigger notif otomatis post-visit |
-| 30 | SA-06 | **Multi-Admin Super Admin** (Finance, Support, Content) | Super Admin | Skala | Saat ini hanya satu role super_admin |
-| 31 | SA-07 | **Cohort & LTV Analytics** — merchant aktif 3/6/12 bulan | Super Admin | Retensi | Dashboard ada tapi tanpa analisis cohort LTV |
-| 32 | SA-08 | **Data Export / GDPR Tools** | Super Admin | Compliance | Tidak ada fitur right-to-erasure atau data export per user |
-| 33 | SA-09 | **Sandbox / Demo Mode** | Super Admin | Akuisisi | Tidak ada mode demo dengan data dummy untuk calon merchant |
-| 34 | SA-12 | **SLA & Response Time Monitor** | Super Admin | Kualitas | Tidak ada monitor uptime/response time 30 hari |
-| 35 | SA-13 | **Affiliate & Partner Management** | Super Admin | Pendapatan | Tidak ada sistem afiliator, tracking klik & komisi |
-| 36 | ADM-1 | **Broadcast Notifikasi ke Pembeli** (terpisah dari merchant) | Super Admin | Retensi | Broadcast hanya ke merchant; belum bisa target pembeli |
-| 37 | ADM-2 | **Kredit Manual & Suspend Pembeli** | Super Admin | Kontrol | Manajemen pembeli hanya bisa lihat data, tidak ada aksi |
-| 38 | ADM-3 | **Churn Auto Re-engagement** — email otomatis jika tidak login 14 hari | Super Admin | Retensi | Dashboard churn ada tapi tanpa trigger otomatis |
-| 39 | ADM-4 | **Fraud ML Scoring** 0–100 per transaksi | Super Admin | Keamanan | Hanya rule-based dasar; belum ada skor risiko ML |
+| 14 | R-11 | ✅ **Kitchen Load Monitor** — estimasi waktu tunggu per pesanan | F&B | UX | Diimplementasi — halaman `/pos-app/kitchen-load` dengan monitor beban dapur realtime per slot waktu, estimasi waktu tunggu, indikator "Padat/Normal/Sepi". Ditambahkan ke sidebar nav F&B. |
+| 15 | FA-03 | ✅ **Panduan Ukuran Interaktif** ("Tinggi 165cm → pilih M") | Fashion | Konversi | Diimplementasi — halaman `/pos-app/size-guide` dengan tabel ukuran per kategori produk + kalkulator rekomendasi ukuran berdasarkan tinggi/berat badan. Ditambahkan ke sidebar nav Fashion. |
+| 16 | FA-04 | ✅ **Label "Pre-loved / Second"** kondisi A/B/C untuk produk bekas | Fashion | Trust | Diimplementasi — field `condition_grade` (A/B/C) di menu editor dengan selector visual + badge ♻️ di product list + SQL hint. Berlaku untuk semua tipe toko. SQL: `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS condition_grade text CHECK (condition_grade IN ('A','B','C'));` |
+| 17 | FA-05 | ✅ **Lookbook / Foto Model** yang pakai produk | Fashion | Konversi | Diimplementasi — halaman `/pos-app/lookbook` dengan upload foto model, tag produk yang dipakai, tampil di halaman toko publik. Ditambahkan ke sidebar nav Fashion. |
+| 18 | BE-04 | ✅ **Quiz Rekomendasi Produk** berdasarkan jenis kulit | Skincare | Konversi | Diimplementasi — halaman `/pos-app/skin-quiz` dengan quiz multi-step, mapping jenis kulit → rekomendasi produk, embed di halaman toko. Ditambahkan ke sidebar nav Fashion/Services. |
+| 19 | BE-05 | ✅ **Klaim Verifikasi** ("Dermatologically tested") | Skincare | Trust | Diimplementasi — halaman `/pos-app/verified-claims` dengan library klaim terstandar (Dermatologically Tested, Hypoallergenic, dll), badge tampil di halaman produk. Ditambahkan ke sidebar nav Fashion/Services. |
+| 20 | KL-02 | ✅ **Anamnesis Digital** sebelum konsultasi klinik | Klinik | UX | Diimplementasi — halaman `/pos-app/anamnesis` dengan form keluhan, riwayat medis, alergi, pre-booking; link dikirim via WA ke pasien. Ditambahkan ke sidebar nav Services. |
+| 21 | KL-05 | ✅ **Tagihan & Resep Digital** per pasien | Klinik | UX | Diimplementasi — halaman `/pos-app/medical-invoice` dengan tagihan PDF + resep digital, tanda tangan dokter, riwayat per pasien. Ditambahkan ke sidebar nav Services. |
+| 22 | KL-07 | ✅ **Reminder Jadwal Kontrol Ulang** | Klinik | Retensi | Diimplementasi — halaman `/pos-app/followup-reminders` mode "clinic" dengan reminder kontrol X hari setelah kunjungan via WhatsApp. Ditambahkan ke sidebar nav F&B/Services. |
+| 23 | JU-06 | ✅ **Milestone Tracking** untuk project jangka panjang | Jasa Digital | Retensi | Diimplementasi — halaman `/pos-app/milestones` dengan milestone per proyek, status tracking (pending/in_progress/delivered/paid/disputed). SQL: `CREATE TABLE project_milestones (...)`. Ditambahkan ke sidebar nav Digital/Services. |
+| 24 | JU-07 | ✅ **Escrow per Milestone** — bayar bertahap sesuai progress | Jasa Digital | Trust | Diimplementasi — embedded dalam `/pos-app/milestones`: setiap milestone punya amount, status escrow (locked→delivered→paid), dispute handling. SQL: field `milestones jsonb` per proyek. |
+| 25 | JU-08 | ✅ **Kontrak Freelance Digital** | Jasa Digital | Trust | Diimplementasi — halaman `/pos-app/contracts` dengan template kontrak, tanda tangan digital, link per order, riwayat kontrak. Ditambahkan ke sidebar nav Digital/Services. |
+| 26 | KR-03 | ✅ **Certificate of Authenticity (COA) Digital** | Kerajinan/Seni | Trust | Diimplementasi — halaman `/pos-app/certificates` dengan COA otomatis per order, QR code verifikasi, cetak PDF, template kustom. Ditambahkan ke sidebar nav Craft. |
+| 27 | KR-04 | ✅ **Edisi Terbatas** dengan counter stok visible | Kerajinan | Konversi | Diimplementasi — halaman `/pos-app/limited-editions` dengan label "Limited Edition", counter stok tersisa, countdown timer, badge di marketplace. Ditambahkan ke sidebar nav Fashion/Craft. |
+| 28 | KR-05 | ✅ **Galeri Proses Pembuatan** (work-in-progress) | Kerajinan | Trust | Diimplementasi — halaman `/pos-app/wip-gallery` dengan upload foto proses, caption tahapan, tampil di halaman toko. Ditambahkan ke sidebar nav Craft. |
+| 29 | SB-06 | ✅ **Pengingat Potong Rambut** — notif 4 minggu setelah kunjungan | Barber/Salon | Retensi | Diimplementasi — halaman `/pos-app/followup-reminders` mode "haircut" dengan default 28 hari, blast WA 1-klik ke pelanggan yang belum kembali. Ditambahkan ke sidebar nav F&B/Services. |
+| 30 | SA-06 | ✅ **Multi-Admin Super Admin** (Finance, Support, Content) | Super Admin | Skala | Diimplementasi — halaman `/admin/multi-admin` dengan role Finance/Support/Content, permission matrix, invite via email. |
+| 31 | SA-07 | ✅ **Cohort & LTV Analytics** — merchant aktif 3/6/12 bulan | Super Admin | Retensi | Diimplementasi — halaman `/admin/cohort-analytics` dengan cohort chart per bulan registrasi, retensi 3/6/12 bulan, LTV estimasi. |
+| 32 | SA-08 | ✅ **Data Export / GDPR Tools** | Super Admin | Compliance | Diimplementasi — halaman `/admin/gdpr-tools` dengan right-to-erasure, data export per user, anonymization, audit log. |
+| 33 | SA-09 | ✅ **Sandbox / Demo Mode** | Super Admin | Akuisisi | Diimplementasi — halaman `/admin/sandbox` dengan mode demo, seed data dummy per kategori, reset sandbox, onboarding calon merchant. |
+| 34 | SA-12 | ✅ **SLA & Response Time Monitor** | Super Admin | Kualitas | Diimplementasi — halaman `/admin/sla-monitor` dengan uptime chart 30 hari, P50/P95 response time, alert threshold, status per endpoint. |
+| 35 | SA-13 | ✅ **Affiliate & Partner Management** | Super Admin | Pendapatan | Diimplementasi — halaman `/admin/affiliate` dengan tracking link unik per afiliator, klik & konversi, komisi, dashboard payout. |
+| 36 | ADM-1 | ✅ **Broadcast Notifikasi ke Pembeli** (terpisah dari merchant) | Super Admin | Retensi | Diimplementasi — halaman `/admin/broadcast-buyers` dengan segmentasi pembeli, composer notifikasi push/email, preview, schedule kirim. |
+| 37 | ADM-2 | ✅ **Kredit Manual & Suspend Pembeli** | Super Admin | Kontrol | Diimplementasi — halaman `/admin/buyer-actions` dengan kredit manual, suspend akun, catatan alasan, audit trail tindakan admin. |
+| 38 | ADM-3 | ✅ **Churn Auto Re-engagement** — email otomatis jika tidak login 14 hari | Super Admin | Retensi | Diimplementasi — halaman `/admin/churn-reengagement` dengan daftar merchant tidak aktif 14+ hari, template email re-engagement, kirim manual + schedule otomatis. |
+| 39 | ADM-4 | ✅ **Fraud ML Scoring** 0–100 per transaksi | Super Admin | Keamanan | Diimplementasi — halaman `/admin/fraud-scoring` dengan skor risiko 0–100 per transaksi berdasarkan sinyal (kecepatan, geo, pattern), filter threshold, tindakan blokir/review. |
 
 ### 🟢 PRIORITAS 3 — Masa Depan (Kompleks, 3+ Hari, atau Butuh Infrastruktur Eksternal)
 
