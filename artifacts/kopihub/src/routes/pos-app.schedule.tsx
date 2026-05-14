@@ -50,7 +50,7 @@ type Outlet = { id: string; name: string };
 
 function SchedulePage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const { user } = useAuth();
+  
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
