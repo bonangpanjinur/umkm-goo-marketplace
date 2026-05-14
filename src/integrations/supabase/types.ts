@@ -4320,6 +4320,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "stock_opname_items_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "stock_opname_items_stock_opname_id_fkey"
             columns: ["stock_opname_id"]
             isOneToOne: false
