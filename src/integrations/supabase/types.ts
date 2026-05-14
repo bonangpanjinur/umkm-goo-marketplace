@@ -373,6 +373,73 @@ export type Database = {
         }
         Relationships: []
       }
+      bundle_items: {
+        Row: {
+          bundle_id: string
+          component_id: string
+          created_at: string
+          id: string
+          quantity: number
+        }
+        Insert: {
+          bundle_id: string
+          component_id: string
+          created_at?: string
+          id?: string
+          quantity?: number
+        }
+        Update: {
+          bundle_id?: string
+          component_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_items_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "bundle_items_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_items_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_categories: {
         Row: {
           banner_url: string | null
@@ -1996,6 +2063,7 @@ export type Database = {
           is_digital: boolean
           is_featured: boolean
           is_pre_order: boolean
+          item_type: string
           length_cm: number | null
           low_stock_threshold: number | null
           name: string
@@ -2052,6 +2120,7 @@ export type Database = {
           is_digital?: boolean
           is_featured?: boolean
           is_pre_order?: boolean
+          item_type?: string
           length_cm?: number | null
           low_stock_threshold?: number | null
           name: string
@@ -2108,6 +2177,7 @@ export type Database = {
           is_digital?: boolean
           is_featured?: boolean
           is_pre_order?: boolean
+          item_type?: string
           length_cm?: number | null
           low_stock_threshold?: number | null
           name?: string
