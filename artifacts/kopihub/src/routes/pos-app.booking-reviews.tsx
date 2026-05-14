@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import {
   Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
+  TrendingUp, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,38 @@ function buildWaMessage(booking: CompletedBooking, shopName: string) {
   );
 }
 
+type ReviewRequestStat = { sent_at: string; clicked_at: string | null };
+
+function pct(num: number, den: number) {
+  if (den === 0) return 0;
+  return Math.round((num / den) * 100);
+}
+
+function monthKey(dateStr: string) {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthLabel(key: string) {
+  const [y, m] = key.split("-");
+  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
+}
+
+function FunnelBar({ label, value, max, color, pctVal }: { label: string; value: number; max: number; color: string; pctVal?: number }) {
+  const w = max === 0 ? 0 : Math.round((value / max) * 100);
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-semibold tabular-nums">{value.toLocaleString("id-ID")}{pctVal !== undefined ? <span className="ml-1 text-muted-foreground">({pctVal}%)</span> : null}</span>
+      </div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${w}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function BookingReviewsPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
   const [bookings, setBookings] = useState<CompletedBooking[]>([]);
@@ -82,6 +115,7 @@ function BookingReviewsPage() {
   const [tableExists, setTableExists] = useState<boolean | null>(null);
   const [filter, setFilter] = useState<"all" | "reviewed" | "pending">("pending");
   const [sentReminders, setSentReminders] = useState<Set<string>>(new Set());
+  const [reviewRequestsMap, setReviewRequestsMap] = useState<Record<string, ReviewRequestStat>>({});
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
@@ -96,30 +130,44 @@ function BookingReviewsPage() {
         .eq("booking_slots.shop_id", shop.id)
         .eq("status", "completed")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (error) throw error;
 
       const ids = (completedBookings ?? []).map((b: any) => b.id);
       let reviewsMap: Record<string, { rating: number; body: string | null; created_at: string }> = {};
+      let reqMap: Record<string, ReviewRequestStat> = {};
 
       if (ids.length > 0) {
-        const { data: reviews, error: revErr } = await (supabase as any)
-          .from("booking_reviews")
-          .select("booking_id, rating, body, created_at")
-          .in("booking_id", ids);
+        const [reviewRes, reqRes] = await Promise.all([
+          (supabase as any)
+            .from("booking_reviews")
+            .select("booking_id, rating, body, created_at")
+            .in("booking_id", ids),
+          (supabase as any)
+            .from("booking_review_requests")
+            .select("booking_id, sent_at, clicked_at")
+            .in("booking_id", ids),
+        ]);
 
-        if (revErr) {
-          if (revErr.code === "42P01") { setTableExists(false); }
-          else throw revErr;
+        if (reviewRes.error) {
+          if (reviewRes.error.code === "42P01") { setTableExists(false); }
+          else throw reviewRes.error;
         } else {
           setTableExists(true);
-          for (const r of (reviews ?? []) as any[]) {
+          for (const r of (reviewRes.data ?? []) as any[]) {
             reviewsMap[r.booking_id] = { rating: r.rating, body: r.body, created_at: r.created_at };
+          }
+        }
+
+        if (!reqRes.error) {
+          for (const r of (reqRes.data ?? []) as any[]) {
+            reqMap[r.booking_id] = { sent_at: r.sent_at, clicked_at: r.clicked_at };
           }
         }
       }
 
+      setReviewRequestsMap(reqMap);
       const mapped: CompletedBooking[] = (completedBookings ?? []).map((b: any) => ({
         ...b,
         review: reviewsMap[b.id] ?? null,
@@ -145,6 +193,25 @@ function BookingReviewsPage() {
     : null;
 
   const shown = filter === "all" ? bookings : filter === "reviewed" ? reviewed : pendingReview;
+
+  // ── Analytics derivations ────────────────────────────────────────────────
+  const totalCompleted  = bookings.length;
+  const totalSent       = bookings.filter(b => b.review_request_sent_at).length;
+  const totalClicked    = bookings.filter(b => reviewRequestsMap[b.id]?.clicked_at).length;
+  const totalConverted  = bookings.filter(b => b.review_request_sent_at && b.review).length;
+
+  // Monthly breakdown — last 6 months that have data
+  type MonthStat = { sent: number; clicked: number; converted: number };
+  const monthStats: Record<string, MonthStat> = {};
+  for (const b of bookings) {
+    if (!b.review_request_sent_at) continue;
+    const key = monthKey(b.review_request_sent_at);
+    if (!monthStats[key]) monthStats[key] = { sent: 0, clicked: 0, converted: 0 };
+    monthStats[key].sent++;
+    if (reviewRequestsMap[b.id]?.clicked_at) monthStats[key].clicked++;
+    if (b.review) monthStats[key].converted++;
+  }
+  const monthKeys = Object.keys(monthStats).sort().slice(-6);
 
   return (
     <div className="space-y-6">
@@ -189,6 +256,97 @@ function BookingReviewsPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Analitik Konversi H+1 ───────────────────────────────────────── */}
+      {totalSent > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5 space-y-5">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">Analitik Konversi Notifikasi H+1</h2>
+          </div>
+
+          {/* KPI row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: "Notif Terkirim", value: totalSent, color: "text-blue-600", sub: `dari ${totalCompleted} selesai` },
+              { label: "Notif Dibuka", value: totalClicked, color: "text-violet-600", sub: `${pct(totalClicked, totalSent)}% dari terkirim` },
+              { label: "Ulasan Ditulis", value: totalConverted, color: "text-green-600", sub: `${pct(totalConverted, totalSent)}% dari terkirim` },
+              { label: "Konversi Akhir", value: `${pct(totalConverted, totalSent)}%`, color: pct(totalConverted, totalSent) >= 30 ? "text-green-600" : "text-amber-600", sub: "notif → ulasan" },
+            ].map(({ label, value, color, sub }) => (
+              <div key={label} className="rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+                <p className="text-[11px] text-muted-foreground">{label}</p>
+                <p className={`text-xl font-bold mt-0.5 ${color}`}>{value}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Conversion funnel bars */}
+          <div className="space-y-3">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funnel Konversi</p>
+            <div className="space-y-2.5">
+              <FunnelBar label="Booking selesai" value={totalCompleted} max={totalCompleted} color="bg-slate-400" />
+              <div className="flex items-center gap-2 pl-2">
+                <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <FunnelBar label="Notif H+1 terkirim" value={totalSent} max={totalCompleted} color="bg-blue-500" pctVal={pct(totalSent, totalCompleted)} />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pl-2">
+                <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <FunnelBar label="Notif dibuka (klik Beri Ulasan)" value={totalClicked} max={totalCompleted} color="bg-violet-500" pctVal={pct(totalClicked, totalSent)} />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pl-2">
+                <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <FunnelBar label="Ulasan berhasil ditulis" value={totalConverted} max={totalCompleted} color="bg-green-500" pctVal={pct(totalConverted, totalSent)} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly breakdown */}
+          {monthKeys.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Breakdown Bulanan</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="py-1.5 text-left font-medium text-muted-foreground">Bulan</th>
+                      <th className="py-1.5 text-right font-medium text-muted-foreground">Terkirim</th>
+                      <th className="py-1.5 text-right font-medium text-muted-foreground">Dibuka</th>
+                      <th className="py-1.5 text-right font-medium text-muted-foreground">Diulas</th>
+                      <th className="py-1.5 text-right font-medium text-muted-foreground">Konversi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthKeys.map(key => {
+                      const s = monthStats[key];
+                      const conv = pct(s.converted, s.sent);
+                      return (
+                        <tr key={key} className="border-b border-border/50 last:border-0">
+                          <td className="py-1.5 font-medium">{monthLabel(key)}</td>
+                          <td className="py-1.5 text-right tabular-nums text-blue-600">{s.sent}</td>
+                          <td className="py-1.5 text-right tabular-nums text-violet-600">{s.clicked}</td>
+                          <td className="py-1.5 text-right tabular-nums text-green-600">{s.converted}</td>
+                          <td className="py-1.5 text-right tabular-nums">
+                            <span className={`font-semibold ${conv >= 30 ? "text-green-600" : conv >= 15 ? "text-amber-600" : "text-red-500"}`}>
+                              {conv}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit">
