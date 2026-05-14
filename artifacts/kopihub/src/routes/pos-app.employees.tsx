@@ -190,23 +190,89 @@ function EmployeesPage() {
     setTimeout(() => setCopied(null), 1500);
   }
 
+  function resetManualForm() {
+    setEditingId(null);
+    setManualName("");
+    setManualPhone("");
+    setManualAvatar("");
+    setManualRole("cashier");
+    setManualOutletId(outlets[0]?.id ?? "");
+  }
+
+  function openEditManual(sm: StaffMember) {
+    setEditingId(sm.id);
+    setManualName(sm.name);
+    setManualRole(sm.role);
+    setManualOutletId(sm.outlet_id ?? "");
+    setManualPhone(sm.phone ?? "");
+    setManualAvatar(sm.avatar_url ?? "");
+    setManualOpen(true);
+  }
+
+  async function handleAvatarUpload(file: File) {
+    if (!shop) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Format harus JPG, PNG, atau WEBP");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Ukuran maksimal 2MB");
+      return;
+    }
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${shop.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("staff-avatars").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+    if (upErr) {
+      toast.error(upErr.message);
+      setUploadingAvatar(false);
+      return;
+    }
+    const { data } = supabase.storage.from("staff-avatars").getPublicUrl(path);
+    setManualAvatar(data.publicUrl);
+    setUploadingAvatar(false);
+    toast.success("Foto terupload");
+  }
+
+  function validateManual(): string | null {
+    const name = manualName.trim();
+    if (!name) return "Nama wajib diisi";
+    if (name.length < 2) return "Nama terlalu pendek";
+    const phone = manualPhone.trim();
+    if (phone && !/^[0-9+\-\s]{6,20}$/.test(phone)) return "No. HP hanya boleh angka (6-20 digit)";
+    if (manualOutletId && !outlets.some((o) => o.id === manualOutletId)) {
+      return "Outlet tidak valid untuk toko ini";
+    }
+    return null;
+  }
+
   async function addManual() {
-    if (!shop || !manualName.trim()) return;
+    if (!shop) return;
+    const err = validateManual();
+    if (err) {
+      toast.error(err);
+      return;
+    }
     setManualSaving(true);
-    const { error } = await supabase.from("staff_members").insert({
-      shop_id: shop.id,
+    // Normalize phone to digits + leading +
+    const phone = manualPhone.trim().replace(/[\s-]/g, "") || null;
+    const payload = {
       outlet_id: manualOutletId || null,
       name: manualName.trim(),
       role: manualRole as "manager" | "cashier" | "barista",
-      phone: manualPhone.trim() || null,
+      phone,
       avatar_url: manualAvatar.trim() || null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("staff_members").update(payload).eq("id", editingId)
+      : await supabase.from("staff_members").insert({ ...payload, shop_id: shop.id });
     if (error) toast.error(error.message);
     else {
-      toast.success("Pegawai ditambahkan");
-      setManualName("");
-      setManualPhone("");
-      setManualAvatar("");
+      toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
+      resetManualForm();
       setManualOpen(false);
       load();
     }
@@ -214,7 +280,8 @@ function EmployeesPage() {
   }
 
   async function removeManual(id: string) {
-    if (!confirm("Hapus pegawai ini?")) return;
+    if (!confirm("Hapus pegawai ini? Semua jadwalnya juga akan dihapus.")) return;
+    await supabase.from("shifts").delete().eq("user_id", id);
     const { error } = await supabase.from("staff_members").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
