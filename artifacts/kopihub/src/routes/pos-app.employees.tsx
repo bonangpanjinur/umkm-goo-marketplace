@@ -45,6 +45,15 @@ type Invitation = {
   created_at: string;
 };
 type Outlet = { id: string; name: string };
+type StaffMember = {
+  id: string;
+  name: string;
+  role: string;
+  outlet_id: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  created_at: string;
+};
 
 const ROLES = [
   { value: "manager", label: "Manager" },
