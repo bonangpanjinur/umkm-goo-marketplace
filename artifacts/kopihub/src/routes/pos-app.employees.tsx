@@ -888,6 +888,33 @@ function EmployeesPage() {
                     maxLength={20}
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Tanggal masuk</Label>
+                    <Input type="date" value={manualHireDate} onChange={(e) => setManualHireDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Upah / jam (Rp)</Label>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={manualHourlyRate}
+                      onChange={(e) => setManualHourlyRate(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder="cth. 25000"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Catatan internal (opsional)</Label>
+                  <textarea
+                    value={manualNotes}
+                    onChange={(e) => setManualNotes(e.target.value)}
+                    placeholder="Catatan untuk owner saja…"
+                    maxLength={500}
+                    rows={2}
+                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
                 {!editingId && (
                   <div className="rounded-lg border border-border bg-muted/30 p-3">
                     <label className="flex items-start gap-2.5 cursor-pointer">
