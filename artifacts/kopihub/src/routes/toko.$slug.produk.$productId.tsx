@@ -43,6 +43,7 @@ type Product = {
   dietary_tags: string[] | null;
   ingredients: string | null;
   bpom_number: string | null;
+  skin_type_tags: string[] | null;
   size_chart: { label: string; sizes: { size: string; [key: string]: string }[] } | null;
   item_type: string | null;
   preview_image_url: string | null;
@@ -291,7 +292,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -468,6 +469,25 @@ function ProductDetailPage() {
                 </div>
               )}
 
+              {/* BE-03: Skin type tags */}
+              {product.skin_type_tags && product.skin_type_tags.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">💧 Cocok untuk jenis kulit:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {product.skin_type_tags.map((type: string) => (
+                      <span key={type} className="inline-flex items-center rounded-full bg-purple-100 dark:bg-purple-900/30 px-2.5 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* FA-07: Restock notification */}
+              {product.track_stock && product.stock !== null && product.stock <= 0 && (
+                <StockAlertSection productId={product.id} productName={product.name} />
+              )}
+
               {/* P-09: Ingredient list & BPOM */}
               {(product.ingredients || product.bpom_number) && (
                 <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4 space-y-2.5 text-sm">
@@ -597,6 +617,83 @@ function ShareButton({ product, shop }: { product: Product; shop: Shop }) {
       title="Bagikan produk">
       {copied ? <Check className="h-5 w-5 text-green-600" /> : <Share2 className="h-5 w-5" />}
     </Button>
+  );
+}
+
+const STOCK_ALERTS_KEY = "umkmgo_stock_alerts_v1";
+function getStockAlerts(): Record<string, { productName: string; contact: string; subscribedAt: string }> {
+  try { return JSON.parse(localStorage.getItem(STOCK_ALERTS_KEY) ?? "{}"); } catch { return {}; }
+}
+function saveStockAlerts(d: Record<string, { productName: string; contact: string; subscribedAt: string }>) {
+  try { localStorage.setItem(STOCK_ALERTS_KEY, JSON.stringify(d)); } catch {}
+}
+
+function StockAlertSection({ productId, productName }: { productId: string; productName: string }) {
+  const [subscribed, setSubscribed] = useState(false);
+  const [contact, setContact] = useState("");
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    const alerts = getStockAlerts();
+    if (alerts[productId]) { setSubscribed(true); setContact(alerts[productId].contact); }
+  }, [productId]);
+
+  const subscribe = () => {
+    const wa = contact.trim().replace(/\D/g, "");
+    if (wa.length < 8) { toast.error("Masukkan nomor WhatsApp yang valid"); return; }
+    const alerts = getStockAlerts();
+    alerts[productId] = { productName, contact: contact.trim(), subscribedAt: new Date().toISOString() };
+    saveStockAlerts(alerts);
+    setSubscribed(true);
+    setShowForm(false);
+    toast.success("Siap! Kamu akan mendapat notifikasi saat stok tersedia kembali.");
+  };
+
+  const unsubscribe = () => {
+    const alerts = getStockAlerts();
+    delete alerts[productId];
+    saveStockAlerts(alerts);
+    setSubscribed(false);
+    setContact("");
+    toast.success("Notifikasi dimatikan");
+  };
+
+  if (subscribed) {
+    return (
+      <div className="mt-4 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/20 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+          <Bell className="h-4 w-4 fill-current" />
+          <span>Notifikasi stok aktif untuk <span className="font-semibold">{contact}</span></span>
+        </div>
+        <button onClick={unsubscribe} className="text-xs text-muted-foreground hover:text-destructive shrink-0">Matikan</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-border bg-muted/30 px-4 py-3 space-y-3">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <Bell className="h-4 w-4 text-muted-foreground" />
+        Produk ini sedang habis — mau diberitahu saat tersedia?
+      </div>
+      {showForm ? (
+        <div className="flex gap-2">
+          <input
+            type="tel"
+            value={contact}
+            onChange={e => setContact(e.target.value)}
+            placeholder="Nomor WhatsApp (08xxx)"
+            className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm"
+          />
+          <Button size="sm" onClick={subscribe}>Beritahu Saya</Button>
+          <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>Batal</Button>
+        </div>
+      ) : (
+        <Button size="sm" variant="outline" onClick={() => setShowForm(true)}>
+          <Bell className="h-3.5 w-3.5 mr-1.5" /> Beritahu Saya saat Stok Tersedia
+        </Button>
+      )}
+    </div>
   );
 }
 

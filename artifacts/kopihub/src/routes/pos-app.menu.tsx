@@ -46,6 +46,7 @@ type MenuItem = {
   flash_starts_at: string | null;
   flash_ends_at: string | null;
   accepts_custom_order?: boolean | null;
+  skin_type_tags?: string[] | null;
 };
 
 type HPPRow = {
@@ -101,6 +102,7 @@ function MenuPage() {
   const [flashStarts, setFlashStarts] = useState<string>("");
   const [flashEnds, setFlashEnds] = useState<string>("");
   const [acceptsCustomOrder, setAcceptsCustomOrder] = useState(false);
+  const [skinTypeTags, setSkinTypeTags] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -131,7 +133,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -180,6 +182,7 @@ function MenuPage() {
     setFlashStarts("");
     setFlashEnds("");
     setAcceptsCustomOrder(false);
+    setSkinTypeTags([]);
     setAiTags([]);
     setOpen(true);
   }
@@ -206,6 +209,7 @@ function MenuPage() {
     setFlashStarts(toLocalInput(it.flash_starts_at));
     setFlashEnds(toLocalInput(it.flash_ends_at));
     setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
+    setSkinTypeTags((it as any).skin_type_tags ?? []);
     setAiTags([]);
     setOpen(true);
   }
@@ -423,6 +427,7 @@ function MenuPage() {
       flash_starts_at: fpNum != null && flashStarts ? new Date(flashStarts).toISOString() : null,
       flash_ends_at: fpNum != null && flashEnds ? new Date(flashEnds).toISOString() : null,
       accepts_custom_order: acceptsCustomOrder,
+      skin_type_tags: skinTypeTags.length > 0 ? skinTypeTags : null,
     };
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
@@ -712,6 +717,28 @@ function MenuPage() {
                     </div>
                   </div>
                   <Switch checked={acceptsCustomOrder} onCheckedChange={setAcceptsCustomOrder} />
+                </div>
+
+                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+                  <div className="text-sm font-semibold">Tag Jenis Kulit (Skincare)</div>
+                  <div className="text-[11px] text-muted-foreground">Pilih jenis kulit yang cocok. Tampil di halaman produk untuk membantu pembeli memilih.</div>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {["Berminyak", "Kering", "Kombinasi", "Sensitif", "Normal", "Semua Jenis Kulit"].map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSkinTypeTags(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type])}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${skinTypeTags.includes(type) ? "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300" : "bg-muted text-muted-foreground border-border hover:bg-muted/60"}`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                  {skinTypeTags.length > 0 && (
+                    <button type="button" onClick={() => setSkinTypeTags([])} className="text-[10px] text-muted-foreground hover:text-destructive">
+                      Hapus semua tag
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">

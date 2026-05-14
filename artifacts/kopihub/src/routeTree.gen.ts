@@ -140,6 +140,7 @@ import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
 import { Route as AdminNotificationTemplatesRouteImport } from './routes/admin.notification-templates'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
+import { Route as AdminMerchantTiersRouteImport } from './routes/admin.merchant-tiers'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminImpersonationRouteImport } from './routes/admin.impersonation'
@@ -855,6 +856,11 @@ const AdminModerationRoute = AdminModerationRouteImport.update({
   path: '/moderation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMerchantTiersRoute = AdminMerchantTiersRouteImport.update({
+  id: '/merchant-tiers',
+  path: '/merchant-tiers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminKycRoute = AdminKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -1178,6 +1184,7 @@ export interface FileRoutesByFullPath {
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/merchant-tiers': typeof AdminMerchantTiersRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
@@ -1364,6 +1371,7 @@ export interface FileRoutesByTo {
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/merchant-tiers': typeof AdminMerchantTiersRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
@@ -1552,6 +1560,7 @@ export interface FileRoutesById {
   '/admin/impersonation': typeof AdminImpersonationRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
+  '/admin/merchant-tiers': typeof AdminMerchantTiersRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
   '/admin/payment-config': typeof AdminPaymentConfigRoute
@@ -1743,6 +1752,7 @@ export interface FileRouteTypes {
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/merchant-tiers'
     | '/admin/moderation'
     | '/admin/notification-templates'
     | '/admin/payment-config'
@@ -1929,6 +1939,7 @@ export interface FileRouteTypes {
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/merchant-tiers'
     | '/admin/moderation'
     | '/admin/notification-templates'
     | '/admin/payment-config'
@@ -2116,6 +2127,7 @@ export interface FileRouteTypes {
     | '/admin/impersonation'
     | '/admin/invoices'
     | '/admin/kyc'
+    | '/admin/merchant-tiers'
     | '/admin/moderation'
     | '/admin/notification-templates'
     | '/admin/payment-config'
@@ -3214,6 +3226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminModerationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/merchant-tiers': {
+      id: '/admin/merchant-tiers'
+      path: '/merchant-tiers'
+      fullPath: '/admin/merchant-tiers'
+      preLoaderRoute: typeof AdminMerchantTiersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/kyc': {
       id: '/admin/kyc'
       path: '/kyc'
@@ -3669,6 +3688,7 @@ interface AdminRouteChildren {
   AdminImpersonationRoute: typeof AdminImpersonationRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
+  AdminMerchantTiersRoute: typeof AdminMerchantTiersRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AdminNotificationTemplatesRoute: typeof AdminNotificationTemplatesRoute
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
@@ -3710,6 +3730,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminImpersonationRoute: AdminImpersonationRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
+  AdminMerchantTiersRoute: AdminMerchantTiersRoute,
   AdminModerationRoute: AdminModerationRoute,
   AdminNotificationTemplatesRoute: AdminNotificationTemplatesRoute,
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,

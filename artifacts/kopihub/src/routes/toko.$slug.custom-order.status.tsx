@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
-import { Loader2, ChevronLeft, Search, Sparkles, Calendar, Package } from "lucide-react";
+import { Loader2, ChevronLeft, Search, Sparkles, Calendar, Package, Download, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
@@ -25,6 +25,8 @@ type Req = {
   created_at: string;
   updated_at: string;
   history?: TimelineEntry[];
+  delivery_file_url: string | null;
+  delivery_note: string | null;
 };
 
 const STORAGE_KEY = (slug: string) => `kopihub:custom-order-contact:${slug}`;
@@ -206,6 +208,26 @@ function CustomOrderStatusPage() {
                     <div className="mt-3 rounded-lg bg-muted/60 p-3 text-sm">
                       <p className="text-xs font-medium text-muted-foreground mb-1">Catatan dari penjual</p>
                       <p className="whitespace-pre-line">{r.owner_note}</p>
+                    </div>
+                  )}
+
+                  {/* JU-05: Delivery file download */}
+                  {r.delivery_file_url && (
+                    <div className="mt-3 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/20 px-4 py-3 space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                        <PackageCheck className="h-4 w-4" /> Hasil Kerja Tersedia
+                      </div>
+                      {r.delivery_note && (
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400 whitespace-pre-line">{r.delivery_note}</p>
+                      )}
+                      <a
+                        href={r.delivery_file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors"
+                      >
+                        <Download className="h-3.5 w-3.5" /> Unduh / Lihat File
+                      </a>
                     </div>
                   )}
 

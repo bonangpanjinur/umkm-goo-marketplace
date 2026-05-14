@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History } from "lucide-react";
+import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History, Upload, Download, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
@@ -27,6 +27,8 @@ type Req = {
   owner_note: string | null;
   product_id: string | null;
   created_at: string;
+  delivery_file_url: string | null;
+  delivery_note: string | null;
 };
 
 const STATUS = [
@@ -45,6 +47,11 @@ function CustomOrdersPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [statusNote, setStatusNote] = useState("");
+  const [deliveryNote, setDeliveryNote] = useState<Record<string, string>>({});
+  const [deliveryUrl, setDeliveryUrl] = useState<Record<string, string>>({});
+  const [savingDelivery, setSavingDelivery] = useState<string | null>(null);
+  const [uploadingDelivery, setUploadingDelivery] = useState<string | null>(null);
+  const deliveryFileRef = useRef<HTMLInputElement>(null);
 
   // Search & filter
   const [q, setQ] = useState("");
@@ -170,6 +177,32 @@ function CustomOrdersPage() {
     if (["accepted","in_progress","completed","rejected"].includes(status)) {
       window.open(waLink(r.customer_contact, buildStatusMessage(r, status, statusNote)), "_blank");
     }
+  }
+
+  async function uploadDeliveryFile(id: string, file: File) {
+    if (!shop) return;
+    if (file.size > 20 * 1024 * 1024) { toast.error("Maksimal 20MB per file"); return; }
+    setUploadingDelivery(id);
+    const ext = file.name.split(".").pop() || "bin";
+    const path = `${shop.id}/${id}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("custom-deliveries").upload(path, file, { upsert: false });
+    if (error) { toast.error(error.message); setUploadingDelivery(null); return; }
+    const { data } = supabase.storage.from("custom-deliveries").getPublicUrl(path);
+    setDeliveryUrl(prev => ({ ...prev, [id]: data.publicUrl }));
+    setUploadingDelivery(null);
+    toast.success("File berhasil diunggah — klik Kirim untuk menyimpan.");
+  }
+
+  async function saveDelivery(id: string) {
+    const url = deliveryUrl[id]?.trim() || items.find(i => i.id === id)?.delivery_file_url || null;
+    const dn = deliveryNote[id]?.trim() || null;
+    if (!url) { toast.error("Masukkan URL atau upload file terlebih dahulu"); return; }
+    setSavingDelivery(id);
+    const { error } = await supabase.from("custom_order_requests" as any).update({ delivery_file_url: url, delivery_note: dn }).eq("id", id);
+    setSavingDelivery(null);
+    if (error) { toast.error(error.message); return; }
+    setItems(prev => prev.map(p => p.id === id ? { ...p, delivery_file_url: url, delivery_note: dn } : p));
+    toast.success("Hasil kerja berhasil dikirim ke pelanggan!");
   }
 
   async function saveNote(id: string) {
@@ -354,6 +387,42 @@ function CustomOrdersPage() {
                   </div>
                 </div>
 
+                {(r.status === "in_progress" || r.status === "completed") && (
+                  <div className="border-t border-border pt-3 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <PackageCheck className="h-4 w-4 text-emerald-600" /> Kirim Hasil Kerja
+                    </div>
+                    {r.delivery_file_url && (
+                      <a href={r.delivery_file_url} target="_blank" rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline">
+                        <Download className="h-3.5 w-3.5" /> File terkirim — lihat
+                      </a>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      <Input
+                        value={deliveryUrl[r.id] ?? r.delivery_file_url ?? ""}
+                        onChange={e => setDeliveryUrl(prev => ({ ...prev, [r.id]: e.target.value }))}
+                        placeholder="URL file (Google Drive, Dropbox, dll.)"
+                        className="flex-1 min-w-0 text-xs h-8"
+                      />
+                      <Button size="sm" variant="outline" className="h-8 shrink-0"
+                        onClick={() => deliveryFileRef.current && (deliveryFileRef.current.dataset.rid = r.id) && deliveryFileRef.current.click()}
+                        disabled={uploadingDelivery === r.id}>
+                        {uploadingDelivery === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                    <Textarea rows={2} placeholder="Catatan pengiriman untuk pelanggan (opsional)…"
+                      value={deliveryNote[r.id] ?? r.delivery_note ?? ""}
+                      onChange={e => setDeliveryNote(prev => ({ ...prev, [r.id]: e.target.value }))}
+                    />
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"
+                      onClick={() => saveDelivery(r.id)} disabled={savingDelivery === r.id}>
+                      {savingDelivery === r.id ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <PackageCheck className="h-3.5 w-3.5 mr-1" />}
+                      Kirim Hasil Kerja
+                    </Button>
+                  </div>
+                )}
+
                 <div className="border-t border-border pt-2">
                   <button onClick={() => toggleTimeline(r.id)} className="text-xs flex items-center gap-1 text-primary hover:underline">
                     <History className="h-3 w-3" />
@@ -375,6 +444,17 @@ function CustomOrdersPage() {
           })}
         </div>
       )}
+      <input
+        ref={deliveryFileRef}
+        type="file"
+        className="hidden"
+        onChange={e => {
+          const rid = deliveryFileRef.current?.dataset.rid;
+          const file = e.target.files?.[0];
+          if (rid && file) uploadDeliveryFile(rid, file);
+          if (deliveryFileRef.current) deliveryFileRef.current.value = "";
+        }}
+      />
     </div>
   );
 }
