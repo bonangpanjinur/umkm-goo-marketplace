@@ -19,8 +19,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Trash2, CalendarDays } from "lucide-react";
+import { Loader2, Plus, Trash2, CalendarDays, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/pos-app/schedule")({
   component: SchedulePage,
@@ -47,6 +48,7 @@ type Outlet = { id: string; name: string };
 
 function SchedulePage() {
   const { shop, loading: shopLoading } = useCurrentShop();
+  const { user } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
@@ -61,6 +63,44 @@ function SchedulePage() {
   const [endT, setEndT] = useState("16:00");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Invite employee dialog
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invEmail, setInvEmail] = useState("");
+  const [invRole, setInvRole] = useState("cashier");
+  const [invOutletId, setInvOutletId] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+
+  async function inviteEmployee() {
+    if (!shop || !user || !invEmail.trim()) return;
+    setInviting(true);
+    const { data, error } = await supabase
+      .from("staff_invitations")
+      .insert({
+        shop_id: shop.id,
+        outlet_id: invOutletId || null,
+        email: invEmail.trim().toLowerCase(),
+        role: invRole as "manager" | "cashier" | "barista",
+        invited_by: user.id,
+      })
+      .select("token")
+      .single();
+    setInviting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const url = `${window.location.origin}/invite/${data!.token}`;
+    setLastInviteUrl(url);
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Undangan dibuat — tautan disalin");
+    } catch {
+      toast.success("Undangan dibuat");
+    }
+    setInvEmail("");
+  }
 
   async function load() {
     if (!shop) return;
@@ -90,6 +130,7 @@ function SchedulePage() {
     setMembers(mems);
     setOutlets((o.data ?? []) as Outlet[]);
     if (!outletId && o.data && o.data.length > 0) setOutletId(o.data[0].id);
+    if (!invOutletId && o.data && o.data.length > 0) setInvOutletId(o.data[0].id);
     setLoading(false);
   }
 
@@ -174,11 +215,21 @@ function SchedulePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Jadwal kerja</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Atur shift mingguan untuk setiap pegawai.
-        </p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Jadwal kerja</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Atur shift mingguan untuk setiap pegawai.
+          </p>
+        </div>
+        <Button
+          onClick={() => {
+            setLastInviteUrl(null);
+            setInviteOpen(true);
+          }}
+        >
+          <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+        </Button>
       </div>
 
       {loading ? (
@@ -192,8 +243,17 @@ function SchedulePage() {
           </div>
           <h2 className="text-lg font-semibold">Belum ada pegawai</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Undang pegawai dulu di halaman Pegawai sebelum membuat jadwal.
+            Tambahkan pegawai dulu untuk mulai membuat jadwal shift.
           </p>
+          <Button
+            className="mt-4"
+            onClick={() => {
+              setLastInviteUrl(null);
+              setInviteOpen(true);
+            }}
+          >
+            <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+          </Button>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -336,6 +396,79 @@ function SchedulePage() {
                 Simpan
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={inviteOpen} onOpenChange={(o) => { if (!o) { setInviteOpen(false); setLastInviteUrl(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Undang pegawai</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={invEmail}
+                onChange={(e) => setInvEmail(e.target.value)}
+                placeholder="pegawai@toko.com"
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">
+                Pegawai mendaftar dengan email yang sama untuk menerima undangan.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Peran</Label>
+                <Select value={invRole} onValueChange={setInvRole}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="cashier">Kasir</SelectItem>
+                    <SelectItem value="barista">Barista</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Outlet</Label>
+                <Select value={invOutletId} onValueChange={setInvOutletId}>
+                  <SelectTrigger><SelectValue placeholder="Pilih outlet" /></SelectTrigger>
+                  <SelectContent>
+                    {outlets.map((o) => (
+                      <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {lastInviteUrl && (
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
+                <div className="mb-1 font-medium text-foreground">Tautan undangan:</div>
+                <div className="break-all font-mono text-muted-foreground">{lastInviteUrl}</div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(lastInviteUrl);
+                    toast.success("Tersalin");
+                  }}
+                >
+                  Salin lagi
+                </Button>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setInviteOpen(false); setLastInviteUrl(null); }}>
+              Tutup
+            </Button>
+            <Button onClick={inviteEmployee} disabled={inviting || !invEmail.trim()}>
+              {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <UserPlus className="mr-2 h-4 w-4" /> Buat undangan
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
