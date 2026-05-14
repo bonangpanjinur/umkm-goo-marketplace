@@ -110,10 +110,11 @@ function SchedulePage() {
   async function load() {
     if (!shop) return;
     setLoading(true);
-    const [s, r, o] = await Promise.all([
+    const [s, r, o, sm] = await Promise.all([
       supabase.from("shifts").select("*").eq("shop_id", shop.id).order("day_of_week"),
       supabase.from("user_roles").select("user_id, role").eq("shop_id", shop.id),
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
+      supabase.from("staff_members").select("id, name, role, avatar_url").eq("shop_id", shop.id).order("created_at"),
     ]);
     const roles = (r.data ?? []) as { user_id: string; role: string }[];
     const ids = [...new Set(roles.map((x) => x.user_id))];
@@ -129,13 +130,22 @@ function SchedulePage() {
         role: rr.role,
         display_name: byId.get(rr.user_id)?.display_name ?? null,
         avatar_url: byId.get(rr.user_id)?.avatar_url ?? null,
+        source: "account" as const,
       }));
     }
+    const manualMems: Member[] = ((sm.data ?? []) as Array<{ id: string; name: string; role: string; avatar_url: string | null }>).map((m) => ({
+      user_id: m.id,
+      manual_id: m.id,
+      role: m.role,
+      display_name: m.name,
+      avatar_url: m.avatar_url,
+      source: "manual" as const,
+    }));
     setShifts((s.data ?? []) as Shift[]);
-    setMembers(mems);
+    setMembers([...mems, ...manualMems]);
     setOutlets((o.data ?? []) as Outlet[]);
     if (!outletId && o.data && o.data.length > 0) setOutletId(o.data[0].id);
-    if (!invOutletId && o.data && o.data.length > 0) setInvOutletId(o.data[0].id);
+    if (!newOutletId && o.data && o.data.length > 0) setNewOutletId(o.data[0].id);
     setLoading(false);
   }
 
