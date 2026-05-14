@@ -606,6 +606,7 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 14 Mei 2026 | Sprint 18 | **Bandingkan Harga Floating Bar** di `toko.$slug.tsx` — `CompareToggleButton` overlay ⚖ di setiap kartu produk (max 3); `CompareFloatingBar` fixed bottom dengan slot thumbnail + counter + tombol Bandingkan; `CompareModal` Dialog side-by-side: harga (label "Termurah"), rating (label "Tertinggi"), stok, isi paket (bundle) + aksi "Beli Sekarang" + "Lihat Detail" per kolom; scoped ke toko aktif (tidak konflik dengan `/bandingkan`) | ✅ |
 | 14 Mei 2026 | Sprint 18 | **M-13 Preview Produk Digital** — `DigitalPreview` component di `toko.$slug.produk.$productId.tsx`; gambar preview dengan overlay watermark + ikon kunci + teks "Preview — Beli untuk akses penuh"; hanya tampil untuk `item_type='digital'` | ✅ |
 | 14 Mei 2026 | Sprint 18 | **M-16 Upload Dokumen KTP/SIM Booking Rental** — step "Dokumen" di wizard booking publik untuk kategori rental (T4); upload ke Supabase Storage bucket `booking-documents`; kolom `document_url` + `document_type` di tabel `bookings`; hanya tampil jika `shop.require_id_upload = true`; preview thumbnails + hapus + validasi ukuran 5MB | ✅ |
+| 14 Mei 2026 | Sprint 19 | **F-03 AI Generator Deskripsi Produk + Batch Generate** — backend `POST /api/ai/generate-description` via Google Gemini 1.5 Flash (gratis); tombol "✨ Buat dengan AI" per produk di form tambah/edit menu (nama + foto → deskripsi 2-3 kalimat + tag SEO chips klik-untuk-salin); **Batch Generate**: tombol "✨ Generate Massal (N)" di header halaman Menu menampilkan jumlah produk tanpa deskripsi, dialog konfirmasi + estimasi waktu + progress bar realtime + counter berhasil/gagal + tombol batalkan + delay 4 detik antar request (Gemini rate limit); panel Super Admin `/admin/ai-settings` — input API key masked + uji koneksi langsung ke Gemini + toggle aktif/nonaktif fitur untuk semua merchant + panduan setup; key disimpan di `platform_settings` tabel dengan key `ai_settings` | ✅ |
 
 ---
 
@@ -902,7 +903,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 |---|---|---|---|
 | F-01 | Group Buy / Patungan | 3 hari | ❌ |
 | F-02 | Subscription / Langganan Produk Rutin | 3 hari | ❌ |
-| F-03 | AI Generator Deskripsi Produk (foto → nama + deskripsi + tag) | 2 hari | ❌ |
+| F-03 | AI Generator Deskripsi Produk (foto → nama + deskripsi + tag) + **Batch Generate** | 2 hari | ✅ Selesai Sprint 19 |
 | F-04 | Pre-Order Mode | 2 hari | ✅ Selesai Sprint 13 |
 | F-05 | Custom Order Form | 2 hari | ✅ Selesai Sprint 13 |
 | F-06 | Affiliate Program per Toko | 3 hari | ❌ |

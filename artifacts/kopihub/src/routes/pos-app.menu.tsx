@@ -102,11 +102,21 @@ function MenuPage() {
   const [flashEnds, setFlashEnds] = useState<string>("");
   const [acceptsCustomOrder, setAcceptsCustomOrder] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
 
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiTags, setAiTags] = useState<string[]>([]);
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
+
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchTotal, setBatchTotal] = useState(0);
+  const [batchSuccess, setBatchSuccess] = useState(0);
+  const [batchErrors, setBatchErrors] = useState<string[]>([]);
+  const [batchDone, setBatchDone] = useState(false);
+  const [batchCurrentName, setBatchCurrentName] = useState("");
 
   async function load() {
     if (!shop) return;
@@ -238,6 +248,84 @@ function MenuPage() {
     });
   }
 
+  async function runBatchGenerate() {
+    const targets = items.filter((it) => !it.description?.trim());
+    if (targets.length === 0) return;
+    setBatchRunning(true);
+    setBatchProgress(0);
+    setBatchTotal(targets.length);
+    setBatchSuccess(0);
+    setBatchErrors([]);
+    setBatchDone(false);
+    batchAbortRef.current = false;
+
+    let successCount = 0;
+    const errorList: string[] = [];
+
+    for (let i = 0; i < targets.length; i++) {
+      if (batchAbortRef.current) break;
+
+      const item = targets[i];
+      setBatchCurrentName(item.name);
+      setBatchProgress(i + 1);
+
+      try {
+        const categoryName = categories.find((c) => c.id === item.category_id)?.name;
+        const res = await fetch("/api/ai/generate-description", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: item.name,
+            image_url: item.image_url ?? undefined,
+            category: categoryName,
+            price: item.price,
+          }),
+        });
+        const data = await res.json() as { description?: string; error?: string };
+        if (!res.ok) {
+          errorList.push(`${item.name}: ${data.error ?? "Gagal"}`);
+          setBatchErrors([...errorList]);
+        } else if (data.description) {
+          const { error } = await supabase
+            .from("menu_items")
+            .update({ description: data.description })
+            .eq("id", item.id);
+          if (error) {
+            errorList.push(`${item.name}: ${error.message}`);
+            setBatchErrors([...errorList]);
+          } else {
+            successCount++;
+            setBatchSuccess(successCount);
+          }
+        }
+      } catch {
+        errorList.push(`${item.name}: Kesalahan jaringan`);
+        setBatchErrors([...errorList]);
+      }
+
+      if (i < targets.length - 1 && !batchAbortRef.current) {
+        await new Promise<void>((r) => setTimeout(r, 4000));
+      }
+    }
+
+    setBatchRunning(false);
+    setBatchDone(true);
+    setBatchCurrentName("");
+    load();
+  }
+
+  function openBatch() {
+    const count = items.filter((it) => !it.description?.trim()).length;
+    if (count === 0) { toast.info("Semua produk sudah punya deskripsi."); return; }
+    setBatchDone(false);
+    setBatchProgress(0);
+    setBatchSuccess(0);
+    setBatchErrors([]);
+    setBatchCurrentName("");
+    batchAbortRef.current = false;
+    setBatchOpen(true);
+  }
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !shop) return;
@@ -322,6 +410,8 @@ function MenuPage() {
     return it.category_id === filter;
   });
 
+  const noDescCount = items.filter((it) => !it.description?.trim()).length;
+
   if (shopLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -370,6 +460,19 @@ function MenuPage() {
           >
             <Upload className="h-4 w-4" /> Import CSV
           </a>
+          {noDescCount > 0 && (
+            <button
+              type="button"
+              onClick={openBatch}
+              className="inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-900/50"
+            >
+              <Sparkles className="h-4 w-4" />
+              Generate Massal
+              <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold text-white">
+                {noDescCount}
+              </span>
+            </button>
+          )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNew}>
@@ -754,6 +857,107 @@ function MenuPage() {
           shopId={shop.id}
         />
       )}
+
+      <Dialog open={batchOpen} onOpenChange={(v) => {
+        if (batchRunning) return;
+        setBatchOpen(v);
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-violet-500" />
+              Generate Deskripsi Massal
+            </DialogTitle>
+          </DialogHeader>
+
+          {!batchRunning && !batchDone && (
+            <div className="space-y-4 py-1">
+              <div className="rounded-lg border border-violet-200 bg-violet-50/60 p-4 dark:border-violet-800 dark:bg-violet-950/30">
+                <p className="text-sm font-medium text-violet-800 dark:text-violet-200">
+                  {noDescCount} produk belum punya deskripsi
+                </p>
+                <p className="mt-1 text-xs text-violet-600/80 dark:text-violet-400">
+                  AI akan membuatkan deskripsi menarik + tag SEO untuk setiap produk secara otomatis. Deskripsi yang sudah ada tidak akan diubah.
+                </p>
+              </div>
+              <div className="rounded-md border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                <strong>Estimasi waktu:</strong> ~{Math.ceil(noDescCount * 4 / 60)} menit
+                ({noDescCount} produk × 4 detik/produk untuk menghindari batas rate Gemini)
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setBatchOpen(false)}>Batal</Button>
+                <Button onClick={runBatchGenerate} className="bg-violet-600 hover:bg-violet-700 text-white">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Mulai Generate
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {batchRunning && (
+            <div className="space-y-4 py-1">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Memproses…</span>
+                  <span className="font-medium tabular-nums">{batchProgress} / {batchTotal}</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-violet-500 transition-all duration-500"
+                    style={{ width: `${(batchProgress / batchTotal) * 100}%` }}
+                  />
+                </div>
+                {batchCurrentName && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    Sedang: <span className="font-medium text-foreground">{batchCurrentName}</span>
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="flex items-center gap-1.5 text-emerald-600">
+                  <Check className="h-4 w-4" /> {batchSuccess} berhasil
+                </span>
+                {batchErrors.length > 0 && (
+                  <span className="flex items-center gap-1.5 text-destructive">
+                    <X className="h-4 w-4" /> {batchErrors.length} gagal
+                  </span>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" size="sm" onClick={() => { batchAbortRef.current = true; }}
+                  className="text-muted-foreground">
+                  Batalkan
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {batchDone && (
+            <div className="space-y-4 py-1">
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                  Selesai!
+                </p>
+                <p className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-400">
+                  {batchSuccess} produk berhasil dibuatkan deskripsi.
+                  {batchErrors.length > 0 && ` ${batchErrors.length} produk gagal.`}
+                </p>
+              </div>
+              {batchErrors.length > 0 && (
+                <div className="max-h-32 overflow-y-auto rounded-md border border-destructive/20 bg-destructive/5 p-3 space-y-1">
+                  <p className="text-xs font-medium text-destructive mb-1">Produk yang gagal:</p>
+                  {batchErrors.map((e, i) => (
+                    <p key={i} className="text-[11px] text-muted-foreground">{e}</p>
+                  ))}
+                </div>
+              )}
+              <DialogFooter>
+                <Button onClick={() => setBatchOpen(false)}>Tutup</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
