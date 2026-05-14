@@ -633,7 +633,7 @@ function PODetailPage() {
                   {editMode ? (
                     <>
                       <Button variant="ghost" size="sm" onClick={() => { setEditMode(false); setEditItems(items); setEditNote(po.note ?? ""); }}>Batal</Button>
-                      <Button size="sm" onClick={saveDraftEdits} disabled={busy}>
+                      <Button size="sm" onClick={saveDraftEdits} disabled={busy || !editValid}>
                         {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
                         Simpan perubahan
                       </Button>
