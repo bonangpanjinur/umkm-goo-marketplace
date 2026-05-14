@@ -44,6 +44,7 @@ import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
 import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
+import { Route as PosAppStudioPhotoReviewsRouteImport } from './routes/pos-app.studio-photo-reviews'
 import { Route as PosAppStudioPackagesRouteImport } from './routes/pos-app.studio-packages'
 import { Route as PosAppStudioDeliveryRouteImport } from './routes/pos-app.studio-delivery'
 import { Route as PosAppStudioBriefRouteImport } from './routes/pos-app.studio-brief'
@@ -207,6 +208,7 @@ import { Route as AdminActivityRouteImport } from './routes/admin.activity'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
+import { Route as TokoSlugUlasanRouteImport } from './routes/toko.$slug.ulasan'
 import { Route as TokoSlugSaldoRouteImport } from './routes/toko.$slug.saldo'
 import { Route as TokoSlugReservasiRouteImport } from './routes/toko.$slug.reservasi'
 import { Route as TokoSlugMembershipRouteImport } from './routes/toko.$slug.membership'
@@ -413,6 +415,12 @@ const PosAppSuppliersRoute = PosAppSuppliersRouteImport.update({
   path: '/suppliers',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppStudioPhotoReviewsRoute =
+  PosAppStudioPhotoReviewsRouteImport.update({
+    id: '/studio-photo-reviews',
+    path: '/studio-photo-reviews',
+    getParentRoute: () => PosAppRoute,
+  } as any)
 const PosAppStudioPackagesRoute = PosAppStudioPackagesRouteImport.update({
   id: '/studio-packages',
   path: '/studio-packages',
@@ -1233,6 +1241,11 @@ const AkunPesananIndexRoute = AkunPesananIndexRouteImport.update({
   path: '/pesanan/',
   getParentRoute: () => AkunRoute,
 } as any)
+const TokoSlugUlasanRoute = TokoSlugUlasanRouteImport.update({
+  id: '/ulasan',
+  path: '/ulasan',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const TokoSlugSaldoRoute = TokoSlugSaldoRouteImport.update({
   id: '/saldo',
   path: '/saldo',
@@ -1562,6 +1575,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
+  '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -1607,6 +1621,7 @@ export interface FileRoutesByFullPath {
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
   '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
   '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
+  '/toko/$slug/ulasan': typeof TokoSlugUlasanRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
@@ -1788,6 +1803,7 @@ export interface FileRoutesByTo {
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
+  '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -1832,6 +1848,7 @@ export interface FileRoutesByTo {
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
   '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
   '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
+  '/toko/$slug/ulasan': typeof TokoSlugUlasanRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
@@ -2018,6 +2035,7 @@ export interface FileRoutesById {
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
+  '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -2063,6 +2081,7 @@ export interface FileRoutesById {
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
   '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
   '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
+  '/toko/$slug/ulasan': typeof TokoSlugUlasanRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
@@ -2250,6 +2269,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
     | '/pos-app/studio-packages'
+    | '/pos-app/studio-photo-reviews'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -2295,6 +2315,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/membership'
     | '/toko/$slug/reservasi'
     | '/toko/$slug/saldo'
+    | '/toko/$slug/ulasan'
     | '/akun/pesanan/'
     | '/order/$slug/'
     | '/s/$slug/'
@@ -2476,6 +2497,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
     | '/pos-app/studio-packages'
+    | '/pos-app/studio-photo-reviews'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -2520,6 +2542,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/membership'
     | '/toko/$slug/reservasi'
     | '/toko/$slug/saldo'
+    | '/toko/$slug/ulasan'
     | '/akun/pesanan'
     | '/order/$slug'
     | '/s/$slug'
@@ -2705,6 +2728,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
     | '/pos-app/studio-packages'
+    | '/pos-app/studio-photo-reviews'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -2750,6 +2774,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/membership'
     | '/toko/$slug/reservasi'
     | '/toko/$slug/saldo'
+    | '/toko/$slug/ulasan'
     | '/akun/pesanan/'
     | '/order/$slug/'
     | '/s/$slug/'
@@ -3034,6 +3059,13 @@ declare module '@tanstack/react-router' {
       path: '/suppliers'
       fullPath: '/pos-app/suppliers'
       preLoaderRoute: typeof PosAppSuppliersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/studio-photo-reviews': {
+      id: '/pos-app/studio-photo-reviews'
+      path: '/studio-photo-reviews'
+      fullPath: '/pos-app/studio-photo-reviews'
+      preLoaderRoute: typeof PosAppStudioPhotoReviewsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/studio-packages': {
@@ -4177,6 +4209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunPesananIndexRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/toko/$slug/ulasan': {
+      id: '/toko/$slug/ulasan'
+      path: '/ulasan'
+      fullPath: '/toko/$slug/ulasan'
+      preLoaderRoute: typeof TokoSlugUlasanRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/toko/$slug/saldo': {
       id: '/toko/$slug/saldo'
       path: '/saldo'
@@ -4739,6 +4778,7 @@ interface PosAppRouteChildren {
   PosAppStudioBriefRoute: typeof PosAppStudioBriefRoute
   PosAppStudioDeliveryRoute: typeof PosAppStudioDeliveryRoute
   PosAppStudioPackagesRoute: typeof PosAppStudioPackagesRoute
+  PosAppStudioPhotoReviewsRoute: typeof PosAppStudioPhotoReviewsRoute
   PosAppSuppliersRoute: typeof PosAppSuppliersRoute
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTableQrRoute: typeof PosAppTableQrRoute
@@ -4846,6 +4886,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppStudioBriefRoute: PosAppStudioBriefRoute,
   PosAppStudioDeliveryRoute: PosAppStudioDeliveryRoute,
   PosAppStudioPackagesRoute: PosAppStudioPackagesRoute,
+  PosAppStudioPhotoReviewsRoute: PosAppStudioPhotoReviewsRoute,
   PosAppSuppliersRoute: PosAppSuppliersRoute,
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTableQrRoute: PosAppTableQrRoute,
@@ -4936,6 +4977,7 @@ interface TokoSlugRouteChildren {
   TokoSlugMembershipRoute: typeof TokoSlugMembershipRoute
   TokoSlugReservasiRoute: typeof TokoSlugReservasiRoute
   TokoSlugSaldoRoute: typeof TokoSlugSaldoRoute
+  TokoSlugUlasanRoute: typeof TokoSlugUlasanRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
 
@@ -4947,6 +4989,7 @@ const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugMembershipRoute: TokoSlugMembershipRoute,
   TokoSlugReservasiRoute: TokoSlugReservasiRoute,
   TokoSlugSaldoRoute: TokoSlugSaldoRoute,
+  TokoSlugUlasanRoute: TokoSlugUlasanRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }
 

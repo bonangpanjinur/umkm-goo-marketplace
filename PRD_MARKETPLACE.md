@@ -1191,7 +1191,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | SF-06 | Deposit wajib saat booking | ✅ (manual) · ❌ gateway (P3) | — |
 | SF-07 | Brief form sebelum sesi | ✅ `pos-app.studio-brief.tsx` — kirim link, klien isi mood/outfit/referensi | — |
 | SF-08 | Add-on saat booking (editing ekstra, album, dll.) | ❌ Belum dibangun | SEDANG |
-| SF-09 | Review dengan foto hasil karya (klien upload) | ❌ Belum dibangun | TINGGI |
+| SF-09 | Review dengan foto hasil karya (klien upload) | ✅ `pos-app.studio-photo-reviews.tsx` · `toko.$slug.ulasan.tsx` · `StudioPhotoReviewsGallery` di halaman toko | — |
 
 ### 6.6 Fashion & Pakaian (Tipe 1 + Tipe 5)
 

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, UtensilsCrossed } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, UtensilsCrossed, Star } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useSeo } from "@/lib/use-seo";
@@ -114,6 +114,171 @@ function PortfolioGallery({ shopId }: { shopId: string }) {
           <button className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" onClick={e => { e.stopPropagation(); next(); }}>
             <ChevronRight className="h-5 w-5" />
           </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ── Studio Photo Reviews Gallery ─────────────────────────────────────────────
+type StudioPhotoReview = {
+  id: string;
+  client_name: string;
+  session_date: string | null;
+  package_name: string | null;
+  rating: number;
+  comment: string | null;
+  photos: string[];
+  shop_reply: string | null;
+  created_at: string;
+};
+
+function StudioPhotoReviewsGallery({ shopId }: { shopId: string }) {
+  const [reviews, setReviews] = useState<StudioPhotoReview[]>([]);
+  const [loaded, setLoaded]   = useState(false);
+  const [lightbox, setLightbox] = useState<{ urls: string[]; idx: number } | null>(null);
+
+  useEffect(() => {
+    if (!shopId) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("studio_photo_reviews")
+        .select("id, client_name, session_date, package_name, rating, comment, photos, shop_reply, created_at")
+        .eq("shop_id", shopId)
+        .eq("is_hidden", false)
+        .neq("photos", "{}")
+        .order("created_at", { ascending: false })
+        .limit(30);
+      const rows = ((data ?? []) as StudioPhotoReview[]).filter(r => r.photos && r.photos.length > 0);
+      setReviews(rows);
+      setLoaded(true);
+    })();
+  }, [shopId]);
+
+  if (!loaded || reviews.length === 0) return null;
+
+  const allPhotos = reviews.flatMap(r => r.photos.map(url => ({ url, review: r })));
+  const avgRating = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-8 border-b border-border">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+          <h2 className="text-xl font-bold tracking-tight">Ulasan &amp; Foto Klien</h2>
+          <span className="rounded-full bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-0.5">
+            ★ {avgRating.toFixed(1)} · {reviews.length} ulasan
+          </span>
+        </div>
+      </div>
+
+      {/* Photo masonry grid */}
+      <div className="columns-2 sm:columns-3 md:columns-4 gap-2 space-y-2 mb-6">
+        {allPhotos.slice(0, 20).map(({ url, review }, idx) => (
+          <button
+            key={`${review.id}-${idx}`}
+            className="group relative block w-full overflow-hidden rounded-xl border border-border hover:border-primary/50 transition-all break-inside-avoid"
+            onClick={() => {
+              const reviewPhotos = review.photos;
+              const photoIdx = reviewPhotos.indexOf(url);
+              setLightbox({ urls: reviewPhotos, idx: photoIdx >= 0 ? photoIdx : 0 });
+            }}
+          >
+            <img
+              src={url}
+              alt={`Karya ${review.client_name}`}
+              className="w-full object-cover group-hover:scale-105 transition-transform duration-200"
+              onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1">
+                {[1,2,3,4,5].map(n => (
+                  <Star key={n} className={`h-2.5 w-2.5 ${n <= review.rating ? "fill-amber-400 text-amber-400" : "text-white/30"}`} />
+                ))}
+              </div>
+              <p className="text-[10px] text-white/80 mt-0.5">{review.client_name}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Review cards */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {reviews.slice(0, 6).map(r => (
+          <div key={r.id} className="rounded-xl border bg-card p-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs shrink-0">
+                  {r.client_name[0]?.toUpperCase()}
+                </div>
+                <span className="font-medium text-sm">{r.client_name}</span>
+              </div>
+              <div className="flex gap-0.5 shrink-0">
+                {[1,2,3,4,5].map(n => (
+                  <Star key={n} className={`h-3 w-3 ${n <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/25"}`} />
+                ))}
+              </div>
+            </div>
+            {r.package_name && (
+              <span className="inline-block text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">{r.package_name}</span>
+            )}
+            {r.comment && (
+              <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">"{r.comment}"</p>
+            )}
+            {r.shop_reply && (
+              <div className="rounded-lg bg-muted/40 px-3 py-2 text-xs text-foreground/70">
+                <span className="font-semibold text-primary">Toko: </span>{r.shop_reply}
+              </div>
+            )}
+            {r.photos.length > 0 && (
+              <div className="flex gap-1">
+                {r.photos.slice(0, 4).map((url, i) => (
+                  <button
+                    key={i}
+                    className="h-10 w-10 shrink-0 overflow-hidden rounded-md border border-border hover:border-primary/50 transition-colors"
+                    onClick={() => setLightbox({ urls: r.photos, idx: i })}
+                  >
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+                {r.photos.length > 4 && (
+                  <div className="h-10 w-10 shrink-0 rounded-md bg-muted/60 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                    +{r.photos.length - 4}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20" onClick={() => setLightbox(null)}>
+            <X className="h-5 w-5" />
+          </button>
+          {lightbox.urls.length > 1 && (
+            <>
+              <button
+                className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+                onClick={e => { e.stopPropagation(); setLightbox(p => p ? { ...p, idx: (p.idx - 1 + p.urls.length) % p.urls.length } : null); }}
+              ><ChevronLeft className="h-5 w-5" /></button>
+              <button
+                className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+                onClick={e => { e.stopPropagation(); setLightbox(p => p ? { ...p, idx: (p.idx + 1) % p.urls.length } : null); }}
+              ><ChevronRight className="h-5 w-5" /></button>
+            </>
+          )}
+          <div className="max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+            <img src={lightbox.urls[lightbox.idx]} alt="" className="w-full max-h-[80vh] object-contain rounded-xl" />
+            {lightbox.urls.length > 1 && (
+              <p className="mt-2 text-center text-xs text-white/50">{lightbox.idx + 1} / {lightbox.urls.length}</p>
+            )}
+          </div>
         </div>
       )}
     </section>
@@ -411,6 +576,8 @@ function ShopPage() {
       </section>
 
       <PortfolioGallery shopId={shop?.id ?? ""} />
+
+      <StudioPhotoReviewsGallery shopId={shop?.id ?? ""} />
 
       <ProductsSection
         loading={loading}
