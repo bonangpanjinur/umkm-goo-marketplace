@@ -80,10 +80,33 @@ function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // Manual add
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualRole, setManualRole] = useState("cashier");
+  const [manualOutletId, setManualOutletId] = useState<string>("");
+  const [manualPhone, setManualPhone] = useState("");
+  const [manualAvatar, setManualAvatar] = useState("");
+  const [manualSaving, setManualSaving] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+
   async function load() {
     if (!shop) return;
     setLoading(true);
-    const [r, i, o] = await Promise.all([
+    const [r, i, o, s] = await Promise.all([
+      supabase.from("user_roles").select("id, user_id, role, outlet_id").eq("shop_id", shop.id),
+      supabase
+        .from("staff_invitations")
+        .select("id, email, role, token, expires_at, accepted_at, created_at")
+        .eq("shop_id", shop.id)
+        .order("created_at", { ascending: false }),
+      supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
+      supabase
+        .from("staff_members")
+        .select("id, name, role, outlet_id, phone, avatar_url, created_at")
+        .eq("shop_id", shop.id)
+        .order("created_at", { ascending: false }),
+    ]);
       supabase.from("user_roles").select("id, user_id, role, outlet_id").eq("shop_id", shop.id),
       supabase
         .from("staff_invitations")
