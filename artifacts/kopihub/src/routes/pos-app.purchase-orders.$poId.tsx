@@ -309,51 +309,171 @@ function PODetailPage() {
     const { data: poData, error } = await supabase.from("purchase_orders").select("*").eq("id", poId).single();
     if (error || !poData) { toast.error(error?.message ?? "PO tidak ditemukan"); setLoading(false); return; }
     setPo(poData as PO);
-    const [itRes, ingRes, supRes, shopRes] = await Promise.all([
+    const [itRes, ingRes, supRes, shopRes, auditRes] = await Promise.all([
       supabase.from("purchase_order_items").select("*").eq("po_id", poId),
-      supabase.from("ingredients").select("id, name, unit").eq("shop_id", poData.shop_id),
+      supabase.from("ingredients").select("id, name, unit, current_stock, cost_per_unit").eq("shop_id", poData.shop_id),
       poData.supplier_id
         ? supabase.from("suppliers").select("id, name, phone, contact_name, address, email").eq("id", poData.supplier_id).single()
         : Promise.resolve({ data: null }),
       supabase.from("coffee_shops").select("id, name, address, phone, email, logo_url").eq("id", poData.shop_id).single(),
+      supabase.from("po_audit_log").select("id, action, from_status, to_status, reason, actor_name, created_at").eq("po_id", poId).order("created_at", { ascending: false }),
     ]);
-    setItems((itRes.data ?? []) as POItem[]);
+    const itList = (itRes.data ?? []) as POItem[];
+    setItems(itList);
+    setEditItems(itList);
+    setEditNote((poData as PO).note ?? "");
     const map: Record<string, Ingredient> = {};
     ((ingRes.data ?? []) as Ingredient[]).forEach((i) => { map[i.id] = i; });
     setIngMap(map);
     setSupplier((supRes as { data: Supplier | null }).data ?? null);
     setShop((shopRes as { data: Shop | null }).data ?? null);
+    setAudit((auditRes.data ?? []) as AuditEntry[]);
     setLoading(false);
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [poId]);
 
-  async function setStatus(status: PO["status"]) {
+  async function logAudit(action: string, fromStatus: PO["status"] | null, toStatus: PO["status"] | null, reason: string | null) {
+    if (!po) return;
+    const { data: auth } = await supabase.auth.getUser();
+    await supabase.from("po_audit_log").insert({
+      po_id: po.id,
+      shop_id: po.shop_id,
+      action,
+      from_status: fromStatus,
+      to_status: toStatus,
+      reason,
+      actor_id: auth.user?.id ?? null,
+      actor_name: auth.user?.email ?? null,
+    });
+  }
+
+  async function setStatus(status: PO["status"], reason: string | null = null) {
     if (!po) return;
     setBusy(true);
+    const fromStatus = po.status;
     const { error } = await supabase.from("purchase_orders").update({ status }).eq("id", po.id);
-    if (error) toast.error(error.message); else { toast.success("Status diperbarui"); load(); }
+    if (error) { toast.error(error.message); setBusy(false); return; }
+    await logAudit("status_change", fromStatus, status, reason);
+    toast.success("Status diperbarui");
+    await load();
     setBusy(false);
   }
 
-  async function receivePO() {
+  async function confirmCancel() {
+    if (!cancelReason.trim()) { toast.error("Alasan pembatalan wajib diisi"); return; }
+    await setStatus("cancelled", cancelReason.trim());
+    setCancelOpen(false);
+    setCancelReason("");
+  }
+
+  async function confirmReceive() {
     if (!po) return;
-    if (!confirm(`Terima PO ${formatPONo(po.po_no)}? Stok akan otomatis bertambah dan HPP akan di-update.`)) return;
     setBusy(true);
+    const fromStatus = po.status;
     const { error } = await supabase.rpc("receive_purchase_order", { _po_id: po.id });
-    if (error) toast.error(error.message); else { toast.success("PO diterima — stok diperbarui"); load(); }
+    if (error) { toast.error(error.message); setBusy(false); return; }
+    await logAudit("received", fromStatus, "received", null);
+    toast.success("PO diterima — stok & HPP diperbarui");
+    setReceiveOpen(false);
+    await load();
     setBusy(false);
   }
 
-  async function deletePO() {
+  async function confirmDelete() {
     if (!po) return;
-    if (!confirm(`Hapus PO ${formatPONo(po.po_no)}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!deleteReason.trim()) { toast.error("Alasan penghapusan wajib diisi"); return; }
     setBusy(true);
+    await logAudit("deleted", po.status, null, deleteReason.trim());
     await supabase.from("purchase_order_items").delete().eq("po_id", po.id);
     const { error } = await supabase.from("purchase_orders").delete().eq("id", po.id);
-    if (error) { toast.error(error.message); setBusy(false); }
-    else { toast.success("PO dihapus"); nav({ to: "/pos-app/purchase-orders" }); }
+    if (error) { toast.error(error.message); setBusy(false); return; }
+    toast.success("PO dihapus");
+    nav({ to: "/pos-app/purchase-orders" });
   }
+
+  // Draft editing helpers
+  function updateEditItem(id: string, patch: Partial<POItem>) {
+    setEditItems((arr) => arr.map((it) => {
+      if (it.id !== id) return it;
+      const merged = { ...it, ...patch };
+      const qty = Number(merged.quantity) || 0;
+      const cost = Number(merged.unit_cost) || 0;
+      return { ...merged, subtotal: qty * cost };
+    }));
+  }
+  function removeEditItem(id: string) {
+    setEditItems((arr) => arr.filter((it) => it.id !== id));
+  }
+  const editSubtotal = useMemo(() => editItems.reduce((s, it) => s + Number(it.subtotal || 0), 0), [editItems]);
+  const editTotal = editSubtotal + Number(po?.tax ?? 0);
+
+  async function saveDraftEdits() {
+    if (!po) return;
+    setBusy(true);
+    // Update each existing item
+    const original = new Map(items.map((it) => [it.id, it]));
+    const ops: Promise<unknown>[] = [];
+    for (const it of editItems) {
+      const orig = original.get(it.id);
+      if (!orig) continue;
+      if (orig.quantity !== it.quantity || orig.unit_cost !== it.unit_cost || orig.subtotal !== it.subtotal) {
+        ops.push(
+          supabase.from("purchase_order_items")
+            .update({ quantity: it.quantity, unit_cost: it.unit_cost, subtotal: it.subtotal })
+            .eq("id", it.id),
+        );
+      }
+    }
+    // Deletes
+    const remainingIds = new Set(editItems.map((it) => it.id));
+    for (const orig of items) {
+      if (!remainingIds.has(orig.id)) {
+        ops.push(supabase.from("purchase_order_items").delete().eq("id", orig.id));
+      }
+    }
+    // Update PO totals + note
+    ops.push(
+      supabase.from("purchase_orders")
+        .update({ subtotal: editSubtotal, total: editTotal, note: editNote || null })
+        .eq("id", po.id),
+    );
+    const results = await Promise.all(ops);
+    const firstError = results.find((r): r is { error: { message: string } } =>
+      typeof r === "object" && r !== null && "error" in r && (r as { error: unknown }).error != null,
+    );
+    if (firstError) { toast.error(firstError.error.message); setBusy(false); return; }
+    await logAudit("draft_edited", po.status, po.status, null);
+    toast.success("Perubahan draft disimpan");
+    setEditMode(false);
+    await load();
+    setBusy(false);
+  }
+
+  // Stock preview for receive modal
+  const stockPreview = useMemo(() => {
+    return items.map((it) => {
+      const ig = ingMap[it.ingredient_id];
+      const currentStock = Number(ig?.current_stock ?? 0);
+      const currentCost = Number(ig?.cost_per_unit ?? 0);
+      const qty = Number(it.quantity);
+      const newStock = currentStock + qty;
+      // Weighted average HPP
+      const newCost = newStock > 0
+        ? ((currentStock * currentCost) + (qty * Number(it.unit_cost))) / newStock
+        : Number(it.unit_cost);
+      return {
+        id: it.id,
+        name: ig?.name ?? "—",
+        unit: ig?.unit ?? "",
+        currentStock,
+        addQty: qty,
+        newStock,
+        currentCost,
+        newCost,
+      };
+    });
+  }, [items, ingMap]);
 
   // Compute fit-to-page zoom: scale paper width to fit available preview area.
   const previewMaxPx = 760; // approximate inner dialog width budget
