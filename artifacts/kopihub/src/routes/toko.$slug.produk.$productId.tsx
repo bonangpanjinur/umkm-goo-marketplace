@@ -485,7 +485,7 @@ function ProductDetailPage() {
 
               {/* FA-07: Restock notification */}
               {product.track_stock && product.stock !== null && product.stock <= 0 && (
-                <StockAlertSection productId={product.id} productName={product.name} />
+                <StockAlertSection productId={product.id} productName={product.name} shopId={product.shop_id} />
               )}
 
               {/* P-09: Ingredient list & BPOM */}
@@ -628,24 +628,36 @@ function saveStockAlerts(d: Record<string, { productName: string; contact: strin
   try { localStorage.setItem(STOCK_ALERTS_KEY, JSON.stringify(d)); } catch {}
 }
 
-function StockAlertSection({ productId, productName }: { productId: string; productName: string }) {
+function StockAlertSection({ productId, productName, shopId }: { productId: string; productName: string; shopId: string }) {
   const [subscribed, setSubscribed] = useState(false);
   const [contact, setContact] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const alerts = getStockAlerts();
     if (alerts[productId]) { setSubscribed(true); setContact(alerts[productId].contact); }
   }, [productId]);
 
-  const subscribe = () => {
+  const subscribe = async () => {
     const wa = contact.trim().replace(/\D/g, "");
     if (wa.length < 8) { toast.error("Masukkan nomor WhatsApp yang valid"); return; }
+    setBusy(true);
     const alerts = getStockAlerts();
     alerts[productId] = { productName, contact: contact.trim(), subscribedAt: new Date().toISOString() };
     saveStockAlerts(alerts);
+    try {
+      await (supabase as any)
+        .from("restock_subscribers")
+        .upsert(
+          { shop_id: shopId, product_id: productId, product_name: productName, customer_wa: wa },
+          { onConflict: "product_id,customer_wa" }
+        );
+    } catch {
+    }
     setSubscribed(true);
     setShowForm(false);
+    setBusy(false);
     toast.success("Siap! Kamu akan mendapat notifikasi saat stok tersedia kembali.");
   };
 
@@ -685,7 +697,7 @@ function StockAlertSection({ productId, productName }: { productId: string; prod
             placeholder="Nomor WhatsApp (08xxx)"
             className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm"
           />
-          <Button size="sm" onClick={subscribe}>Beritahu Saya</Button>
+          <Button size="sm" onClick={subscribe} disabled={busy}>{busy ? "Menyimpan..." : "Beritahu Saya"}</Button>
           <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>Batal</Button>
         </div>
       ) : (

@@ -49,6 +49,7 @@ import { Route as PosAppShiftsRouteImport } from './routes/pos-app.shifts'
 import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
+import { Route as PosAppRestockNotifyRouteImport } from './routes/pos-app.restock-notify'
 import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
 import { Route as PosAppRentalChecklistRouteImport } from './routes/pos-app.rental-checklist'
 import { Route as PosAppRentalAvailabilityRouteImport } from './routes/pos-app.rental-availability'
@@ -396,6 +397,11 @@ const PosAppScheduleRoute = PosAppScheduleRouteImport.update({
 const PosAppReviewsRoute = PosAppReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppRestockNotifyRoute = PosAppRestockNotifyRouteImport.update({
+  id: '/restock-notify',
+  path: '/restock-notify',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppReportsRoute = PosAppReportsRouteImport.update({
@@ -1276,6 +1282,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
@@ -1462,6 +1469,7 @@ export interface FileRoutesByTo {
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
@@ -1652,6 +1660,7 @@ export interface FileRoutesById {
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
@@ -1844,6 +1853,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-availability'
     | '/pos-app/rental-checklist'
     | '/pos-app/reports'
+    | '/pos-app/restock-notify'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
     | '/pos-app/settings'
@@ -2030,6 +2040,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-availability'
     | '/pos-app/rental-checklist'
     | '/pos-app/reports'
+    | '/pos-app/restock-notify'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
     | '/pos-app/settings'
@@ -2219,6 +2230,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-availability'
     | '/pos-app/rental-checklist'
     | '/pos-app/reports'
+    | '/pos-app/restock-notify'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
     | '/pos-app/settings'
@@ -2587,6 +2599,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/pos-app/reviews'
       preLoaderRoute: typeof PosAppReviewsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/restock-notify': {
+      id: '/pos-app/restock-notify'
+      path: '/restock-notify'
+      fullPath: '/pos-app/restock-notify'
+      preLoaderRoute: typeof PosAppRestockNotifyRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/reports': {
@@ -3920,6 +3939,7 @@ interface PosAppRouteChildren {
   PosAppRentalAvailabilityRoute: typeof PosAppRentalAvailabilityRoute
   PosAppRentalChecklistRoute: typeof PosAppRentalChecklistRoute
   PosAppReportsRoute: typeof PosAppReportsRouteWithChildren
+  PosAppRestockNotifyRoute: typeof PosAppRestockNotifyRoute
   PosAppReviewsRoute: typeof PosAppReviewsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
   PosAppSettingsRoute: typeof PosAppSettingsRoute
@@ -4001,6 +4021,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppRentalAvailabilityRoute: PosAppRentalAvailabilityRoute,
   PosAppRentalChecklistRoute: PosAppRentalChecklistRoute,
   PosAppReportsRoute: PosAppReportsRouteWithChildren,
+  PosAppRestockNotifyRoute: PosAppRestockNotifyRoute,
   PosAppReviewsRoute: PosAppReviewsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
   PosAppSettingsRoute: PosAppSettingsRoute,
