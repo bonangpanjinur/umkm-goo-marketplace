@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, ArrowLeft, CheckCircle2, X, Trash2, Send, Printer, Eye, Save, Settings2,
-  History, Pencil, Plus, AlertCircle, FileText, Package, TrendingUp, ArrowRight, Info,
+  History, Pencil, AlertCircle, FileText, Package, TrendingUp, ArrowRight, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
