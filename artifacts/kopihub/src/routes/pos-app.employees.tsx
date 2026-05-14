@@ -1553,6 +1553,84 @@ function EmployeesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Edit login member */}
+      <Dialog open={!!loginEdit} onOpenChange={(o) => !o && setLoginEdit(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit pegawai login · {loginEdit?.profile?.display_name ?? "—"}</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Peran</Label>
+                <Select value={loginEditRole} onValueChange={setLoginEditRole}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Outlet</Label>
+                <Select value={loginEditOutlet || "_none"} onValueChange={(v) => setLoginEditOutlet(v === "_none" ? "" : v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Semua outlet</SelectItem>
+                    {outlets.map((o) => (<SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={loginEditActive} onChange={(e) => setLoginEditActive(e.target.checked)} className="h-4 w-4 accent-primary" />
+              Akses aktif (bisa login & muncul di Jadwal)
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLoginEdit(null)}>Batal</Button>
+            <Button onClick={saveLoginEdit} disabled={loginEditSaving}>
+              {loginEditSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promote manual → login */}
+      <Dialog open={!!promoteTarget} onOpenChange={(o) => !o && setPromoteTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Aktifkan akun login · {promoteTarget?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input type="email" value={promoteEmail} onChange={(e) => setPromoteEmail(e.target.value)} placeholder="pegawai@toko.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Kata sandi awal</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    type={promoteShowPw ? "text" : "password"}
+                    value={promotePassword}
+                    onChange={(e) => setPromotePassword(e.target.value)}
+                    className="pr-9"
+                  />
+                  <button type="button" onClick={() => setPromoteShowPw((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {promoteShowPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setPromotePassword(genPassword(10)); setPromoteShowPw(true); }}>Generate</Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Kredensial otomatis disalin setelah dibuat.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPromoteTarget(null)}>Batal</Button>
+            <Button onClick={doPromote} disabled={promoteSaving}>
+              {promoteSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Buat akun login
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
