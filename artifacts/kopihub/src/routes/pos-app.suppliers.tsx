@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, Truck, Building2, User, Phone, Mail, MapPin, StickyNote, Clock, CreditCard, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Truck, Building2, User, Phone, Mail, MapPin, StickyNote, Clock, CreditCard, AlertCircle, CheckCircle2, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/suppliers")({ component: SuppliersPage });
@@ -20,13 +20,44 @@ type Supplier = {
   lead_time_days: number; payment_terms: string | null;
 };
 
+type FormState = {
+  name: string; contact_name: string; phone: string; email: string;
+  address: string; note: string; lead_time_days: string; payment_terms: string;
+};
+
+const EMPTY_FORM: FormState = { name: "", contact_name: "", phone: "", email: "", address: "", note: "", lead_time_days: "0", payment_terms: "" };
+
+// Normalisasi nomor telepon Indonesia: hilangkan non-digit, +62/62 → 0
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, "").replace(/^\+?62/, "0").replace(/\D/g, "");
+  return digits;
+}
+// Format tampilan 08xx-xxxx-xxxx (atau xxxx-xxxx-xxxx untuk angka apapun)
+function formatPhone(raw: string): string {
+  const d = normalizePhone(raw);
+  if (!d) return "";
+  if (d.length <= 4) return d;
+  if (d.length <= 8) return `${d.slice(0, 4)}-${d.slice(4)}`;
+  if (d.length <= 12) return `${d.slice(0, 4)}-${d.slice(4, 8)}-${d.slice(8)}`;
+  return `${d.slice(0, 4)}-${d.slice(4, 8)}-${d.slice(8, 12)}-${d.slice(12, 16)}`;
+}
+function isValidPhone(formatted: string): boolean {
+  const d = normalizePhone(formatted);
+  return d.length >= 9 && d.length <= 15 && d.startsWith("0");
+}
+function isValidEmail(s: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
 function SuppliersPage() {
+  const nav = useNavigate();
   const { shop, loading: shopLoading } = useCurrentShop();
   const [items, setItems] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
-  const [form, setForm] = useState({ name: "", contact_name: "", phone: "", email: "", address: "", note: "", lead_time_days: "0", payment_terms: "" });
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [initialForm, setInitialForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
   async function load() {
@@ -40,41 +71,108 @@ function SuppliersPage() {
   }
   useEffect(() => { if (shop) load(); /* eslint-disable-next-line */ }, [shop?.id]);
 
+  const isDirty = useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(initialForm),
+    [form, initialForm]
+  );
+
+  // Deteksi duplikat (selain supplier yang sedang diedit)
+  const duplicates = useMemo(() => {
+    const phoneNorm = normalizePhone(form.phone);
+    const emailNorm = form.email.trim().toLowerCase();
+    const dups: { supplier: Supplier; reason: "email" | "phone" | "both" }[] = [];
+    for (const s of items) {
+      if (editing && s.id === editing.id) continue;
+      const sameEmail = !!emailNorm && (s.email ?? "").trim().toLowerCase() === emailNorm;
+      const samePhone = !!phoneNorm && normalizePhone(s.phone ?? "") === phoneNorm;
+      if (sameEmail || samePhone) {
+        dups.push({ supplier: s, reason: sameEmail && samePhone ? "both" : sameEmail ? "email" : "phone" });
+      }
+    }
+    return dups;
+  }, [form.email, form.phone, items, editing]);
+
   function openNew() {
     setEditing(null);
-    setForm({ name: "", contact_name: "", phone: "", email: "", address: "", note: "", lead_time_days: "0", payment_terms: "" });
+    setForm(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
     setOpen(true);
   }
   function openEdit(s: Supplier) {
     setEditing(s);
-    setForm({
-      name: s.name, contact_name: s.contact_name ?? "", phone: s.phone ?? "",
+    const f: FormState = {
+      name: s.name, contact_name: s.contact_name ?? "",
+      phone: formatPhone(s.phone ?? ""),
       email: s.email ?? "", address: s.address ?? "", note: s.note ?? "",
       lead_time_days: String(s.lead_time_days ?? 0),
       payment_terms: s.payment_terms ?? "",
-    });
+    };
+    setForm(f);
+    setInitialForm(f);
     setOpen(true);
   }
+
+  function handleOpenChange(next: boolean) {
+    if (!next && isDirty && !saving) {
+      if (!confirm("Ada perubahan yang belum disimpan. Tutup tanpa menyimpan?")) return;
+    }
+    setOpen(next);
+  }
+
   async function save() {
     if (!shop || !form.name.trim()) return;
+    if (form.email && !isValidEmail(form.email)) {
+      toast.error("Format email tidak valid");
+      return;
+    }
+    if (form.phone && !isValidPhone(form.phone)) {
+      toast.error("Nomor telepon tidak valid (gunakan format 08xx…)");
+      return;
+    }
+    if (duplicates.length > 0) {
+      const reasons = duplicates.map((d) => `• ${d.supplier.name} (${d.reason === "both" ? "email & telepon" : d.reason === "email" ? "email" : "telepon"} sama)`).join("\n");
+      if (!confirm(`Terdeteksi kemungkinan duplikat:\n\n${reasons}\n\nLanjut simpan?`)) return;
+    }
+
     setSaving(true);
     const lt = Math.max(0, Math.floor(Number(form.lead_time_days) || 0));
+    const phoneNorm = normalizePhone(form.phone);
     const payload = {
       shop_id: shop.id, name: form.name.trim(),
       contact_name: form.contact_name.trim() || null,
-      phone: form.phone.trim() || null,
+      phone: phoneNorm || null,
       email: form.email.trim() || null,
       address: form.address.trim() || null,
       note: form.note.trim() || null,
       lead_time_days: lt,
       payment_terms: form.payment_terms.trim() || null,
     };
-    const { error } = editing
-      ? await supabase.from("suppliers").update(payload).eq("id", editing.id)
-      : await supabase.from("suppliers").insert(payload);
-    if (error) toast.error(error.message);
-    else { toast.success(editing ? "Supplier diperbarui" : "Supplier ditambahkan"); setOpen(false); load(); }
+    const { data: saved, error } = editing
+      ? await supabase.from("suppliers").update(payload).eq("id", editing.id).select("id, name").single()
+      : await supabase.from("suppliers").insert(payload).select("id, name").single();
+    if (error) {
+      toast.error(error.message);
+      setSaving(false);
+      return;
+    }
+    const isNew = !editing;
+    setInitialForm(form); // reset dirty
+    setOpen(false);
     setSaving(false);
+    load();
+
+    if (isNew && saved) {
+      toast.success(`Supplier "${saved.name}" ditambahkan`, {
+        description: "Lanjutkan dengan membuat Purchase Order?",
+        action: {
+          label: "Buat PO",
+          onClick: () => nav({ to: "/pos-app/purchase-orders" }),
+        },
+        duration: 8000,
+      });
+    } else {
+      toast.success("Supplier diperbarui");
+    }
   }
   async function remove(s: Supplier) {
     if (!confirm(`Nonaktifkan supplier "${s.name}"?`)) return;
@@ -84,6 +182,9 @@ function SuppliersPage() {
 
   if (shopLoading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
 
+  const phoneInvalid = form.phone.length > 0 && !isValidPhone(form.phone);
+  const emailInvalid = form.email.length > 0 && !isValidEmail(form.email);
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -91,7 +192,7 @@ function SuppliersPage() {
           <h1 className="text-2xl font-bold tracking-tight">Supplier</h1>
           <p className="mt-1 text-sm text-muted-foreground">Kelola daftar pemasok bahan baku.</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
             <Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> Supplier baru</Button>
           </DialogTrigger>
@@ -153,26 +254,54 @@ function SuppliersPage() {
                     <Label htmlFor="sup-phone" className="text-xs">Telepon / WhatsApp</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
-                      <Input id="sup-phone" className="pl-9" value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        placeholder="08xx-xxxx-xxxx" inputMode="tel" />
+                      <Input id="sup-phone"
+                        className={`pl-9 ${phoneInvalid ? "border-destructive" : ""}`}
+                        value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
+                        onBlur={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
+                        placeholder="0812-3456-7890" inputMode="tel" />
                     </div>
+                    {phoneInvalid && (
+                      <p className="flex items-center gap-1 text-[11px] text-destructive">
+                        <AlertCircle className="h-3 w-3" /> Gunakan format 08xx (9–15 digit)
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="sup-email" className="text-xs">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60" />
-                    <Input id="sup-email" type="email" className="pl-9" value={form.email}
+                    <Input id="sup-email" type="email"
+                      className={`pl-9 ${emailInvalid ? "border-destructive" : ""}`}
+                      value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="kontak@supplier.com" />
                   </div>
-                  {form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && (
+                  {emailInvalid && (
                     <p className="flex items-center gap-1 text-[11px] text-destructive">
                       <AlertCircle className="h-3 w-3" /> Format email tidak valid
                     </p>
                   )}
                 </div>
+
+                {/* Peringatan duplikat */}
+                {duplicates.length > 0 && (
+                  <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+                    <div className="flex items-center gap-1.5 font-semibold">
+                      <AlertCircle className="h-3.5 w-3.5" /> Kemungkinan duplikat terdeteksi
+                    </div>
+                    <ul className="mt-1 ml-5 list-disc space-y-0.5">
+                      {duplicates.map((d) => (
+                        <li key={d.supplier.id}>
+                          <span className="font-medium">{d.supplier.name}</span>{" "}
+                          — {d.reason === "both" ? "email & telepon sama" : d.reason === "email" ? "email sama" : "telepon sama"}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <Label htmlFor="sup-addr" className="text-xs flex items-center gap-1.5">
                     <MapPin className="h-3 w-3" /> Alamat
@@ -232,11 +361,15 @@ function SuppliersPage() {
 
             <DialogFooter className="px-6 py-4 border-t bg-muted/20 sm:justify-between gap-2">
               <p className="text-[11px] text-muted-foreground hidden sm:flex items-center gap-1">
-                <span className="text-destructive">*</span> wajib diisi
+                {isDirty ? (
+                  <><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Perubahan belum disimpan</>
+                ) : (
+                  <><span className="text-destructive">*</span> wajib diisi</>
+                )}
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Batal</Button>
-                <Button onClick={save} disabled={saving || !form.name.trim()} className="gap-1.5">
+                <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={saving}>Batal</Button>
+                <Button onClick={save} disabled={saving || !form.name.trim() || phoneInvalid || emailInvalid} className="gap-1.5">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                   {editing ? "Simpan Perubahan" : "Tambah Supplier"}
                 </Button>
@@ -265,11 +398,12 @@ function SuppliersPage() {
                 <tr key={s.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">{s.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{s.contact_name ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{s.phone ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{s.phone ? formatPhone(s.phone) : "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground tabular-nums">{(s.lead_time_days ?? 0) > 0 ? `${s.lead_time_days} hari` : "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{s.payment_terms ?? "—"}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => nav({ to: "/pos-app/purchase-orders" })} title="Buat PO untuk supplier ini"><FileText className="h-3.5 w-3.5" /></Button>
                       <Button variant="ghost" size="sm" onClick={() => openEdit(s)}><Pencil className="h-3.5 w-3.5" /></Button>
                       <Button variant="ghost" size="sm" onClick={() => remove(s)} className="text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
