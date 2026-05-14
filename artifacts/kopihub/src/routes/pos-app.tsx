@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useLowStockIngredients } from "@/hooks/use-low-stock";
 import { useOwnerPaymentPendingCount } from "@/hooks/useAdNotifications";
 import { useUnansweredQACount } from "@/hooks/use-unanswered-qa";
+import { useRestockPendingCount } from "@/hooks/use-restock-pending-count";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -284,6 +285,7 @@ function AppLayoutInner() {
   const paymentPendingAdCount = useOwnerPaymentPendingCount(shop?.id ?? null);
   const { criticalCount: lowStockCount, emptyCount, items: lowStockItems } = useLowStockIngredients(shop?.id ?? null);
   const unansweredQACount = useUnansweredQACount(shop?.id ?? null);
+  const restockPendingCount = useRestockPendingCount(shop?.id ?? null);
   const prevLowStockCountRef = useRef<number>(0);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -557,6 +559,11 @@ function AppLayoutInner() {
                         {item.to === "/pos-app/qa" && unansweredQACount > 0 && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white animate-pulse">
                             {unansweredQACount > 9 ? "9+" : unansweredQACount}
+                          </span>
+                        )}
+                        {item.to === "/pos-app/restock-notify" && restockPendingCount > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white animate-pulse">
+                            {restockPendingCount > 9 ? "9+" : restockPendingCount}
                           </span>
                         )}
                       </Link>
