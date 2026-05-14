@@ -58,14 +58,14 @@ function CategoriesPage() {
   async function load() {
     if (!shop) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("categories")
-      .select("id, name, sort_order, is_active")
+      .select("id, name, sort_order, is_active, kds_station, printer_id")
       .eq("shop_id", shop.id)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) toast.error(error.message);
-    setItems(((data ?? []) as any[]).map((c) => ({ ...c, kds_station: null, printer_id: null })));
+    setItems((data ?? []) as Category[]);
 
     if (outlet) {
       const { data: pData } = await (supabase as any)
