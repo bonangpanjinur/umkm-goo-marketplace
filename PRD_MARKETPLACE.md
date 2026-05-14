@@ -20,6 +20,107 @@
 
 ---
 
+## 📊 RINGKASAN STATUS FITUR — AUDIT CODEBASE (15 Mei 2026)
+
+> Cross-check langsung antara PRD dan 226+ file route di `artifacts/kopihub/src/routes/`. ✅ = route/komponen ada · ⚠️ = parsial / DB belum migrate · ❌ = belum dibangun
+
+### ✅ SUDAH SELESAI (P1 & P2 — Semua Lengkap)
+
+| Kode | Fitur | Route / File |
+|---|---|---|
+| R-07 | Reservasi Meja customer-facing | `toko.$slug.reservasi.tsx`, `pos-app.reservasi.tsx` |
+| R-09 | Menu Paket / Combo Builder | `pos-app.combo-builder.tsx` |
+| R-10 | Informasi Nutrisi | Field `nutrition_info jsonb` di menu editor |
+| R-11 | Kitchen Load Monitor | `pos-app.kitchen-load.tsx` |
+| PD-06 | Update Versi Produk Digital | `pos-app.digital-version.tsx` |
+| FA-03 | Panduan Ukuran Interaktif | `pos-app.size-guide.tsx` |
+| FA-05 | Lookbook / Foto Model | `pos-app.lookbook.tsx` |
+| FA-07 | Notif Restock Ukuran | `pos-app.restock-notify.tsx` |
+| BE-04 | Quiz Rekomendasi Produk | `pos-app.skin-quiz.tsx` |
+| BE-05 | Klaim Verifikasi | `pos-app.verified-claims.tsx` |
+| KL-02 | Anamnesis Digital | `pos-app.anamnesis.tsx` |
+| KL-04 | Nomor Antrian Digital | `pos-app.antrian.tsx` |
+| KL-05 | Tagihan & Resep Digital | `pos-app.medical-invoice.tsx` |
+| KL-07 | Reminder Kontrol Ulang | `pos-app.followup-reminders.tsx` |
+| JU-06 | Milestone Tracking | `pos-app.milestones.tsx` |
+| JU-07 | Escrow per Milestone | Embedded dalam `pos-app.milestones.tsx` |
+| JU-08 | Kontrak Freelance Digital | `pos-app.contracts.tsx` |
+| KR-02 | Estimasi Waktu Produksi | Field `production_days` di menu editor |
+| KR-03 | Certificate of Authenticity | `pos-app.certificates.tsx` |
+| KR-04 | Edisi Terbatas | `pos-app.limited-editions.tsx` |
+| KR-05 | Galeri WIP | `pos-app.wip-gallery.tsx` |
+| SB-06 | Pengingat Potong Rambut | `pos-app.followup-reminders.tsx` (mode haircut) |
+| RT-04 | Hitung Deposit Otomatis | `pos-app.rental-deposit-config.tsx` |
+| RT-05 | Perpanjangan Sewa Mandiri | `pos-app.rental-extend.tsx` |
+| RT-06 | Checklist Kondisi Rental | `pos-app.rental-checklist.tsx` |
+| RT-07 | Billing Denda Keterlambatan | `pos-app.rental-fines.tsx` |
+| RT-08 | Syarat & Ketentuan Sewa | `pos-app.rental-tnc.tsx` |
+| RT-10 | Notifikasi "Unit Siap Diambil" | `pos-app.rental-unit-ready.tsx` |
+| SA-01 | Merchant Onboarding Automation | `admin.onboarding-automation.tsx` |
+| SA-03 | Automated Payout Scheduler | `admin.payout-scheduler.tsx` |
+| SA-04 | Merchant Tier Program | `admin.merchant-tiers.tsx` |
+| SA-06 | Multi-Admin dengan Role | `admin.multi-admin.tsx` |
+| SA-07 | Cohort & LTV Analytics | `admin.cohort-analytics.tsx` |
+| SA-08 | Data Export / GDPR Tools | `admin.gdpr-tools.tsx` |
+| SA-09 | Sandbox / Demo Mode | `admin.sandbox.tsx` |
+| SA-11 | Tax Management | `admin.tax-report.tsx` |
+| SA-12 | SLA & Response Time Monitor | `admin.sla-monitor.tsx` |
+| SA-13 | Affiliate & Partner Management | `admin.affiliate.tsx` |
+| ADM-1 | Broadcast Notif ke Pembeli | `admin.broadcast-buyers.tsx` |
+| ADM-2 | Kredit Manual & Suspend Pembeli | `admin.buyer-actions.tsx` |
+| ADM-3 | Churn Auto Re-engagement | `admin.churn-reengagement.tsx` |
+| ADM-4 | Fraud ML Scoring | `admin.fraud-scoring.tsx` |
+
+---
+
+### ⚠️ SEBAGIAN SELESAI (Butuh Tindak Lanjut)
+
+| Kode | Fitur | Masalah | Tindakan |
+|---|---|---|---|
+| FA-04 | Label "Pre-loved / Second" kondisi A/B/C | UI lengkap, kolom DB `condition_grade` belum di-migrate | Jalankan: `ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS condition_grade text CHECK (condition_grade IN ('A','B','C'));` |
+| SB-03 | Durasi layanan berbeda per jenis | Dasar ada, belum per-service granular | Tambah field `duration_minutes` per service item di booking |
+| SB-09 | Konfirmasi booking via WA | Hanya tombol manual, belum otomatis | Integrasi WhatsApp Business API / webhook |
+| RT-02 | Manajemen armada/unit rental | Dasar ada, belum manajemen kondisi & dokumen unit | Tambah field kondisi unit, log servis, dokumen per unit |
+
+---
+
+### ❌ BELUM DIBANGUN — PRIORITAS SEDANG (Layak Dikerjakan Berikutnya)
+
+| # | Kode | Fitur | Kategori | Prioritas |
+|---|---|---|---|---|
+| 1 | SF-02 | Pilih paket sesi foto (Basic 1 jam / Standard / Premium) | Studio Foto | 🔥 TINGGI |
+| 2 | SF-04 | Portfolio galeri tampil di halaman publik toko studio foto | Studio Foto | 🔥 TINGGI |
+| 3 | SF-05 | Upload file hasil foto ke klien via platform (link download) | Studio Foto | TINGGI |
+| 4 | SF-07 | Brief form sebelum sesi foto (diisi klien saat booking) | Studio Foto | TINGGI |
+| 5 | SF-03 | Pilih lokasi sesi (studio / outdoor / lokasi klien) | Studio Foto | TINGGI |
+| 6 | SF-08 | Add-on saat booking (editing ekstra, album, dll.) | Studio Foto | SEDANG |
+| 7 | SF-09 | Review dengan foto hasil karya (klien upload) | Studio Foto | TINGGI |
+| 8 | BE-03 | Tag skin type per produk (oily, dry, combination, sensitive) | Skincare | TINGGI |
+| 9 | KL-03 | Rekam medis sederhana per pasien | Klinik | SEDANG |
+| 10 | JU-05 | Deliver hasil kerja via platform (upload file ke klien) | Jasa Digital | TINGGI |
+| 11 | SA-05 | Konfigurasi Booking per Kategori (toggle T3/T4 per kategori) | Super Admin | TINGGI |
+
+---
+
+### ❌ BELUM DIBANGUN — PRIORITAS 3 (Kompleks / Butuh Infra Eksternal)
+
+| # | Kode | Fitur | Estimasi | Catatan |
+|---|---|---|---|---|
+| 1 | F-16 | Deposit via Payment Gateway (booking) | 3 hari | Konfirmasi manual ✅ sudah ada |
+| 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada |
+| 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada |
+| 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
+| 5 | F-02 | Subscription / Langganan Produk Rutin | 3 hari | Recurring billing & auto-debit |
+| 6 | F-06 | Affiliate Program per Toko | 3 hari | Tracking klik, komisi, dashboard afiliator per toko |
+| 7 | F-07 | Google Analytics & Meta Pixel Integration | 2 hari | Consent management & iframe safety |
+| 8 | F-09 | Live Streaming Commerce | 7+ hari | WebRTC/HLS, infra streaming besar |
+| 9 | F-10 | BNPL / Cicilan (Kredivo, Akulaku) | 5 hari | API pihak ketiga, KYC pembeli |
+| 10 | F-11 | Mobile App (React Native / Expo) | 3+ minggu | Proyek terpisah |
+| 11 | KL-06 | Telemedicine / Konsultasi Video | 5+ hari | WebRTC, rekaman, privasi |
+| 12 | SA-10 | A/B Testing Manager | 3 hari | Experiment framework, statistik signifikansi |
+
+---
+
 ## 🚦 TABEL FITUR BELUM DIKERJAKAN — DIURUTKAN BERDASARKAN PRIORITAS
 
 > **Terakhir diperbarui:** 14 Mei 2026 (audit ulang vs codebase 226 routes) | Status diverifikasi langsung dari kode. ✅ = sudah ada di kode · ❌ = belum ada · ⚠️ = parsial
@@ -1016,11 +1117,11 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | R-04 | Tag Alergen & Dietary per menu | ✅ | — |
 | R-05 | Waitlist Virtual (meja penuh) | ✅ M-12 | — |
 | R-06 | Happy Hour / Harga Waktu | ✅ | — |
-| R-07 | Reservasi Meja dari marketplace | ⚠️ Merchant-side only | 🔥 TINGGI |
+| R-07 | Reservasi Meja dari marketplace | ✅ `toko.$slug.reservasi.tsx` + `pos-app.reservasi.tsx` | — |
 | R-08 | Pre-Order Katering (tanggal + waktu) | ✅ Pre-order mode | — |
-| R-09 | Menu Paket / Combo Builder | ❌ | SEDANG |
-| R-10 | Informasi Nutrisi (kalori, protein, lemak) | ❌ | SEDANG |
-| R-11 | Kitchen Load Monitor (estimasi tunggu) | ❌ | SEDANG |
+| R-09 | Menu Paket / Combo Builder | ✅ `pos-app.combo-builder.tsx` | — |
+| R-10 | Informasi Nutrisi (kalori, protein, lemak) | ✅ Field `nutrition_info` di menu editor | — |
+| R-11 | Kitchen Load Monitor (estimasi tunggu) | ✅ `pos-app.kitchen-load.tsx` | — |
 | R-12 | Split bill per orang | ✅ | — |
 
 **F&B tidak membutuhkan:** Pilih staff, kalender booking sesi, upload KTP, checklist kondisi, file delivery.
@@ -1036,7 +1137,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | PD-03 | Preview watermarked (sample sebelum beli) | ✅ Selesai Sprint 18 — `DigitalPreview` component dengan overlay watermark | — |
 | PD-04 | Lisensi produk (personal use vs. commercial) | ✅ Selesai Sprint 19 — `pos-app.digital-licenses.tsx`; license key otomatis per pembelian, tipe lisensi | — |
 | PD-05 | Limit download per lisensi (anti-sharing) | ✅ Selesai Sprint 19 — server-side tracking via `pos-app.digital-licenses.tsx` | — |
-| PD-06 | Update versi → pembeli lama dapat notif | ❌ | SEDANG |
+| PD-06 | Update versi → pembeli lama dapat notif | ✅ `pos-app.digital-version.tsx` | — |
 | PD-07 | Kode aktivasi / serial key untuk software | ✅ Selesai Sprint 19 — `pos-app.digital-licenses.tsx` | — |
 | PD-08 | Halaman `/akun/digital-products` (riwayat + download) | ✅ Selesai Sprint 14 — `akun.digital-products.tsx` | — |
 | PD-09 | Kursus online dengan progress tracking | ✅ Selesai — `pos-app.kursus.tsx` (927 baris); manajemen kursus + modul + lesson + enrollment | — |
@@ -1052,7 +1153,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | SB-03 | Durasi layanan berbeda per jenis | ⚠️ Dasar ada | TINGGI |
 | SB-04 | Galeri hasil karya (before/after foto) | ✅ Selesai — `PortfolioGallery` tampil di `/toko/:slug` dengan lightbox + `BeforeAfterSlider` | — |
 | SB-05 | Membership / Paket Langganan (10 potong bayar 8) | ✅ Shop membership | SEDANG |
-| SB-06 | Pengingat potong rambut (notif 4 minggu setelah kunjungan) | ❌ | SEDANG |
+| SB-06 | Pengingat potong rambut (notif 4 minggu setelah kunjungan) | ✅ `pos-app.followup-reminders.tsx` (mode haircut) | — |
 | SB-07 | Catatan pelanggan per kunjungan | ✅ Selesai Sprint 20 — inline merchant notes edit di POS booking card | — |
 | SB-08 | Reschedule mandiri oleh pelanggan | ✅ Selesai Sprint 14 | — |
 | SB-09 | Konfirmasi booking via WA otomatis | ⚠️ Tombol manual ada | TINGGI |
@@ -1068,13 +1169,13 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | RT-01 | Kalender ketersediaan per unit (date-range) | ✅ | — |
 | RT-02 | Manajemen armada/unit (ID, foto, kondisi) | ⚠️ Dasar ada | TINGGI |
 | RT-03 | Upload dokumen (KTP/SIM) saat booking | ✅ Selesai Sprint 18 | — |
-| RT-04 | Hitung deposit otomatis (nilai × durasi) | ❌ | TINGGI |
-| RT-05 | Perpanjangan sewa mandiri | ❌ | SEDANG |
-| RT-06 | Checklist kondisi sebelum/sesudah sewa | ❌ | TINGGI |
-| RT-07 | Billing denda keterlambatan (per hari) | ❌ | SEDANG |
-| RT-08 | Syarat & ketentuan per kategori (T&C digital) | ❌ | TINGGI |
-| RT-09 | Deposit via payment gateway | ❌ | TINGGI |
-| RT-10 | Notifikasi "Unit siap diambil" | ❌ | SEDANG |
+| RT-04 | Hitung deposit otomatis (nilai × durasi) | ✅ `pos-app.rental-deposit-config.tsx` | — |
+| RT-05 | Perpanjangan sewa mandiri | ✅ `pos-app.rental-extend.tsx` | — |
+| RT-06 | Checklist kondisi sebelum/sesudah sewa | ✅ `pos-app.rental-checklist.tsx` | — |
+| RT-07 | Billing denda keterlambatan (per hari) | ✅ `pos-app.rental-fines.tsx` | — |
+| RT-08 | Syarat & ketentuan per kategori (T&C digital) | ✅ `pos-app.rental-tnc.tsx` | — |
+| RT-09 | Deposit via payment gateway | ❌ (konfirmasi manual ✅) | P3 |
+| RT-10 | Notifikasi "Unit siap diambil" | ✅ `pos-app.rental-unit-ready.tsx` | — |
 
 **Rental tidak membutuhkan:** Pilih staff, slot jam, KDS, kasir F&B, daftar menu.
 
@@ -1083,14 +1184,14 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | # | Fitur | Status | Prioritas |
 |---|---|---|---|
 | SF-01 | Booking sesi foto publik | ✅ | — |
-| SF-02 | Pilih paket sesi (Basic 1 jam, Standard, Premium) | ❌ | 🔥 TINGGI |
-| SF-03 | Pilih lokasi (studio, outdoor, lokasi klien) | ❌ | TINGGI |
-| SF-04 | Portofolio galeri tampil di halaman publik | ❌ | 🔥 TINGGI |
-| SF-05 | Upload file hasil foto ke klien (link download) | ❌ | TINGGI |
-| SF-06 | Deposit wajib saat booking | ✅ (manual) · ❌ gateway | TINGGI |
-| SF-07 | Brief form sebelum sesi | ❌ | TINGGI |
-| SF-08 | Add-on saat booking (editing ekstra, album, dll.) | ❌ | SEDANG |
-| SF-09 | Review dengan foto hasil karya (klien upload) | ❌ | TINGGI |
+| SF-02 | Pilih paket sesi (Basic 1 jam, Standard, Premium) | ❌ Belum dibangun | 🔥 TINGGI |
+| SF-03 | Pilih lokasi (studio, outdoor, lokasi klien) | ❌ Belum dibangun | TINGGI |
+| SF-04 | Portofolio galeri tampil di halaman publik | ✅ `pos-app.portfolio.tsx` + `PortfolioGallery` di toko | — |
+| SF-05 | Upload file hasil foto ke klien (link download) | ❌ Belum dibangun | TINGGI |
+| SF-06 | Deposit wajib saat booking | ✅ (manual) · ❌ gateway (P3) | — |
+| SF-07 | Brief form sebelum sesi | ❌ Belum dibangun | TINGGI |
+| SF-08 | Add-on saat booking (editing ekstra, album, dll.) | ❌ Belum dibangun | SEDANG |
+| SF-09 | Review dengan foto hasil karya (klien upload) | ❌ Belum dibangun | TINGGI |
 
 ### 6.6 Fashion & Pakaian (Tipe 1 + Tipe 5)
 
@@ -1098,11 +1199,11 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 |---|---|---|---|
 | FA-01 | Size chart per produk | ✅ | — |
 | FA-02 | Filter ukuran dan warna di halaman toko | ✅ | — |
-| FA-03 | Panduan ukuran interaktif ("Tinggi 165cm → pilih M") | ❌ | SEDANG |
-| FA-04 | Label "Pre-loved / Second" untuk produk bekas | ❌ | SEDANG |
-| FA-05 | Lookbook / foto model yang pakai produk | ❌ | SEDANG |
+| FA-03 | Panduan ukuran interaktif ("Tinggi 165cm → pilih M") | ✅ `pos-app.size-guide.tsx` | — |
+| FA-04 | Label "Pre-loved / Second" untuk produk bekas | ⚠️ UI lengkap, perlu migrate kolom DB `condition_grade` | — |
+| FA-05 | Lookbook / foto model yang pakai produk | ✅ `pos-app.lookbook.tsx` | — |
 | FA-06 | Custom order (warna khusus, ukuran khusus) | ✅ Custom order form | — |
-| FA-07 | Notif "Ukuran kamu tersedia lagi" saat restok | ❌ | TINGGI |
+| FA-07 | Notif "Ukuran kamu tersedia lagi" saat restok | ✅ `pos-app.restock-notify.tsx` | — |
 
 ### 6.7 Skincare & Kecantikan (Tipe 1)
 
@@ -1110,9 +1211,9 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 |---|---|---|---|
 | BE-01 | Ingredient list lengkap per produk | ✅ | — |
 | BE-02 | Nomor izin BPOM & tanggal kedaluwarsa | ✅ | — |
-| BE-03 | Tag skin type: oily, dry, combination, sensitive | ❌ | TINGGI |
-| BE-04 | Quiz rekomendasi produk (jenis kulit) | ❌ | SEDANG |
-| BE-05 | Klaim verifikasi: "Dermatologically tested" | ❌ | SEDANG |
+| BE-03 | Tag skin type: oily, dry, combination, sensitive | ❌ Belum dibangun | TINGGI |
+| BE-04 | Quiz rekomendasi produk (jenis kulit) | ✅ `pos-app.skin-quiz.tsx` | — |
+| BE-05 | Klaim verifikasi: "Dermatologically tested" | ✅ `pos-app.verified-claims.tsx` | — |
 | BE-06 | Bundling skincare routine | ✅ Bundle produk | — |
 
 ### 6.8 Klinik & Jasa Kesehatan (Tipe 3)
@@ -1120,12 +1221,12 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | # | Fitur | Status | Prioritas |
 |---|---|---|---|
 | KL-01 | Booking konsultasi dokter/terapis | ✅ Booking sesi ada | — |
-| KL-02 | Anamnesis digital sebelum konsultasi | ❌ | SEDANG |
-| KL-03 | Rekam medis sederhana per pasien | ❌ | SEDANG |
-| KL-04 | Nomor antrian digital + estimasi waktu tunggu | ❌ | TINGGI |
-| KL-05 | Tagihan & resep digital | ❌ | SEDANG |
-| KL-06 | Telemedicine / konsultasi video | ❌ | RENDAH |
-| KL-07 | Reminder jadwal kontrol ulang | ❌ | SEDANG |
+| KL-02 | Anamnesis digital sebelum konsultasi | ✅ `pos-app.anamnesis.tsx` | — |
+| KL-03 | Rekam medis sederhana per pasien | ❌ Belum dibangun | SEDANG |
+| KL-04 | Nomor antrian digital + estimasi waktu tunggu | ✅ `pos-app.antrian.tsx` | — |
+| KL-05 | Tagihan & resep digital | ✅ `pos-app.medical-invoice.tsx` | — |
+| KL-06 | Telemedicine / konsultasi video | ❌ P3 — WebRTC, infra besar | RENDAH |
+| KL-07 | Reminder jadwal kontrol ulang | ✅ `pos-app.followup-reminders.tsx` (mode clinic) | — |
 
 ### 6.9 Jasa Digital & Freelancer (Tipe 3 + Tipe 5)
 
@@ -1135,20 +1236,20 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | JU-02 | Custom order form (brief klien) | ✅ | — |
 | JU-03 | Status history custom order | ✅ | — |
 | JU-04 | WA template per perubahan status | ✅ | — |
-| JU-05 | Deliver hasil kerja via platform (upload file) | ❌ | TINGGI |
-| JU-06 | Milestone tracking untuk project jangka panjang | ❌ | SEDANG |
-| JU-07 | Escrow per milestone (bayar bertahap sesuai progress) | ❌ | SEDANG |
-| JU-08 | Kontrak freelance digital | ❌ | SEDANG |
+| JU-05 | Deliver hasil kerja via platform (upload file) | ❌ Belum dibangun | TINGGI |
+| JU-06 | Milestone tracking untuk project jangka panjang | ✅ `pos-app.milestones.tsx` | — |
+| JU-07 | Escrow per milestone (bayar bertahap sesuai progress) | ✅ Embedded dalam `pos-app.milestones.tsx` | — |
+| JU-08 | Kontrak freelance digital | ✅ `pos-app.contracts.tsx` | — |
 
 ### 6.10 Kerajinan & Produk Seni (Tipe 1 + Tipe 5)
 
 | # | Fitur | Status | Prioritas |
 |---|---|---|---|
 | KR-01 | Custom order (spesifikasi warna, ukuran, motif) | ✅ Custom order form | — |
-| KR-02 | Estimasi waktu produksi per produk | ❌ | TINGGI |
-| KR-03 | Certificate of Authenticity (COA) digital | ❌ | SEDANG |
-| KR-04 | Edisi terbatas (limited edition) dengan counter stok | ❌ | SEDANG |
-| KR-05 | Galeri proses pembuatan (work-in-progress) | ❌ | SEDANG |
+| KR-02 | Estimasi waktu produksi per produk | ✅ Field `production_days` di menu editor | — |
+| KR-03 | Certificate of Authenticity (COA) digital | ✅ `pos-app.certificates.tsx` | — |
+| KR-04 | Edisi terbatas (limited edition) dengan counter stok | ✅ `pos-app.limited-editions.tsx` | — |
+| KR-05 | Galeri proses pembuatan (work-in-progress) | ✅ `pos-app.wip-gallery.tsx` | — |
 | KR-06 | Opsi harga grosir / reseller | ✅ Bulk pricing | — |
 
 ---
@@ -1156,31 +1257,31 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 ## BAGIAN 7: SUPER ADMIN — BACKLOG
 
 ### Yang Perlu Diperbaiki
-| Fitur | Masalah | Saran |
+| Fitur | Masalah | Status |
 |---|---|---|
-| Broadcast Notifikasi | Hanya ke merchant, belum ke pembeli | Pisahkan target: merchant vs. pembeli |
-| Manajemen Pembeli | Hanya lihat data, tidak ada kredit manual | Tambah: kredit cashback, suspend, reset password |
-| Churn Analysis | Dashboard ada, tidak ada tindakan otomatis | Auto-kirim email re-engagement jika tidak login 14 hari |
-| Laporan Keuangan | Ada tapi format belum standar akuntansi | Format kompatibel Jurnal / Accurate |
-| Deteksi Fraud | Hanya rule-based dasar | Tambah skor risiko 0–100 per transaksi |
-| Konfigurasi Booking per Kategori | Tidak ada toggle kategori mana yang pakai T3/T4 | Admin set: kategori apa yang aktifkan booking, parameter per kategori |
+| Broadcast Notifikasi | Hanya ke merchant, belum ke pembeli | ✅ Selesai — `admin.broadcast-buyers.tsx` menangani broadcast khusus ke pembeli terpisah dari merchant |
+| Manajemen Pembeli | Hanya lihat data, tidak ada kredit manual | ✅ Selesai — `admin.buyer-actions.tsx` dengan kredit manual, suspend, reset password |
+| Churn Analysis | Dashboard ada, tidak ada tindakan otomatis | ✅ Selesai — `admin.churn-reengagement.tsx` dengan auto-kirim email jika tidak login 14 hari |
+| Laporan Keuangan | Ada tapi format belum standar akuntansi | ⚠️ Masih perlu format kompatibel Jurnal / Accurate |
+| Deteksi Fraud | Hanya rule-based dasar | ✅ Selesai — `admin.fraud-scoring.tsx` dengan skor risiko 0–100 per transaksi (ML-based) |
+| Konfigurasi Booking per Kategori | Tidak ada toggle kategori mana yang pakai T3/T4 | ❌ Belum ada — perlu route admin baru |
 
 ### Yang Belum Ada
 | # | Fitur | Prioritas | Deskripsi |
 |---|---|---|---|
-| SA-01 | 🔥 **Merchant Onboarding Automation** | TINGGI | Email sequence otomatis: Hari 1 (selamat datang), Hari 3 (panduan produk), Hari 7 (tips penjualan pertama) |
+| SA-01 | ✅ **Merchant Onboarding Automation** | — | Selesai — `admin.onboarding-automation.tsx`: email sequence Hari 1/3/7/14/30, preview merchant baru, kirim manual |
 | SA-02 | ✅ **Platform Health Score per Toko** | — | Selesai Sprint 13 |
-| SA-03 | 🔥 **Automated Payout Scheduler** | TINGGI | Payout otomatis terjadwal tanpa approval manual per item |
-| SA-04 | 🔥 **Merchant Tier Program** | TINGGI | Starter → Verified → Top Seller → Elite — kriteria otomatis dinilai harian |
-| SA-05 | 🔥 **Konfigurasi Booking per Kategori** | TINGGI | Toggle kategori mana yang aktifkan T3/T4, set parameter per kategori |
-| SA-06 | **Multi-Admin dengan Role** | SEDANG | Finance Admin, Support Admin, Content Admin |
-| SA-07 | **Cohort & LTV Analytics** | SEDANG | Analisis merchant aktif 3/6/12 bulan, LTV per paket |
-| SA-08 | **Data Export / GDPR Tools** | SEDANG | Pembeli/merchant bisa request export data, right-to-erasure |
-| SA-09 | **Sandbox / Demo Mode** | SEDANG | Calon merchant coba POS & dashboard dengan data dummy |
-| SA-10 | **A/B Testing Manager** | SEDANG | Admin buat eksperimen: versi A vs B, track konversi |
-| SA-11 | **Tax Management** | TINGGI | Laporan PPh/PPN per periode, format SPT |
-| SA-12 | **SLA & Response Time Monitor** | SEDANG | Monitor rata-rata respons API, uptime 30 hari |
-| SA-13 | **Affiliate & Partner Management** | SEDANG | Kelola afiliator, track klik & konversi, hitung komisi |
+| SA-03 | ✅ **Automated Payout Scheduler** | — | Selesai — `admin.payout-scheduler.tsx`: jadwal harian/mingguan/bulanan, auto-approve di bawah threshold |
+| SA-04 | ✅ **Merchant Tier Program** | — | Selesai — `admin.merchant-tiers.tsx`: Starter → Verified → Top Seller → Elite |
+| SA-05 | ❌ **Konfigurasi Booking per Kategori** | TINGGI | Toggle kategori mana yang aktifkan T3/T4, set parameter per kategori — belum ada route admin |
+| SA-06 | ✅ **Multi-Admin dengan Role** | — | Selesai — `admin.multi-admin.tsx`: Finance/Support/Content Admin, permission matrix |
+| SA-07 | ✅ **Cohort & LTV Analytics** | — | Selesai — `admin.cohort-analytics.tsx`: cohort chart, retensi 3/6/12 bulan, LTV |
+| SA-08 | ✅ **Data Export / GDPR Tools** | — | Selesai — `admin.gdpr-tools.tsx`: right-to-erasure, data export, anonymization |
+| SA-09 | ✅ **Sandbox / Demo Mode** | — | Selesai — `admin.sandbox.tsx`: seed data dummy per kategori, reset sandbox |
+| SA-10 | ❌ **A/B Testing Manager** | P3 | Admin buat eksperimen: versi A vs B, track konversi — butuh experiment framework |
+| SA-11 | ✅ **Tax Management** | — | Selesai — `admin.tax-report.tsx`: PPN 11% & PPh Final 0.5%, export summary |
+| SA-12 | ✅ **SLA & Response Time Monitor** | — | Selesai — `admin.sla-monitor.tsx`: uptime chart 30 hari, P50/P95 response time |
+| SA-13 | ✅ **Affiliate & Partner Management** | — | Selesai — `admin.affiliate.tsx`: tracking link unik, klik & konversi, komisi, payout |
 
 ---
 
