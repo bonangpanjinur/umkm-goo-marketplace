@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import { buildWAMessage, openWA, loadTemplate, type WATemplate, WA_TEMPLATE_LABELS } from "@/lib/po-whatsapp";
+
 
 export const Route = createFileRoute("/pos-app/purchase-orders/$poId")({
   component: PODetailPage,
