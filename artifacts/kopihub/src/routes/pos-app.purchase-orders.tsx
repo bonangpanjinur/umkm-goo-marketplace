@@ -589,7 +589,7 @@ function POPage() {
                             </DropdownMenuItem>
                           )}
                           {(p.status === "draft" || p.status === "cancelled") && (
-                            <DropdownMenuItem onClick={() => deletePO(p)} className="text-destructive focus:text-destructive">
+                            <DropdownMenuItem onClick={() => requestDelete(p)} className="text-destructive focus:text-destructive">
                               <Trash2 className="mr-2 h-4 w-4" /> Hapus
                             </DropdownMenuItem>
                           )}
