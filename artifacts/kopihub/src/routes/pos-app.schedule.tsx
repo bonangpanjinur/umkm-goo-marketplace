@@ -215,11 +215,21 @@ function SchedulePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Jadwal kerja</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Atur shift mingguan untuk setiap pegawai.
-        </p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Jadwal kerja</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Atur shift mingguan untuk setiap pegawai.
+          </p>
+        </div>
+        <Button
+          onClick={() => {
+            setLastInviteUrl(null);
+            setInviteOpen(true);
+          }}
+        >
+          <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+        </Button>
       </div>
 
       {loading ? (
@@ -233,8 +243,17 @@ function SchedulePage() {
           </div>
           <h2 className="text-lg font-semibold">Belum ada pegawai</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Undang pegawai dulu di halaman Pegawai sebelum membuat jadwal.
+            Tambahkan pegawai dulu untuk mulai membuat jadwal shift.
           </p>
+          <Button
+            className="mt-4"
+            onClick={() => {
+              setLastInviteUrl(null);
+              setInviteOpen(true);
+            }}
+          >
+            <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+          </Button>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-card">
