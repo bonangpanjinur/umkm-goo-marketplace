@@ -559,6 +559,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          kds_station: string | null
           name: string
           shop_id: string
           sort_order: number
@@ -568,6 +569,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          kds_station?: string | null
           name: string
           shop_id: string
           sort_order?: number
@@ -577,6 +579,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          kds_station?: string | null
           name?: string
           shop_id?: string
           sort_order?: number
