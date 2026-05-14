@@ -394,6 +394,45 @@ function PODetailPage() {
     setBusy(false);
   }
 
+  function printStockPreview() {
+    if (!po) return;
+    const rows = stockPreview.map((p) => {
+      const delta = p.newCost - p.currentCost;
+      const arrow = delta > 0.5 ? "↑" : delta < -0.5 ? "↓" : "";
+      return `<tr>
+        <td>${escapeHtml(p.name)}</td>
+        <td style="text-align:right">${p.currentStock} ${escapeHtml(p.unit)} → <b>${p.newStock} ${escapeHtml(p.unit)}</b> <span style="color:#059669">(+${p.addQty})</span></td>
+        <td style="text-align:right">${formatIDR(p.currentCost)} → <b>${formatIDR(p.newCost)}</b> ${arrow ? `<span style="color:${delta > 0 ? "#d97706" : "#059669"}">${arrow} ${formatIDR(Math.abs(delta))}</span>` : ""}</td>
+      </tr>`;
+    }).join("");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Preview Terima — ${formatPONo(po.po_no)}</title>
+      <style>
+        body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;color:#111}
+        h1{font-size:18px;margin:0 0 4px}
+        .meta{color:#6b7280;font-size:12px;margin-bottom:16px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;vertical-align:top}
+        th{background:#f9fafb;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6b7280}
+        .total{margin-top:16px;font-weight:600}
+        @media print{button{display:none}}
+      </style></head><body>
+      <h1>Preview Terima Stok — ${formatPONo(po.po_no)}</h1>
+      <div class="meta">${escapeHtml(supplier?.name ?? "Tanpa supplier")} · ${formatDateID(po.order_date)}</div>
+      <table>
+        <thead><tr><th>Bahan</th><th style="text-align:right">Stok</th><th style="text-align:right">HPP rata-rata</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="total">Total nilai pembelian: ${formatIDR(po.total)}</div>
+      <p style="margin-top:24px;color:#6b7280;font-size:11px">Pratinjau ini belum dikonfirmasi. Stok & HPP baru akan diterapkan setelah Anda menekan "Konfirmasi terima".</p>
+      <button onclick="window.print()" style="margin-top:16px;padding:8px 14px">Cetak</button>
+      </body></html>`;
+    const w = window.open("", "_blank", "width=820,height=720");
+    if (!w) { toast.error("Popup diblokir browser"); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { try { w.focus(); w.print(); } catch { /* noop */ } }, 250);
+  }
+
   async function confirmDelete() {
     if (!po) return;
     if (!deleteReason.trim()) { toast.error("Alasan penghapusan wajib diisi"); return; }
