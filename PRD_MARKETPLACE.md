@@ -24,7 +24,7 @@
 
 > **Terakhir diperbarui:** 14 Mei 2026 (audit ulang vs codebase 226 routes) | Status diverifikasi langsung dari kode. ✅ = sudah ada di kode · ❌ = belum ada · ⚠️ = parsial
 >
-> **Hasil audit:** Semua item Prioritas 1 & 2 sudah ✅ di kode. Yang tersisa hanya item Prioritas 3 (kompleks/butuh infra eksternal) + 1 item baru (FA-04 Pre-loved label) yang sebelumnya luput.
+> **Hasil audit:** Semua item Prioritas 1 & 2 sudah ✅ di kode. Yang tersisa hanya item Prioritas 3 (kompleks/butuh infra eksternal) + FA-04 ⚠️ parsial (UI lengkap, kolom DB belum di-migrate).
 
 ### 🔴 PRIORITAS 1 — Tinggi (Impact Besar, Effort Kecil–Sedang, Feasible Sekarang)
 
