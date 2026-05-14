@@ -76,7 +76,14 @@ function buildWaMessage(booking: CompletedBooking, shopName: string) {
   );
 }
 
-type ReviewRequestStat = { sent_at: string; clicked_at: string | null };
+const MAX_RESENDS = 3;
+
+type ReviewRequestStat = {
+  sent_at: string;
+  clicked_at: string | null;
+  resend_count: number;
+  is_unresponsive: boolean;
+};
 
 function pct(num: number, den: number) {
   if (den === 0) return 0;
@@ -119,13 +126,35 @@ function BookingReviewsPage() {
   const [resending, setResending] = useState<string | null>(null);
 
   const resendNotif = useCallback(async (bookingId: string, customerPhone: string) => {
+    const cur = reviewRequestsMap[bookingId];
+    const curCount = cur?.resend_count ?? 0;
+
+    // Hard-block — should never reach here via UI, but guard defensively
+    if (curCount >= MAX_RESENDS || cur?.is_unresponsive) {
+      toast.error("Batas pengiriman ulang tercapai. Booking ini ditandai tidak responsif.");
+      return;
+    }
+
     setResending(bookingId);
     try {
       const now = new Date().toISOString();
+      const newCount = curCount + 1;
+      const willMarkUnresponsive = newCount >= MAX_RESENDS;
+
       const [reqRes, bookRes] = await Promise.all([
         (supabase as any)
           .from("booking_review_requests")
-          .upsert({ booking_id: bookingId, customer_phone: customerPhone, sent_at: now, clicked_at: null }, { onConflict: "booking_id" }),
+          .upsert(
+            {
+              booking_id:       bookingId,
+              customer_phone:   customerPhone,
+              sent_at:          now,
+              clicked_at:       null,
+              resend_count:     newCount,
+              is_unresponsive:  willMarkUnresponsive,
+            },
+            { onConflict: "booking_id" }
+          ),
         (supabase as any)
           .from("bookings")
           .update({ review_request_sent_at: now })
@@ -133,18 +162,31 @@ function BookingReviewsPage() {
       ]);
       if (reqRes.error) throw reqRes.error;
       if (bookRes.error) throw bookRes.error;
-      // Update local state
-      setReviewRequestsMap(prev => ({ ...prev, [bookingId]: { sent_at: now, clicked_at: null } }));
+
+      setReviewRequestsMap(prev => ({
+        ...prev,
+        [bookingId]: { sent_at: now, clicked_at: null, resend_count: newCount, is_unresponsive: willMarkUnresponsive },
+      }));
       setBookings(prev => prev.map(b =>
         b.id === bookingId ? { ...b, review_request_sent_at: now } : b
       ));
-      toast.success("Notifikasi ulang berhasil dikirim! Pembeli akan melihatnya saat membuka riwayat booking.");
+
+      if (willMarkUnresponsive) {
+        toast.warning(
+          `Notifikasi ke-${newCount} terkirim — batas tercapai. Booking ini otomatis ditandai tidak responsif dan tidak akan dikirim ulang lagi.`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.success(
+          `Notifikasi ulang terkirim (${newCount}/${MAX_RESENDS}). Pembeli akan melihatnya saat membuka riwayat booking.`
+        );
+      }
     } catch (e: any) {
       toast.error("Gagal kirim ulang: " + e.message);
     } finally {
       setResending(null);
     }
-  }, []);
+  }, [reviewRequestsMap]);
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
@@ -175,7 +217,7 @@ function BookingReviewsPage() {
             .in("booking_id", ids),
           (supabase as any)
             .from("booking_review_requests")
-            .select("booking_id, sent_at, clicked_at")
+            .select("booking_id, sent_at, clicked_at, resend_count, is_unresponsive")
             .in("booking_id", ids),
         ]);
 
@@ -191,7 +233,12 @@ function BookingReviewsPage() {
 
         if (!reqRes.error) {
           for (const r of (reqRes.data ?? []) as any[]) {
-            reqMap[r.booking_id] = { sent_at: r.sent_at, clicked_at: r.clicked_at };
+            reqMap[r.booking_id] = {
+              sent_at:         r.sent_at,
+              clicked_at:      r.clicked_at,
+              resend_count:    r.resend_count ?? 0,
+              is_unresponsive: r.is_unresponsive ?? false,
+            };
           }
         }
       }
@@ -449,36 +496,68 @@ function BookingReviewsPage() {
                     )}
 
                     {/* Auto-notif status badge + kirim ulang */}
-                    {b.review_request_sent_at && (
-                      <div className="mt-2 flex items-center gap-2 flex-wrap">
-                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                          reviewRequestsMap[b.id]?.clicked_at
-                            ? "bg-violet-50 border-violet-200 text-violet-700"
-                            : "bg-blue-50 border-blue-200 text-blue-700"
-                        }`}>
-                          <Bell className="h-3 w-3" />
-                          {reviewRequestsMap[b.id]?.clicked_at
-                            ? `Dibuka ${new Date(reviewRequestsMap[b.id].clicked_at!).toLocaleDateString("id-ID")}`
-                            : `Auto-notif terkirim ${new Date(b.review_request_sent_at).toLocaleDateString("id-ID")}`
-                          }
-                        </span>
-                        {!hasReview && !reviewRequestsMap[b.id]?.clicked_at && b.customer_phone && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-6 gap-1 px-2 text-[10px] border-orange-300 text-orange-700 hover:bg-orange-50"
-                            disabled={resending === b.id}
-                            onClick={() => resendNotif(b.id, b.customer_phone!)}
-                          >
-                            {resending === b.id
-                              ? <Loader2 className="h-3 w-3 animate-spin" />
-                              : <RotateCcw className="h-3 w-3" />
+                    {b.review_request_sent_at && (() => {
+                      const req = reviewRequestsMap[b.id];
+                      const resendCount = req?.resend_count ?? 0;
+                      const isUnresponsive = req?.is_unresponsive ?? false;
+                      const wasClicked = !!req?.clicked_at;
+                      const canResend = !hasReview && !wasClicked && !isUnresponsive && !!b.customer_phone;
+                      return (
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          {/* Status badge */}
+                          <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                            isUnresponsive
+                              ? "bg-red-50 border-red-200 text-red-700"
+                              : wasClicked
+                                ? "bg-violet-50 border-violet-200 text-violet-700"
+                                : "bg-blue-50 border-blue-200 text-blue-700"
+                          }`}>
+                            <Bell className="h-3 w-3" />
+                            {isUnresponsive
+                              ? "Tidak Responsif"
+                              : wasClicked
+                                ? `Dibuka ${new Date(req!.clicked_at!).toLocaleDateString("id-ID")}`
+                                : `Auto-notif terkirim ${new Date(b.review_request_sent_at).toLocaleDateString("id-ID")}`
                             }
-                            Kirim Ulang Notif
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                          </span>
+
+                          {/* Resend counter pill */}
+                          {resendCount > 0 && (
+                            <span className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded-full border ${
+                              isUnresponsive
+                                ? "bg-red-50 border-red-200 text-red-600"
+                                : "bg-muted border-border text-muted-foreground"
+                            }`}>
+                              Ulang {resendCount}/{MAX_RESENDS}
+                            </span>
+                          )}
+
+                          {/* Kirim ulang button */}
+                          {canResend && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 gap-1 px-2 text-[10px] border-orange-300 text-orange-700 hover:bg-orange-50"
+                              disabled={resending === b.id}
+                              onClick={() => resendNotif(b.id, b.customer_phone!)}
+                            >
+                              {resending === b.id
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <RotateCcw className="h-3 w-3" />
+                              }
+                              Kirim Ulang {resendCount > 0 ? `(${resendCount + 1}/${MAX_RESENDS})` : "Notif"}
+                            </Button>
+                          )}
+
+                          {/* Tombstone when unresponsive */}
+                          {isUnresponsive && (
+                            <span className="text-[10px] text-red-600 italic">
+                              Sistem berhenti mengirim notif ke pembeli ini.
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {!hasReview && b.customer_phone && (
                       <div className="mt-3 flex items-center gap-2 flex-wrap">

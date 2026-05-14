@@ -595,6 +595,8 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 14 Mei 2026 | Sprint 14 | **M-04 Reschedule Booking Mandiri** — dialog pilih slot baru + update slot_id di `bookings`; tombol "Jadwalkan Ulang" di riwayat booking akun pelanggan | ✅ |
 | 14 Mei 2026 | Sprint 14 | **M-20/PD-08 Halaman Produk Digital** — `/akun/digital-products`; list order_items digital + download link + detail pesanan; ditambahkan ke nav akun | ✅ |
 | 14 Mei 2026 | Sprint 14 | **M-18 Review Post-Booking** — tabel `booking_reviews`; form ulasan inline (bintang + teks) di riwayat booking pelanggan; panel merchant `/pos-app/booking-reviews` + tombol "Minta Ulasan via WA" | ✅ |
+| 14 Mei 2026 | Sprint 15 | **M-18a Auto-Trigger H+1** — Edge Function `send-review-requests`; kolom `review_request_sent_at` di `bookings`; tabel `booking_review_requests`; pg_cron harian 09:00 WIB; banner + highlight card amber di `akun.bookings.tsx`; panel analitik konversi funnel (terkirim → dibuka → diulas) + breakdown bulanan di `pos-app.booking-reviews.tsx` | ✅ |
+| 14 Mei 2026 | Sprint 15 | **M-18b Notif Score** — kolom `resend_count` + `is_unresponsive` di `booking_review_requests`; tombol "Kirim Ulang Notif" dengan counter (1/3, 2/3, 3/3); setelah 3 ulang notif tanpa respons sistem otomatis menandai booking sebagai "Tidak Responsif" (badge merah) dan memblokir pengiriman selanjutnya; toast peringatan saat batas tercapai | ✅ |
 
 ---
 
