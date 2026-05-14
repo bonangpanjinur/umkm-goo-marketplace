@@ -243,6 +243,27 @@ function EmployeesPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
   const [lastCredentials, setLastCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [manualHireDate, setManualHireDate] = useState("");
+  const [manualHourlyRate, setManualHourlyRate] = useState("");
+  const [manualNotes, setManualNotes] = useState("");
+
+  // Filter status
+  const [filterStatus, setFilterStatus] = useState<string>("active");
+
+  // Edit login member dialog
+  const [loginEdit, setLoginEdit] = useState<RoleRow | null>(null);
+  const [loginEditRole, setLoginEditRole] = useState("cashier");
+  const [loginEditOutlet, setLoginEditOutlet] = useState("");
+  const [loginEditActive, setLoginEditActive] = useState(true);
+  const [loginEditSaving, setLoginEditSaving] = useState(false);
+
+  // Promote-to-login dialog
+  const [promoteTarget, setPromoteTarget] = useState<StaffMember | null>(null);
+  const [promoteEmail, setPromoteEmail] = useState("");
+  const [promotePassword, setPromotePassword] = useState("");
+  const [promoteShowPw, setPromoteShowPw] = useState(false);
+  const [promoteSaving, setPromoteSaving] = useState(false);
+  const [resending, setResending] = useState<string | null>(null);
 
   // Password / reset dialogs
   const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
