@@ -941,12 +941,17 @@ function PODetailPage() {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setReceiveOpen(false)} disabled={busy}>Tutup</Button>
-          <Button onClick={confirmReceive} disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-            {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
-            Konfirmasi terima
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button variant="outline" onClick={printStockPreview} disabled={busy}>
+            <Printer className="mr-1.5 h-4 w-4" /> Cetak preview
           </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setReceiveOpen(false)} disabled={busy}>Tutup</Button>
+            <Button onClick={confirmReceive} disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
+              Konfirmasi terima
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
