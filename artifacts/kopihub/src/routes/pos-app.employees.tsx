@@ -1360,6 +1360,15 @@ function EmployeesPage() {
                         )}
                       </Button>
                       <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => resendInvitation(inv)}
+                        disabled={resending === inv.id}
+                      >
+                        <RotateCcw className={`mr-1.5 h-3.5 w-3.5 ${resending === inv.id ? "animate-spin" : ""}`} />
+                        Kirim ulang
+                      </Button>
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setConfirmRevokeInv(inv)}

@@ -112,11 +112,13 @@ function SchedulePage() {
     setLoading(true);
     const [s, r, o, sm] = await Promise.all([
       supabase.from("shifts").select("*").eq("shop_id", shop.id).order("day_of_week"),
-      supabase.from("user_roles").select("user_id, role").eq("shop_id", shop.id),
+      supabase.from("user_roles").select("user_id, role, is_active").eq("shop_id", shop.id),
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
-      supabase.from("staff_members").select("id, name, role, avatar_url").eq("shop_id", shop.id).order("created_at"),
+      supabase.from("staff_members").select("id, name, role, avatar_url, is_active").eq("shop_id", shop.id).order("created_at"),
     ]);
-    const roles = (r.data ?? []) as { user_id: string; role: string }[];
+    const roles = ((r.data ?? []) as { user_id: string; role: string; is_active: boolean | null }[]).filter(
+      (x) => x.is_active !== false,
+    );
     const ids = [...new Set(roles.map((x) => x.user_id))];
     let mems: Member[] = [];
     if (ids.length > 0) {
@@ -133,14 +135,16 @@ function SchedulePage() {
         source: "account" as const,
       }));
     }
-    const manualMems: Member[] = ((sm.data ?? []) as Array<{ id: string; name: string; role: string; avatar_url: string | null }>).map((m) => ({
-      user_id: m.id,
-      manual_id: m.id,
-      role: m.role,
-      display_name: m.name,
-      avatar_url: m.avatar_url,
-      source: "manual" as const,
-    }));
+    const manualMems: Member[] = ((sm.data ?? []) as Array<{ id: string; name: string; role: string; avatar_url: string | null; is_active: boolean | null }>)
+      .filter((m) => m.is_active !== false)
+      .map((m) => ({
+        user_id: m.id,
+        manual_id: m.id,
+        role: m.role,
+        display_name: m.name,
+        avatar_url: m.avatar_url,
+        source: "manual" as const,
+      }));
     setShifts((s.data ?? []) as Shift[]);
     setMembers([...mems, ...manualMems]);
     setOutlets((o.data ?? []) as Outlet[]);
