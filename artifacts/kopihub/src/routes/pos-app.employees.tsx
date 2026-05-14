@@ -21,8 +21,9 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone } from "lucide-react";
+import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone, Pencil, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/pos-app/employees")({
   component: EmployeesPage,
