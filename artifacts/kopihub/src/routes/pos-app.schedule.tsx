@@ -237,13 +237,8 @@ function SchedulePage() {
             Atur shift mingguan untuk setiap pegawai.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setLastInviteUrl(null);
-            setInviteOpen(true);
-          }}
-        >
-          <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+        <Button onClick={() => setAddOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
         </Button>
       </div>
 
@@ -258,16 +253,10 @@ function SchedulePage() {
           </div>
           <h2 className="text-lg font-semibold">Belum ada pegawai</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Tambahkan pegawai dulu untuk mulai membuat jadwal shift.
+            Tambahkan pegawai untuk mulai membuat jadwal shift.
           </p>
-          <Button
-            className="mt-4"
-            onClick={() => {
-              setLastInviteUrl(null);
-              setInviteOpen(true);
-            }}
-          >
-            <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+          <Button className="mt-4" onClick={() => setAddOpen(true)}>
+            <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
           </Button>
         </div>
       ) : (
