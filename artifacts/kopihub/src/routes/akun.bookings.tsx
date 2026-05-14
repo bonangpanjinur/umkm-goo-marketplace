@@ -1,12 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone, ChevronDown, ChevronUp, CalendarDays } from "lucide-react";
+import {
+  CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone,
+  ChevronDown, ChevronUp, CalendarDays, Star, Loader2, MessageSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -14,6 +18,24 @@ export const Route = createFileRoute("/akun/bookings")({
   head: () => ({ meta: [{ title: "Riwayat Booking — Akun" }] }),
   component: BookingsPage,
 });
+
+/*
+-- Jalankan di Supabase SQL Editor (booking_reviews):
+create table if not exists public.booking_reviews (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null references public.bookings(id) on delete cascade,
+  customer_phone text not null,
+  rating integer not null check (rating between 1 and 5),
+  body text,
+  created_at timestamptz not null default now(),
+  unique(booking_id)
+);
+alter table public.booking_reviews enable row level security;
+create policy "customer_insert_review" on public.booking_reviews
+  for insert with check (true);
+create policy "public_read_review" on public.booking_reviews
+  for select using (true);
+*/
 
 type Booking = {
   id: string;
@@ -28,6 +50,13 @@ type Booking = {
     price: number | null;
     shop: { name: string; slug: string } | null;
   } | null;
+};
+
+type BookingReview = {
+  booking_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -61,6 +90,28 @@ function fmtTime(t: string) {
   return t.slice(0, 5);
 }
 
+function StarRating({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(n => (
+        <button
+          key={n}
+          type="button"
+          className="p-0.5 transition-transform hover:scale-110"
+          onMouseEnter={() => onChange && setHovered(n)}
+          onMouseLeave={() => onChange && setHovered(0)}
+          onClick={() => onChange?.(n)}
+        >
+          <Star
+            className={`h-6 w-6 ${(hovered || value) >= n ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function BookingsPage() {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -73,6 +124,11 @@ function BookingsPage() {
   const [availableSlots, setAvailableSlots] = useState<{ id: string; service_name: string; slot_date: string; slot_time: string; price: number | null; capacity: number; booked: number }[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [rescheduling, setRescheduling] = useState(false);
+
+  const [reviews, setReviews] = useState<Record<string, BookingReview>>({});
+  const [reviewForm, setReviewForm] = useState<{ bookingId: string; rating: number; body: string } | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewTableExists, setReviewTableExists] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -88,6 +144,22 @@ function BookingsPage() {
         }
       });
   }, [user]);
+
+  const loadReviews = useCallback(async (bookingIds: string[]) => {
+    if (bookingIds.length === 0) return;
+    const { data, error } = await (supabase as any)
+      .from("booking_reviews")
+      .select("booking_id, rating, body, created_at")
+      .in("booking_id", bookingIds);
+    if (error) {
+      if (error.code === "42P01") { setReviewTableExists(false); }
+      return;
+    }
+    setReviewTableExists(true);
+    const map: Record<string, BookingReview> = {};
+    for (const r of (data ?? []) as BookingReview[]) map[r.booking_id] = r;
+    setReviews(map);
+  }, []);
 
   async function loadBookings(ph: string) {
     if (!ph.trim()) return;
@@ -106,7 +178,10 @@ function BookingsPage() {
         .order("created_at", { ascending: false })
         .limit(50) as any;
       if (error) throw error;
-      setBookings((data ?? []) as Booking[]);
+      const bList = (data ?? []) as Booking[];
+      setBookings(bList);
+      const completedIds = bList.filter(b => b.status === "completed").map(b => b.id);
+      await loadReviews(completedIds);
     } catch (e: any) {
       toast.error("Gagal memuat booking: " + e.message);
     } finally {
@@ -120,13 +195,11 @@ function BookingsPage() {
     const shopId = (b.slot as any)?.shop_id;
     if (!shopId && !b.slot?.shop?.slug) { toast.error("Tidak dapat memuat slot toko ini"); return; }
     const today = new Date().toISOString().slice(0, 10);
-    // fetch available future slots for same shop
     let query = (supabase as any)
       .from("booking_slots")
       .select("id, service_name, slot_date, slot_time, price, capacity")
       .gte("slot_date", today)
       .eq("is_active", true)
-      .neq("id", b.slot ? undefined : undefined)
       .order("slot_date")
       .order("slot_time")
       .limit(30);
@@ -168,6 +241,30 @@ function BookingsPage() {
     }
   }
 
+  async function submitReview() {
+    if (!reviewForm || reviewForm.rating === 0) { toast.error("Pilih rating terlebih dahulu"); return; }
+    setSubmittingReview(true);
+    try {
+      const { error } = await (supabase as any).from("booking_reviews").upsert({
+        booking_id: reviewForm.bookingId,
+        customer_phone: phone,
+        rating: reviewForm.rating,
+        body: reviewForm.body.trim() || null,
+      }, { onConflict: "booking_id" });
+      if (error) throw error;
+      toast.success("Ulasan berhasil dikirim! Terima kasih.");
+      setReviews(prev => ({
+        ...prev,
+        [reviewForm.bookingId]: { booking_id: reviewForm.bookingId, rating: reviewForm.rating, body: reviewForm.body.trim() || null, created_at: new Date().toISOString() },
+      }));
+      setReviewForm(null);
+    } catch (e: any) {
+      toast.error("Gagal menyimpan ulasan: " + e.message);
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
   const upcoming = bookings.filter(b => ["pending","confirmed"].includes(b.status));
   const past     = bookings.filter(b => !["pending","confirmed"].includes(b.status));
 
@@ -200,7 +297,9 @@ function BookingsPage() {
       )}
 
       {loading && (
-        <div className="text-sm text-muted-foreground">Memuat booking…</div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Memuat booking…
+        </div>
       )}
 
       {!loading && phone && bookings.length === 0 && (
@@ -240,8 +339,49 @@ function BookingsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleBooking(null)}>Batal</Button>
             <Button onClick={confirmReschedule} disabled={!selectedSlot || rescheduling} className="gap-2">
-              {rescheduling && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+              {rescheduling && <Loader2 className="h-3 w-3 animate-spin" />}
               Konfirmasi Jadwal Baru
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Dialog */}
+      <Dialog open={!!reviewForm} onOpenChange={open => !open && setReviewForm(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Star className="h-4 w-4 text-amber-400" /> Tulis Ulasan</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-sm mb-2 block">Rating kamu</Label>
+              <StarRating
+                value={reviewForm?.rating ?? 0}
+                onChange={v => setReviewForm(f => f ? { ...f, rating: v } : null)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {reviewForm?.rating === 1 && "Sangat Buruk"}
+                {reviewForm?.rating === 2 && "Kurang"}
+                {reviewForm?.rating === 3 && "Cukup"}
+                {reviewForm?.rating === 4 && "Bagus"}
+                {reviewForm?.rating === 5 && "Sangat Bagus!"}
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm mb-1 block">Ceritakan pengalamanmu <span className="text-muted-foreground">(opsional)</span></Label>
+              <Textarea
+                placeholder="Layanannya memuaskan, staff ramah…"
+                rows={3}
+                value={reviewForm?.body ?? ""}
+                onChange={e => setReviewForm(f => f ? { ...f, body: e.target.value } : null)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewForm(null)}>Batal</Button>
+            <Button onClick={submitReview} disabled={submittingReview || !reviewForm?.rating} className="gap-2">
+              {submittingReview && <Loader2 className="h-3 w-3 animate-spin" />}
+              Kirim Ulasan
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -251,7 +391,17 @@ function BookingsPage() {
         <div>
           <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Mendatang</h3>
           <div className="space-y-3">
-            {upcoming.map(b => <BookingCard key={b.id} booking={b} expanded={expanded === b.id} onToggle={() => setExpanded(expanded === b.id ? null : b.id)} onCancel={cancelBooking} cancelling={cancelling === b.id} onReschedule={openReschedule} />)}
+            {upcoming.map(b => (
+              <BookingCard
+                key={b.id}
+                booking={b}
+                expanded={expanded === b.id}
+                onToggle={() => setExpanded(expanded === b.id ? null : b.id)}
+                onCancel={cancelBooking}
+                cancelling={cancelling === b.id}
+                onReschedule={openReschedule}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -260,7 +410,19 @@ function BookingsPage() {
         <div>
           <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Riwayat</h3>
           <div className="space-y-3">
-            {past.map(b => <BookingCard key={b.id} booking={b} expanded={expanded === b.id} onToggle={() => setExpanded(expanded === b.id ? null : b.id)} onCancel={cancelBooking} cancelling={cancelling === b.id} />)}
+            {past.map(b => (
+              <BookingCard
+                key={b.id}
+                booking={b}
+                expanded={expanded === b.id}
+                onToggle={() => setExpanded(expanded === b.id ? null : b.id)}
+                onCancel={cancelBooking}
+                cancelling={cancelling === b.id}
+                review={reviews[b.id]}
+                reviewTableExists={reviewTableExists}
+                onReview={b.status === "completed" ? () => setReviewForm({ bookingId: b.id, rating: reviews[b.id]?.rating ?? 0, body: reviews[b.id]?.body ?? "" }) : undefined}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -268,16 +430,30 @@ function BookingsPage() {
   );
 }
 
-function BookingCard({ booking: b, expanded, onToggle, onCancel, cancelling, onReschedule }: {
+function BookingCard({
+  booking: b,
+  expanded,
+  onToggle,
+  onCancel,
+  cancelling,
+  onReschedule,
+  review,
+  reviewTableExists,
+  onReview,
+}: {
   booking: Booking;
   expanded: boolean;
   onToggle: () => void;
   onCancel: (id: string) => void;
   cancelling: boolean;
   onReschedule?: (b: Booking) => void;
+  review?: BookingReview;
+  reviewTableExists?: boolean | null;
+  onReview?: () => void;
 }) {
   const Icon = STATUS_ICON[b.status] ?? CalendarCheck;
   const canCancel = ["pending","confirmed"].includes(b.status);
+  const canReview = b.status === "completed" && reviewTableExists !== false;
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -291,6 +467,11 @@ function BookingCard({ booking: b, expanded, onToggle, onCancel, cancelling, onR
             <Badge className={`text-[10px] px-2 py-0 ${STATUS_COLOR[b.status] ?? "bg-muted text-muted-foreground"}`}>
               {STATUS_LABEL[b.status] ?? b.status}
             </Badge>
+            {review && (
+              <span className="flex items-center gap-0.5 text-[10px] text-amber-600 font-medium">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {review.rating}/5
+              </span>
+            )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {b.slot ? `${fmtDate(b.slot.slot_date)}, pukul ${fmtTime(b.slot.slot_time)}` : "—"}
@@ -326,6 +507,36 @@ function BookingCard({ booking: b, expanded, onToggle, onCancel, cancelling, onR
               <p className="text-sm">{b.notes}</p>
             </div>
           )}
+
+          {/* Review section for completed bookings */}
+          {canReview && (
+            <div className="rounded-xl bg-muted/40 border border-border p-3">
+              {review ? (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Ulasan kamu</p>
+                  <div className="flex items-center gap-1 mb-1">
+                    {[1,2,3,4,5].map(n => (
+                      <Star key={n} className={`h-4 w-4 ${n <= review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
+                    ))}
+                    <span className="ml-1 text-xs text-muted-foreground">{review.rating}/5</span>
+                  </div>
+                  {review.body && <p className="text-sm text-foreground/80 italic">"{review.body}"</p>}
+                  <button onClick={onReview} className="mt-2 text-xs text-primary hover:underline">Edit ulasan</button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">Bagaimana layanannya?</p>
+                    <p className="text-xs text-muted-foreground">Ulasanmu membantu orang lain memilih toko.</p>
+                  </div>
+                  <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={onReview}>
+                    <MessageSquare className="h-3.5 w-3.5" /> Beri Ulasan
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {canCancel && (
             <div className="flex gap-2 pt-1 flex-wrap">
               {onReschedule && (

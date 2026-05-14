@@ -590,6 +590,11 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 13 Mei 2026 | Sprint 13 | **Kalender Ketersediaan Rental** — `pos-app.rental-availability.tsx` (T4) | ✅ |
 | 13 Mei 2026 | Sprint 13 | **Deposit per Pesanan (T1)** — `deposit_enabled`, `deposit_percent`, `deposit_min_total` di `coffee_shops`; kolom deposit di `orders` | ✅ |
 | 13 Mei 2026 | Sprint 13 | **Tracking Pengiriman** — `tracking_number`, `courier_name`, `tracking_url` di `orders` | ✅ |
+| 14 Mei 2026 | Sprint 14 | **Filter POS Sidebar per Kategori** — `deriveCategoryType()` + `onlyFor` per nav item; nav difilter otomatis sesuai kategori toko (FNB/fashion/digital/services/craft) | ✅ |
+| 14 Mei 2026 | Sprint 14 | **Homepage Dynamic Category Filter** — chip filter kategori + badge jumlah toko + sort by count di beranda marketplace | ✅ |
+| 14 Mei 2026 | Sprint 14 | **M-04 Reschedule Booking Mandiri** — dialog pilih slot baru + update slot_id di `bookings`; tombol "Jadwalkan Ulang" di riwayat booking akun pelanggan | ✅ |
+| 14 Mei 2026 | Sprint 14 | **M-20/PD-08 Halaman Produk Digital** — `/akun/digital-products`; list order_items digital + download link + detail pesanan; ditambahkan ke nav akun | ✅ |
+| 14 Mei 2026 | Sprint 14 | **M-18 Review Post-Booking** — tabel `booking_reviews`; form ulasan inline (bintang + teks) di riwayat booking pelanggan; panel merchant `/pos-app/booking-reviews` + tombol "Minta Ulasan via WA" | ✅ |
 
 ---
 
@@ -856,9 +861,9 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | # | Fitur | Tipe Usaha | Impact | Status |
 |---|---|---|---|---|
 | M-01 | **Pilih Staff/Resource saat Booking** | Jasa T3 | Konversi | ✅ Selesai |
-| M-02 | **Portofolio / Galeri Karya** di halaman publik toko | Jasa/Kreatif | Kepercayaan | ⚠️ Ada di POS, belum tampil di /toko/:slug |
+| M-02 | **Portofolio / Galeri Karya** di halaman publik toko | Jasa/Kreatif | Kepercayaan | ✅ Selesai |
 | M-03 | **Reminder Booking Otomatis** H-1 dan H-3 | Jasa T3&T4 | Retensi | ✅ Selesai |
-| M-04 | **Reschedule Booking Mandiri** | Pembeli | UX | ❌ Belum |
+| M-04 | **Reschedule Booking Mandiri** | Pembeli | UX | ✅ Selesai |
 | M-05 | **Perbandingan Produk** | Pembeli | Konversi | ✅ Selesai |
 | M-06 | **Return Self-Service** | Pembeli | Kepercayaan | ✅ Selesai |
 | M-07 | **Upselling Engine** ("Sering dibeli bersama") | Merchant | AOV | ✅ Selesai |
@@ -873,9 +878,9 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | M-VB | **Voucher Khusus Booking** | Jasa T3 | Konversi | ✅ Selesai |
 | M-16 | **Upload Dokumen KTP/SIM saat Booking Rental** | Rental T4 | Legal/UX | ❌ Belum |
 | M-17 | **Paket Layanan + Add-on saat Booking** | Jasa T3 | AOV | ❌ Belum |
-| M-18 | **Review Post-Booking Otomatis H+1** | Jasa T3&T4 | Kepercayaan | ❌ Belum |
-| M-19 | **Galeri Portofolio tampil di halaman publik /toko/:slug** | Jasa/Kreatif | Kepercayaan | ❌ Belum |
-| M-20 | **Halaman Produk Digital di Akun** (`/akun/digital-products`) | Digital T2 | UX | ❌ Belum |
+| M-18 | **Review Post-Booking Otomatis H+1** | Jasa T3&T4 | Kepercayaan | ✅ Selesai |
+| M-19 | **Galeri Portofolio tampil di halaman publik /toko/:slug** | Jasa/Kreatif | Kepercayaan | ✅ Selesai |
+| M-20 | **Halaman Produk Digital di Akun** (`/akun/digital-products`) | Digital T2 | UX | ✅ Selesai |
 
 ### 🟢 Masa Depan (Dampak Besar, Effort Besar — 3+ hari)
 

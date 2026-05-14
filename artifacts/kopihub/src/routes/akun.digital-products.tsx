@@ -1,0 +1,231 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { Download, Package, ExternalLink, Loader2, FileText, Music, Video, Image, Code, Archive } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+export const Route = createFileRoute("/akun/digital-products")({
+  head: () => ({ meta: [{ title: "Produk Digital Saya — Akun" }] }),
+  component: DigitalProductsPage,
+});
+
+type DigitalItem = {
+  id: string;
+  quantity: number;
+  price: number;
+  created_at: string;
+  menu_item: {
+    name: string;
+    product_type: string;
+    download_url: string | null;
+    file_type: string | null;
+    file_size_kb: number | null;
+    image_url: string | null;
+  } | null;
+  order: {
+    id: string;
+    status: string;
+    created_at: string;
+    shop: { name: string; slug: string } | null;
+  } | null;
+};
+
+function fmtDate(d: string) {
+  return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function fmtPrice(n: number) {
+  return `Rp ${Number(n).toLocaleString("id-ID")}`;
+}
+
+function fmtSize(kb: number | null) {
+  if (!kb) return null;
+  if (kb < 1024) return `${kb} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
+}
+
+function FileIcon({ type }: { type: string | null }) {
+  const t = (type ?? "").toLowerCase();
+  if (["mp3","wav","ogg","aac","flac"].includes(t)) return <Music className="h-6 w-6 text-primary" />;
+  if (["mp4","mov","avi","mkv"].includes(t)) return <Video className="h-6 w-6 text-primary" />;
+  if (["jpg","jpeg","png","webp","svg","psd","ai"].includes(t)) return <Image className="h-6 w-6 text-primary" />;
+  if (["js","ts","jsx","tsx","py","html","css","json"].includes(t)) return <Code className="h-6 w-6 text-primary" />;
+  if (["zip","rar","7z","tar","gz"].includes(t)) return <Archive className="h-6 w-6 text-primary" />;
+  return <FileText className="h-6 w-6 text-primary" />;
+}
+
+function DigitalProductsPage() {
+  const { user } = useAuth();
+  const [items, setItems] = useState<DigitalItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data, error: err } = await (supabase as any)
+          .from("order_items")
+          .select(`
+            id, quantity, price, created_at,
+            menu_item:menu_items!inner(name, product_type, download_url, file_type, file_size_kb, image_url),
+            order:orders!inner(id, status, created_at, user_id, shop:coffee_shops(name, slug))
+          `)
+          .eq("order.user_id", user.id)
+          .eq("menu_item.product_type", "digital")
+          .in("order.status", ["completed", "paid"])
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (err) throw err;
+        setItems((data ?? []) as DigitalItem[]);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold">Produk Digital Saya</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Semua produk digital yang pernah kamu beli — tersedia seumur hidup selama link aktif.
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          Gagal memuat: {error}
+        </div>
+      )}
+
+      {!error && items.length === 0 && (
+        <div className="rounded-xl border border-dashed border-border p-14 text-center">
+          <Package className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-3 text-base font-medium">Belum ada produk digital</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Produk digital seperti e-book, template, font, atau preset akan muncul di sini setelah pembelian dikonfirmasi.
+          </p>
+          <Link to="/" className="mt-4 inline-block text-sm text-primary hover:underline">
+            Jelajahi Marketplace →
+          </Link>
+        </div>
+      )}
+
+      {items.length > 0 && (
+        <div className="space-y-3">
+          {items.map(item => {
+            const hasDownload = !!item.menu_item?.download_url;
+            return (
+              <div key={item.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex gap-4">
+                  <div className="shrink-0">
+                    {item.menu_item?.image_url ? (
+                      <img
+                        src={item.menu_item.image_url}
+                        alt={item.menu_item.name}
+                        className="h-16 w-16 rounded-lg object-cover"
+                        onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <FileIcon type={item.menu_item?.file_type ?? null} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm leading-snug">{item.menu_item?.name ?? "Produk Digital"}</p>
+                        {item.order?.shop && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            dari{" "}
+                            <Link
+                              to="/toko/$slug"
+                              params={{ slug: item.order.shop.slug }}
+                              className="text-primary hover:underline"
+                            >
+                              {item.order.shop.name}
+                            </Link>
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {item.menu_item?.file_type && (
+                          <Badge variant="secondary" className="text-[10px] uppercase font-mono">
+                            {item.menu_item.file_type}
+                          </Badge>
+                        )}
+                        {item.menu_item?.file_size_kb && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {fmtSize(item.menu_item.file_size_kb)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-1 flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
+                      <span>Dibeli: {fmtDate(item.order?.created_at ?? item.created_at)}</span>
+                      <span>{fmtPrice(item.price)}</span>
+                      {item.quantity > 1 && <span>× {item.quantity}</span>}
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      {hasDownload ? (
+                        <a
+                          href={item.menu_item!.download_url!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          <Button size="sm" className="gap-2 h-8">
+                            <Download className="h-3.5 w-3.5" />
+                            Unduh
+                          </Button>
+                        </a>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled className="gap-2 h-8 text-muted-foreground">
+                          <Download className="h-3.5 w-3.5" />
+                          Link Belum Tersedia
+                        </Button>
+                      )}
+                      {item.order?.id && (
+                        <Link to="/akun/pesanan/$orderId" params={{ orderId: item.order.id }}>
+                          <Button size="sm" variant="ghost" className="gap-1.5 h-8">
+                            <ExternalLink className="h-3 w-3" />
+                            Detail Pesanan
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {items.length > 0 && (
+        <p className="text-xs text-muted-foreground text-center">
+          {items.length} produk digital · Link download dari merchant — hubungi toko jika link tidak berfungsi.
+        </p>
+      )}
+    </div>
+  );
+}

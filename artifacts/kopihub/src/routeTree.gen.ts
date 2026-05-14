@@ -93,6 +93,7 @@ import { Route as PosAppCourierRouteImport } from './routes/pos-app.courier'
 import { Route as PosAppCategoriesRouteImport } from './routes/pos-app.categories'
 import { Route as PosAppBundlesRouteImport } from './routes/pos-app.bundles'
 import { Route as PosAppBulkPricingRouteImport } from './routes/pos-app.bulk-pricing'
+import { Route as PosAppBookingReviewsRouteImport } from './routes/pos-app.booking-reviews'
 import { Route as PosAppBookingRemindersRouteImport } from './routes/pos-app.booking-reminders'
 import { Route as PosAppBookingRouteImport } from './routes/pos-app.booking'
 import { Route as PosAppBillingRouteImport } from './routes/pos-app.billing'
@@ -114,6 +115,7 @@ import { Route as AkunReferralRouteImport } from './routes/akun.referral'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunLoyaltyRouteImport } from './routes/akun.loyalty'
 import { Route as AkunFavoritRouteImport } from './routes/akun.favorit'
+import { Route as AkunDigitalProductsRouteImport } from './routes/akun.digital-products'
 import { Route as AkunCashbackRouteImport } from './routes/akun.cashback'
 import { Route as AkunBookingsRouteImport } from './routes/akun.bookings'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
@@ -607,6 +609,11 @@ const PosAppBulkPricingRoute = PosAppBulkPricingRouteImport.update({
   path: '/bulk-pricing',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppBookingReviewsRoute = PosAppBookingReviewsRouteImport.update({
+  id: '/booking-reviews',
+  path: '/booking-reviews',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppBookingRemindersRoute = PosAppBookingRemindersRouteImport.update({
   id: '/booking-reminders',
   path: '/booking-reminders',
@@ -710,6 +717,11 @@ const AkunLoyaltyRoute = AkunLoyaltyRouteImport.update({
 const AkunFavoritRoute = AkunFavoritRouteImport.update({
   id: '/favorit',
   path: '/favorit',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunDigitalProductsRoute = AkunDigitalProductsRouteImport.update({
+  id: '/digital-products',
+  path: '/digital-products',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunCashbackRoute = AkunCashbackRouteImport.update({
@@ -1121,6 +1133,7 @@ export interface FileRoutesByFullPath {
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
   '/akun/cashback': typeof AkunCashbackRoute
+  '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
@@ -1142,6 +1155,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/booking-reminders': typeof PosAppBookingRemindersRoute
+  '/pos-app/booking-reviews': typeof PosAppBookingReviewsRoute
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
@@ -1295,6 +1309,7 @@ export interface FileRoutesByTo {
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
   '/akun/cashback': typeof AkunCashbackRoute
+  '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
@@ -1315,6 +1330,7 @@ export interface FileRoutesByTo {
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/booking-reminders': typeof PosAppBookingRemindersRoute
+  '/pos-app/booking-reviews': typeof PosAppBookingReviewsRoute
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
@@ -1471,6 +1487,7 @@ export interface FileRoutesById {
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
   '/akun/cashback': typeof AkunCashbackRoute
+  '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
@@ -1492,6 +1509,7 @@ export interface FileRoutesById {
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/booking-reminders': typeof PosAppBookingRemindersRoute
+  '/pos-app/booking-reviews': typeof PosAppBookingReviewsRoute
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
@@ -1650,6 +1668,7 @@ export interface FileRouteTypes {
     | '/akun/alamat'
     | '/akun/bookings'
     | '/akun/cashback'
+    | '/akun/digital-products'
     | '/akun/favorit'
     | '/akun/loyalty'
     | '/akun/notifikasi'
@@ -1671,6 +1690,7 @@ export interface FileRouteTypes {
     | '/pos-app/billing'
     | '/pos-app/booking'
     | '/pos-app/booking-reminders'
+    | '/pos-app/booking-reviews'
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
@@ -1824,6 +1844,7 @@ export interface FileRouteTypes {
     | '/akun/alamat'
     | '/akun/bookings'
     | '/akun/cashback'
+    | '/akun/digital-products'
     | '/akun/favorit'
     | '/akun/loyalty'
     | '/akun/notifikasi'
@@ -1844,6 +1865,7 @@ export interface FileRouteTypes {
     | '/pos-app/billing'
     | '/pos-app/booking'
     | '/pos-app/booking-reminders'
+    | '/pos-app/booking-reviews'
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
@@ -1999,6 +2021,7 @@ export interface FileRouteTypes {
     | '/akun/alamat'
     | '/akun/bookings'
     | '/akun/cashback'
+    | '/akun/digital-products'
     | '/akun/favorit'
     | '/akun/loyalty'
     | '/akun/notifikasi'
@@ -2020,6 +2043,7 @@ export interface FileRouteTypes {
     | '/pos-app/billing'
     | '/pos-app/booking'
     | '/pos-app/booking-reminders'
+    | '/pos-app/booking-reviews'
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
@@ -2741,6 +2765,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppBulkPricingRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/booking-reviews': {
+      id: '/pos-app/booking-reviews'
+      path: '/booking-reviews'
+      fullPath: '/pos-app/booking-reviews'
+      preLoaderRoute: typeof PosAppBookingReviewsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/booking-reminders': {
       id: '/pos-app/booking-reminders'
       path: '/booking-reminders'
@@ -2886,6 +2917,13 @@ declare module '@tanstack/react-router' {
       path: '/favorit'
       fullPath: '/akun/favorit'
       preLoaderRoute: typeof AkunFavoritRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/digital-products': {
+      id: '/akun/digital-products'
+      path: '/digital-products'
+      fullPath: '/akun/digital-products'
+      preLoaderRoute: typeof AkunDigitalProductsRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/cashback': {
@@ -3502,6 +3540,7 @@ interface AkunRouteChildren {
   AkunAlamatRoute: typeof AkunAlamatRoute
   AkunBookingsRoute: typeof AkunBookingsRoute
   AkunCashbackRoute: typeof AkunCashbackRoute
+  AkunDigitalProductsRoute: typeof AkunDigitalProductsRoute
   AkunFavoritRoute: typeof AkunFavoritRoute
   AkunLoyaltyRoute: typeof AkunLoyaltyRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
@@ -3519,6 +3558,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunAlamatRoute: AkunAlamatRoute,
   AkunBookingsRoute: AkunBookingsRoute,
   AkunCashbackRoute: AkunCashbackRoute,
+  AkunDigitalProductsRoute: AkunDigitalProductsRoute,
   AkunFavoritRoute: AkunFavoritRoute,
   AkunLoyaltyRoute: AkunLoyaltyRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
@@ -3601,6 +3641,7 @@ interface PosAppRouteChildren {
   PosAppBillingRoute: typeof PosAppBillingRoute
   PosAppBookingRoute: typeof PosAppBookingRoute
   PosAppBookingRemindersRoute: typeof PosAppBookingRemindersRoute
+  PosAppBookingReviewsRoute: typeof PosAppBookingReviewsRoute
   PosAppBulkPricingRoute: typeof PosAppBulkPricingRoute
   PosAppBundlesRoute: typeof PosAppBundlesRoute
   PosAppCategoriesRoute: typeof PosAppCategoriesRoute
@@ -3674,6 +3715,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppBillingRoute: PosAppBillingRoute,
   PosAppBookingRoute: PosAppBookingRoute,
   PosAppBookingRemindersRoute: PosAppBookingRemindersRoute,
+  PosAppBookingReviewsRoute: PosAppBookingReviewsRoute,
   PosAppBulkPricingRoute: PosAppBulkPricingRoute,
   PosAppBundlesRoute: PosAppBundlesRoute,
   PosAppCategoriesRoute: PosAppCategoriesRoute,

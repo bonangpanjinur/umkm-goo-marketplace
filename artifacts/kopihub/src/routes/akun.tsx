@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
-import { User, ShoppingBag, MapPin, LogOut, Loader2, Heart, Bell, History, Gift, Star, CalendarCheck, PackageX, Wallet } from "lucide-react";
+import { User, ShoppingBag, MapPin, LogOut, Loader2, Heart, Bell, History, Gift, Star, CalendarCheck, PackageX, Wallet, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -14,8 +14,9 @@ export const Route = createFileRoute("/akun")({
 const NAV = [
   { to: "/akun",             label: "Profil",        icon: User,         exact: true },
   { to: "/akun/pesanan",     label: "Pesanan",       icon: ShoppingBag },
-  { to: "/akun/bookings",    label: "Booking",       icon: CalendarCheck },
-  { to: "/akun/saldo",       label: "Saldo & Member", icon: Wallet },
+  { to: "/akun/bookings",          label: "Booking",         icon: CalendarCheck },
+  { to: "/akun/digital-products",  label: "Produk Digital",  icon: Download },
+  { to: "/akun/saldo",             label: "Saldo & Member",  icon: Wallet },
   { to: "/akun/cashback",    label: "Cashback",      icon: Wallet },
   { to: "/akun/returns",     label: "Pengembalian",  icon: PackageX },
   { to: "/akun/favorit",     label: "Favorit",       icon: Heart },
