@@ -675,6 +675,56 @@ function POPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Konfirmasi hapus PO */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o && !deleting) setDeleteTarget(null); }}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1.5">
+                <AlertDialogTitle className="text-left">Hapus Purchase Order?</AlertDialogTitle>
+                <AlertDialogDescription className="text-left">
+                  PO ini akan dihapus permanen beserta seluruh itemnya. Tindakan ini tidak bisa dibatalkan.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          {deleteTarget && (
+            <div className="mt-2 rounded-lg border bg-muted/30 p-3 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-semibold">{deleteTarget.po_no}</span>
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[deleteTarget.status]}`}>
+                  {STATUS_LABEL[deleteTarget.status]}
+                </span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+                <span>{suppliers.find(s => s.id === deleteTarget.supplier_id)?.name ?? "Tanpa supplier"}</span>
+                <span className="tabular-nums font-medium text-foreground">{formatIDR(deleteTarget.total)}</span>
+              </div>
+              {(itemCounts[deleteTarget.id] ?? 0) > 0 && (
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  {itemCounts[deleteTarget.id]} item akan ikut dihapus
+                </div>
+              )}
+            </div>
+          )}
+
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeletePO(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menghapus…</> : <><Trash2 className="mr-2 h-4 w-4" /> Hapus PO</>}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
