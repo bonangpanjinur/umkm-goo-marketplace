@@ -405,6 +405,10 @@ function InventoryPage() {
     setPriceHistoryLoading(false);
   }
 
+  // F3-5: Stock forecast based on last 7 days of sales
+  // IMPORTANT: hook must be called before any early return to keep hook order stable
+  const { data: forecastData } = useStockForecast(shop?.id, items);
+
   if (shopLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -414,9 +418,6 @@ function InventoryPage() {
   }
 
   const lowStock = items.filter((i) => i.current_stock <= i.min_stock && i.min_stock > 0);
-
-  // F3-5: Stock forecast based on last 7 days of sales
-  const { data: forecastData } = useStockForecast(shop?.id, items);
 
   // Items predicted to run out within 3 days
   const urgentForecast = items.filter((i) => {
