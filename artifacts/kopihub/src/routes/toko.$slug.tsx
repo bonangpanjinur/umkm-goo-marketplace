@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package } from "lucide-react";
 import { useSeo } from "@/lib/use-seo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -231,7 +231,7 @@ function ShopPage() {
 
       const { data: prods } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, attributes")
+        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, attributes, item_type")
         .eq("shop_id", (s as any).id)
         .eq("is_available", true)
         .order("sort_order")
@@ -436,6 +436,38 @@ function productMatchesAttr(product: any, key: string, selected: string[]): bool
   return selected.some((s) => lower.includes(s.toLowerCase()));
 }
 
+function BundleCard({ product }: { product: any }) {
+  const shopSlug = product.shop?.slug ?? "";
+  return (
+    <Link
+      to="/toko/$slug/produk/$productId"
+      params={{ slug: shopSlug, productId: product.id }}
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md"
+    >
+      <div className="relative aspect-square overflow-hidden bg-muted/40">
+        {product.image_url ? (
+          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-muted-foreground">
+            <Package className="h-10 w-10 opacity-30" />
+          </div>
+        )}
+        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+          <Package className="h-3 w-3" /> PAKET
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col gap-1 p-3">
+        <p className="line-clamp-2 text-xs font-semibold leading-snug text-foreground group-hover:text-primary">
+          {product.name}
+        </p>
+        <p className="mt-auto text-sm font-bold text-primary">
+          Rp {Number(product.price).toLocaleString("id-ID")}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 function ProductsSection({
   loading,
   products,
@@ -451,16 +483,19 @@ function ProductsSection({
   selectedColors: string[];
   setSelectedColors: (v: string[]) => void;
 }) {
-  const sizes = useMemo(() => extractAttrValues(products, "size"), [products]);
-  const colors = useMemo(() => extractAttrValues(products, "color"), [products]);
+  const bundles = useMemo(() => products.filter((p) => p.item_type === "bundle"), [products]);
+  const regulars = useMemo(() => products.filter((p) => p.item_type !== "bundle"), [products]);
+
+  const sizes = useMemo(() => extractAttrValues(regulars, "size"), [regulars]);
+  const colors = useMemo(() => extractAttrValues(regulars, "color"), [regulars]);
 
   const filtered = useMemo(() => {
-    return products.filter(
+    return regulars.filter(
       (p) =>
         productMatchesAttr(p, "size", selectedSizes) &&
         productMatchesAttr(p, "color", selectedColors),
     );
-  }, [products, selectedSizes, selectedColors]);
+  }, [regulars, selectedSizes, selectedColors]);
 
   const toggle = (list: string[], setList: (v: string[]) => void, value: string) => {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -470,90 +505,116 @@ function ProductsSection({
   const activeCount = selectedSizes.length + selectedColors.length;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10">
-      <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold tracking-tight">Produk</h2>
-        {activeCount > 0 && (
-          <button
-            onClick={() => { setSelectedSizes([]); setSelectedColors([]); }}
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Reset filter ({activeCount})
-          </button>
-        )}
-      </div>
-
-      {hasFilters && (
-        <div className="mb-5 space-y-3">
-          {sizes.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">Ukuran</span>
-              {sizes.map((s) => {
-                const on = selectedSizes.includes(s);
-                return (
-                  <button
-                    key={s}
-                    onClick={() => toggle(selectedSizes, setSelectedSizes, s)}
-                    className={`px-3 h-8 rounded-full border text-xs font-medium transition-colors ${
-                      on
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-          {colors.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">Warna</span>
-              {colors.map((c) => {
-                const on = selectedColors.includes(c);
-                return (
-                  <button
-                    key={c}
-                    onClick={() => toggle(selectedColors, setSelectedColors, c)}
-                    className={`px-3 h-8 rounded-full border text-xs font-medium transition-colors ${
-                      on
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-[3/4] rounded-xl bg-muted/40 animate-pulse" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {products.length === 0
-            ? "Belum ada produk."
-            : "Tidak ada produk yang cocok dengan filter. Coba reset atau ubah pilihan."}
-        </p>
-      ) : (
-        <>
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
-            {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+    <div className="mx-auto max-w-7xl px-4 py-10 space-y-10">
+      {/* ── Paket Bundle section ── */}
+      {(loading || bundles.length > 0) && (
+        <section>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30 px-2.5 py-1 text-xs font-bold text-violet-700 dark:text-violet-300">
+              <Package className="h-3.5 w-3.5" /> Paket Bundle
+            </span>
+            <h2 className="text-xl font-bold tracking-tight">Paket Hemat</h2>
           </div>
-          {activeCount > 0 && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Menampilkan {filtered.length} dari {products.length} produk
-            </p>
+          {loading ? (
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="aspect-[3/4] rounded-xl bg-muted/40 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+              {bundles.map((p) => <BundleCard key={p.id} product={p} />)}
+            </div>
           )}
-        </>
+        </section>
       )}
-    </section>
+
+      {/* ── Regular products section ── */}
+      <section>
+        <div className="mb-4 flex items-baseline justify-between gap-3">
+          <h2 className="text-xl font-bold tracking-tight">Produk</h2>
+          {activeCount > 0 && (
+            <button
+              onClick={() => { setSelectedSizes([]); setSelectedColors([]); }}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Reset filter ({activeCount})
+            </button>
+          )}
+        </div>
+
+        {hasFilters && (
+          <div className="mb-5 space-y-3">
+            {sizes.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">Ukuran</span>
+                {sizes.map((s) => {
+                  const on = selectedSizes.includes(s);
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => toggle(selectedSizes, setSelectedSizes, s)}
+                      className={`px-3 h-8 rounded-full border text-xs font-medium transition-colors ${
+                        on
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {colors.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground w-14 shrink-0">Warna</span>
+                {colors.map((c) => {
+                  const on = selectedColors.includes(c);
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => toggle(selectedColors, setSelectedColors, c)}
+                      className={`px-3 h-8 rounded-full border text-xs font-medium transition-colors ${
+                        on
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4] rounded-xl bg-muted/40 animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {regulars.length === 0
+              ? "Belum ada produk."
+              : "Tidak ada produk yang cocok dengan filter. Coba reset atau ubah pilihan."}
+          </p>
+        ) : (
+          <>
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+            {activeCount > 0 && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Menampilkan {filtered.length} dari {regulars.length} produk
+              </p>
+            )}
+          </>
+        )}
+      </section>
+    </div>
   );
 }

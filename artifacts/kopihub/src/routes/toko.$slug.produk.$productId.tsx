@@ -184,6 +184,88 @@ function FlashSaleBanner({ product }: { product: Product }) {
   );
 }
 
+type BundleComponent = {
+  component_id: string;
+  quantity: number;
+  name: string;
+  price: number;
+  image_url: string | null;
+};
+
+function BundleContents({ productId }: { productId: string }) {
+  const [components, setComponents] = useState<BundleComponent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("bundle_items")
+        .select("component_id, quantity, menu_items!bundle_items_component_id_fkey(name, price, image_url)")
+        .eq("bundle_id", productId);
+      if (data) {
+        setComponents(
+          (data as any[]).map((row) => ({
+            component_id: row.component_id,
+            quantity: row.quantity,
+            name: row.menu_items?.name ?? "—",
+            price: Number(row.menu_items?.price ?? 0),
+            image_url: row.menu_items?.image_url ?? null,
+          })),
+        );
+      }
+      setLoading(false);
+    })();
+  }, [productId]);
+
+  if (loading) {
+    return (
+      <div className="mt-6 rounded-xl border border-border p-4 space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-10 rounded-lg bg-muted/40 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+  if (components.length === 0) return null;
+
+  const totalComponentPrice = components.reduce((sum, c) => sum + c.price * c.quantity, 0);
+
+  return (
+    <div className="mt-6 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-4">
+      <h3 className="mb-3 text-sm font-semibold flex items-center gap-1.5 text-violet-700 dark:text-violet-300">
+        <Package className="h-4 w-4" /> Isi Paket Ini
+      </h3>
+      <ul className="space-y-2">
+        {components.map((c) => (
+          <li key={c.component_id} className="flex items-center gap-3">
+            {c.image_url ? (
+              <img src={c.image_url} alt={c.name} className="h-9 w-9 rounded-lg object-cover shrink-0 border border-border" />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted shrink-0">
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{c.name}</p>
+              <p className="text-xs text-muted-foreground">Rp {c.price.toLocaleString("id-ID")}</p>
+            </div>
+            <span className="shrink-0 text-xs font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+              ×{c.quantity}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {totalComponentPrice > 0 && (
+        <p className="mt-3 text-xs text-muted-foreground border-t border-violet-200 dark:border-violet-800 pt-3">
+          Total harga satuan:{" "}
+          <span className="line-through">Rp {totalComponentPrice.toLocaleString("id-ID")}</span>
+          {" "}— beli bundel lebih hemat!
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ProductDetailPage() {
   const { slug, productId } = Route.useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -349,6 +431,11 @@ function ProductDetailPage() {
                 <p className="mt-6 text-sm leading-relaxed text-foreground/80 whitespace-pre-line">
                   {product.description}
                 </p>
+              )}
+
+              {/* M-10: Bundle components */}
+              {product.item_type === "bundle" && (
+                <BundleContents productId={product.id} />
               )}
 
               {/* P-08: Dietary & Allergen tags */}
