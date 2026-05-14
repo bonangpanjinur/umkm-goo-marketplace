@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import {
   Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
-  TrendingUp, ArrowRight,
+  TrendingUp, ArrowRight, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -116,6 +116,35 @@ function BookingReviewsPage() {
   const [filter, setFilter] = useState<"all" | "reviewed" | "pending">("pending");
   const [sentReminders, setSentReminders] = useState<Set<string>>(new Set());
   const [reviewRequestsMap, setReviewRequestsMap] = useState<Record<string, ReviewRequestStat>>({});
+  const [resending, setResending] = useState<string | null>(null);
+
+  const resendNotif = useCallback(async (bookingId: string, customerPhone: string) => {
+    setResending(bookingId);
+    try {
+      const now = new Date().toISOString();
+      const [reqRes, bookRes] = await Promise.all([
+        (supabase as any)
+          .from("booking_review_requests")
+          .upsert({ booking_id: bookingId, customer_phone: customerPhone, sent_at: now, clicked_at: null }, { onConflict: "booking_id" }),
+        (supabase as any)
+          .from("bookings")
+          .update({ review_request_sent_at: now })
+          .eq("id", bookingId),
+      ]);
+      if (reqRes.error) throw reqRes.error;
+      if (bookRes.error) throw bookRes.error;
+      // Update local state
+      setReviewRequestsMap(prev => ({ ...prev, [bookingId]: { sent_at: now, clicked_at: null } }));
+      setBookings(prev => prev.map(b =>
+        b.id === bookingId ? { ...b, review_request_sent_at: now } : b
+      ));
+      toast.success("Notifikasi ulang berhasil dikirim! Pembeli akan melihatnya saat membuka riwayat booking.");
+    } catch (e: any) {
+      toast.error("Gagal kirim ulang: " + e.message);
+    } finally {
+      setResending(null);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
@@ -419,13 +448,35 @@ function BookingReviewsPage() {
                       </div>
                     )}
 
-                    {/* Auto-notif status badge */}
+                    {/* Auto-notif status badge + kirim ulang */}
                     {b.review_request_sent_at && (
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                          reviewRequestsMap[b.id]?.clicked_at
+                            ? "bg-violet-50 border-violet-200 text-violet-700"
+                            : "bg-blue-50 border-blue-200 text-blue-700"
+                        }`}>
                           <Bell className="h-3 w-3" />
-                          Auto-notif terkirim {new Date(b.review_request_sent_at).toLocaleDateString("id-ID")}
+                          {reviewRequestsMap[b.id]?.clicked_at
+                            ? `Dibuka ${new Date(reviewRequestsMap[b.id].clicked_at!).toLocaleDateString("id-ID")}`
+                            : `Auto-notif terkirim ${new Date(b.review_request_sent_at).toLocaleDateString("id-ID")}`
+                          }
                         </span>
+                        {!hasReview && !reviewRequestsMap[b.id]?.clicked_at && b.customer_phone && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 gap-1 px-2 text-[10px] border-orange-300 text-orange-700 hover:bg-orange-50"
+                            disabled={resending === b.id}
+                            onClick={() => resendNotif(b.id, b.customer_phone!)}
+                          >
+                            {resending === b.id
+                              ? <Loader2 className="h-3 w-3 animate-spin" />
+                              : <RotateCcw className="h-3 w-3" />
+                            }
+                            Kirim Ulang Notif
+                          </Button>
+                        )}
                       </div>
                     )}
 
