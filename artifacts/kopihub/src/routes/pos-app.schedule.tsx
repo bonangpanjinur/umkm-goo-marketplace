@@ -399,6 +399,79 @@ function SchedulePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={inviteOpen} onOpenChange={(o) => { if (!o) { setInviteOpen(false); setLastInviteUrl(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Undang pegawai</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={invEmail}
+                onChange={(e) => setInvEmail(e.target.value)}
+                placeholder="pegawai@toko.com"
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">
+                Pegawai mendaftar dengan email yang sama untuk menerima undangan.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Peran</Label>
+                <Select value={invRole} onValueChange={setInvRole}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="cashier">Kasir</SelectItem>
+                    <SelectItem value="barista">Barista</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Outlet</Label>
+                <Select value={invOutletId} onValueChange={setInvOutletId}>
+                  <SelectTrigger><SelectValue placeholder="Pilih outlet" /></SelectTrigger>
+                  <SelectContent>
+                    {outlets.map((o) => (
+                      <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {lastInviteUrl && (
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
+                <div className="mb-1 font-medium text-foreground">Tautan undangan:</div>
+                <div className="break-all font-mono text-muted-foreground">{lastInviteUrl}</div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(lastInviteUrl);
+                    toast.success("Tersalin");
+                  }}
+                >
+                  Salin lagi
+                </Button>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setInviteOpen(false); setLastInviteUrl(null); }}>
+              Tutup
+            </Button>
+            <Button onClick={inviteEmployee} disabled={inviting || !invEmail.trim()}>
+              {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <UserPlus className="mr-2 h-4 w-4" /> Buat undangan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
