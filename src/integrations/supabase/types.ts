@@ -3048,6 +3048,70 @@ export type Database = {
         }
         Relationships: []
       }
+      printers: {
+        Row: {
+          address: string | null
+          connection_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          outlet_id: string
+          paper_size: string
+          shop_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          connection_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          outlet_id: string
+          paper_size?: string
+          shop_id: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          connection_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          outlet_id?: string
+          paper_size?: string
+          shop_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "printers_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "outlets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "printers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "printers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       product_reviews: {
         Row: {
           comment: string | null
