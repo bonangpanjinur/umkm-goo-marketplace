@@ -15,6 +15,7 @@ import {
   CheckCircle2, Loader2, Phone, User, MessageSquare, Users,
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
   AlertTriangle, Ticket, Tag, X, XCircle, Package, Plus,
+  FileText, Upload, Trash2, CreditCard, Car,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -36,6 +37,7 @@ type Shop = {
   require_deposit: boolean | null;
   deposit_percent: number | null;
   deposit_notes: string | null;
+  require_id_upload: boolean | null;
 };
 
 type Slot = {
@@ -58,7 +60,7 @@ type Staff = {
   is_available: boolean;
 };
 
-type Step = "date" | "slot" | "staff" | "packages" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+type Step = "date" | "slot" | "staff" | "packages" | "document" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
 
 type ServicePackage = {
   id: string;
@@ -155,12 +157,17 @@ export default function PublicBookingPage() {
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
   const [packagesLoaded, setPackagesLoaded] = useState(false);
 
+  // Document upload state (M-16)
+  const [docUrl, setDocUrl] = useState<string | null>(null);
+  const [docType, setDocType] = useState<"ktp" | "sim">("ktp");
+  const [docUploading, setDocUploading] = useState(false);
+
   // Load shop
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase
         .from("coffee_shops" as any)
-        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, require_deposit, deposit_percent, deposit_notes")
+        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, require_deposit, deposit_percent, deposit_notes, require_id_upload")
         .eq("slug", slug)
         .eq("is_active", true)
         .maybeSingle();
@@ -241,6 +248,25 @@ export default function PublicBookingPage() {
 
   const hasStaff    = staffList.length > 0;
   const hasPackages = packagesLoaded && (packages.length > 0 || addons.length > 0);
+  const needsDoc    = !!(shop?.require_id_upload);
+
+  // Document upload helper (M-16)
+  const uploadDoc = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("Ukuran file maksimal 5MB"); return; }
+    setDocUploading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `booking-docs/${Date.now()}-${docType}.${ext}`;
+    const { error } = await supabase.storage.from("booking-documents").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error("Gagal upload dokumen: " + error.message);
+      setDocUploading(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage.from("booking-documents").getPublicUrl(path);
+    setDocUrl(publicUrl);
+    toast.success("Dokumen berhasil diupload");
+    setDocUploading(false);
+  };
 
   // Derived
   const availableDates = [...new Set(
@@ -265,22 +291,26 @@ export default function PublicBookingPage() {
   const selectedStaff  = staffList.find(s => s.id === selectedStaffId) ?? null;
   const selectedAddons = addons.filter(a => selectedAddonIds.has(a.id));
 
-  // Step labels — dynamic based on staff + packages availability
+  // Step labels — dynamic based on staff + packages + id-upload availability
   const stepKeys: Step[] = [
     "date", "slot",
     ...(hasStaff    ? ["staff"    as Step] : []),
     ...(hasPackages ? ["packages" as Step] : []),
+    ...(needsDoc    ? ["document" as Step] : []),
     "form",
   ];
   const stepLabels = [
     "Pilih Tanggal", "Pilih Waktu",
     ...(hasStaff    ? ["Pilih Staff"]    : []),
     ...(hasPackages ? ["Paket & Add-on"] : []),
+    ...(needsDoc    ? ["Upload Dokumen"] : []),
     "Isi Data",
   ];
 
-  const afterSlot  = hasStaff ? "staff" : (hasPackages ? "packages" : "form");
-  const afterStaff = hasPackages ? "packages" : "form";
+  const afterSlot     = hasStaff ? "staff" : (hasPackages ? "packages" : (needsDoc ? "document" : "form"));
+  const afterStaff    = hasPackages ? "packages" : (needsDoc ? "document" : "form");
+  const afterPackages = needsDoc ? "document" : "form";
+  const afterDoc      = "form" as Step;
 
   // Apply voucher code
   const applyVoucher = async () => {
@@ -381,6 +411,10 @@ export default function PublicBookingPage() {
             addon_ids: selectedAddons.map(a => a.id),
             addon_names_snapshot: selectedAddons.map(a => a.name).join(", "),
             addon_total_price: addonTotal,
+          } : {}),
+          ...(docUrl ? {
+            document_url: docUrl,
+            document_type: docType,
           } : {}),
         } as any)
         .select("id, cancellation_token")
@@ -1235,16 +1269,16 @@ export default function PublicBookingPage() {
 
             <Button
               className="w-full h-12 text-base gap-2"
-              onClick={() => setStep("form")}
+              onClick={() => setStep(afterPackages)}
             >
-              Lanjut ke Isi Data <ChevronRight className="h-4 w-4" />
+              {needsDoc ? "Lanjut ke Upload Dokumen" : "Lanjut ke Isi Data"} <ChevronRight className="h-4 w-4" />
             </Button>
             <button
               className="w-full text-sm text-muted-foreground hover:text-foreground text-center py-1"
               onClick={() => {
                 setSelectedPackage(null);
                 setSelectedAddonIds(new Set());
-                setStep("form");
+                setStep(afterPackages);
               }}
             >
               Lewati — lanjut tanpa paket tambahan
@@ -1252,12 +1286,136 @@ export default function PublicBookingPage() {
           </div>
         )}
 
-        {/* ─── Step: Form ─── */}
-        {step === "form" && selectedSlot && (
+        {/* ─── Step: Document Upload (M-16) ─── */}
+        {step === "document" && needsDoc && (
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setStep(hasPackages ? "packages" : (hasStaff ? "staff" : "slot"))}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" /> Upload Dokumen Identitas
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Diperlukan untuk verifikasi booking rental
+                </p>
+              </div>
+            </div>
+
+            {/* Tipe Dokumen */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Pilih Jenis Dokumen</p>
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  { value: "ktp", label: "KTP", desc: "Kartu Tanda Penduduk", icon: CreditCard },
+                  { value: "sim", label: "SIM", desc: "Surat Izin Mengemudi", icon: Car },
+                ] as const).map(({ value, label, desc, icon: Icon }) => (
+                  <button
+                    key={value}
+                    onClick={() => { setDocType(value); setDocUrl(null); }}
+                    className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${
+                      docType === value
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 shrink-0 ${docType === value ? "text-primary" : "text-muted-foreground"}`} />
+                    <div>
+                      <p className="font-semibold text-sm">{label}</p>
+                      <p className="text-[11px] text-muted-foreground">{desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Upload Area */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Foto {docType.toUpperCase()}</p>
+              {docUrl ? (
+                <div className="relative rounded-xl overflow-hidden border border-primary/30">
+                  <img src={docUrl} alt="Dokumen" className="w-full max-h-60 object-contain bg-muted/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-white">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      <span className="text-sm font-medium">Dokumen berhasil diupload</span>
+                    </div>
+                    <button
+                      onClick={() => setDocUrl(null)}
+                      className="flex items-center gap-1 rounded-lg bg-red-500/80 px-2 py-1 text-xs text-white hover:bg-red-500"
+                    >
+                      <Trash2 className="h-3 w-3" /> Ganti
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 cursor-pointer transition-colors ${
+                  docUploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"
+                }`}>
+                  {docUploading ? (
+                    <>
+                      <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                      <p className="text-sm text-muted-foreground">Mengupload…</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-10 w-10 text-muted-foreground" />
+                      <div className="text-center">
+                        <p className="text-sm font-medium">Klik untuk pilih foto</p>
+                        <p className="text-xs text-muted-foreground mt-1">JPG, PNG, PDF · Maks. 5MB</p>
+                        <p className="text-xs text-muted-foreground">Pastikan foto jelas, tidak terpotong, dan tidak buram</p>
+                      </div>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    disabled={docUploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadDoc(f); e.target.value = ""; }}
+                  />
+                </label>
+              )}
+            </div>
+
+            {/* Panduan foto */}
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-4 space-y-1.5">
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" /> Panduan Upload Dokumen
+              </p>
+              <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-0.5 list-disc list-inside">
+                <li>Foto seluruh bagian dokumen, tidak terpotong</li>
+                <li>Cahaya cukup, tidak silau dan tidak buram</li>
+                <li>Data nama dan nomor harus terbaca jelas</li>
+                <li>Dokumen harus atas nama pemesan</li>
+              </ul>
+            </div>
+
+            <Button
+              className="w-full h-12 text-base gap-2"
+              onClick={() => setStep(afterDoc)}
+              disabled={!docUrl}
+            >
+              Lanjut ke Isi Data <ChevronRight className="h-4 w-4" />
+            </Button>
+            {!docUrl && (
+              <p className="text-center text-xs text-muted-foreground">
+                Upload dokumen terlebih dahulu untuk melanjutkan
+              </p>
+            )}
+          </div>
+        )}
+
+        {step === "form" && selectedSlot && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStep(needsDoc ? "document" : (hasPackages ? "packages" : (hasStaff ? "staff" : "slot")))}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />

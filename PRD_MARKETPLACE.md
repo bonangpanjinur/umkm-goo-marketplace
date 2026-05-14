@@ -602,6 +602,10 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 14 Mei 2026 | Sprint 16 | **M-18c Analitik Pembeli Booking** — `/pos-app/customer-analytics`; 5 segmen otomatis: Pelanggan Setia / Pelanggan Baru / Perlu Diaktivasi / Churn Risk / Tidak Responsif; KPI cards (total pembeli, setia, churn risk, tidak responsif); breakdown bar distribusi segmen; tabel sortable (booking, nilai, terakhir booking); expand per-baris untuk detail + tip + tombol WA reaktivasi/win-back; export CSV | ✅ |
 | 14 Mei 2026 | Sprint 17 | **M-09 Flash Sale Terjadwal (customer-facing)** — skema sudah ada (`flash_price`, `flash_starts_at`, `flash_ends_at` di `menu_items`, migration `fase4_promo_notif.sql`); POS management `pos-app.flash-sale.tsx` complete; customer-facing: `FlashSaleBanner` + live countdown di halaman detail produk; section Flash Sale di homepage marketplace; badge harga flash + diskon% di `ProductCard` (import dari `index.tsx`) di seluruh grid produk; shop page sudah fetch kolom flash | ✅ |
 | 14 Mei 2026 | Sprint 17 | **M-10 Bundling Produk (customer-facing)** — skema sudah ada (`item_type='bundle'` di `menu_items`, tabel `bundle_items`, migration `fase3_bundle.sql`); POS management `pos-app.bundles.tsx` complete; customer-facing: tambah `item_type` ke SELECT di `toko.$slug.tsx`; section "Paket Hemat" terpisah dengan `BundleCard` (badge PAKET ungu) di halaman toko; komponen `BundleContents` di halaman detail produk bundle (daftar isi paket + thumbnail + qty + perbandingan harga satuan) | ✅ |
+| 14 Mei 2026 | Sprint 18 | **M-07 Cart Upsell Extension** — `CartUpsell` + `CartUpsellCard` di `keranjang.tsx`; query `order_items` co-purchase data untuk item di keranjang; 1-klik add upsell suggestions di bawah daftar item keranjang | ✅ |
+| 14 Mei 2026 | Sprint 18 | **Bandingkan Harga Floating Bar** di `toko.$slug.tsx` — `CompareToggleButton` overlay ⚖ di setiap kartu produk (max 3); `CompareFloatingBar` fixed bottom dengan slot thumbnail + counter + tombol Bandingkan; `CompareModal` Dialog side-by-side: harga (label "Termurah"), rating (label "Tertinggi"), stok, isi paket (bundle) + aksi "Beli Sekarang" + "Lihat Detail" per kolom; scoped ke toko aktif (tidak konflik dengan `/bandingkan`) | ✅ |
+| 14 Mei 2026 | Sprint 18 | **M-13 Preview Produk Digital** — `DigitalPreview` component di `toko.$slug.produk.$productId.tsx`; gambar preview dengan overlay watermark + ikon kunci + teks "Preview — Beli untuk akses penuh"; hanya tampil untuk `item_type='digital'` | ✅ |
+| 14 Mei 2026 | Sprint 18 | **M-16 Upload Dokumen KTP/SIM Booking Rental** — step "Dokumen" di wizard booking publik untuk kategori rental (T4); upload ke Supabase Storage bucket `booking-documents`; kolom `document_url` + `document_type` di tabel `bookings`; hanya tampil jika `shop.require_id_upload = true`; preview thumbnails + hapus + validasi ukuran 5MB | ✅ |
 
 ---
 
@@ -879,11 +883,11 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | M-10 | **Deposit Booking Online** | Jasa/Rental | Komitmen | ✅ Manual · ❌ Gateway belum |
 | M-11 | **Happy Hour / Time-based Pricing** | F&B | Pendapatan | ✅ Selesai |
 | M-12 | **Waitlist Virtual** | F&B/Jasa | Retensi | ✅ Selesai |
-| M-13 | **Preview Produk Digital** (watermarked sample) | Digital T2 | Konversi | ❌ Belum |
+| M-13 | **Preview Produk Digital** (watermarked sample) | Digital T2 | Konversi | ✅ Selesai Sprint 18 |
 | M-14 | **Cashback Wallet** | Pembeli | Retensi | ✅ Selesai |
 | M-15 | **Katalog PDF / Link Shareable** | Merchant | Pemasaran | ✅ Selesai |
 | M-VB | **Voucher Khusus Booking** | Jasa T3 | Konversi | ✅ Selesai |
-| M-16 | **Upload Dokumen KTP/SIM saat Booking Rental** | Rental T4 | Legal/UX | ❌ Belum |
+| M-16 | **Upload Dokumen KTP/SIM saat Booking Rental** | Rental T4 | Legal/UX | ✅ Selesai Sprint 18 |
 | M-17 | **Paket Layanan + Add-on saat Booking** | Jasa T3 | AOV | ✅ Selesai |
 | M-18 | **Review Post-Booking Otomatis H+1** | Jasa T3&T4 | Kepercayaan | ✅ Selesai |
 | M-19 | **Galeri Portofolio tampil di halaman publik /toko/:slug** | Jasa/Kreatif | Kepercayaan | ✅ Selesai |
