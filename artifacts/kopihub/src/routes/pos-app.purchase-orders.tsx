@@ -264,16 +264,44 @@ function POPage() {
   function sendWhatsApp(p: PO) {
     const sup = suppliers.find((s) => s.id === p.supplier_id);
     if (!sup?.phone) { toast.error("Supplier belum punya nomor WhatsApp"); return; }
-    const phone = normalizePhone(sup.phone);
-    const msg =
-      `Halo ${sup.name},\n\nMohon proses Purchase Order berikut:\n` +
-      `No. PO: ${p.po_no}\n` +
-      `Tanggal: ${p.order_date}\n` +
-      (p.expected_date ? `Kedatangan: ${p.expected_date}\n` : "") +
-      `Total: ${formatIDR(p.total)}\n\n` +
-      `Terima kasih.`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+    const msg = buildWAMessage({
+      template: waTemplate,
+      supplierName: sup.name,
+      shopName: shop?.name,
+      po: p,
+    });
+    if (!openWA(sup.phone, msg)) toast.error("Nomor WhatsApp tidak valid");
   }
+
+  // Daftar PO eligible untuk batch resend (dari hasil filter & punya supplier dgn nomor)
+  const batchEligible = useMemo(() => {
+    return filtered
+      .map((p) => {
+        const sup = suppliers.find((s) => s.id === p.supplier_id);
+        const phone = normalizePhone(sup?.phone);
+        return phone && sup ? { po: p, supplier: sup, phone } : null;
+      })
+      .filter((x): x is { po: PO; supplier: Supplier; phone: string } => x !== null);
+  }, [filtered, suppliers]);
+
+  function sendBatchOne(poId: string) {
+    const item = batchEligible.find((x) => x.po.id === poId);
+    if (!item) return;
+    const msg = buildWAMessage({
+      template: waTemplate,
+      supplierName: item.supplier.name,
+      shopName: shop?.name,
+      po: item.po,
+    });
+    if (openWA(item.phone, msg)) {
+      setBatchSent((m) => ({ ...m, [poId]: true }));
+    }
+  }
+  function openBatchDialog() {
+    setBatchSent({});
+    setBatchOpen(true);
+  }
+
 
   function exportCSV() {
     const header = ["No PO", "Tanggal", "Supplier", "Item", "Status", "Subtotal", "Pajak", "Total", "Catatan"];
