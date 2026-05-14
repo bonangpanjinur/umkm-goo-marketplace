@@ -88,17 +88,17 @@
 
 | # | Kode | Fitur | Kategori | Prioritas |
 |---|---|---|---|---|
-| 1 | SF-02 | Pilih paket sesi foto (Basic 1 jam / Standard / Premium) | Studio Foto | 🔥 TINGGI |
-| 2 | SF-04 | Portfolio galeri tampil di halaman publik toko studio foto | Studio Foto | 🔥 TINGGI |
-| 3 | SF-05 | Upload file hasil foto ke klien via platform (link download) | Studio Foto | TINGGI |
-| 4 | SF-07 | Brief form sebelum sesi foto (diisi klien saat booking) | Studio Foto | TINGGI |
-| 5 | SF-03 | Pilih lokasi sesi (studio / outdoor / lokasi klien) | Studio Foto | TINGGI |
-| 6 | SF-08 | Add-on saat booking (editing ekstra, album, dll.) | Studio Foto | SEDANG |
-| 7 | SF-09 | Review dengan foto hasil karya (klien upload) | Studio Foto | TINGGI |
-| 8 | BE-03 | Tag skin type per produk (oily, dry, combination, sensitive) | Skincare | TINGGI |
-| 9 | KL-03 | Rekam medis sederhana per pasien | Klinik | SEDANG |
-| 10 | JU-05 | Deliver hasil kerja via platform (upload file ke klien) | Jasa Digital | TINGGI |
-| 11 | SA-05 | Konfigurasi Booking per Kategori (toggle T3/T4 per kategori) | Super Admin | TINGGI |
+| 1 | SF-02 | ✅ Pilih paket sesi foto (Basic / Standard / Premium) | Studio Foto | — | `pos-app.studio-packages.tsx` |
+| 2 | SF-04 | Portfolio galeri tampil di halaman publik toko studio foto | Studio Foto | 🔥 TINGGI | |
+| 3 | SF-05 | ✅ Upload file hasil foto ke klien via platform (link download) | Studio Foto | — | `pos-app.studio-delivery.tsx` |
+| 4 | SF-07 | ✅ Brief form sebelum sesi foto (diisi klien saat booking) | Studio Foto | — | `pos-app.studio-brief.tsx` |
+| 5 | SF-03 | Pilih lokasi sesi (studio / outdoor / lokasi klien) | Studio Foto | TINGGI | |
+| 6 | SF-08 | Add-on saat booking (editing ekstra, album, dll.) | Studio Foto | SEDANG | |
+| 7 | SF-09 | Review dengan foto hasil karya (klien upload) | Studio Foto | TINGGI | |
+| 8 | BE-03 | Tag skin type per produk (oily, dry, combination, sensitive) | Skincare | TINGGI | |
+| 9 | KL-03 | Rekam medis sederhana per pasien | Klinik | SEDANG | |
+| 10 | JU-05 | Deliver hasil kerja via platform (upload file ke klien) | Jasa Digital | TINGGI | |
+| 11 | SA-05 | Konfigurasi Booking per Kategori (toggle T3/T4 per kategori) | Super Admin | TINGGI | |
 
 ---
 
@@ -1184,12 +1184,12 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | # | Fitur | Status | Prioritas |
 |---|---|---|---|
 | SF-01 | Booking sesi foto publik | ✅ | — |
-| SF-02 | Pilih paket sesi (Basic 1 jam, Standard, Premium) | ❌ Belum dibangun | 🔥 TINGGI |
+| SF-02 | Pilih paket sesi (Basic 1 jam, Standard, Premium) | ✅ `pos-app.studio-packages.tsx` — CRUD paket + tampil di booking | — |
 | SF-03 | Pilih lokasi (studio, outdoor, lokasi klien) | ❌ Belum dibangun | TINGGI |
 | SF-04 | Portofolio galeri tampil di halaman publik | ✅ `pos-app.portfolio.tsx` + `PortfolioGallery` di toko | — |
-| SF-05 | Upload file hasil foto ke klien (link download) | ❌ Belum dibangun | TINGGI |
+| SF-05 | Upload file hasil foto ke klien (link download) | ✅ `pos-app.studio-delivery.tsx` — Drive/WeTransfer link + kirim WA | — |
 | SF-06 | Deposit wajib saat booking | ✅ (manual) · ❌ gateway (P3) | — |
-| SF-07 | Brief form sebelum sesi | ❌ Belum dibangun | TINGGI |
+| SF-07 | Brief form sebelum sesi | ✅ `pos-app.studio-brief.tsx` — kirim link, klien isi mood/outfit/referensi | — |
 | SF-08 | Add-on saat booking (editing ekstra, album, dll.) | ❌ Belum dibangun | SEDANG |
 | SF-09 | Review dengan foto hasil karya (klien upload) | ❌ Belum dibangun | TINGGI |
 

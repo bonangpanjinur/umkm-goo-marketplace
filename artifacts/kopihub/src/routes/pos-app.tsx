@@ -71,6 +71,9 @@ import {
   Scissors,
   Receipt,
   BadgeCheck,
+  Camera,
+  ClipboardList,
+  FolderOpen,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -224,6 +227,9 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/booking-reminders",     label: "Reminder Booking",    icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-reviews",   label: "Ulasan Booking",    icon: Star, hint: "Monitor ulasan & kirim pengingat WhatsApp minta ulasan ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-analytics", label: "Analitik Booking",  icon: BarChart3, hint: "Pantau pendapatan deposit, tingkat pembatalan, jam slot terpopuler & tren booking", onlyFor: FNB_SVC },
+      { to: "/pos-app/studio-packages",  label: "Paket Sesi Foto",      icon: Camera, hint: "Buat paket sesi foto (Basic/Standard/Premium) — tampil di halaman booking klien", onlyFor: SVC },
+      { to: "/pos-app/studio-brief",     label: "Brief Form Klien",     icon: ClipboardList, hint: "Kirim link form brief ke klien sebelum sesi — mood, lokasi, outfit, referensi", onlyFor: SVC },
+      { to: "/pos-app/studio-delivery",  label: "Kirim Hasil Foto",     icon: FolderOpen, hint: "Kirim link Google Drive/WeTransfer ke klien via WhatsApp setelah sesi selesai", onlyFor: SVC },
     ],
   },
   {
