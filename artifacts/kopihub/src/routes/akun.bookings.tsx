@@ -129,6 +129,7 @@ function BookingsPage() {
   const [reviewForm, setReviewForm] = useState<{ bookingId: string; rating: number; body: string } | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewTableExists, setReviewTableExists] = useState<boolean | null>(null);
+  const [reviewRequests, setReviewRequests] = useState<Record<string, { sent_at: string; clicked_at: string | null }>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -161,6 +162,30 @@ function BookingsPage() {
     setReviews(map);
   }, []);
 
+  const loadReviewRequests = useCallback(async (bookingIds: string[]) => {
+    if (bookingIds.length === 0) return;
+    const { data, error } = await (supabase as any)
+      .from("booking_review_requests")
+      .select("booking_id, sent_at, clicked_at")
+      .in("booking_id", bookingIds);
+    if (error) return;
+    const map: Record<string, { sent_at: string; clicked_at: string | null }> = {};
+    for (const r of (data ?? []) as any[]) map[r.booking_id] = { sent_at: r.sent_at, clicked_at: r.clicked_at };
+    setReviewRequests(map);
+  }, []);
+
+  const markReviewRequestClicked = useCallback(async (bookingId: string) => {
+    await (supabase as any)
+      .from("booking_review_requests")
+      .update({ clicked_at: new Date().toISOString() })
+      .eq("booking_id", bookingId)
+      .is("clicked_at", null);
+    setReviewRequests(prev => {
+      if (!prev[bookingId]) return prev;
+      return { ...prev, [bookingId]: { ...prev[bookingId], clicked_at: new Date().toISOString() } };
+    });
+  }, []);
+
   async function loadBookings(ph: string) {
     if (!ph.trim()) return;
     setLoading(true);
@@ -181,7 +206,7 @@ function BookingsPage() {
       const bList = (data ?? []) as Booking[];
       setBookings(bList);
       const completedIds = bList.filter(b => b.status === "completed").map(b => b.id);
-      await loadReviews(completedIds);
+      await Promise.all([loadReviews(completedIds), loadReviewRequests(completedIds)]);
     } catch (e: any) {
       toast.error("Gagal memuat booking: " + e.message);
     } finally {
@@ -268,12 +293,32 @@ function BookingsPage() {
   const upcoming = bookings.filter(b => ["pending","confirmed"].includes(b.status));
   const past     = bookings.filter(b => !["pending","confirmed"].includes(b.status));
 
+  // Booking selesai yang ada review request tapi belum diulas
+  const pendingReviewRequestCount = past.filter(
+    b => b.status === "completed" && reviewRequests[b.id] && !reviews[b.id]
+  ).length;
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Riwayat Booking</h2>
         <p className="mt-1 text-sm text-muted-foreground">Semua jadwal layanan yang telah kamu pesan.</p>
       </div>
+
+      {/* Banner H+1 review request */}
+      {pendingReviewRequestCount > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3">
+          <Star className="h-5 w-5 text-amber-500 shrink-0 mt-0.5 fill-amber-400" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-900">
+              Kamu punya {pendingReviewRequestCount} ulasan yang menunggu!
+            </p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Ceritakan pengalamanmu — ulasanmu membantu orang lain memilih toko yang tepat.
+            </p>
+          </div>
+        </div>
+      )}
 
       {!phone && (
         <div className="rounded-xl border border-border bg-card p-5 space-y-3">
@@ -420,7 +465,11 @@ function BookingsPage() {
                 cancelling={cancelling === b.id}
                 review={reviews[b.id]}
                 reviewTableExists={reviewTableExists}
-                onReview={b.status === "completed" ? () => setReviewForm({ bookingId: b.id, rating: reviews[b.id]?.rating ?? 0, body: reviews[b.id]?.body ?? "" }) : undefined}
+                hasPendingRequest={!reviews[b.id] && !!reviewRequests[b.id]}
+                onReview={b.status === "completed" ? () => {
+                  setReviewForm({ bookingId: b.id, rating: reviews[b.id]?.rating ?? 0, body: reviews[b.id]?.body ?? "" });
+                  markReviewRequestClicked(b.id);
+                } : undefined}
               />
             ))}
           </div>
@@ -449,6 +498,7 @@ function BookingCard({
   onReschedule?: (b: Booking) => void;
   review?: BookingReview;
   reviewTableExists?: boolean | null;
+  hasPendingRequest?: boolean;
   onReview?: () => void;
 }) {
   const Icon = STATUS_ICON[b.status] ?? CalendarCheck;
@@ -456,7 +506,7 @@ function BookingCard({
   const canReview = b.status === "completed" && reviewTableExists !== false;
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className={`rounded-xl border bg-card overflow-hidden ${hasPendingRequest ? "border-amber-300 ring-1 ring-amber-200" : "border-border"}`}>
       <button className="w-full flex items-start gap-3 p-4 text-left hover:bg-muted/30 transition-colors" onClick={onToggle}>
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
@@ -510,7 +560,7 @@ function BookingCard({
 
           {/* Review section for completed bookings */}
           {canReview && (
-            <div className="rounded-xl bg-muted/40 border border-border p-3">
+            <div className={`rounded-xl border p-3 ${hasPendingRequest ? "bg-amber-50 border-amber-200" : "bg-muted/40 border-border"}`}>
               {review ? (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1.5">Ulasan kamu</p>
@@ -526,10 +576,29 @@ function BookingCard({
               ) : (
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium">Bagaimana layanannya?</p>
-                    <p className="text-xs text-muted-foreground">Ulasanmu membantu orang lain memilih toko.</p>
+                    {hasPendingRequest ? (
+                      <>
+                        <p className="text-sm font-semibold text-amber-900 flex items-center gap-1.5">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          Bagaimana layanannya?
+                        </p>
+                        <p className="text-xs text-amber-700 mt-0.5">
+                          Kami mengingatkan kamu H+1 — ulasanmu sangat berarti!
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium">Bagaimana layanannya?</p>
+                        <p className="text-xs text-muted-foreground">Ulasanmu membantu orang lain memilih toko.</p>
+                      </>
+                    )}
                   </div>
-                  <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={onReview}>
+                  <Button
+                    size="sm"
+                    variant={hasPendingRequest ? "default" : "outline"}
+                    className="gap-1.5 shrink-0"
+                    onClick={onReview}
+                  >
                     <MessageSquare className="h-3.5 w-3.5" /> Beri Ulasan
                   </Button>
                 </div>

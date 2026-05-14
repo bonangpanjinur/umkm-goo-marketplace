@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import {
-  Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send,
+  Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,7 @@ type CompletedBooking = {
   customer_name: string | null;
   customer_phone: string | null;
   created_at: string;
+  review_request_sent_at: string | null;
   slot: {
     service_name: string;
     slot_date: string;
@@ -89,7 +90,7 @@ function BookingReviewsPage() {
       const { data: completedBookings, error } = await (supabase as any)
         .from("bookings")
         .select(`
-          id, customer_name, customer_phone, created_at,
+          id, customer_name, customer_phone, created_at, review_request_sent_at,
           slot:booking_slots(service_name, slot_date, slot_time)
         `)
         .eq("booking_slots.shop_id", shop.id)
@@ -257,6 +258,16 @@ function BookingReviewsPage() {
                           <p className="mt-1.5 text-sm text-foreground/70 italic">"{b.review.body}"</p>
                         )}
                         <p className="mt-1 text-[10px] text-muted-foreground">{fmtDate(b.review.created_at)}</p>
+                      </div>
+                    )}
+
+                    {/* Auto-notif status badge */}
+                    {b.review_request_sent_at && (
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                          <Bell className="h-3 w-3" />
+                          Auto-notif terkirim {new Date(b.review_request_sent_at).toLocaleDateString("id-ID")}
+                        </span>
                       </div>
                     )}
 
