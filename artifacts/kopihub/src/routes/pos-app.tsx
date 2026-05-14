@@ -58,6 +58,7 @@ import {
   MessageCircle,
   HelpCircle,
   Star,
+  Zap,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -189,6 +190,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Tampilan Toko",
     items: [
       { to: "/pos-app/portfolio",     label: "Portofolio / Galeri",    icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli", onlyFor: SVC_CRAFT },
+      { to: "/pos-app/flash-sale",    label: "Flash Sale Terjadwal",   icon: Zap, hint: "Atur diskon kilat dengan countdown timer otomatis di marketplace" },
       { to: "/pos-app/happy-hour",    label: "Happy Hour",             icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam", onlyFor: FNB },
       { to: "/pos-app/bulk-pricing",  label: "Harga Grosir / Bulk",    icon: Layers, hint: "Harga bertingkat otomatis: beli lebih banyak, harga lebih murah" },
       { to: "/pos-app/upsell",        label: "Sering Dibeli Bersama",  icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles, Zap } from "lucide-react";
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -47,6 +47,9 @@ type Product = {
   item_type: string | null;
   preview_image_url: string | null;
   accepts_custom_order?: boolean | null;
+  flash_price?: number | null;
+  flash_starts_at?: string | null;
+  flash_ends_at?: string | null;
 };
 
 type PricePoint = { recorded_at: string; price: number };
@@ -115,6 +118,72 @@ function PriceHistory({ productId, currentPrice }: { productId: string; currentP
 
 type Shop = { id: string; slug: string; name: string; logo_url: string | null };
 
+function useFlashCountdown(endsAt: string | null) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!endsAt) return;
+    const id = setInterval(() => tick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [endsAt]);
+  if (!endsAt) return null;
+  const ms = Math.max(0, new Date(endsAt).getTime() - Date.now());
+  if (ms === 0) return null;
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return { h, m, s: sec };
+}
+
+function FlashSaleBanner({ product }: { product: Product }) {
+  const now = Date.now();
+  const flashActive = !!(
+    product.flash_price != null &&
+    Number(product.flash_price) > 0 &&
+    Number(product.flash_price) < Number(product.price) &&
+    (!product.flash_starts_at || new Date(product.flash_starts_at).getTime() <= now) &&
+    (!product.flash_ends_at || new Date(product.flash_ends_at).getTime() > now)
+  );
+  const countdown = useFlashCountdown(flashActive ? (product.flash_ends_at ?? null) : null);
+  if (!flashActive) return null;
+  const fp = Number(product.flash_price);
+  const orig = Number(product.price);
+  const discPct = Math.round((1 - fp / orig) * 100);
+  return (
+    <div className="mt-3 rounded-xl border border-red-300 dark:border-red-800 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/20 p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-lg bg-destructive px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow">
+            <Zap className="h-3.5 w-3.5 animate-pulse" /> Flash Sale
+          </span>
+          <span className="rounded-full bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 px-2 py-0.5 text-xs font-bold text-destructive">
+            -{discPct}%
+          </span>
+        </div>
+        {countdown && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Berakhir dalam:</span>
+            <div className="flex items-center gap-1">
+              {countdown.h > 0 && (
+                <><span className="rounded-md bg-destructive/10 border border-red-200 dark:border-red-800 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums text-destructive">{String(countdown.h).padStart(2, "0")}</span><span className="text-muted-foreground text-xs">j</span></>
+              )}
+              <span className="rounded-md bg-destructive/10 border border-red-200 dark:border-red-800 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums text-destructive">{String(countdown.m).padStart(2, "0")}</span>
+              <span className="text-muted-foreground text-xs">m</span>
+              <span className="rounded-md bg-destructive/10 border border-red-200 dark:border-red-800 px-1.5 py-0.5 font-mono text-xs font-bold tabular-nums text-destructive">{String(countdown.s).padStart(2, "0")}</span>
+              <span className="text-muted-foreground text-xs">d</span>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-3 flex items-baseline gap-2.5">
+        <span className="text-3xl font-extrabold text-destructive">Rp {fp.toLocaleString("id-ID")}</span>
+        <span className="text-base text-muted-foreground line-through">Rp {orig.toLocaleString("id-ID")}</span>
+        <span className="text-sm font-semibold text-destructive">Hemat Rp {(orig - fp).toLocaleString("id-ID")}</span>
+      </div>
+    </div>
+  );
+}
+
 function ProductDetailPage() {
   const { slug, productId } = Route.useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -140,7 +209,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -253,9 +322,23 @@ function ProductDetailPage() {
                   ★ {Number(product.rating_avg).toFixed(1)} ({product.rating_count ?? 0} ulasan)
                 </div>
               )}
-              <div className="mt-4 text-3xl font-bold text-primary">
-                Rp {Number(product.price).toLocaleString("id-ID")}
-              </div>
+              <FlashSaleBanner product={product} />
+              {(() => {
+                const now = Date.now();
+                const flashActive = !!(
+                  product.flash_price != null &&
+                  Number(product.flash_price) > 0 &&
+                  Number(product.flash_price) < Number(product.price) &&
+                  (!product.flash_starts_at || new Date(product.flash_starts_at).getTime() <= now) &&
+                  (!product.flash_ends_at || new Date(product.flash_ends_at).getTime() > now)
+                );
+                if (flashActive) return null;
+                return (
+                  <div className="mt-4 text-3xl font-bold text-primary">
+                    Rp {Number(product.price).toLocaleString("id-ID")}
+                  </div>
+                );
+              })()}
               <BulkPricingTiers productId={product.id} basePrice={Number(product.price)} activeQty={cartQty} />
               {product.track_stock && (
                 <div className="mt-2 text-sm text-muted-foreground">
@@ -873,6 +956,18 @@ function AddToCartBlock({ product, shopSlug, shop, qty: qtyProp, onQtyChange }: 
   const navigate = (useNavigate as any)();
   const outOfStock = product.track_stock && (product.stock ?? 0) <= 0;
 
+  const effectivePrice = (() => {
+    const now = Date.now();
+    const flashActive = !!(
+      product.flash_price != null &&
+      Number(product.flash_price) > 0 &&
+      Number(product.flash_price) < Number(product.price) &&
+      (!product.flash_starts_at || new Date(product.flash_starts_at).getTime() <= now) &&
+      (!product.flash_ends_at || new Date(product.flash_ends_at).getTime() > now)
+    );
+    return flashActive ? Number(product.flash_price) : Number(product.price);
+  })();
+
   const onAdd = async (goCheckout = false) => {
     if (!user) {
       toast.info("Silakan masuk untuk berbelanja");
@@ -884,7 +979,7 @@ function AddToCartBlock({ product, shopSlug, shop, qty: qtyProp, onQtyChange }: 
       await addToCart({
         shop_id: product.shop_id,
         product_id: product.id,
-        unit_price: Number(product.price),
+        unit_price: effectivePrice,
         quantity: qty,
       });
       toast.success(`${product.name} ditambahkan ke keranjang`);

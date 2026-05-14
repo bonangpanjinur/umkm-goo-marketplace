@@ -80,6 +80,7 @@ import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
 import { Route as PosAppInboxRouteImport } from './routes/pos-app.inbox'
 import { Route as PosAppIklanRouteImport } from './routes/pos-app.iklan'
 import { Route as PosAppHappyHourRouteImport } from './routes/pos-app.happy-hour'
+import { Route as PosAppFlashSaleRouteImport } from './routes/pos-app.flash-sale'
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppEmailMarketingRouteImport } from './routes/pos-app.email-marketing'
 import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
@@ -544,6 +545,11 @@ const PosAppIklanRoute = PosAppIklanRouteImport.update({
 const PosAppHappyHourRoute = PosAppHappyHourRouteImport.update({
   id: '/happy-hour',
   path: '/happy-hour',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppFlashSaleRoute = PosAppFlashSaleRouteImport.update({
+  id: '/flash-sale',
+  path: '/flash-sale',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppEmployeesRoute = PosAppEmployeesRouteImport.update({
@@ -1183,6 +1189,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inbox': typeof PosAppInboxRoute
@@ -1360,6 +1367,7 @@ export interface FileRoutesByTo {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inbox': typeof PosAppInboxRoute
@@ -1541,6 +1549,7 @@ export interface FileRoutesById {
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
+  '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inbox': typeof PosAppInboxRoute
@@ -1724,6 +1733,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
+    | '/pos-app/flash-sale'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
     | '/pos-app/inbox'
@@ -1901,6 +1911,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
+    | '/pos-app/flash-sale'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
     | '/pos-app/inbox'
@@ -2081,6 +2092,7 @@ export interface FileRouteTypes {
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
+    | '/pos-app/flash-sale'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
     | '/pos-app/inbox'
@@ -2696,6 +2708,13 @@ declare module '@tanstack/react-router' {
       path: '/happy-hour'
       fullPath: '/pos-app/happy-hour'
       preLoaderRoute: typeof PosAppHappyHourRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/flash-sale': {
+      id: '/pos-app/flash-sale'
+      path: '/flash-sale'
+      fullPath: '/pos-app/flash-sale'
+      preLoaderRoute: typeof PosAppFlashSaleRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/employees': {
@@ -3695,6 +3714,7 @@ interface PosAppRouteChildren {
   PosAppDomainRoute: typeof PosAppDomainRoute
   PosAppEmailMarketingRoute: typeof PosAppEmailMarketingRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
+  PosAppFlashSaleRoute: typeof PosAppFlashSaleRoute
   PosAppHappyHourRoute: typeof PosAppHappyHourRoute
   PosAppIklanRoute: typeof PosAppIklanRoute
   PosAppInboxRoute: typeof PosAppInboxRoute
@@ -3771,6 +3791,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppDomainRoute: PosAppDomainRoute,
   PosAppEmailMarketingRoute: PosAppEmailMarketingRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
+  PosAppFlashSaleRoute: PosAppFlashSaleRoute,
   PosAppHappyHourRoute: PosAppHappyHourRoute,
   PosAppIklanRoute: PosAppIklanRoute,
   PosAppInboxRoute: PosAppInboxRoute,
