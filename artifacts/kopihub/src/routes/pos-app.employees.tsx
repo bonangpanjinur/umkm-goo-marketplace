@@ -430,6 +430,9 @@ function EmployeesPage() {
     setShowPassword(false);
     setLastInviteUrl(null);
     setLastCredentials(null);
+    setManualHireDate("");
+    setManualHourlyRate("");
+    setManualNotes("");
   }
 
   function openEditManual(sm: StaffMember) {
@@ -445,7 +448,125 @@ function EmployeesPage() {
     setShowPassword(false);
     setLastInviteUrl(null);
     setLastCredentials(null);
+    setManualHireDate(sm.hire_date ?? "");
+    setManualHourlyRate(sm.hourly_rate != null ? String(sm.hourly_rate) : "");
+    setManualNotes(sm.notes ?? "");
     setManualOpen(true);
+  }
+
+  function openLoginEdit(m: RoleRow) {
+    setLoginEdit(m);
+    setLoginEditRole(m.role);
+    setLoginEditOutlet(m.outlet_id ?? "");
+    setLoginEditActive(m.is_active !== false);
+  }
+
+  async function saveLoginEdit() {
+    if (!shop || !loginEdit) return;
+    setLoginEditSaving(true);
+    try {
+      await callStaffApi("update-role", {
+        shop_id: shop.id,
+        user_id: loginEdit.user_id,
+        role: loginEditRole,
+        outlet_id: loginEditOutlet || null,
+        is_active: loginEditActive,
+      });
+      toast.success("Pegawai diperbarui");
+      setLoginEdit(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal menyimpan");
+    }
+    setLoginEditSaving(false);
+  }
+
+  async function toggleManualActive(sm: StaffMember) {
+    if (!shop) return;
+    try {
+      await callStaffApi("set-manual-active", {
+        shop_id: shop.id,
+        staff_member_id: sm.id,
+        is_active: !(sm.is_active !== false),
+      });
+      toast.success(sm.is_active !== false ? "Pegawai dinonaktifkan" : "Pegawai diaktifkan");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengubah status");
+    }
+  }
+
+  async function toggleLoginActive(m: RoleRow) {
+    if (!shop) return;
+    try {
+      await callStaffApi("update-role", {
+        shop_id: shop.id,
+        user_id: m.user_id,
+        is_active: !(m.is_active !== false),
+      });
+      toast.success(m.is_active !== false ? "Akses dinonaktifkan" : "Akses diaktifkan");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengubah status");
+    }
+  }
+
+  async function resendInvitation(inv: Invitation) {
+    if (!shop) return;
+    setResending(inv.id);
+    try {
+      const res = await callStaffApi("resend-invitation", {
+        shop_id: shop.id,
+        invitation_id: inv.id,
+      });
+      const newToken = res.token as string;
+      try {
+        await navigator.clipboard.writeText(`${window.location.origin}/invite/${newToken}`);
+      } catch {}
+      toast.success("Tautan baru disalin & masa berlaku diperpanjang");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengirim ulang");
+    }
+    setResending(null);
+  }
+
+  function openPromote(sm: StaffMember) {
+    setPromoteTarget(sm);
+    setPromoteEmail("");
+    setPromotePassword(genPassword(10));
+    setPromoteShowPw(true);
+  }
+
+  async function doPromote() {
+    if (!shop || !promoteTarget) return;
+    const em = promoteEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      toast.error("Format email tidak valid");
+      return;
+    }
+    if (promotePassword.length < 6) {
+      toast.error("Kata sandi minimal 6 karakter");
+      return;
+    }
+    setPromoteSaving(true);
+    try {
+      await callStaffApi("promote-to-login", {
+        shop_id: shop.id,
+        staff_member_id: promoteTarget.id,
+        email: em,
+        password: promotePassword,
+      });
+      try {
+        await navigator.clipboard.writeText(`Email: ${em}\nKata sandi: ${promotePassword}`);
+      } catch {}
+      toast.success("Akun login dibuat & kredensial disalin");
+      setPromoteTarget(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal membuat akun");
+    }
+    setPromoteSaving(false);
   }
 
   async function handleAvatarUpload(file: File) {
