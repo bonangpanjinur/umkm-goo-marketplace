@@ -59,6 +59,7 @@ import {
   HelpCircle,
   Star,
   Zap,
+  Hash,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/reviews",              label: "Ulasan Pembeli",     icon: Award, hint: "Balas ulasan, analisis sentimen, moderasi konten tidak relevan" },
       { to: "/pos-app/qa",                 label: "Q&A Produk",        icon: HelpCircle, hint: "Jawab pertanyaan calon pembeli dari halaman produk" },
       { to: "/pos-app/iklan",              label: "Iklan & Promosi",   icon: Megaphone },
+      { to: "/pos-app/antrian",            label: "Antrean Digital",   icon: Hash, hint: "Nomor antrian otomatis + estimasi tunggu — cocok untuk klinik, salon, dan loket", onlyFor: FNB_SVC },
       { to: "/pos-app/waitlist",           label: "Antrian Waitlist",  icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh", onlyFor: FNB_SVC },
       { to: "/pos-app/rental-availability",label: "Ketersediaan Rental",icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal", onlyFor: SVC },
       { to: "/pos-app/booking-reminders",  label: "Reminder Booking",  icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },

@@ -104,6 +104,7 @@ import { Route as PosAppBackupRouteImport } from './routes/pos-app.backup'
 import { Route as PosAppAttendanceRouteImport } from './routes/pos-app.attendance'
 import { Route as PosAppAtributRouteImport } from './routes/pos-app.atribut'
 import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearance'
+import { Route as PosAppAntrianRouteImport } from './routes/pos-app.antrian'
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as OrderSlugRouteImport } from './routes/order.$slug'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
@@ -667,6 +668,11 @@ const PosAppAppearanceRoute = PosAppAppearanceRouteImport.update({
   path: '/appearance',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppAntrianRoute = PosAppAntrianRouteImport.update({
+  id: '/antrian',
+  path: '/antrian',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PesananOrderIdRoute = PesananOrderIdRouteImport.update({
   id: '/pesanan/$orderId',
   path: '/pesanan/$orderId',
@@ -1166,6 +1172,7 @@ export interface FileRoutesByFullPath {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
+  '/pos-app/antrian': typeof PosAppAntrianRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
@@ -1344,6 +1351,7 @@ export interface FileRoutesByTo {
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
+  '/pos-app/antrian': typeof PosAppAntrianRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
@@ -1526,6 +1534,7 @@ export interface FileRoutesById {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
+  '/pos-app/antrian': typeof PosAppAntrianRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
@@ -1710,6 +1719,7 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/order/$slug'
     | '/pesanan/$orderId'
+    | '/pos-app/antrian'
     | '/pos-app/appearance'
     | '/pos-app/atribut'
     | '/pos-app/attendance'
@@ -1888,6 +1898,7 @@ export interface FileRouteTypes {
     | '/katalog/$slug'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
+    | '/pos-app/antrian'
     | '/pos-app/appearance'
     | '/pos-app/atribut'
     | '/pos-app/attendance'
@@ -2069,6 +2080,7 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/order/$slug'
     | '/pesanan/$orderId'
+    | '/pos-app/antrian'
     | '/pos-app/appearance'
     | '/pos-app/atribut'
     | '/pos-app/attendance'
@@ -2876,6 +2888,13 @@ declare module '@tanstack/react-router' {
       path: '/appearance'
       fullPath: '/pos-app/appearance'
       preLoaderRoute: typeof PosAppAppearanceRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/antrian': {
+      id: '/pos-app/antrian'
+      path: '/antrian'
+      fullPath: '/pos-app/antrian'
+      preLoaderRoute: typeof PosAppAntrianRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pesanan/$orderId': {
@@ -3691,6 +3710,7 @@ const PosAppReportsRouteWithChildren = PosAppReportsRoute._addFileChildren(
 )
 
 interface PosAppRouteChildren {
+  PosAppAntrianRoute: typeof PosAppAntrianRoute
   PosAppAppearanceRoute: typeof PosAppAppearanceRoute
   PosAppAtributRoute: typeof PosAppAtributRoute
   PosAppAttendanceRoute: typeof PosAppAttendanceRoute
@@ -3768,6 +3788,7 @@ interface PosAppRouteChildren {
 }
 
 const PosAppRouteChildren: PosAppRouteChildren = {
+  PosAppAntrianRoute: PosAppAntrianRoute,
   PosAppAppearanceRoute: PosAppAppearanceRoute,
   PosAppAtributRoute: PosAppAtributRoute,
   PosAppAttendanceRoute: PosAppAttendanceRoute,
