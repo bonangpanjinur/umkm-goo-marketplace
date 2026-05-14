@@ -200,6 +200,9 @@ function EmployeesPage() {
     setManualAvatar("");
     setManualRole("cashier");
     setManualOutletId(outlets[0]?.id ?? "");
+    setManualWithLogin(false);
+    setManualEmail("");
+    setLastInviteUrl(null);
   }
 
   function openEditManual(sm: StaffMember) {
@@ -209,6 +212,9 @@ function EmployeesPage() {
     setManualOutletId(sm.outlet_id ?? "");
     setManualPhone(sm.phone ?? "");
     setManualAvatar(sm.avatar_url ?? "");
+    setManualWithLogin(false);
+    setManualEmail("");
+    setLastInviteUrl(null);
     setManualOpen(true);
   }
 
@@ -249,6 +255,11 @@ function EmployeesPage() {
     if (manualOutletId && !outlets.some((o) => o.id === manualOutletId)) {
       return "Outlet tidak valid untuk toko ini";
     }
+    if (manualWithLogin && !editingId) {
+      const em = manualEmail.trim();
+      if (!em) return "Email wajib diisi untuk akses login";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return "Format email tidak valid";
+    }
     return null;
   }
 
@@ -260,7 +271,6 @@ function EmployeesPage() {
       return;
     }
     setManualSaving(true);
-    // Normalize phone to digits + leading +
     const phone = manualPhone.trim().replace(/[\s-]/g, "") || null;
     const payload = {
       outlet_id: manualOutletId || null,
@@ -272,13 +282,47 @@ function EmployeesPage() {
     const { error } = editingId
       ? await supabase.from("staff_members").update(payload).eq("id", editingId)
       : await supabase.from("staff_members").insert({ ...payload, shop_id: shop.id });
-    if (error) toast.error(error.message);
-    else {
-      toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
-      resetManualForm();
-      setManualOpen(false);
-      load();
+    if (error) {
+      toast.error(error.message);
+      setManualSaving(false);
+      return;
     }
+
+    // Bonus: kalau "beri akses login" → buat undangan email + tampilkan link
+    if (!editingId && manualWithLogin && user) {
+      const em = manualEmail.trim().toLowerCase();
+      const { data: invData, error: invErr } = await supabase
+        .from("staff_invitations")
+        .insert({
+          shop_id: shop.id,
+          outlet_id: manualOutletId || null,
+          email: em,
+          role: manualRole as "manager" | "cashier" | "barista",
+          invited_by: user.id,
+        })
+        .select("token")
+        .single();
+      if (invErr) {
+        toast.error("Pegawai tersimpan, tapi gagal buat undangan: " + invErr.message);
+      } else if (invData) {
+        const url = `${window.location.origin}/invite/${invData.token}`;
+        setLastInviteUrl(url);
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success("Pegawai ditambahkan & tautan login disalin");
+        } catch {
+          toast.success("Pegawai ditambahkan — bagikan tautan login");
+        }
+        setManualSaving(false);
+        load();
+        return; // keep dialog open so owner can copy link
+      }
+    }
+
+    toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
+    resetManualForm();
+    setManualOpen(false);
+    load();
     setManualSaving(false);
   }
 
