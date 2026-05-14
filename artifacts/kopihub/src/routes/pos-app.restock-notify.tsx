@@ -7,13 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   Bell, MessageCircle, Search, Loader2, Package, RefreshCw,
-  ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle, Trash2, Zap,
+  ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle,
+  Trash2, Zap, ChevronRight, SkipForward, X, PartyPopper, Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -77,6 +79,14 @@ type ProductGroup = {
   pending_count: number;
 };
 
+type BlastItem = {
+  subscriberId: string;
+  productName: string;
+  customerWa: string;
+  customerName: string | null;
+  blastMsg: string;
+};
+
 function waLink(phone: string, message: string) {
   const clean = phone.replace(/\D/g, "").replace(/^0/, "62");
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
@@ -101,6 +111,233 @@ function autoNotifyKey(shopId: string) {
   return `restock_auto_notify_${shopId}`;
 }
 
+// ─── Blast Mode Panel ────────────────────────────────────────────────────────
+function BlastModePanel({
+  queue,
+  shopName,
+  onMarkAndNext,
+  onSkip,
+  onExit,
+  sentCount,
+  skippedCount,
+}: {
+  queue: BlastItem[];
+  shopName: string;
+  onMarkAndNext: (id: string) => Promise<void>;
+  onSkip: () => void;
+  onExit: () => void;
+  sentCount: number;
+  skippedCount: number;
+}) {
+  const [index, setIndex] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [opened, setOpened] = useState(false);
+  const [done, setDone] = useState(false);
+  const total = queue.length;
+  const current = queue[index];
+
+  // Auto-open WhatsApp for the current item whenever index changes
+  useEffect(() => {
+    if (done || !current) return;
+    setOpened(false);
+    const t = setTimeout(() => {
+      window.open(waLink(current.customerWa, current.blastMsg), "_blank");
+      setOpened(true);
+    }, 300); // short delay so tab doesn't open before the UI updates
+    return () => clearTimeout(t);
+  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleSent() {
+    setBusy(true);
+    await onMarkAndNext(current.subscriberId);
+    setBusy(false);
+    if (index + 1 >= total) {
+      setDone(true);
+    } else {
+      setIndex(i => i + 1);
+    }
+  }
+
+  function handleSkip() {
+    onSkip();
+    if (index + 1 >= total) {
+      setDone(true);
+    } else {
+      setIndex(i => i + 1);
+    }
+  }
+
+  function reopenWA() {
+    window.open(waLink(current.customerWa, current.blastMsg), "_blank");
+    setOpened(true);
+  }
+
+  const progress = done ? 100 : Math.round((index / total) * 100);
+
+  // ── Done screen ──────────────────────────────────────────────────────────
+  if (done) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-6 text-center space-y-6">
+        <div className="rounded-full bg-green-100 dark:bg-green-900/40 p-5">
+          <PartyPopper className="h-10 w-10 text-green-600 dark:text-green-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold">Blast selesai! 🎉</h2>
+          <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
+            {sentCount} pesan dikirim{skippedCount > 0 ? `, ${skippedCount} dilewati` : ""} dari total {total} pelanggan.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button onClick={onExit} className="gap-2">
+            <CheckCircle2 className="h-4 w-4" /> Selesai
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Active blast step ────────────────────────────────────────────────────
+  return (
+    <div className="space-y-6 max-w-2xl mx-auto">
+      {/* Header bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-green-100 dark:bg-green-900/40 p-2">
+            <Send className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold">Mode Blast WA</h2>
+            <p className="text-xs text-muted-foreground">
+              Pelanggan {index + 1} dari {total}
+            </p>
+          </div>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onExit} title="Keluar dari mode blast">
+          <X className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Progress */}
+      <div className="space-y-1.5">
+        <Progress value={progress} className="h-2" />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{sentCount} terkirim · {skippedCount} dilewati</span>
+          <span>{total - index} tersisa</span>
+        </div>
+      </div>
+
+      {/* Current recipient card */}
+      <Card className="border-green-200 dark:border-green-800 bg-green-50/40 dark:bg-green-950/10">
+        <CardContent className="pt-5 pb-5 space-y-4">
+          {/* Who */}
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-green-100 dark:bg-green-900/40 p-2.5 shrink-0">
+              <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="font-semibold text-base leading-tight">
+                {current.customerName || "Pelanggan"}
+              </p>
+              <p className="text-sm font-mono text-muted-foreground">
+                {formatWA(current.customerWa)}
+              </p>
+              <Badge variant="secondary" className="text-xs mt-1">
+                {current.productName}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Message preview */}
+          <div className="rounded-xl bg-white dark:bg-background border border-green-200 dark:border-green-800 p-3">
+            <p className="text-[11px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
+              Pesan WhatsApp
+            </p>
+            <pre className="text-xs whitespace-pre-wrap font-sans text-foreground leading-relaxed">
+              {current.blastMsg}
+            </pre>
+          </div>
+
+          {/* WA status + reopen */}
+          <div className="flex items-center justify-between">
+            {opened ? (
+              <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                WhatsApp dibuka — kirim pesan, lalu klik "Sudah Dikirim"
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Membuka WhatsApp...
+              </span>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs h-7 border-green-300 text-green-700 hover:bg-green-50"
+              onClick={reopenWA}
+            >
+              <ExternalLink className="h-3 w-3" />
+              Buka Lagi
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button
+          className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white h-11 text-base"
+          disabled={busy}
+          onClick={handleSent}
+        >
+          {busy ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <CheckCircle2 className="h-5 w-5" />
+          )}
+          Sudah Dikirim → Lanjut
+          {!busy && index + 1 < total && (
+            <ChevronRight className="h-4 w-4 opacity-60" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          className="gap-2 h-11 text-muted-foreground"
+          disabled={busy}
+          onClick={handleSkip}
+        >
+          <SkipForward className="h-4 w-4" />
+          Lewati
+        </Button>
+      </div>
+
+      {/* Mini queue preview */}
+      {total > 1 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">Antrian berikutnya:</p>
+          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            {queue.slice(index + 1, index + 5).map((item, i) => (
+              <div key={item.subscriberId} className="flex items-center gap-2 text-xs text-muted-foreground py-1 border-b border-border/50 last:border-0">
+                <span className="text-[10px] font-mono bg-muted rounded px-1 py-0.5 shrink-0">
+                  {index + 2 + i}
+                </span>
+                <span className="truncate">{item.customerName || formatWA(item.customerWa)}</span>
+                <span className="truncate text-[10px] text-muted-foreground/60">{item.productName}</span>
+              </div>
+            ))}
+            {total - index - 1 > 4 && (
+              <p className="text-[10px] text-muted-foreground/60 text-center pt-0.5">
+                +{total - index - 5} lainnya
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main page ───────────────────────────────────────────────────────────────
 export default function RestockNotifyPage() {
   const { shop } = useCurrentShop();
   const [groups, setGroups] = useState<ProductGroup[]>([]);
@@ -111,14 +348,18 @@ export default function RestockNotifyPage() {
   const [notifying, setNotifying] = useState<string | null>(null);
   const [autoNotify, setAutoNotify] = useState(true);
 
-  // keep a ref so the realtime callback always sees the latest groups/autoNotify
+  // Blast mode state
+  const [blastMode, setBlastMode] = useState(false);
+  const [blastQueue, setBlastQueue] = useState<BlastItem[]>([]);
+  const [blastSent, setBlastSent] = useState(0);
+  const [blastSkipped, setBlastSkipped] = useState(0);
+
   const groupsRef = useRef<ProductGroup[]>([]);
   const autoNotifyRef = useRef(true);
 
   const shopId = (shop as any)?.id as string | undefined;
   const shopName = (shop as any)?.name as string | undefined;
 
-  // Load persisted auto-notify preference once shopId is known
   useEffect(() => {
     if (!shopId) return;
     const stored = localStorage.getItem(autoNotifyKey(shopId));
@@ -127,7 +368,6 @@ export default function RestockNotifyPage() {
     autoNotifyRef.current = val;
   }, [shopId]);
 
-  // Persist preference whenever it changes
   useEffect(() => {
     if (!shopId) return;
     localStorage.setItem(autoNotifyKey(shopId), autoNotify ? "1" : "0");
@@ -162,7 +402,6 @@ export default function RestockNotifyPage() {
           .from("menu_items")
           .select("id, stock_qty, is_available, track_stock, image_url")
           .in("id", productIds);
-
         for (const it of items ?? []) {
           itemMap[(it as any).id] = {
             stock: (it as any).stock_qty ?? null,
@@ -206,10 +445,9 @@ export default function RestockNotifyPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Realtime: watch menu_items for products coming back in stock → auto-mark
+  // Realtime: auto-mark when product comes back in stock
   useEffect(() => {
     if (!shopId || !tableReady) return;
-
     const ch = supabase
       .channel(`restock-auto-${shopId}`)
       .on(
@@ -217,53 +455,75 @@ export default function RestockNotifyPage() {
         { event: "UPDATE", schema: "public", table: "menu_items", filter: `shop_id=eq.${shopId}` },
         async (payload: any) => {
           if (!autoNotifyRef.current) return;
-
           const updated = payload.new as any;
           const prev = payload.old as any;
-
-          // Determine if the item just came back in stock
           const nowAvailable = updated.is_available === true;
           const nowHasStock = !updated.track_stock || (updated.stock_qty ?? 0) > 0;
-          const wasUnavailable =
-            prev.is_available === false ||
-            (prev.track_stock && (prev.stock_qty ?? 0) <= 0);
-
+          const wasUnavailable = prev.is_available === false || (prev.track_stock && (prev.stock_qty ?? 0) <= 0);
           if (!nowAvailable || !nowHasStock || !wasUnavailable) return;
-
-          // Find matching group with pending subscribers
           const group = groupsRef.current.find(g => g.product_id === updated.id);
           if (!group || group.pending_count === 0) return;
-
-          const pendingIds = group.subscribers
-            .filter(s => !s.notified_at)
-            .map(s => s.id);
-
+          const pendingIds = group.subscribers.filter(s => !s.notified_at).map(s => s.id);
           if (pendingIds.length === 0) return;
-
           try {
             await (supabase as any)
               .from("restock_subscribers")
               .update({ notified_at: new Date().toISOString() })
               .in("id", pendingIds);
-
             await load();
-
-            toast.success(
-              `✅ "${group.product_name}" kembali tersedia!`,
-              {
-                description: `${pendingIds.length} pelanggan otomatis ditandai sudah dinotifikasi.`,
-                duration: 8000,
-              },
-            );
-          } catch {
-            // silent — manual fallback still works
-          }
+            toast.success(`✅ "${group.product_name}" kembali tersedia!`, {
+              description: `${pendingIds.length} pelanggan otomatis ditandai sudah dinotifikasi.`,
+              duration: 8000,
+            });
+          } catch {}
         },
       )
       .subscribe();
-
     return () => { supabase.removeChannel(ch); };
   }, [shopId, tableReady, load]);
+
+  // Build blast queue from all pending subscribers across all groups
+  function startBlast() {
+    const queue: BlastItem[] = [];
+    for (const group of groupsRef.current) {
+      for (const sub of group.subscribers) {
+        if (!sub.notified_at) {
+          queue.push({
+            subscriberId: sub.id,
+            productName: group.product_name,
+            customerWa: sub.customer_wa,
+            customerName: sub.customer_name,
+            blastMsg: buildBlastMessage(group.product_name, shopName ?? "Toko Kami"),
+          });
+        }
+      }
+    }
+    if (queue.length === 0) { toast.info("Tidak ada pelanggan yang menunggu notifikasi."); return; }
+    setBlastQueue(queue);
+    setBlastSent(0);
+    setBlastSkipped(0);
+    setBlastMode(true);
+  }
+
+  async function handleBlastMarkAndNext(subscriberId: string) {
+    await (supabase as any)
+      .from("restock_subscribers")
+      .update({ notified_at: new Date().toISOString() })
+      .eq("id", subscriberId);
+    setBlastSent(n => n + 1);
+  }
+
+  function handleBlastSkip() {
+    setBlastSkipped(n => n + 1);
+  }
+
+  async function handleBlastExit() {
+    setBlastMode(false);
+    await load();
+    if (blastSent > 0) {
+      toast.success(`Blast selesai — ${blastSent} pesan dikirim${blastSkipped > 0 ? `, ${blastSkipped} dilewati` : ""}.`);
+    }
+  }
 
   async function markNotified(subscriberId: string) {
     await (supabase as any)
@@ -315,6 +575,7 @@ export default function RestockNotifyPage() {
   const totalPending = groups.reduce((s, g) => s + g.pending_count, 0);
   const totalNotified = groups.reduce((s, g) => s + g.notified_count, 0);
 
+  // ── Setup screen ─────────────────────────────────────────────────────────
   if (!tableReady) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -346,6 +607,24 @@ export default function RestockNotifyPage() {
     );
   }
 
+  // ── Blast mode ────────────────────────────────────────────────────────────
+  if (blastMode) {
+    return (
+      <div className="p-4 md:p-6 max-w-5xl mx-auto">
+        <BlastModePanel
+          queue={blastQueue}
+          shopName={shopName ?? "Toko Kami"}
+          onMarkAndNext={handleBlastMarkAndNext}
+          onSkip={handleBlastSkip}
+          onExit={handleBlastExit}
+          sentCount={blastSent}
+          skippedCount={blastSkipped}
+        />
+      </div>
+    );
+  }
+
+  // ── Normal view ───────────────────────────────────────────────────────────
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
       {/* Header */}
@@ -359,9 +638,23 @@ export default function RestockNotifyPage() {
             Pelanggan yang ingin dinotifikasi saat produk stok habis tersedia kembali
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={load} className="gap-2 self-start sm:self-auto">
-          <RefreshCw className="h-4 w-4" /> Refresh
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {totalPending > 0 && (
+            <Button
+              className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+              onClick={startBlast}
+            >
+              <Send className="h-4 w-4" />
+              Kirim Semua Sekarang
+              <Badge className="bg-white/20 text-white border-0 text-xs ml-0.5 px-1.5">
+                {totalPending}
+              </Badge>
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={load} className="gap-2">
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Auto-notify toggle */}
@@ -380,7 +673,7 @@ export default function RestockNotifyPage() {
               </Label>
               <p className="text-xs text-muted-foreground mt-0.5 max-w-sm">
                 {autoNotify
-                  ? "Aktif — saat stok produk bertambah atau produk diaktifkan kembali, semua pelanggan yang menunggu otomatis ditandai sudah dinotifikasi."
+                  ? "Aktif — saat stok bertambah atau produk diaktifkan kembali, semua pelanggan yang menunggu otomatis ditandai sudah dinotifikasi."
                   : "Nonaktif — tandai pelanggan secara manual setelah mengirim WhatsApp."}
               </p>
             </div>
@@ -390,10 +683,7 @@ export default function RestockNotifyPage() {
             checked={autoNotify}
             onCheckedChange={val => {
               setAutoNotify(val);
-              toast.success(val
-                ? "Auto-notifikasi diaktifkan"
-                : "Auto-notifikasi dinonaktifkan",
-              );
+              toast.success(val ? "Auto-notifikasi diaktifkan" : "Auto-notifikasi dinonaktifkan");
             }}
             className="shrink-0"
           />
@@ -582,7 +872,6 @@ export default function RestockNotifyPage() {
                     </div>
                   </div>
 
-                  {/* WA blast template preview */}
                   {pendingSubs.length > 1 && (
                     <details className="mt-3">
                       <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground select-none">
