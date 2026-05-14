@@ -157,6 +157,10 @@ function formatPONo(raw: string): string {
   return /^PO[-_]/i.test(s) ? s : `PO-${s}`;
 }
 
+function escapeHtml(s: string): string {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+
 function auditActionLabel(action: string): string {
   const map: Record<string, string> = {
     status_change: "Perubahan status",
@@ -394,6 +398,45 @@ function PODetailPage() {
     setBusy(false);
   }
 
+  function printStockPreview() {
+    if (!po) return;
+    const rows = stockPreview.map((p) => {
+      const delta = p.newCost - p.currentCost;
+      const arrow = delta > 0.5 ? "↑" : delta < -0.5 ? "↓" : "";
+      return `<tr>
+        <td>${escapeHtml(p.name)}</td>
+        <td style="text-align:right">${p.currentStock} ${escapeHtml(p.unit)} → <b>${p.newStock} ${escapeHtml(p.unit)}</b> <span style="color:#059669">(+${p.addQty})</span></td>
+        <td style="text-align:right">${formatIDR(p.currentCost)} → <b>${formatIDR(p.newCost)}</b> ${arrow ? `<span style="color:${delta > 0 ? "#d97706" : "#059669"}">${arrow} ${formatIDR(Math.abs(delta))}</span>` : ""}</td>
+      </tr>`;
+    }).join("");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Preview Terima — ${formatPONo(po.po_no)}</title>
+      <style>
+        body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;color:#111}
+        h1{font-size:18px;margin:0 0 4px}
+        .meta{color:#6b7280;font-size:12px;margin-bottom:16px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;vertical-align:top}
+        th{background:#f9fafb;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6b7280}
+        .total{margin-top:16px;font-weight:600}
+        @media print{button{display:none}}
+      </style></head><body>
+      <h1>Preview Terima Stok — ${formatPONo(po.po_no)}</h1>
+      <div class="meta">${escapeHtml(supplier?.name ?? "Tanpa supplier")} · ${formatDateID(po.order_date)}</div>
+      <table>
+        <thead><tr><th>Bahan</th><th style="text-align:right">Stok</th><th style="text-align:right">HPP rata-rata</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="total">Total nilai pembelian: ${formatIDR(po.total)}</div>
+      <p style="margin-top:24px;color:#6b7280;font-size:11px">Pratinjau ini belum dikonfirmasi. Stok & HPP baru akan diterapkan setelah Anda menekan "Konfirmasi terima".</p>
+      <button onclick="window.print()" style="margin-top:16px;padding:8px 14px">Cetak</button>
+      </body></html>`;
+    const w = window.open("", "_blank", "width=820,height=720");
+    if (!w) { toast.error("Popup diblokir browser"); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { try { w.focus(); w.print(); } catch { /* noop */ } }, 250);
+  }
+
   async function confirmDelete() {
     if (!po) return;
     if (!deleteReason.trim()) { toast.error("Alasan penghapusan wajib diisi"); return; }
@@ -407,13 +450,20 @@ function PODetailPage() {
   }
 
   // Draft editing helpers
+  function clampNum(v: unknown): number {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return n;
+  }
   function updateEditItem(id: string, patch: Partial<POItem>) {
     setEditItems((arr) => arr.map((it) => {
       if (it.id !== id) return it;
-      const merged = { ...it, ...patch };
-      const qty = Number(merged.quantity) || 0;
-      const cost = Number(merged.unit_cost) || 0;
-      return { ...merged, subtotal: qty * cost };
+      const next = { ...it, ...patch };
+      if (patch.quantity !== undefined) next.quantity = clampNum(patch.quantity);
+      if (patch.unit_cost !== undefined) next.unit_cost = clampNum(patch.unit_cost);
+      const qty = Number(next.quantity) || 0;
+      const cost = Number(next.unit_cost) || 0;
+      return { ...next, subtotal: Math.round(qty * cost * 100) / 100 };
     }));
   }
   function removeEditItem(id: string) {
@@ -421,9 +471,22 @@ function PODetailPage() {
   }
   const editSubtotal = useMemo(() => editItems.reduce((s, it) => s + Number(it.subtotal || 0), 0), [editItems]);
   const editTotal = editSubtotal + Number(po?.tax ?? 0);
+  const editErrors = useMemo(() => {
+    const errs: Record<string, string> = {};
+    for (const it of editItems) {
+      if (!(Number(it.quantity) > 0)) errs[it.id] = "Qty harus lebih dari 0";
+      else if (Number(it.unit_cost) < 0) errs[it.id] = "Harga tidak boleh negatif";
+    }
+    return errs;
+  }, [editItems]);
+  const editValid = editItems.length > 0 && Object.keys(editErrors).length === 0;
 
   async function saveDraftEdits() {
     if (!po) return;
+    if (!editValid) {
+      toast.error(editItems.length === 0 ? "Tidak ada item yang bisa disimpan" : "Periksa kembali qty & harga");
+      return;
+    }
     setBusy(true);
     // Update each existing item
     const original = new Map(items.map((it) => [it.id, it]));
@@ -613,7 +676,7 @@ function PODetailPage() {
                   {editMode ? (
                     <>
                       <Button variant="ghost" size="sm" onClick={() => { setEditMode(false); setEditItems(items); setEditNote(po.note ?? ""); }}>Batal</Button>
-                      <Button size="sm" onClick={saveDraftEdits} disabled={busy}>
+                      <Button size="sm" onClick={saveDraftEdits} disabled={busy || !editValid}>
                         {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
                         Simpan perubahan
                       </Button>
@@ -643,21 +706,39 @@ function PODetailPage() {
                   {(editMode ? editItems : items).map((it) => {
                     const ig = ingMap[it.ingredient_id];
                     if (editMode) {
+                      const rowErr = editErrors[it.id];
                       return (
-                        <tr key={it.id}>
-                          <td className="px-3 py-2 font-medium">{ig?.name ?? "—"}</td>
-                          <td className="px-3 py-2 text-right">
-                            <Input type="number" min="0" step="0.01" className="h-8 w-24 ml-auto text-right tabular-nums"
-                              value={it.quantity}
-                              onChange={(e) => updateEditItem(it.id, { quantity: Number(e.target.value) })} />
+                        <tr key={it.id} className={rowErr ? "bg-destructive/5" : undefined}>
+                          <td className="px-3 py-2 font-medium align-top">
+                            {ig?.name ?? "—"}
+                            {rowErr && (
+                              <div className="mt-0.5 text-[11px] text-destructive flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" /> {rowErr}
+                              </div>
+                            )}
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            <Input type="number" min="0" step="1" className="h-8 w-32 ml-auto text-right tabular-nums"
-                              value={it.unit_cost}
-                              onChange={(e) => updateEditItem(it.id, { unit_cost: Number(e.target.value) })} />
+                          <td className="px-3 py-2 text-right align-top">
+                            <Input
+                              type="number" min="0" step="0.01"
+                              className={`h-8 w-24 ml-auto text-right tabular-nums ${rowErr?.includes("Qty") ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                              value={it.quantity === 0 ? "" : it.quantity}
+                              placeholder="0"
+                              onChange={(e) => updateEditItem(it.id, { quantity: e.target.value === "" ? 0 : Number(e.target.value) })}
+                              onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }}
+                            />
                           </td>
-                          <td className="px-3 py-2 text-right tabular-nums">{formatIDR(it.subtotal)}</td>
-                          <td className="px-3 py-2 text-right">
+                          <td className="px-3 py-2 text-right align-top">
+                            <Input
+                              type="number" min="0" step="1"
+                              className={`h-8 w-32 ml-auto text-right tabular-nums ${rowErr?.includes("Harga") ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                              value={it.unit_cost === 0 ? "" : it.unit_cost}
+                              placeholder="0"
+                              onChange={(e) => updateEditItem(it.id, { unit_cost: e.target.value === "" ? 0 : Number(e.target.value) })}
+                              onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }}
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums align-top">{formatIDR(it.subtotal)}</td>
+                          <td className="px-3 py-2 text-right align-top">
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeEditItem(it.id)}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
@@ -705,30 +786,44 @@ function PODetailPage() {
                 Belum ada riwayat aktivitas.
               </div>
             ) : (
-              <ol className="relative space-y-3 border-l border-border pl-4">
-                {audit.map((a) => (
-                  <li key={a.id} className="relative">
-                    <span className="absolute -left-[21px] top-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-primary ring-4 ring-background" />
-                    <div className="rounded-lg border border-border bg-background p-3">
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <span className="font-medium">{auditActionLabel(a.action)}</span>
-                        {a.from_status && a.to_status && (
-                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                            {auditStatusLabel(a.from_status)} <ArrowRight className="h-3 w-3" /> {auditStatusLabel(a.to_status)}
+              <ol className="relative space-y-3 border-l-2 border-border pl-5">
+                {audit.map((a) => {
+                  const dotCls =
+                    a.action === "deleted" ? "bg-destructive" :
+                    a.action === "received" ? "bg-emerald-500" :
+                    a.to_status === "cancelled" ? "bg-amber-500" :
+                    a.to_status === "ordered" ? "bg-blue-500" :
+                    a.action === "draft_edited" ? "bg-muted-foreground" :
+                    "bg-primary";
+                  return (
+                    <li key={a.id} className="relative">
+                      <span className={`absolute -left-[27px] top-2 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-4 ring-background ${dotCls}`} />
+                      <div className="rounded-lg border border-border bg-background p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{auditActionLabel(a.action)}</span>
+                            {a.from_status && a.to_status && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                {auditStatusLabel(a.from_status)} <ArrowRight className="h-3 w-3" /> {auditStatusLabel(a.to_status)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-muted-foreground tabular-nums">
+                            {new Date(a.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
                           </span>
-                        )}
-                      </div>
-                      {a.reason && (
-                        <div className="mt-1.5 rounded bg-muted/40 px-2 py-1 text-xs text-foreground">
-                          <span className="text-muted-foreground">Alasan:</span> {a.reason}
                         </div>
-                      )}
-                      <div className="mt-1.5 text-xs text-muted-foreground">
-                        {a.actor_name ?? "Sistem"} · {new Date(a.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+                        {a.reason && (
+                          <div className="mt-1.5 rounded bg-muted/40 px-2 py-1 text-xs text-foreground">
+                            <span className="text-muted-foreground">Alasan:</span> {a.reason}
+                          </div>
+                        )}
+                        <div className="mt-1.5 text-[11px] text-muted-foreground">
+                          oleh {a.actor_name ?? "Sistem"}
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ol>
             )}
           </TabsContent>
@@ -903,12 +998,17 @@ function PODetailPage() {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setReceiveOpen(false)} disabled={busy}>Tutup</Button>
-          <Button onClick={confirmReceive} disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-            {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
-            Konfirmasi terima
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button variant="outline" onClick={printStockPreview} disabled={busy}>
+            <Printer className="mr-1.5 h-4 w-4" /> Cetak preview
           </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setReceiveOpen(false)} disabled={busy}>Tutup</Button>
+            <Button onClick={confirmReceive} disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
+              Konfirmasi terima
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
