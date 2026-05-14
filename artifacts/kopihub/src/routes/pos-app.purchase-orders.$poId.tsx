@@ -157,6 +157,10 @@ function formatPONo(raw: string): string {
   return /^PO[-_]/i.test(s) ? s : `PO-${s}`;
 }
 
+function escapeHtml(s: string): string {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+
 function auditActionLabel(action: string): string {
   const map: Record<string, string> = {
     status_change: "Perubahan status",
