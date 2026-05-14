@@ -238,73 +238,160 @@ function EmployeesPage() {
             Undang tim, atur peran, dan kelola akses ke POS.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Undang pegawai
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Undang pegawai</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 py-2">
-              <div className="space-y-1.5">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="pegawai@toko.com"
-                />
+        <div className="flex flex-wrap items-center gap-2">
+          <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Tambah pegawai</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="space-y-1.5">
+                  <Label>Nama lengkap</Label>
+                  <Input
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    placeholder="cth. Andi Saputra"
+                    maxLength={120}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Peran</Label>
+                    <Select value={manualRole} onValueChange={setManualRole}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Outlet</Label>
+                    <Select value={manualOutletId} onValueChange={setManualOutletId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih outlet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {outlets.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>No. HP</Label>
+                  <Input
+                    value={manualPhone}
+                    onChange={(e) => setManualPhone(e.target.value)}
+                    placeholder="08xxxxxxxxxx"
+                    maxLength={20}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>URL foto (opsional)</Label>
+                  <Input
+                    value={manualAvatar}
+                    onChange={(e) => setManualAvatar(e.target.value)}
+                    placeholder="https://..."
+                    maxLength={500}
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Pegawai harus daftar dengan email yang sama untuk menerima undangan.
+                  Pegawai ini hanya untuk pencatatan & jadwal — tidak punya akses login.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setManualOpen(false)}>
+                  Batal
+                </Button>
+                <Button onClick={addManual} disabled={manualSaving || !manualName.trim()}>
+                  {manualSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Simpan
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Mail className="mr-2 h-4 w-4" /> Undang via email
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Undang pegawai</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
                 <div className="space-y-1.5">
-                  <Label>Peran</Label>
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="pegawai@toko.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Pegawai harus daftar dengan email yang sama untuk menerima undangan.
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Outlet</Label>
-                  <Select value={outletId} onValueChange={setOutletId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih outlet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {outlets.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>
-                          {o.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Peran</Label>
+                    <Select value={role} onValueChange={setRole}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Outlet</Label>
+                    <Select value={outletId} onValueChange={setOutletId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih outlet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {outlets.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setOpen(false)}>
-                Batal
-              </Button>
-              <Button onClick={invite} disabled={saving || !email.trim()}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Buat undangan
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setOpen(false)}>
+                  Batal
+                </Button>
+                <Button onClick={invite} disabled={saving || !email.trim()}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Buat undangan
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {loading ? (
