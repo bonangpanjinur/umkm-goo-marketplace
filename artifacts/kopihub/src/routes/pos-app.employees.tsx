@@ -21,8 +21,37 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone, Pencil, Upload, X } from "lucide-react";
+import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone, Pencil, Upload, X, KeyRound, RotateCcw, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
+
+async function callStaffApi(path: string, body: Record<string, unknown>) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  const res = await fetch(`${API_BASE}/staff/${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json?.ok === false) {
+    throw new Error(json?.error || `HTTP ${res.status}`);
+  }
+  return json;
+}
+
+function genPassword(len = 10) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let out = "";
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < len; i++) out += chars[arr[i] % chars.length];
+  return out;
+}
 
 
 export const Route = createFileRoute("/pos-app/employees")({
@@ -94,7 +123,18 @@ function EmployeesPage() {
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [manualWithLogin, setManualWithLogin] = useState(false);
   const [manualEmail, setManualEmail] = useState("");
+  const [manualPassword, setManualPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+  const [lastCredentials, setLastCredentials] = useState<{ email: string; password: string } | null>(null);
+
+  // Password / reset dialogs for active members
+  const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [resetLink, setResetLink] = useState<{ name: string; link: string } | null>(null);
+  const [resetting, setResetting] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -202,7 +242,10 @@ function EmployeesPage() {
     setManualOutletId(outlets[0]?.id ?? "");
     setManualWithLogin(false);
     setManualEmail("");
+    setManualPassword("");
+    setShowPassword(false);
     setLastInviteUrl(null);
+    setLastCredentials(null);
   }
 
   function openEditManual(sm: StaffMember) {
@@ -214,7 +257,10 @@ function EmployeesPage() {
     setManualAvatar(sm.avatar_url ?? "");
     setManualWithLogin(false);
     setManualEmail("");
+    setManualPassword("");
+    setShowPassword(false);
     setLastInviteUrl(null);
+    setLastCredentials(null);
     setManualOpen(true);
   }
 
@@ -259,6 +305,7 @@ function EmployeesPage() {
       const em = manualEmail.trim();
       if (!em) return "Email wajib diisi untuk akses login";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return "Format email tidak valid";
+      if (!manualPassword || manualPassword.length < 6) return "Kata sandi minimal 6 karakter";
     }
     return null;
   }
@@ -272,6 +319,36 @@ function EmployeesPage() {
     }
     setManualSaving(true);
     const phone = manualPhone.trim().replace(/[\s-]/g, "") || null;
+
+    // Path A: create login user via API (also auto-creates staff_members entry)
+    if (!editingId && manualWithLogin) {
+      try {
+        const em = manualEmail.trim().toLowerCase();
+        await callStaffApi("create-user", {
+          shop_id: shop.id,
+          email: em,
+          password: manualPassword,
+          full_name: manualName.trim(),
+          role: manualRole,
+          outlet_id: manualOutletId || null,
+          phone,
+          avatar_url: manualAvatar.trim() || null,
+          create_staff_member: true,
+        });
+        setLastCredentials({ email: em, password: manualPassword });
+        try {
+          await navigator.clipboard.writeText(`Email: ${em}\nKata sandi: ${manualPassword}`);
+        } catch {}
+        toast.success("Akun pegawai dibuat — kredensial siap dibagikan");
+        load();
+      } catch (e: any) {
+        toast.error(e.message || "Gagal membuat akun");
+      }
+      setManualSaving(false);
+      return; // keep dialog open so owner can copy
+    }
+
+    // Path B: insert/update staff_members row only (no login)
     const payload = {
       outlet_id: manualOutletId || null,
       name: manualName.trim(),
@@ -288,42 +365,57 @@ function EmployeesPage() {
       return;
     }
 
-    // Bonus: kalau "beri akses login" → buat undangan email + tampilkan link
-    if (!editingId && manualWithLogin && user) {
-      const em = manualEmail.trim().toLowerCase();
-      const { data: invData, error: invErr } = await supabase
-        .from("staff_invitations")
-        .insert({
-          shop_id: shop.id,
-          outlet_id: manualOutletId || null,
-          email: em,
-          role: manualRole as "manager" | "cashier" | "barista",
-          invited_by: user.id,
-        })
-        .select("token")
-        .single();
-      if (invErr) {
-        toast.error("Pegawai tersimpan, tapi gagal buat undangan: " + invErr.message);
-      } else if (invData) {
-        const url = `${window.location.origin}/invite/${invData.token}`;
-        setLastInviteUrl(url);
-        try {
-          await navigator.clipboard.writeText(url);
-          toast.success("Pegawai ditambahkan & tautan login disalin");
-        } catch {
-          toast.success("Pegawai ditambahkan — bagikan tautan login");
-        }
-        setManualSaving(false);
-        load();
-        return; // keep dialog open so owner can copy link
-      }
-    }
-
     toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
     resetManualForm();
     setManualOpen(false);
     load();
     setManualSaving(false);
+  }
+
+  async function setMemberPassword() {
+    if (!shop || !pwDialog) return;
+    if (pwValue.length < 6) {
+      toast.error("Kata sandi minimal 6 karakter");
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await callStaffApi("set-password", {
+        shop_id: shop.id,
+        user_id: pwDialog.userId,
+        password: pwValue,
+      });
+      try { await navigator.clipboard.writeText(pwValue); } catch {}
+      toast.success("Kata sandi diperbarui & disalin");
+      setPwDialog(null);
+      setPwValue("");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengubah sandi");
+    }
+    setPwSaving(false);
+  }
+
+  async function sendResetPassword(m: RoleRow) {
+    if (!shop) return;
+    setResetting(m.id);
+    try {
+      const res = await callStaffApi("reset-password", {
+        shop_id: shop.id,
+        user_id: m.user_id,
+        redirect_to: `${window.location.origin}/reset-password`,
+      });
+      const link = res.action_link as string | null;
+      if (link) {
+        try { await navigator.clipboard.writeText(link); } catch {}
+        setResetLink({ name: m.profile?.display_name ?? "Pegawai", link });
+        toast.success("Tautan reset siap dibagikan");
+      } else {
+        toast.success("Email reset terkirim");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Gagal kirim reset");
+    }
+    setResetting(null);
   }
 
   async function removeManual(id: string) {
@@ -490,51 +582,91 @@ function EmployeesPage() {
                       <div className="flex-1">
                         <div className="text-sm font-medium">Beri akses login ke POS</div>
                         <div className="text-xs text-muted-foreground">
-                          Kirim tautan undangan supaya pegawai bisa masuk dan pakai POS sesuai perannya.
+                          Buatkan akun langsung dengan email & kata sandi.
                         </div>
                       </div>
                     </label>
                     {manualWithLogin && (
-                      <div className="mt-3 space-y-2">
-                        <Label className="text-xs">Email pegawai</Label>
-                        <Input
-                          type="email"
-                          value={manualEmail}
-                          onChange={(e) => setManualEmail(e.target.value)}
-                          placeholder="pegawai@toko.com"
-                          maxLength={255}
-                        />
-                        <p className="text-[11px] text-muted-foreground">
-                          Pegawai harus daftar/masuk dengan email yang sama untuk menerima akses.
-                        </p>
+                      <div className="mt-3 space-y-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Email pegawai</Label>
+                          <Input
+                            type="email"
+                            value={manualEmail}
+                            onChange={(e) => setManualEmail(e.target.value)}
+                            placeholder="pegawai@toko.com"
+                            maxLength={255}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Kata sandi awal</Label>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Input
+                                type={showPassword ? "text" : "password"}
+                                value={manualPassword}
+                                onChange={(e) => setManualPassword(e.target.value)}
+                                placeholder="Min. 6 karakter"
+                                maxLength={72}
+                                className="pr-9"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword((s) => !s)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              >
+                                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                              </button>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setManualPassword(genPassword(10));
+                                setShowPassword(true);
+                              }}
+                            >
+                              Generate
+                            </Button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Bagikan ke pegawai. Mereka bisa ganti dari menu profil.
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
 
-                {lastInviteUrl && (
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                {lastCredentials && (
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                      <Check className="h-4 w-4" /> Tautan login siap dibagikan
+                      <Check className="h-4 w-4" /> Akun siap dibagikan
                     </div>
-                    <div className="mt-2 flex gap-2">
-                      <Input value={lastInviteUrl} readOnly className="text-xs" />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(lastInviteUrl);
-                          toast.success("Tersalin");
-                        }}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+                      <span className="text-muted-foreground">Email</span>
+                      <code className="font-mono">{lastCredentials.email}</code>
+                      <span className="text-muted-foreground">Sandi</span>
+                      <code className="font-mono">{lastCredentials.password}</code>
                     </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(
+                          `Email: ${lastCredentials.email}\nKata sandi: ${lastCredentials.password}`,
+                        );
+                        toast.success("Tersalin");
+                      }}
+                    >
+                      <Copy className="mr-1.5 h-3.5 w-3.5" /> Salin kredensial
+                    </Button>
                   </div>
                 )}
 
-                {!manualWithLogin && !lastInviteUrl && (
+                {!manualWithLogin && !lastCredentials && !editingId && (
                   <p className="text-xs text-muted-foreground">
                     Tanpa akses login, pegawai hanya muncul di Jadwal & catatan internal.
                   </p>
@@ -675,14 +807,43 @@ function EmployeesPage() {
                             {outlet?.name ?? "Semua"}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeMember(m)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setPwDialog({
+                                    userId: m.user_id,
+                                    name: m.profile?.display_name ?? "Pegawai",
+                                  })
+                                }
+                                title="Ubah kata sandi"
+                              >
+                                <KeyRound className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => sendResetPassword(m)}
+                                disabled={resetting === m.id}
+                                title="Kirim tautan reset"
+                              >
+                                {resetting === m.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeMember(m)}
+                                className="text-destructive hover:text-destructive"
+                                title="Keluarkan dari toko"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -820,6 +981,84 @@ function EmployeesPage() {
           )}
         </div>
       )}
+
+      {/* Set password dialog */}
+      <Dialog
+        open={!!pwDialog}
+        onOpenChange={(o) => {
+          if (!o) {
+            setPwDialog(null);
+            setPwValue("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ubah kata sandi · {pwDialog?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label className="text-xs">Kata sandi baru</Label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={pwValue}
+                onChange={(e) => setPwValue(e.target.value)}
+                placeholder="Min. 6 karakter"
+                maxLength={72}
+                autoFocus
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => setPwValue(genPassword(10))}>
+                Generate
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Kata sandi akan otomatis disalin ke clipboard setelah disimpan.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPwDialog(null)}>
+              Batal
+            </Button>
+            <Button onClick={setMemberPassword} disabled={pwSaving || pwValue.length < 6}>
+              {pwSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan sandi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset link result dialog */}
+      <Dialog open={!!resetLink} onOpenChange={(o) => !o && setResetLink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tautan reset · {resetLink?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Bagikan tautan ini ke pegawai. Tautan berlaku terbatas waktu.
+            </p>
+            <div className="flex gap-2">
+              <Input value={resetLink?.link ?? ""} readOnly className="text-xs font-mono" />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (resetLink) {
+                    await navigator.clipboard.writeText(resetLink.link);
+                    toast.success("Tersalin");
+                  }
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetLink(null)}>Selesai</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

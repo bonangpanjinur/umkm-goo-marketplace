@@ -3,6 +3,7 @@ import healthRouter from "./health.js";
 import paymentsRouter from "./payments.js";
 import notificationsRouter from "./notifications.js";
 import aiDescriptionRouter from "./ai-description.js";
+import staffRouter from "./staff.js";
 
 const router: IRouter = Router();
 
@@ -10,5 +11,6 @@ router.use(healthRouter);
 router.use(paymentsRouter);
 router.use(notificationsRouter);
 router.use(aiDescriptionRouter);
+router.use(staffRouter);
 
 export default router;
