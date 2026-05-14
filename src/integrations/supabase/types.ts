@@ -1975,6 +1975,7 @@ export type Database = {
         Row: {
           accepts_custom_order: boolean
           attributes: Json
+          auto_disable_on_empty: boolean
           average_rating: number | null
           category_id: string | null
           compare_price: number | null
@@ -2030,6 +2031,7 @@ export type Database = {
         Insert: {
           accepts_custom_order?: boolean
           attributes?: Json
+          auto_disable_on_empty?: boolean
           average_rating?: number | null
           category_id?: string | null
           compare_price?: number | null
@@ -2085,6 +2087,7 @@ export type Database = {
         Update: {
           accepts_custom_order?: boolean
           attributes?: Json
+          auto_disable_on_empty?: boolean
           average_rating?: number | null
           category_id?: string | null
           compare_price?: number | null
