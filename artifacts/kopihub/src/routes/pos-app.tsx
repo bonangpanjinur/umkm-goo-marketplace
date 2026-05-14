@@ -287,6 +287,7 @@ function AppLayoutInner() {
   const unansweredQACount = useUnansweredQACount(shop?.id ?? null);
   const restockPendingCount = useRestockPendingCount(shop?.id ?? null);
   const prevLowStockCountRef = useRef<number>(0);
+  const prevRestockCountRef = useRef<number>(-1);
   const [checking, setChecking] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
@@ -357,6 +358,27 @@ function AppLayoutInner() {
     }
     prevLowStockCountRef.current = lowStockCount;
   }, [lowStockCount, lowStockItems, shop?.id]);
+
+  // Restock pending count toast — fires only when count rises after initial load
+  useEffect(() => {
+    if (!shop?.id) return;
+    if (prevRestockCountRef.current === -1) {
+      prevRestockCountRef.current = restockPendingCount;
+      return;
+    }
+    if (restockPendingCount > prevRestockCountRef.current) {
+      const diff = restockPendingCount - prevRestockCountRef.current;
+      toast.info(
+        `🔔 ${diff} pelanggan baru daftar notif stok!`,
+        {
+          description: `Total ${restockPendingCount} pelanggan menunggu. Blast WhatsApp sekarang.`,
+          duration: 8000,
+          action: { label: "Lihat", onClick: () => navigate({ to: "/pos-app/restock-notify" }) },
+        },
+      );
+    }
+    prevRestockCountRef.current = restockPendingCount;
+  }, [restockPendingCount, shop?.id, navigate]);
 
   // Service call subscription — shows toast on any pos-app page
   useEffect(() => {
