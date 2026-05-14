@@ -144,6 +144,7 @@ type RoleRow = {
   user_id: string;
   role: string;
   outlet_id: string | null;
+  is_active: boolean;
   profile?: { display_name: string | null; avatar_url: string | null } | null;
 };
 type Invitation = {
@@ -163,6 +164,10 @@ type StaffMember = {
   outlet_id: string | null;
   phone: string | null;
   avatar_url: string | null;
+  is_active: boolean;
+  hire_date: string | null;
+  hourly_rate: number | null;
+  notes: string | null;
   created_at: string;
 };
 
@@ -175,6 +180,7 @@ type UnifiedRow =
       outlet_id: string | null;
       avatarUrl: string | null;
       phone: null;
+      is_active: boolean;
       raw: RoleRow;
     }
   | {
@@ -185,6 +191,7 @@ type UnifiedRow =
       outlet_id: string | null;
       avatarUrl: string | null;
       phone: string | null;
+      is_active: boolean;
       raw: StaffMember;
     };
 
