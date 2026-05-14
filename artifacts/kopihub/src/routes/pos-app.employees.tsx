@@ -582,51 +582,91 @@ function EmployeesPage() {
                       <div className="flex-1">
                         <div className="text-sm font-medium">Beri akses login ke POS</div>
                         <div className="text-xs text-muted-foreground">
-                          Kirim tautan undangan supaya pegawai bisa masuk dan pakai POS sesuai perannya.
+                          Buatkan akun langsung dengan email & kata sandi.
                         </div>
                       </div>
                     </label>
                     {manualWithLogin && (
-                      <div className="mt-3 space-y-2">
-                        <Label className="text-xs">Email pegawai</Label>
-                        <Input
-                          type="email"
-                          value={manualEmail}
-                          onChange={(e) => setManualEmail(e.target.value)}
-                          placeholder="pegawai@toko.com"
-                          maxLength={255}
-                        />
-                        <p className="text-[11px] text-muted-foreground">
-                          Pegawai harus daftar/masuk dengan email yang sama untuk menerima akses.
-                        </p>
+                      <div className="mt-3 space-y-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Email pegawai</Label>
+                          <Input
+                            type="email"
+                            value={manualEmail}
+                            onChange={(e) => setManualEmail(e.target.value)}
+                            placeholder="pegawai@toko.com"
+                            maxLength={255}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Kata sandi awal</Label>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Input
+                                type={showPassword ? "text" : "password"}
+                                value={manualPassword}
+                                onChange={(e) => setManualPassword(e.target.value)}
+                                placeholder="Min. 6 karakter"
+                                maxLength={72}
+                                className="pr-9"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword((s) => !s)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              >
+                                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                              </button>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setManualPassword(genPassword(10));
+                                setShowPassword(true);
+                              }}
+                            >
+                              Generate
+                            </Button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Bagikan ke pegawai. Mereka bisa ganti dari menu profil.
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
 
-                {lastInviteUrl && (
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                {lastCredentials && (
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                      <Check className="h-4 w-4" /> Tautan login siap dibagikan
+                      <Check className="h-4 w-4" /> Akun siap dibagikan
                     </div>
-                    <div className="mt-2 flex gap-2">
-                      <Input value={lastInviteUrl} readOnly className="text-xs" />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(lastInviteUrl);
-                          toast.success("Tersalin");
-                        }}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+                      <span className="text-muted-foreground">Email</span>
+                      <code className="font-mono">{lastCredentials.email}</code>
+                      <span className="text-muted-foreground">Sandi</span>
+                      <code className="font-mono">{lastCredentials.password}</code>
                     </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(
+                          `Email: ${lastCredentials.email}\nKata sandi: ${lastCredentials.password}`,
+                        );
+                        toast.success("Tersalin");
+                      }}
+                    >
+                      <Copy className="mr-1.5 h-3.5 w-3.5" /> Salin kredensial
+                    </Button>
                   </div>
                 )}
 
-                {!manualWithLogin && !lastInviteUrl && (
+                {!manualWithLogin && !lastCredentials && !editingId && (
                   <p className="text-xs text-muted-foreground">
                     Tanpa akses login, pegawai hanya muncul di Jadwal & catatan internal.
                   </p>
