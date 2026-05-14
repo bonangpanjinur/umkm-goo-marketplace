@@ -51,11 +51,8 @@ function genPONo() {
   return `PO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 900 + 100)}`;
 }
 
-function normalizePhone(raw: string | null | undefined): string {
-  if (!raw) return "";
-  const d = raw.replace(/[^\d+]/g, "").replace(/^\+?62/, "0").replace(/\D/g, "");
-  return d.startsWith("0") ? `62${d.slice(1)}` : d;
-}
+// (normalizePhone diimpor dari po-whatsapp helper)
+
 
 function POPage() {
   const nav = useNavigate();
