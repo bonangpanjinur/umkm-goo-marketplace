@@ -81,6 +81,13 @@ function POPage() {
   // Per-row busy state
   const [rowBusy, setRowBusy] = useState<string | null>(null);
 
+  // WhatsApp template + batch dialog
+  const [waTemplate, setWaTemplate] = useState<WATemplate>(() => loadTemplate());
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchSent, setBatchSent] = useState<Record<string, boolean>>({});
+  function changeTemplate(t: WATemplate) { setWaTemplate(t); saveTemplate(t); }
+
+
   async function load() {
     if (!shop) return;
     setLoading(true);
