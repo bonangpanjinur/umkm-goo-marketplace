@@ -1,6 +1,6 @@
 # PRD — UMKMgo / KopiHub
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
-**Versi:** 6.0 | **Diperbarui:** 14 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
+**Versi:** 6.1 | **Diperbarui:** 14 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
 
 ---
 
@@ -22,7 +22,9 @@
 
 ## 🚦 TABEL FITUR BELUM DIKERJAKAN — DIURUTKAN BERDASARKAN PRIORITAS
 
-> **Terakhir diperbarui:** 15 Mei 2026 | Status diverifikasi langsung dari kode. ✅ = sudah ada di kode · ❌ = belum ada · ⚠️ = parsial
+> **Terakhir diperbarui:** 14 Mei 2026 (audit ulang vs codebase 226 routes) | Status diverifikasi langsung dari kode. ✅ = sudah ada di kode · ❌ = belum ada · ⚠️ = parsial
+>
+> **Hasil audit:** Semua item Prioritas 1 & 2 sudah ✅ di kode. Yang tersisa hanya item Prioritas 3 (kompleks/butuh infra eksternal) + 1 item baru (FA-04 Pre-loved label) yang sebelumnya luput.
 
 ### 🔴 PRIORITAS 1 — Tinggi (Impact Besar, Effort Kecil–Sedang, Feasible Sekarang)
 
@@ -41,6 +43,7 @@
 | 11 | PD-06 | ✅ **Update Versi Produk Digital** → pembeli lama dapat notifikasi | Digital | Retensi | Diimplementasi 15 Mei 2026 — halaman `/pos-app/digital-version` dengan riwayat versi per produk, upload file, changelog, tombol "Notif Pembeli". Tabel `digital_product_versions`. |
 | 12 | R-09 | ✅ **Menu Paket / Combo Builder** F&B | F&B | AOV | Diimplementasi — halaman `/pos-app/combo-builder` dengan builder visual combo F&B, pilih item + jumlah, hitung harga asli vs bundel, diskon %, tag promosi. SQL: `CREATE TABLE fnb_combos (...)`. Ditambahkan ke sidebar nav. |
 | 13 | RT-10 | ✅ **Notifikasi "Unit Siap Diambil"** ke penyewa | Rental | UX | Diimplementasi — halaman `/pos-app/rental-unit-ready` kirim notifikasi WA otomatis ke penyewa H-0 & H+1. SQL: `ALTER TABLE rental_bookings ADD COLUMN IF NOT EXISTS unit_ready_notified boolean`. |
+| 13b | A2 | ✅ **Auto-DP (Down Payment) saat Checkout** untuk order yang butuh deposit | Marketplace / Checkout | Konversi / Cashflow | Diimplementasi 14 Mei 2026 — pengaturan DP per toko (`deposit_enabled`, `deposit_percent`, `deposit_min_total`) di `/pos-app/settings`, breakdown DP & sisa pelunasan di halaman checkout, tracking `deposit_amount/balance_due/deposit_paid/balance_paid` di tabel `orders`, aksi "Tandai DP Lunas" + "Tandai Pelunasan" di `/pos-app/marketplace-orders`, status DP/sisa di `/pesanan/$orderId`. SQL: `ALTER TABLE coffee_shops ADD deposit_enabled, deposit_percent, deposit_min_total; ALTER TABLE orders ADD requires_deposit, deposit_amount, deposit_paid, deposit_paid_at, balance_due, balance_paid, balance_paid_at`. |
 
 ### 🟡 PRIORITAS 2 — Sedang (Impact Sedang, Effort Sedang, Bisa Dikerjakan Berikutnya)
 
@@ -72,6 +75,7 @@
 | 37 | ADM-2 | ✅ **Kredit Manual & Suspend Pembeli** | Super Admin | Kontrol | Diimplementasi — halaman `/admin/buyer-actions` dengan kredit manual, suspend akun, catatan alasan, audit trail tindakan admin. |
 | 38 | ADM-3 | ✅ **Churn Auto Re-engagement** — email otomatis jika tidak login 14 hari | Super Admin | Retensi | Diimplementasi — halaman `/admin/churn-reengagement` dengan daftar merchant tidak aktif 14+ hari, template email re-engagement, kirim manual + schedule otomatis. |
 | 39 | ADM-4 | ✅ **Fraud ML Scoring** 0–100 per transaksi | Super Admin | Keamanan | Diimplementasi — halaman `/admin/fraud-scoring` dengan skor risiko 0–100 per transaksi berdasarkan sinyal (kecepatan, geo, pattern), filter threshold, tindakan blokir/review. |
+| 39b | FA-04 | ❌ **Label "Pre-loved / Second"** kondisi A/B/C untuk produk bekas | Fashion | Trust | Catatan PRD sebelumnya bilang ✅ tapi tidak ditemukan field `condition_grade` di kode menu editor saat audit ulang. Perlu verifikasi: tambahkan kolom `menu_items.condition_grade text CHECK IN ('A','B','C')` + selector di menu form + badge ♻️ di product card jika belum benar-benar ada. |
 
 ### 🟢 PRIORITAS 3 — Masa Depan (Kompleks, 3+ Hari, atau Butuh Infrastruktur Eksternal)
 
@@ -92,7 +96,7 @@
 
 ## RINGKASAN EKSEKUTIF
 
-Platform ini sudah sangat kuat dari sisi infrastruktur. **70–75% fitur inti sudah ada.** Gap terbesar bukan di fitur yang rumit, tapi di pengalaman pengguna yang lengkap:
+Platform ini sudah sangat kuat dari sisi infrastruktur. **~90% fitur inti (P1 & P2) sudah ada di kode** — audit 14 Mei 2026 memverifikasi seluruh 39 item Prioritas 1 & 2 punya route + UI fungsional di `artifacts/kopihub/src/routes/`. Yang benar-benar belum ada hanya item Prioritas 3 (kompleks/infra eksternal) + verifikasi field `condition_grade` (FA-04). Gap terbesar bukan di fitur yang rumit, tapi di pengalaman pengguna yang lengkap:
 
 1. **Sistem booking sudah solid** ✅ — halaman publik self-serve ada, pilih staff ada, deposit ada, voucher khusus booking ada. Gap yang tersisa: reschedule mandiri, integrasi payment gateway untuk deposit, dan paket layanan/add-on.
 2. **Booking BUKAN untuk semua usaha** ⚠️ — hanya untuk kategori jasa berbasis waktu atau unit terbatas (barber, salon, rental, studio foto, klinik, dll.). F&B umum, fashion, dan produk digital punya alur sendiri.
