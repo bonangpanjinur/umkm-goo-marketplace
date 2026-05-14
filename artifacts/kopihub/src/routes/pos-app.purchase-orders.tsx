@@ -16,9 +16,14 @@ import {
 import {
   Loader2, Plus, FileText, Trash2, Search, MoreHorizontal, Eye, Copy, Send,
   X as XIcon, MessageCircle, Download, FileClock, CheckCircle2, ShoppingCart, Package,
+  Repeat, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import {
+  buildWAMessage, openWA, loadTemplate, saveTemplate, normalizePhone,
+  WA_TEMPLATE_LABELS, WA_TEMPLATE_DESC, type WATemplate,
+} from "@/lib/po-whatsapp";
 
 export const Route = createFileRoute("/pos-app/purchase-orders")({ component: POPage });
 
