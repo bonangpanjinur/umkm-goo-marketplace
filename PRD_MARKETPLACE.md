@@ -907,7 +907,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | F-05 | Custom Order Form | 2 hari | ✅ Selesai Sprint 13 |
 | F-06 | Affiliate Program per Toko | 3 hari | ❌ |
 | F-07 | Google Analytics & Meta Pixel Integration | 2 hari | ❌ |
-| F-08 | Rating Pembeli 2-Way | 2 hari | ❌ |
+| F-08 | Rating Pembeli 2-Way | 2 hari | ✅ Selesai — tab "Rating Pembeli" di /pos-app/reviews; merchant nilai buyer 1–5★ + komentar per pesanan; buyer lihat reputasinya di /akun; SQL migration f08_buyer_ratings.sql |
 | F-09 | Live Streaming Commerce | 7+ hari | ❌ |
 | F-10 | BNPL / Cicilan (Kredivo, Akulaku) | 5 hari | ❌ |
 | F-11 | Mobile App (React Native / Expo) | 3+ minggu | ❌ |

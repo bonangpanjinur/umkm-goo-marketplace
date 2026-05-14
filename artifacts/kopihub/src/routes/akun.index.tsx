@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShoppingBag, Heart, Bell, MapPin, Star, User, Cake } from "lucide-react";
+import { Loader2, ShoppingBag, Heart, Bell, MapPin, Star, User, Cake, Award } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
@@ -20,15 +20,17 @@ function ProfilePage() {
   const [form, setForm]        = useState({ display_name: "", phone: "", email: "", birthday: "" });
   const [stats, setStats]      = useState({ orders: 0, wishlist: 0, notifications: 0, totalSpent: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [buyerRatings, setBuyerRatings] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [profileRes, orderRes, wishlistRes, notifRes] = await Promise.all([
+      const [profileRes, orderRes, wishlistRes, notifRes, ratingsRes] = await Promise.all([
         supabase.from("customer_profiles").select("display_name, phone, email, birthday").eq("user_id", user.id).maybeSingle(),
         supabase.from("orders").select("id, status, total, created_at, shop:coffee_shops(name, slug, logo_url)").eq("customer_user_id", user.id).like("order_no", "MKT-%").order("created_at", { ascending: false }).limit(3),
         supabase.from("wishlists" as any).select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_user_id", user.id).is("read_at", null),
+        supabase.from("buyer_ratings" as any).select("id, rating, comment, created_at, shop:coffee_shops(name)").eq("rated_user_id", user.id).order("created_at", { ascending: false }).limit(20),
       ]);
 
       const allOrders = (orderRes.data as any[]) ?? [];
@@ -41,6 +43,7 @@ function ProfilePage() {
         birthday:     (profileRes.data as any)?.birthday || "",
       });
       setRecentOrders(allOrders);
+      setBuyerRatings((ratingsRes.data as any[]) ?? []);
 
       const { count: orderCount } = await supabase.from("orders").select("id", { count: "exact", head: true }).eq("customer_user_id", user.id).like("order_no", "MKT-%");
       setStats({
@@ -158,6 +161,66 @@ function ProfilePage() {
           </ul>
         </div>
       )}
+
+      {/* Reputasi Pembeli */}
+      {buyerRatings.length > 0 && (() => {
+        const avg = (buyerRatings.reduce((s: number, r: any) => s + r.rating, 0) / buyerRatings.length);
+        const LABEL: Record<number, string> = { 1: "Sangat Bermasalah", 2: "Kurang Baik", 3: "Cukup", 4: "Baik", 5: "Pembeli Terbaik" };
+        const COLOR: Record<number, string> = {
+          1: "bg-red-100 text-red-700 border-red-200", 2: "bg-orange-100 text-orange-700 border-orange-200",
+          3: "bg-amber-100 text-amber-700 border-amber-200", 4: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          5: "bg-emerald-100 text-emerald-700 border-emerald-200",
+        };
+        const rounded = Math.round(avg);
+        return (
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="border-b border-border px-4 py-3 flex items-center gap-2">
+              <Award className="h-4 w-4 text-amber-500" />
+              <h3 className="text-sm font-semibold">Reputasi Pembeli Anda</h3>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="text-center shrink-0">
+                  <p className="text-3xl font-bold">{avg.toFixed(1)}</p>
+                  <div className="flex justify-center mt-0.5">
+                    {[1,2,3,4,5].map(n => (
+                      <Star key={n} className={`h-3 w-3 ${n <= rounded ? "fill-amber-400 text-amber-400" : "text-muted-foreground/25"}`} />
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{buyerRatings.length} penilaian</p>
+                </div>
+                <div className="flex-1">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${COLOR[rounded]}`}>
+                    <Award className="h-3.5 w-3.5" />
+                    {LABEL[rounded]}
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Penilaian dari pedagang tempat Anda pernah berbelanja. Skor ini membangun reputasi Anda di marketplace.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                {buyerRatings.slice(0, 3).map((r: any) => (
+                  <div key={r.id} className="flex items-start gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                    <div className="flex shrink-0 mt-0.5">
+                      {[1,2,3,4,5].map(n => (
+                        <Star key={n} className={`h-3 w-3 ${n <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"}`} />
+                      ))}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium">{r.shop?.name ?? "Toko"}</p>
+                      {r.comment && <p className="text-[11px] text-muted-foreground truncate">{r.comment}</p>}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {new Date(r.created_at).toLocaleDateString("id-ID", { day:"numeric", month:"short" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Edit profile form */}
       <div className="rounded-xl border border-border bg-card">

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Star, Loader2, MessageSquare, BadgeCheck, EyeOff, Eye, RefreshCw,
   ThumbsUp, ThumbsDown, Minus, Flag, ShieldAlert, Send, TrendingUp,
-  BarChart3, CheckCircle2,
+  BarChart3, CheckCircle2, UserCheck, Award, ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { computeTrustCert, TrustCertProgress } from "@/components/TrustCertBadge";
@@ -35,7 +35,26 @@ type Review = {
   product_name: string;
 };
 
-type Tab = "semua" | "perlu-balas" | "sentimen" | "moderasi";
+type Tab = "semua" | "perlu-balas" | "sentimen" | "moderasi" | "rating-pembeli";
+
+type BuyerOrder = {
+  id: string;
+  order_no: string;
+  created_at: string;
+  total: number;
+  customer_user_id: string | null;
+  customer_name: string | null;
+};
+
+type BuyerRating = {
+  id: string;
+  order_id: string;
+  rated_user_id: string | null;
+  customer_name: string | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
 
 // ── Client-side sentiment helpers ─────────────────────────────────────────────
 const POS_WORDS = ["enak","bagus","mantap","lezat","segar","cepat","ramah","memuaskan","sempurna","luar biasa","recommended","top","best","puas","suka","keren","nikmat","gurih","manis","bersih","nyaman","friendly","pelayanan","worth","murah"];
@@ -227,6 +246,237 @@ function SentimentTab({ reviews }: { reviews: Review[] }) {
   );
 }
 
+// ── Buyer Rating Star Selector ────────────────────────────────────────────────
+function StarSelector({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1,2,3,4,5].map(n => (
+        <button key={n} type="button"
+          onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
+          onClick={() => onChange(n)}
+          className="transition-transform hover:scale-110">
+          <Star className={`h-7 w-7 ${n <= (hover || value) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const BUYER_RATING_LABEL: Record<number, string> = {
+  1: "Sangat Bermasalah", 2: "Kurang Baik", 3: "Cukup", 4: "Baik", 5: "Pembeli Terbaik",
+};
+
+// ── Buyer Rating Card ─────────────────────────────────────────────────────────
+function BuyerRatingCard({
+  order, existingRating, onRate,
+}: {
+  order: BuyerOrder;
+  existingRating: BuyerRating | undefined;
+  onRate: (order: BuyerOrder, rating: number, comment: string) => Promise<void>;
+}) {
+  const [rating,  setRating]  = useState(existingRating?.rating ?? 0);
+  const [comment, setComment] = useState(existingRating?.comment ?? "");
+  const [editing, setEditing] = useState(false);
+  const [saving,  setSaving]  = useState(false);
+  const rated = !!existingRating && !editing;
+  const { formatIDR } = { formatIDR: (n: number) => `Rp${n.toLocaleString("id-ID")}` };
+
+  const submit = async () => {
+    if (!rating) { toast.error("Pilih bintang terlebih dahulu"); return; }
+    setSaving(true);
+    await onRate(order, rating, comment);
+    setSaving(false);
+    setEditing(false);
+  };
+
+  return (
+    <div className={`rounded-xl border bg-card overflow-hidden ${rated ? "border-emerald-100" : "border-border"}`}>
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+          {(order.customer_name ?? "?")[0]?.toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm">{order.customer_name ?? "Pembeli"}</p>
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            <span className="text-[11px] text-muted-foreground font-mono">{order.order_no}</span>
+            <span className="text-[11px] text-muted-foreground">·</span>
+            <span className="text-[11px] text-muted-foreground">{new Date(order.created_at).toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"2-digit" })}</span>
+            <span className="text-[11px] text-muted-foreground">·</span>
+            <span className="text-[11px] font-medium">{formatIDR(order.total)}</span>
+          </div>
+        </div>
+        {rated && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex">
+              {[1,2,3,4,5].map(n => (
+                <Star key={n} className={`h-3.5 w-3.5 ${n <= existingRating.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"}`} />
+              ))}
+            </div>
+            <button onClick={() => { setRating(existingRating.rating); setComment(existingRating.comment ?? ""); setEditing(true); }}
+              className="text-[11px] text-primary hover:underline">Edit</button>
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      {rated ? (
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              existingRating.rating >= 4 ? "bg-emerald-100 text-emerald-700" :
+              existingRating.rating === 3 ? "bg-amber-100 text-amber-700" :
+              "bg-red-100 text-red-700"
+            }`}>
+              <UserCheck className="h-3 w-3" />
+              {BUYER_RATING_LABEL[existingRating.rating]}
+            </span>
+          </div>
+          {existingRating.comment && (
+            <p className="text-sm text-muted-foreground leading-snug">{existingRating.comment}</p>
+          )}
+        </div>
+      ) : (
+        <div className="px-4 py-3 space-y-3">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5">Beri penilaian untuk pembeli ini</p>
+            <StarSelector value={rating} onChange={setRating} />
+            {rating > 0 && (
+              <p className="mt-1 text-xs font-medium text-primary">{BUYER_RATING_LABEL[rating]}</p>
+            )}
+          </div>
+          <Textarea
+            placeholder="Catatan opsional (mis: pembeli sopan, komunikatif, pembayaran cepat…)"
+            rows={2} value={comment} onChange={e => setComment(e.target.value)} maxLength={500} className="text-xs"
+          />
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={submit} disabled={saving || !rating}>
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <UserCheck className="h-3.5 w-3.5 mr-1" />}
+              Simpan Penilaian
+            </Button>
+            {editing && <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Batal</Button>}
+            <span className="ml-auto text-xs text-muted-foreground">{comment.length}/500</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Buyer Rating Tab ──────────────────────────────────────────────────────────
+function BuyerRatingTab({
+  orders, ratings, loading, onRate, onRefresh,
+}: {
+  orders: BuyerOrder[];
+  ratings: BuyerRating[];
+  loading: boolean;
+  onRate: (order: BuyerOrder, rating: number, comment: string) => Promise<void>;
+  onRefresh: () => void;
+}) {
+  const [filter, setFilter] = useState<"semua" | "belum" | "sudah">("semua");
+
+  const unrated = orders.filter(o => !ratings.find(r => r.order_id === o.id));
+  const rated   = orders.filter(o =>  ratings.find(r => r.order_id === o.id));
+  const displayed = filter === "belum" ? unrated : filter === "sudah" ? rated : orders;
+
+  const avgRating = ratings.length > 0
+    ? (ratings.reduce((s, r) => s + r.rating, 0) / ratings.length).toFixed(1)
+    : null;
+
+  if (loading) return <div className="flex justify-center py-16"><Loader2 className="h-7 w-7 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
+          <ShoppingBag className="h-8 w-8 text-primary/30 shrink-0" />
+          <div>
+            <p className="text-2xl font-bold">{orders.length}</p>
+            <p className="text-xs text-muted-foreground">Pesanan selesai (online)</p>
+          </div>
+        </div>
+        <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 flex items-center gap-3">
+          <Star className="h-8 w-8 text-amber-300 shrink-0" />
+          <div>
+            <p className="text-2xl font-bold">{ratings.length}</p>
+            <p className="text-xs text-muted-foreground">Pembeli sudah dinilai</p>
+          </div>
+        </div>
+        <div className={`rounded-xl border p-4 flex items-center gap-3 ${avgRating ? "border-emerald-100 bg-emerald-50" : "bg-card"}`}>
+          <Award className="h-8 w-8 text-emerald-400/50 shrink-0" />
+          <div>
+            <p className="text-2xl font-bold">{avgRating ?? "—"}</p>
+            <p className="text-xs text-muted-foreground">Rata-rata skor pembeli</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Info banner */}
+      <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 flex items-start gap-3">
+        <UserCheck className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-800">
+          <p className="font-semibold">Penilaian 2-Arah</p>
+          <p className="text-xs mt-0.5">
+            Nilai reputasi pembeli setelah transaksi selesai. Penilaian Anda membantu pedagang lain mengenali pembeli berkualitas dan meminimalisir risiko pesanan bermasalah.
+          </p>
+        </div>
+      </div>
+
+      {/* Filter + refresh */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {([
+          { key: "semua", label: "Semua",           count: orders.length },
+          { key: "belum", label: "Belum Dinilai",   count: unrated.length, warn: unrated.length > 0 },
+          { key: "sudah", label: "Sudah Dinilai",   count: rated.length },
+        ] as const).map(f => (
+          <button key={f.key} onClick={() => setFilter(f.key)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+            {f.label}
+            {f.count > 0 && (
+              <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${f.warn ? "bg-amber-200 text-amber-800" : "bg-background/40"}`}>
+                {f.count}
+              </span>
+            )}
+          </button>
+        ))}
+        <Button size="sm" variant="outline" className="ml-auto" onClick={onRefresh}>
+          <RefreshCw className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
+      {/* Order list */}
+      {displayed.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+          <UserCheck className="mx-auto mb-2 h-8 w-8 text-muted-foreground opacity-30" />
+          <p className="text-sm text-muted-foreground">
+            {filter === "belum" ? "Semua pembeli sudah dinilai! 🎉" :
+             filter === "sudah" ? "Belum ada pembeli yang dinilai." :
+             "Belum ada pesanan online yang selesai dengan akun pembeli."}
+          </p>
+          {filter === "semua" && orders.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Hanya pesanan marketplace (MKT-xxx) dengan akun pembeli yang bisa dinilai.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {displayed.map(o => (
+            <BuyerRatingCard
+              key={o.id}
+              order={o}
+              existingRating={ratings.find(r => r.order_id === o.id)}
+              onRate={onRate}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Review Card ───────────────────────────────────────────────────────────────
 function ReviewCard({
   r, onReply, onToggleHide, onFlag,
@@ -387,6 +637,9 @@ function ReviewsPage() {
   const [filterStar,  setFilterStar]  = useState<number | null>(null);
   const [filterReply, setFilterReply] = useState<"all" | "pending" | "replied">("all");
   const [sort,        setSort]        = useState<"newest" | "oldest" | "lowest">("newest");
+  const [buyerOrders,  setBuyerOrders]  = useState<BuyerOrder[]>([]);
+  const [buyerRatings, setBuyerRatings] = useState<BuyerRating[]>([]);
+  const [buyerLoading, setBuyerLoading] = useState(false);
 
   const load = async () => {
     if (!shop?.id) return;
@@ -410,6 +663,47 @@ function ReviewsPage() {
   };
 
   useEffect(() => { load(); }, [shop?.id]);
+
+  const loadBuyerData = async () => {
+    if (!shop?.id || !outlet?.id) return;
+    setBuyerLoading(true);
+    const [ordersRes, ratingsRes] = await Promise.all([
+      supabase
+        .from("orders")
+        .select("id, order_no, created_at, total, customer_user_id, customer_name")
+        .eq("outlet_id", outlet.id)
+        .eq("status", "completed")
+        .not("customer_user_id", "is", null)
+        .like("order_no", "MKT-%")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("buyer_ratings")
+        .select("id, order_id, rated_user_id, customer_name, rating, comment, created_at")
+        .eq("shop_id", shop.id),
+    ]);
+    setBuyerOrders((ordersRes.data as BuyerOrder[]) ?? []);
+    setBuyerRatings((ratingsRes.data as BuyerRating[]) ?? []);
+    setBuyerLoading(false);
+  };
+
+  useEffect(() => {
+    if (tab === "rating-pembeli") loadBuyerData();
+  }, [tab, shop?.id, outlet?.id]);
+
+  const onRateBuyer = async (order: BuyerOrder, rating: number, comment: string) => {
+    const { error } = await supabase.from("buyer_ratings" as any).upsert({
+      order_id:      order.id,
+      shop_id:       shop!.id,
+      rated_user_id: order.customer_user_id,
+      customer_name: order.customer_name,
+      rating,
+      comment: comment.trim() || null,
+    }, { onConflict: "order_id,shop_id" });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Penilaian pembeli tersimpan!");
+    await loadBuyerData();
+  };
 
   const onReply = async (id: string, text: string) => {
     const { error } = await supabase.from("product_reviews").update({
@@ -457,11 +751,14 @@ function ReviewsPage() {
     return list;
   }, [reviews, tab, filterStar, filterReply, sort]);
 
+  const unratedBuyers = buyerOrders.filter(o => !buyerRatings.find(r => r.order_id === o.id)).length;
+
   const TABS: { key: Tab; label: string; count?: number; warn?: boolean }[] = [
-    { key: "semua",       label: "Semua Ulasan",      count: reviews.length },
-    { key: "perlu-balas", label: "Perlu Dibalas",     count: perluBalas.length, warn: perluBalas.length > 0 },
-    { key: "sentimen",    label: "Analisis Sentimen" },
-    { key: "moderasi",    label: "Moderasi",          count: flagged.length, warn: flagged.length > 0 },
+    { key: "semua",          label: "Semua Ulasan",    count: reviews.length },
+    { key: "perlu-balas",    label: "Perlu Dibalas",   count: perluBalas.length, warn: perluBalas.length > 0 },
+    { key: "sentimen",       label: "Analisis Sentimen" },
+    { key: "moderasi",       label: "Moderasi",        count: flagged.length, warn: flagged.length > 0 },
+    { key: "rating-pembeli", label: "Rating Pembeli",  count: unratedBuyers || undefined, warn: unratedBuyers > 0 },
   ];
 
   return (
@@ -500,7 +797,7 @@ function ReviewsPage() {
       })()}
 
       {/* Summary bar chart (compact) */}
-      {!loading && total > 0 && tab !== "sentimen" && (
+      {!loading && total > 0 && tab !== "sentimen" && tab !== "rating-pembeli" && (
         <div className="rounded-xl border bg-card p-4 flex flex-col sm:flex-row gap-4 items-center">
           <div className="text-center shrink-0">
             <p className="text-4xl font-bold">{avg}</p>
@@ -562,6 +859,14 @@ function ReviewsPage() {
 
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-7 w-7 animate-spin text-muted-foreground" /></div>
+      ) : tab === "rating-pembeli" ? (
+        <BuyerRatingTab
+          orders={buyerOrders}
+          ratings={buyerRatings}
+          loading={buyerLoading}
+          onRate={onRateBuyer}
+          onRefresh={loadBuyerData}
+        />
       ) : tab === "sentimen" ? (
         <SentimentTab reviews={reviews} />
       ) : (
@@ -579,8 +884,8 @@ function ReviewsPage() {
             </div>
           )}
 
-          {/* Filters (non-moderasi) */}
-          {tab !== "moderasi" && (
+          {/* Filters (non-moderasi, non-rating-pembeli) */}
+          {tab !== "moderasi" && tab !== "rating-pembeli" && (
             <div className="flex flex-wrap gap-2 items-center">
               <div className="flex gap-1">
                 <button onClick={() => setFilterStar(null)}
