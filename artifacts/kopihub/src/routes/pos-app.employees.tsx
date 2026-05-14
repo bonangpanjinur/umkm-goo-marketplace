@@ -92,6 +92,9 @@ function EmployeesPage() {
   const [manualSaving, setManualSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [manualWithLogin, setManualWithLogin] = useState(false);
+  const [manualEmail, setManualEmail] = useState("");
+  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -197,6 +200,9 @@ function EmployeesPage() {
     setManualAvatar("");
     setManualRole("cashier");
     setManualOutletId(outlets[0]?.id ?? "");
+    setManualWithLogin(false);
+    setManualEmail("");
+    setLastInviteUrl(null);
   }
 
   function openEditManual(sm: StaffMember) {
@@ -206,6 +212,9 @@ function EmployeesPage() {
     setManualOutletId(sm.outlet_id ?? "");
     setManualPhone(sm.phone ?? "");
     setManualAvatar(sm.avatar_url ?? "");
+    setManualWithLogin(false);
+    setManualEmail("");
+    setLastInviteUrl(null);
     setManualOpen(true);
   }
 
@@ -246,6 +255,11 @@ function EmployeesPage() {
     if (manualOutletId && !outlets.some((o) => o.id === manualOutletId)) {
       return "Outlet tidak valid untuk toko ini";
     }
+    if (manualWithLogin && !editingId) {
+      const em = manualEmail.trim();
+      if (!em) return "Email wajib diisi untuk akses login";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return "Format email tidak valid";
+    }
     return null;
   }
 
@@ -257,7 +271,6 @@ function EmployeesPage() {
       return;
     }
     setManualSaving(true);
-    // Normalize phone to digits + leading +
     const phone = manualPhone.trim().replace(/[\s-]/g, "") || null;
     const payload = {
       outlet_id: manualOutletId || null,
@@ -269,13 +282,47 @@ function EmployeesPage() {
     const { error } = editingId
       ? await supabase.from("staff_members").update(payload).eq("id", editingId)
       : await supabase.from("staff_members").insert({ ...payload, shop_id: shop.id });
-    if (error) toast.error(error.message);
-    else {
-      toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
-      resetManualForm();
-      setManualOpen(false);
-      load();
+    if (error) {
+      toast.error(error.message);
+      setManualSaving(false);
+      return;
     }
+
+    // Bonus: kalau "beri akses login" → buat undangan email + tampilkan link
+    if (!editingId && manualWithLogin && user) {
+      const em = manualEmail.trim().toLowerCase();
+      const { data: invData, error: invErr } = await supabase
+        .from("staff_invitations")
+        .insert({
+          shop_id: shop.id,
+          outlet_id: manualOutletId || null,
+          email: em,
+          role: manualRole as "manager" | "cashier" | "barista",
+          invited_by: user.id,
+        })
+        .select("token")
+        .single();
+      if (invErr) {
+        toast.error("Pegawai tersimpan, tapi gagal buat undangan: " + invErr.message);
+      } else if (invData) {
+        const url = `${window.location.origin}/invite/${invData.token}`;
+        setLastInviteUrl(url);
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success("Pegawai ditambahkan & tautan login disalin");
+        } catch {
+          toast.success("Pegawai ditambahkan — bagikan tautan login");
+        }
+        setManualSaving(false);
+        load();
+        return; // keep dialog open so owner can copy link
+      }
+    }
+
+    toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
+    resetManualForm();
+    setManualOpen(false);
+    load();
     setManualSaving(false);
   }
 
@@ -431,9 +478,67 @@ function EmployeesPage() {
                     maxLength={20}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Pegawai ini bisa langsung dijadwalkan di halaman Jadwal — tidak perlu akun login.
-                </p>
+                {!editingId && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={manualWithLogin}
+                        onChange={(e) => setManualWithLogin(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">Beri akses login ke POS</div>
+                        <div className="text-xs text-muted-foreground">
+                          Kirim tautan undangan supaya pegawai bisa masuk dan pakai POS sesuai perannya.
+                        </div>
+                      </div>
+                    </label>
+                    {manualWithLogin && (
+                      <div className="mt-3 space-y-2">
+                        <Label className="text-xs">Email pegawai</Label>
+                        <Input
+                          type="email"
+                          value={manualEmail}
+                          onChange={(e) => setManualEmail(e.target.value)}
+                          placeholder="pegawai@toko.com"
+                          maxLength={255}
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Pegawai harus daftar/masuk dengan email yang sama untuk menerima akses.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {lastInviteUrl && (
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                      <Check className="h-4 w-4" /> Tautan login siap dibagikan
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <Input value={lastInviteUrl} readOnly className="text-xs" />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(lastInviteUrl);
+                          toast.success("Tersalin");
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {!manualWithLogin && !lastInviteUrl && (
+                  <p className="text-xs text-muted-foreground">
+                    Tanpa akses login, pegawai hanya muncul di Jadwal & catatan internal.
+                  </p>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setManualOpen(false)}>
