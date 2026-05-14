@@ -1,118 +1,85 @@
-# Rencana Perbaikan KopiHub — Audit & Roadmap
 
-Berdasarkan audit `.lovable/plan.md`, status modul terbaru (saldo, membership, push), dan struktur 176 route saat ini.
+# Analisis Menu Pegawai (Tim)
 
----
+## Yang sudah ada
+- Tambah pegawai manual + opsi buat akun login (email/sandi).
+- Undang via email (token invite).
+- Edit pegawai manual, upload avatar, validasi nama/HP.
+- Reset sandi & set sandi manual untuk anggota aktif.
+- Daftar Anggota Aktif, Pegawai Manual, Undangan Pending.
+- Realtime sync ke halaman Jadwal.
 
-## 1. ERROR / BUG KRITIS (harus diperbaiki dulu)
+## Kekurangan yang ditemukan
 
-| # | Masalah | Dampak | Aksi |
-|---|---|---|---|
-| E1 | Preview menggunakan `placeholder.supabase.co` (env `VITE_SUPABASE_*` tidak ter-inject di build artifact `kopihub`) | Storefront, banner, produk blank/skeleton stuck | Pastikan `.env` di-load di Vite build, tampilkan banner error eksplisit kalau placeholder, tambahkan retry-cap |
-| E2 | Banyak query masih `(supabase as any)` di custom-order/portfolio | Hilang type-safety, schema drift tak ketahuan | Hapus `as any` setelah `types.ts` regen |
-| E3 | Channel realtime customer (`toko.$slug.custom-order.status`) tidak per-kontak | Bocor event antar tab/customer | Suffix unik per `contact_hash` |
-| E4 | `pos-app.custom-orders.tsx` reload penuh tiap event realtime | Flicker, lag list panjang | Patch incremental dari payload `new`/`old` |
-| E5 | Route publik `toko/$slug/*` tanpa `errorComponent`/`notFoundComponent` | User lihat blank ketika query gagal | Wajibkan boundary di tiap route loader |
-| E6 | VAPID push: secret belum di-set, `/sw.js` & sender belum ada | Background push belum jalan walau UI super-admin sudah ada | Generate service worker + server route `/api/public/hooks/send-push` (tunggu user input VAPID di admin) |
-| E7 | Duplikat storefront `s.$slug.*` dan `toko.$slug.*` | Bingung SEO/user, double indexing | Pilih `toko.$slug.*` canonical, redirect dari `s.$slug.*` |
-| E8 | WhatsApp masih buka tab `wa.me` manual | Notif owner sering terlewat | Integrasi Fonnte/Wablas via TanStack server fn + log ke `notifications` |
+### Fitur
+1. **Tidak ada pencarian/filter** — daftar bisa panjang, tak ada search bar, filter peran, atau filter outlet.
+2. **Tidak ada bulk action** — tidak bisa pilih banyak untuk hapus / pindah outlet / ganti peran sekaligus.
+3. **Tidak ada status aktif/nonaktif** — hanya "hapus permanen". Tidak bisa nonaktifkan sementara (cuti, resign sementara).
+4. **Tidak terlihat aktivitas pegawai** — tidak ada info "terakhir login", "jumlah shift bulan ini", "transaksi yang ditangani".
+5. **Tidak ada riwayat audit** — siapa undang, siapa reset sandi, kapan peran diubah.
+6. **Tidak ada role detail / izin granular** — hanya 3 peran fix (manager/kasir/barista), tidak bisa custom permission.
+7. **Anggota aktif tidak bisa diedit** — hanya manual yang bisa edit. Anggota dengan login tak bisa ganti peran/outlet dari UI ini (harus hapus & undang ulang).
+8. **Tidak ada "promote" pegawai manual → akun login** — owner harus hapus & buat ulang.
+9. **Undangan tidak bisa di-resend / kirim ulang via email** — hanya copy link manual.
+10. **Tidak ada limit / kuota info** — owner tak tahu berapa banyak pegawai yang dipakai vs paket.
+11. **Tidak ada export** (CSV daftar pegawai untuk HR/payroll).
+12. **Field pegawai minim** — tidak ada tanggal masuk, tarif/upah per jam, alamat, catatan internal, dokumen (KTP).
 
----
-
-## 2. FITUR YANG HARUS DIPERBAIKI (sudah ada tapi belum tuntas)
-
-| # | Modul | Kekurangan saat ini | Perbaikan |
-|---|---|---|---|
-| P1 | Checkout | Alamat default tidak auto-pick; ongkir manual pilih | Auto-select alamat utama, auto-hitung ongkir saat alamat dipilih |
-| P2 | Pencarian (`search.tsx`) | Tidak ada filter harga/rating/lokasi, tidak ada autocomplete | Tambah filter sidebar + debounce suggestion |
-| P3 | Wishlist (`akun.wishlist.tsx`) | Alert harga di localStorage, tidak sinkron antar device | Pindah ke tabel `wishlist_alerts` |
-| P4 | Riwayat pesanan (`akun.pesanan.index.tsx`) | Tidak ada filter status & rentang tanggal | Tambah filter UI + query param |
-| P5 | Track resi (`track.$orderId.tsx`) | Tidak deeplink ke kurir | Mapping kurir → URL tracking |
-| P6 | Custom order customer | Status berubah tidak kirim WA/email | Trigger notification → in-app + WA |
-| P7 | Review | Belum bisa upload video, tidak ada "helpful" voting | Field `video_url` + tabel `review_votes` |
-| P8 | Mobile (390px) | Modal health-score & custom-order timeline overflow | Audit `overflow-x-auto`, max-w sesuai |
-| P9 | Dashboard POS | Tanpa date-range bebas | Tambah `DateRangePicker` shadcn |
-| P10 | Bulk action order | Belum ada (status/print label) | Checkbox + bulk action toolbar di `pos-app.orders.tsx` |
-| P11 | Stok kritis | Tidak push WA ke owner | Trigger di `low_stock` → notification |
-| P12 | Q&A auto-reply (`pos-app.qa.tsx`) | Exact match | Fuzzy + fallback Gemini Flash |
-| P13 | Kalender promo (`pos-app.promo-calendar.tsx`) | Tidak sinkron flash sale aktif | Join data flash_sale ke calendar view |
-| P14 | Booking reminder | H-1/H-3 belum otomatis | `pg_cron` ke endpoint kirim WA + push |
-| P15 | Health score | Belum ada cron recompute | Cron harian recompute + email alert kalau turun |
-| P16 | Image upload | Validasi tidak konsisten antar modul | `validateImageUpload()` + `<ImageDropzone>` reusable (komponen sudah ada, belum dipakai semua) |
+### UI/UX
+1. **Dua tabel terpisah (Aktif vs Manual) membingungkan** — pegawai yang sama bisa muncul di dua tempat (saat manual + login). Sebaiknya satu daftar terpadu dengan badge "Login aktif" / "Manual".
+2. **Tidak responsif di mobile** — tabel lebar, scroll horizontal terpotong di viewport 889px ke bawah.
+3. **Action icon-only tanpa label** — tombol kunci/reset/hapus hanya ikon, owner awam bingung. Perlu dropdown menu "..." dengan label jelas.
+4. **Empty state minim** — saat 0 pegawai, tidak ada CTA besar atau ilustrasi pemandu.
+5. **Form Tambah pegawai panjang vertikal** — di layar pendek perlu scroll. Bisa dipecah jadi tab (Info → Akses login) atau accordion.
+6. **Kredensial baru ditampilkan dalam dialog tertutup** — kalau owner tutup tanpa salin, hilang selamanya. Perlu konfirmasi/warning sebelum tutup.
+7. **Tidak ada indikator outlet** di header — bila owner punya banyak outlet, sulit tahu konteks aktif.
+8. **Avatar fallback** hanya 1 huruf — sebaiknya pakai inisial 2 huruf + warna konsisten per nama.
+9. **Tidak ada loading skeleton** — hanya spinner satu titik, terasa kosong.
+10. **Tidak ada konfirmasi destruktif yang ramah** — pakai `confirm()` browser asli (jelek). Sebaiknya pakai AlertDialog shadcn.
+11. **Undangan pending tidak menunjukkan kadaluarsa visual** — tanggal teks saja, tak ada warning "akan expired 2 hari lagi".
 
 ---
 
-## 3. FITUR YANG MASIH KURANG (belum ada sama sekali)
+# Rencana Perbaikan (bertahap)
 
-### Tier A — Quick win revenue (prioritas)
-- **A1 Abandoned cart recovery** — cron 1 jam → WA otomatis (recover 8–15% cart)
-- **A2 Auto-DP custom order** — invoice DP 30% via Midtrans/Xendit sebelum masuk antrian
-- **A3 Reorder 1-klik dari riwayat** — link share via WA
-- **A4 Bukti transfer + verifikasi OCR** — kurangi gagal bayar manual
-- **A5 Affiliate/dropship link per produk** — komisi otomatis
+## Fase 1 — Quick wins UX (prioritas tinggi)
+1. **Search bar + filter** (peran, outlet, status) di atas daftar.
+2. **Gabungkan dua tabel** jadi satu dengan kolom "Tipe akses" (Login / Manual) sebagai badge.
+3. **Ganti `confirm()` → AlertDialog** shadcn untuk hapus, reset, revoke.
+4. **Action menu (DropdownMenu "...")** menggantikan deretan ikon — label jelas: "Edit", "Ubah sandi", "Kirim reset", "Nonaktifkan", "Hapus".
+5. **Empty state ramah** dengan ilustrasi + dua CTA besar (Tambah / Undang).
+6. **Loading skeleton** untuk daftar.
+7. **Responsif mobile** — daftar jadi card di breakpoint kecil.
+8. **Avatar inisial 2 huruf + warna deterministik** dari nama.
 
-### Tier B — Trust & UX
-- **B1 Verified review badge** (review dari pesanan terverifikasi)
-- **B2 Garansi & retur self-serve** dengan upload foto klaim
-- **B3 Live tracking peta** (Mapbox kurir realtime)
-- **B4 Booking deposit otomatis** via Midtrans/Xendit (gantikan transfer manual)
-- **B5 Reschedule booking mandiri** via link unik
-- **B6 Storefront PWA installable per toko**
+## Fase 2 — Fitur penting
+9. **Edit anggota aktif (login)** — buka dialog yang sama untuk ubah peran & outlet.
+10. **Status Aktif/Nonaktif** — tambah kolom `is_active` di `staff_members` & `user_roles`; sembunyikan dari Jadwal saat nonaktif.
+11. **Resend undangan** — tombol kirim ulang + perpanjang `expires_at`.
+12. **Promote manual → login** — tombol "Aktifkan akun login" pada pegawai manual.
+13. **Field tambahan**: tanggal masuk, upah/jam, catatan internal (kolom baru di `staff_members`).
+14. **Indikator kadaluarsa undangan** — badge merah/kuning bila < 3 hari.
 
-### Tier C — Insight owner
-- **C1 Smart inventory forecast** (weighted MA, bukan linear)
-- **C2 Profit margin alert** (notif kalau margin < threshold)
-- **C3 AI menu writer & auto-tag foto** (Gemini Vision/Image)
-- **C4 Refund analytics dashboard**
-- **C5 Heatmap jam ramai per outlet**
-- **C6 Print label kurir batch** (single sudah ada)
-
-### Tier D — Super admin
-- **D1 Fraud risk score 0–100** + auto-hold
-- **D2 Buyer suspend/reset/credit manual** (`admin.users.tsx` extend)
-- **D3 Broadcast targeting buyer** (segment by tier/cart abandon)
-- **D4 Plan-upgrade nudge** in-app saat dekat limit
-- **D5 SEO sitemap dinamis** per kategori & kota
+## Fase 3 — Insight & operasional
+15. **Statistik mini per pegawai**: jumlah shift bulan ini, transaksi tertangani, terakhir login.
+16. **Audit log** sederhana (`staff_audit_logs`) — undang, reset, ubah peran, hapus.
+17. **Export CSV** daftar pegawai.
+18. **Bulk action** (pilih banyak → ubah outlet/peran/nonaktif).
 
 ---
 
-## 4. ROADMAP 4 MINGGU
+# Catatan teknis (untuk implementasi)
 
-```text
-Minggu 1 (FIX & POLISH)
-  ├─ E1: fix env preview + graceful fallback
-  ├─ E2: hapus (supabase as any)
-  ├─ E3+E4: realtime per-contact + incremental patch
-  ├─ E5: error/notFound boundary di route publik
-  └─ E7: redirect s.$slug → toko.$slug
-
-Minggu 2 (PUSH & WA)
-  ├─ E6: service worker + sender VAPID + endpoint /api/public/hooks/send-push
-  ├─ E8: integrasi Fonnte/Wablas via createServerFn
-  ├─ P6: trigger notif custom order → WA + in-app
-  └─ P11: trigger stok kritis → WA owner
-
-Minggu 3 (CHECKOUT & UX)
-  ├─ P1: auto-pick alamat + auto-ongkir
-  ├─ P2: filter & autocomplete pencarian
-  ├─ P4: filter riwayat pesanan
-  ├─ P5: deeplink kurir
-  ├─ P9+P10: date-range + bulk action order
-  └─ A1: abandoned cart WA
-
-Minggu 4 (REVENUE & TRUST)
-  ├─ A2: auto-DP custom order
-  ├─ B1: verified review badge
-  ├─ B4+P14: booking deposit + reminder H-1/H-3
-  ├─ C1: weighted MA forecast
-  └─ D1: fraud risk score 0–100
-```
+- **Migrasi DB** dibutuhkan di Fase 2 & 3:
+  - `ALTER TABLE staff_members ADD COLUMN is_active boolean DEFAULT true, hire_date date, hourly_rate numeric, notes text;`
+  - `ALTER TABLE user_roles ADD COLUMN is_active boolean DEFAULT true;`
+  - Tabel baru `staff_audit_logs (id, shop_id, actor_id, target_user_id, action, meta jsonb, created_at)` + RLS owner-only.
+- **API server** (`artifacts/api-server/src/routes/staff.ts`) perlu endpoint baru: `update-user-role`, `resend-invitation`, `promote-to-login`.
+- **Komponen baru** yang perlu dibuat: `StaffRow`, `StaffFilters`, `StaffActionsMenu`, `StaffEmptyState`, `StaffSkeleton`.
+- File utama yang berubah: `artifacts/kopihub/src/routes/pos-app.employees.tsx` (refaktor besar — pecah jadi sub-komponen di folder `artifacts/kopihub/src/components/employees/`).
 
 ---
 
-## 5. PERTANYAAN UNTUK DIPUTUSKAN
+**Saran eksekusi**: kerjakan **Fase 1 dulu** (UX) karena dampaknya besar tanpa migrasi DB. Lalu konfirmasi sebelum lanjut ke Fase 2 (perlu migrasi).
 
-1. **Mulai dari mana?** (a) Minggu 1 fix bug dulu, atau (b) loncat ke Tier A revenue, atau (c) ambil 1 item spesifik
-2. **WA provider:** Fonnte (murah, populer ID) atau Wablas (lengkap)?
-3. **Push notification:** lanjut implementasi service worker + sender sekarang (pakai VAPID dummy untuk testing) atau tunggu user input VAPID asli di admin?
-4. **Storefront canonical:** boleh saya redirect `s.$slug.*` → `toko.$slug.*`?
+Pilih: lanjut implementasi Fase 1, atau ada item yang ingin kamu prioritaskan/buang?
