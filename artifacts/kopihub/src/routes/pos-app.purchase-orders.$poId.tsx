@@ -176,9 +176,24 @@ function PODetailPage() {
   const [ingMap, setIngMap] = useState<Record<string, Ingredient>>({});
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"summary" | "items" | "history">("summary");
+
+  // Modal states
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [receiveOpen, setReceiveOpen] = useState(false);
+
+  // Draft editing
+  const [editMode, setEditMode] = useState(false);
+  const [editItems, setEditItems] = useState<POItem[]>([]);
+  const [editNote, setEditNote] = useState("");
+
   const [prefs, setPrefs] = useState<PrintPrefs>(() => loadPrefs());
   const [presets, setPresets] = useState<PrinterPreset[]>(() => loadPresets());
   const [defaultPresetId, setDefaultPresetId] = useState<string | null>(() => loadDefaultPresetId());
