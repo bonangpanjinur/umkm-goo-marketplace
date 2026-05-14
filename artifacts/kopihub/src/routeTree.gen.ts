@@ -74,6 +74,7 @@ import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppLaporanHarianRouteImport } from './routes/pos-app.laporan-harian'
 import { Route as PosAppKycRouteImport } from './routes/pos-app.kyc'
+import { Route as PosAppKursusRouteImport } from './routes/pos-app.kursus'
 import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
 import { Route as PosAppInvoiceRouteImport } from './routes/pos-app.invoice'
@@ -120,6 +121,7 @@ import { Route as AkunReturnsRouteImport } from './routes/akun.returns'
 import { Route as AkunReferralRouteImport } from './routes/akun.referral'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunLoyaltyRouteImport } from './routes/akun.loyalty'
+import { Route as AkunKursusRouteImport } from './routes/akun.kursus'
 import { Route as AkunFavoritRouteImport } from './routes/akun.favorit'
 import { Route as AkunDigitalProductsRouteImport } from './routes/akun.digital-products'
 import { Route as AkunCashbackRouteImport } from './routes/akun.cashback'
@@ -185,6 +187,7 @@ import { Route as OrderSlugCartRouteImport } from './routes/order.$slug.cart'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
 import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
+import { Route as AkunKursusCourseIdRouteImport } from './routes/akun.kursus.$courseId'
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
 import { Route as AdminHealthScoreShopIdRouteImport } from './routes/admin.health-score.$shopId'
 import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug.produk.$productId'
@@ -520,6 +523,11 @@ const PosAppKycRoute = PosAppKycRouteImport.update({
   path: '/kyc',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppKursusRoute = PosAppKursusRouteImport.update({
+  id: '/kursus',
+  path: '/kursus',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppKeuanganRoute = PosAppKeuanganRouteImport.update({
   id: '/keuangan',
   path: '/keuangan',
@@ -748,6 +756,11 @@ const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
 const AkunLoyaltyRoute = AkunLoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunKursusRoute = AkunKursusRouteImport.update({
+  id: '/kursus',
+  path: '/kursus',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunFavoritRoute = AkunFavoritRouteImport.update({
@@ -1077,6 +1090,11 @@ const AkunPesananOrderIdRoute = AkunPesananOrderIdRouteImport.update({
   path: '/pesanan/$orderId',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunKursusCourseIdRoute = AkunKursusCourseIdRouteImport.update({
+  id: '/$courseId',
+  path: '/$courseId',
+  getParentRoute: () => AkunKursusRoute,
+} as any)
 const AdminShopsIdRoute = AdminShopsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1171,6 +1189,7 @@ export interface FileRoutesByFullPath {
   '/akun/cashback': typeof AkunCashbackRoute
   '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
+  '/akun/kursus': typeof AkunKursusRouteWithChildren
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -1217,6 +1236,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
+  '/pos-app/kursus': typeof PosAppKursusRoute
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -1269,6 +1289,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/': typeof PosAppIndexRoute
   '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
+  '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
@@ -1353,6 +1374,7 @@ export interface FileRoutesByTo {
   '/akun/cashback': typeof AkunCashbackRoute
   '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
+  '/akun/kursus': typeof AkunKursusRouteWithChildren
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -1398,6 +1420,7 @@ export interface FileRoutesByTo {
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
+  '/pos-app/kursus': typeof PosAppKursusRoute
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -1449,6 +1472,7 @@ export interface FileRoutesByTo {
   '/pos-app': typeof PosAppIndexRoute
   '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
+  '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
@@ -1537,6 +1561,7 @@ export interface FileRoutesById {
   '/akun/cashback': typeof AkunCashbackRoute
   '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
+  '/akun/kursus': typeof AkunKursusRouteWithChildren
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -1583,6 +1608,7 @@ export interface FileRoutesById {
   '/pos-app/invoice': typeof PosAppInvoiceRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
+  '/pos-app/kursus': typeof PosAppKursusRoute
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -1635,6 +1661,7 @@ export interface FileRoutesById {
   '/pos-app/': typeof PosAppIndexRoute
   '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
+  '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
@@ -1724,6 +1751,7 @@ export interface FileRouteTypes {
     | '/akun/cashback'
     | '/akun/digital-products'
     | '/akun/favorit'
+    | '/akun/kursus'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -1770,6 +1798,7 @@ export interface FileRouteTypes {
     | '/pos-app/invoice'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
+    | '/pos-app/kursus'
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/loyalty'
@@ -1822,6 +1851,7 @@ export interface FileRouteTypes {
     | '/pos-app/'
     | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
+    | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
     | '/checkout/sukses/$orderId'
@@ -1906,6 +1936,7 @@ export interface FileRouteTypes {
     | '/akun/cashback'
     | '/akun/digital-products'
     | '/akun/favorit'
+    | '/akun/kursus'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -1951,6 +1982,7 @@ export interface FileRouteTypes {
     | '/pos-app/invoice'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
+    | '/pos-app/kursus'
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/loyalty'
@@ -2002,6 +2034,7 @@ export interface FileRouteTypes {
     | '/pos-app'
     | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
+    | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
     | '/checkout/sukses/$orderId'
@@ -2089,6 +2122,7 @@ export interface FileRouteTypes {
     | '/akun/cashback'
     | '/akun/digital-products'
     | '/akun/favorit'
+    | '/akun/kursus'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -2135,6 +2169,7 @@ export interface FileRouteTypes {
     | '/pos-app/invoice'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
+    | '/pos-app/kursus'
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/loyalty'
@@ -2187,6 +2222,7 @@ export interface FileRouteTypes {
     | '/pos-app/'
     | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
+    | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
     | '/checkout/sukses/$orderId'
@@ -2704,6 +2740,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppKycRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/kursus': {
+      id: '/pos-app/kursus'
+      path: '/kursus'
+      fullPath: '/pos-app/kursus'
+      preLoaderRoute: typeof PosAppKursusRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/keuangan': {
       id: '/pos-app/keuangan'
       path: '/keuangan'
@@ -3024,6 +3067,13 @@ declare module '@tanstack/react-router' {
       path: '/loyalty'
       fullPath: '/akun/loyalty'
       preLoaderRoute: typeof AkunLoyaltyRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/kursus': {
+      id: '/akun/kursus'
+      path: '/kursus'
+      fullPath: '/akun/kursus'
+      preLoaderRoute: typeof AkunKursusRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/favorit': {
@@ -3481,6 +3531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunPesananOrderIdRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/kursus/$courseId': {
+      id: '/akun/kursus/$courseId'
+      path: '/$courseId'
+      fullPath: '/akun/kursus/$courseId'
+      preLoaderRoute: typeof AkunKursusCourseIdRouteImport
+      parentRoute: typeof AkunKursusRoute
+    }
     '/admin/shops/$id': {
       id: '/admin/shops/$id'
       path: '/$id'
@@ -3650,12 +3707,25 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AkunKursusRouteChildren {
+  AkunKursusCourseIdRoute: typeof AkunKursusCourseIdRoute
+}
+
+const AkunKursusRouteChildren: AkunKursusRouteChildren = {
+  AkunKursusCourseIdRoute: AkunKursusCourseIdRoute,
+}
+
+const AkunKursusRouteWithChildren = AkunKursusRoute._addFileChildren(
+  AkunKursusRouteChildren,
+)
+
 interface AkunRouteChildren {
   AkunAlamatRoute: typeof AkunAlamatRoute
   AkunBookingsRoute: typeof AkunBookingsRoute
   AkunCashbackRoute: typeof AkunCashbackRoute
   AkunDigitalProductsRoute: typeof AkunDigitalProductsRoute
   AkunFavoritRoute: typeof AkunFavoritRoute
+  AkunKursusRoute: typeof AkunKursusRouteWithChildren
   AkunLoyaltyRoute: typeof AkunLoyaltyRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
   AkunReferralRoute: typeof AkunReferralRoute
@@ -3674,6 +3744,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunCashbackRoute: AkunCashbackRoute,
   AkunDigitalProductsRoute: AkunDigitalProductsRoute,
   AkunFavoritRoute: AkunFavoritRoute,
+  AkunKursusRoute: AkunKursusRouteWithChildren,
   AkunLoyaltyRoute: AkunLoyaltyRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
   AkunReferralRoute: AkunReferralRoute,
@@ -3781,6 +3852,7 @@ interface PosAppRouteChildren {
   PosAppInvoiceRoute: typeof PosAppInvoiceRoute
   PosAppKdsRoute: typeof PosAppKdsRoute
   PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
+  PosAppKursusRoute: typeof PosAppKursusRoute
   PosAppKycRoute: typeof PosAppKycRoute
   PosAppLaporanHarianRoute: typeof PosAppLaporanHarianRoute
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
@@ -3861,6 +3933,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppInvoiceRoute: PosAppInvoiceRoute,
   PosAppKdsRoute: PosAppKdsRoute,
   PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
+  PosAppKursusRoute: PosAppKursusRoute,
   PosAppKycRoute: PosAppKycRoute,
   PosAppLaporanHarianRoute: PosAppLaporanHarianRoute,
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
