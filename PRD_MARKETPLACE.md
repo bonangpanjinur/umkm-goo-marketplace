@@ -93,7 +93,7 @@
 | 3 | SF-05 | ✅ Upload file hasil foto ke klien via platform (link download) | Studio Foto | — | `pos-app.studio-delivery.tsx` |
 | 4 | SF-07 | ✅ Brief form sebelum sesi foto (diisi klien saat booking) | Studio Foto | — | `pos-app.studio-brief.tsx` |
 | 5 | SF-03 | Pilih lokasi sesi (studio / outdoor / lokasi klien) | Studio Foto | TINGGI | |
-| 6 | SF-08 | Add-on saat booking (editing ekstra, album, dll.) | Studio Foto | SEDANG | |
+| 6 | SF-08 | ✅ Add-on saat booking (editing ekstra, album, dll.) | Studio Foto | — | `pos-app.studio-addons.tsx` |
 | 7 | SF-09 | Review dengan foto hasil karya (klien upload) | Studio Foto | TINGGI | |
 | 8 | BE-03 | Tag skin type per produk (oily, dry, combination, sensitive) | Skincare | TINGGI | |
 | 9 | KL-03 | Rekam medis sederhana per pasien | Klinik | SEDANG | |
@@ -1190,7 +1190,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | SF-05 | Upload file hasil foto ke klien (link download) | ✅ `pos-app.studio-delivery.tsx` — Drive/WeTransfer link + kirim WA | — |
 | SF-06 | Deposit wajib saat booking | ✅ (manual) · ❌ gateway (P3) | — |
 | SF-07 | Brief form sebelum sesi | ✅ `pos-app.studio-brief.tsx` — kirim link, klien isi mood/outfit/referensi | — |
-| SF-08 | Add-on saat booking (editing ekstra, album, dll.) | ❌ Belum dibangun | SEDANG |
+| SF-08 | Add-on saat booking (editing ekstra, album, dll.) | ✅ `pos-app.studio-addons.tsx` — preset template (editing, album cetak, video recap) + CRUD + terintegrasi dengan booking_addons M-17 | — |
 | SF-09 | Review dengan foto hasil karya (klien upload) | ✅ `pos-app.studio-photo-reviews.tsx` · `toko.$slug.ulasan.tsx` · `StudioPhotoReviewsGallery` di halaman toko | — |
 
 ### 6.6 Fashion & Pakaian (Tipe 1 + Tipe 5)

@@ -48,6 +48,7 @@ import { Route as PosAppStudioPhotoReviewsRouteImport } from './routes/pos-app.s
 import { Route as PosAppStudioPackagesRouteImport } from './routes/pos-app.studio-packages'
 import { Route as PosAppStudioDeliveryRouteImport } from './routes/pos-app.studio-delivery'
 import { Route as PosAppStudioBriefRouteImport } from './routes/pos-app.studio-brief'
+import { Route as PosAppStudioAddonsRouteImport } from './routes/pos-app.studio-addons'
 import { Route as PosAppStorefrontBuilderRouteImport } from './routes/pos-app.storefront-builder'
 import { Route as PosAppStokRouteImport } from './routes/pos-app.stok'
 import { Route as PosAppSkinQuizRouteImport } from './routes/pos-app.skin-quiz'
@@ -434,6 +435,11 @@ const PosAppStudioDeliveryRoute = PosAppStudioDeliveryRouteImport.update({
 const PosAppStudioBriefRoute = PosAppStudioBriefRouteImport.update({
   id: '/studio-brief',
   path: '/studio-brief',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppStudioAddonsRoute = PosAppStudioAddonsRouteImport.update({
+  id: '/studio-addons',
+  path: '/studio-addons',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppStorefrontBuilderRoute = PosAppStorefrontBuilderRouteImport.update({
@@ -1572,6 +1578,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/skin-quiz': typeof PosAppSkinQuizRoute
   '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
+  '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
@@ -1800,6 +1807,7 @@ export interface FileRoutesByTo {
   '/pos-app/skin-quiz': typeof PosAppSkinQuizRoute
   '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
+  '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
@@ -2032,6 +2040,7 @@ export interface FileRoutesById {
   '/pos-app/skin-quiz': typeof PosAppSkinQuizRoute
   '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
+  '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
@@ -2266,6 +2275,7 @@ export interface FileRouteTypes {
     | '/pos-app/skin-quiz'
     | '/pos-app/stok'
     | '/pos-app/storefront-builder'
+    | '/pos-app/studio-addons'
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
     | '/pos-app/studio-packages'
@@ -2494,6 +2504,7 @@ export interface FileRouteTypes {
     | '/pos-app/skin-quiz'
     | '/pos-app/stok'
     | '/pos-app/storefront-builder'
+    | '/pos-app/studio-addons'
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
     | '/pos-app/studio-packages'
@@ -2725,6 +2736,7 @@ export interface FileRouteTypes {
     | '/pos-app/skin-quiz'
     | '/pos-app/stok'
     | '/pos-app/storefront-builder'
+    | '/pos-app/studio-addons'
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
     | '/pos-app/studio-packages'
@@ -3087,6 +3099,13 @@ declare module '@tanstack/react-router' {
       path: '/studio-brief'
       fullPath: '/pos-app/studio-brief'
       preLoaderRoute: typeof PosAppStudioBriefRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/studio-addons': {
+      id: '/pos-app/studio-addons'
+      path: '/studio-addons'
+      fullPath: '/pos-app/studio-addons'
+      preLoaderRoute: typeof PosAppStudioAddonsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/storefront-builder': {
@@ -4775,6 +4794,7 @@ interface PosAppRouteChildren {
   PosAppSkinQuizRoute: typeof PosAppSkinQuizRoute
   PosAppStokRoute: typeof PosAppStokRoute
   PosAppStorefrontBuilderRoute: typeof PosAppStorefrontBuilderRoute
+  PosAppStudioAddonsRoute: typeof PosAppStudioAddonsRoute
   PosAppStudioBriefRoute: typeof PosAppStudioBriefRoute
   PosAppStudioDeliveryRoute: typeof PosAppStudioDeliveryRoute
   PosAppStudioPackagesRoute: typeof PosAppStudioPackagesRoute
@@ -4883,6 +4903,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppSkinQuizRoute: PosAppSkinQuizRoute,
   PosAppStokRoute: PosAppStokRoute,
   PosAppStorefrontBuilderRoute: PosAppStorefrontBuilderRoute,
+  PosAppStudioAddonsRoute: PosAppStudioAddonsRoute,
   PosAppStudioBriefRoute: PosAppStudioBriefRoute,
   PosAppStudioDeliveryRoute: PosAppStudioDeliveryRoute,
   PosAppStudioPackagesRoute: PosAppStudioPackagesRoute,
