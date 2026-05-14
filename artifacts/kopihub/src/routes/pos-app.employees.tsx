@@ -1562,6 +1562,8 @@ function RowActions({
   onEdit,
   onChangePw,
   onResetPw,
+  onPromote,
+  onToggleActive,
   onRemove,
   resetting,
 }: {
@@ -1569,6 +1571,8 @@ function RowActions({
   onEdit: () => void;
   onChangePw: () => void;
   onResetPw: () => void;
+  onPromote: () => void;
+  onToggleActive: () => void;
   onRemove: () => void;
   resetting: boolean;
 }) {
@@ -1580,14 +1584,14 @@ function RowActions({
           <span className="sr-only">Aksi</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Aksi pegawai</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel>
+          Aksi pegawai {!row.is_active && <span className="ml-1 text-[10px] text-amber-600">(Nonaktif)</span>}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {row.kind === "manual" && (
-          <DropdownMenuItem onClick={onEdit}>
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit info
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit info
+        </DropdownMenuItem>
         {row.kind === "login" && (
           <>
             <DropdownMenuItem onClick={onChangePw}>
@@ -1598,6 +1602,15 @@ function RowActions({
             </DropdownMenuItem>
           </>
         )}
+        {row.kind === "manual" && (
+          <DropdownMenuItem onClick={onPromote}>
+            <ShieldCheck className="mr-2 h-3.5 w-3.5" /> Aktifkan akun login
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={onToggleActive}>
+          {row.is_active ? <EyeOff className="mr-2 h-3.5 w-3.5" /> : <Eye className="mr-2 h-3.5 w-3.5" />}
+          {row.is_active ? "Nonaktifkan" : "Aktifkan"}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
           <Trash2 className="mr-2 h-3.5 w-3.5" />
