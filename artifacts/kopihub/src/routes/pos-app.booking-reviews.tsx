@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import {
   Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
   TrendingUp, ArrowRight, RotateCcw, BellOff, UserX, HandHelping,
+  Zap, Settings2, ShieldOff, Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,6 +126,14 @@ function BookingReviewsPage() {
   const [reviewRequestsMap, setReviewRequestsMap] = useState<Record<string, ReviewRequestStat>>({});
   const [resending, setResending] = useState<string | null>(null);
 
+  // ── Auto-Blacklist Reset state ─────────────────────────────────────────────
+  const [cooldownDays, setCooldownDays] = useState<number>(30);
+  const [autoResetEnabled, setAutoResetEnabled] = useState<boolean>(false);
+  const [resettingId, setResettingId] = useState<string | null>(null);
+  const [resettingAll, setResettingAll] = useState<boolean>(false);
+  const [showResetSettings, setShowResetSettings] = useState<boolean>(false);
+  const autoResetRanRef = useRef<boolean>(false);
+
   const resendNotif = useCallback(async (bookingId: string, customerPhone: string) => {
     const cur = reviewRequestsMap[bookingId];
     const curCount = cur?.resend_count ?? 0;
@@ -188,8 +197,64 @@ function BookingReviewsPage() {
     }
   }, [reviewRequestsMap]);
 
+  // ── Reset single booking's unresponsive status ─────────────────────────────
+  const resetBooking = useCallback(async (bookingId: string) => {
+    setResettingId(bookingId);
+    try {
+      const { error } = await (supabase as any)
+        .from("booking_review_requests")
+        .update({ is_unresponsive: false, resend_count: 0, clicked_at: null })
+        .eq("booking_id", bookingId);
+      if (error) throw error;
+      setReviewRequestsMap(prev => ({
+        ...prev,
+        [bookingId]: { ...prev[bookingId], is_unresponsive: false, resend_count: 0, clicked_at: null },
+      }));
+      toast.success("Status direset. Sistem dapat mengirim notif ulang ke pembeli ini jika booking baru masuk.");
+    } catch (e: any) {
+      toast.error("Gagal reset: " + e.message);
+    } finally {
+      setResettingId(null);
+    }
+  }, []);
+
+  // ── Bulk-reset all unresponsive bookings past cooldown ────────────────────
+  const bulkResetEligible = useCallback(async (days: number, bks: CompletedBooking[], reqMap: Record<string, ReviewRequestStat>) => {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const eligible = bks.filter(b => {
+      const req = reqMap[b.id];
+      return req?.is_unresponsive && !b.review && req.sent_at < cutoff;
+    });
+    if (eligible.length === 0) {
+      toast.info(`Tidak ada booking tidak responsif yang sudah melewati jeda ${days} hari.`);
+      return;
+    }
+    setResettingAll(true);
+    try {
+      const ids = eligible.map(b => b.id);
+      const { error } = await (supabase as any)
+        .from("booking_review_requests")
+        .update({ is_unresponsive: false, resend_count: 0, clicked_at: null })
+        .in("booking_id", ids);
+      if (error) throw error;
+      setReviewRequestsMap(prev => {
+        const next = { ...prev };
+        for (const id of ids) {
+          next[id] = { ...next[id], is_unresponsive: false, resend_count: 0, clicked_at: null };
+        }
+        return next;
+      });
+      toast.success(`${eligible.length} booking direset. Sistem bisa mengirim notif baru ke pembeli ini.`);
+    } catch (e: any) {
+      toast.error("Gagal bulk reset: " + e.message);
+    } finally {
+      setResettingAll(false);
+    }
+  }, []);
+
   const load = useCallback(async () => {
     if (!shop?.id) return;
+    autoResetRanRef.current = false;
     setLoading(true);
     try {
       const { data: completedBookings, error } = await (supabase as any)
@@ -257,6 +322,33 @@ function BookingReviewsPage() {
   }, [shop?.id]);
 
   useEffect(() => { if (shop?.id) load(); }, [shop?.id, load]);
+
+  // ── Auto-reset effect: runs once per load when enabled ────────────────────
+  useEffect(() => {
+    if (!autoResetEnabled || loading || bookings.length === 0) return;
+    if (autoResetRanRef.current) return;
+    autoResetRanRef.current = true;
+    const cutoff = new Date(Date.now() - cooldownDays * 24 * 60 * 60 * 1000).toISOString();
+    const eligible = bookings.filter(b => {
+      const req = reviewRequestsMap[b.id];
+      return req?.is_unresponsive && !b.review && req.sent_at < cutoff;
+    });
+    if (eligible.length === 0) return;
+    (async () => {
+      const ids = eligible.map(b => b.id);
+      const { error } = await (supabase as any)
+        .from("booking_review_requests")
+        .update({ is_unresponsive: false, resend_count: 0, clicked_at: null })
+        .in("booking_id", ids);
+      if (error) return;
+      setReviewRequestsMap(prev => {
+        const next = { ...prev };
+        for (const id of ids) next[id] = { ...next[id], is_unresponsive: false, resend_count: 0, clicked_at: null };
+        return next;
+      });
+      toast.success(`Auto-reset: ${eligible.length} pembeli tidak responsif direset setelah jeda ${cooldownDays} hari.`, { duration: 6000 });
+    })();
+  }, [autoResetEnabled, loading, bookings, reviewRequestsMap, cooldownDays]);
 
   if (shopLoading) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -477,44 +569,146 @@ function BookingReviewsPage() {
         ))}
       </div>
 
-      {/* Unresponsive context banner */}
-      {filter === "unresponsive" && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100">
-              <UserX className="h-5 w-5 text-red-600" />
+      {/* Unresponsive context banner + Auto-Blacklist Reset settings */}
+      {filter === "unresponsive" && (() => {
+        const cutoff = new Date(Date.now() - cooldownDays * 24 * 60 * 60 * 1000).toISOString();
+        const eligibleCount = unresponsiveBookings.filter(b => {
+          const req = reviewRequestsMap[b.id];
+          return req?.sent_at && req.sent_at < cutoff;
+        }).length;
+        return (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 space-y-3">
+            {/* Header */}
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100">
+                <UserX className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-semibold text-red-800">Segmen Pembeli Tidak Responsif</p>
+                  <button
+                    onClick={() => setShowResetSettings(v => !v)}
+                    className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-white/60 px-2 py-0.5 text-[10px] font-medium text-red-700 hover:bg-white transition-colors"
+                  >
+                    <Settings2 className="h-3 w-3" />
+                    Auto-Reset
+                  </button>
+                </div>
+                <p className="text-xs text-red-700 mt-0.5 leading-relaxed">
+                  Booking ini sudah menerima {MAX_RESENDS}x notifikasi otomatis namun pembeli tidak memberikan ulasan.
+                  Sistem telah berhenti mengirim notif — gunakan pendekatan manual atau reset blacklist.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-red-800">Segmen Pembeli Tidak Responsif</p>
-              <p className="text-xs text-red-700 mt-0.5 leading-relaxed">
-                Booking ini sudah menerima {MAX_RESENDS}x notifikasi otomatis namun pembeli tidak memberikan ulasan.
-                Sistem telah berhenti mengirim notif otomatis — tindakan manual diperlukan untuk mendekati mereka kembali.
-              </p>
+
+            {/* Insight chips */}
+            <div className="grid gap-2 sm:grid-cols-3 text-xs">
+              {[
+                { icon: BellOff,     color: "text-red-600",    title: "Blacklist Notif Otomatis",    desc: "Tidak ada notifikasi lagi dari sistem." },
+                { icon: HandHelping, color: "text-orange-600", title: "Pendekatan Manual via WA",     desc: "Hubungi langsung dengan pesan personal." },
+                { icon: TrendingUp,  color: "text-blue-600",   title: "Pantau Rasio Tidak Responsif", desc: "Gunakan angka ini untuk evaluasi layanan." },
+              ].map(({ icon: Icon, color, title, desc }) => (
+                <div key={title} className="flex items-start gap-2 rounded-lg bg-white/60 border border-red-100 p-2.5">
+                  <Icon className={`h-4 w-4 ${color} shrink-0 mt-0.5`} />
+                  <div>
+                    <p className="font-semibold text-red-800">{title}</p>
+                    <p className="text-red-600 mt-0.5">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3 text-xs">
-            {[
-              { icon: BellOff,     color: "text-red-600",    title: "Blacklist Notif Otomatis",   desc: "Tidak ada notifikasi lagi dari sistem." },
-              { icon: HandHelping, color: "text-orange-600", title: "Pendekatan Manual via WA",    desc: "Hubungi langsung dengan pesan personal." },
-              { icon: TrendingUp,  color: "text-blue-600",   title: "Pantau Rasio Tidak Responsif", desc: "Gunakan angka ini untuk evaluasi kualitas layanan." },
-            ].map(({ icon: Icon, color, title, desc }) => (
-              <div key={title} className="flex items-start gap-2 rounded-lg bg-white/60 border border-red-100 p-2.5">
-                <Icon className={`h-4 w-4 ${color} shrink-0 mt-0.5`} />
-                <div>
-                  <p className="font-semibold text-red-800">{title}</p>
-                  <p className="text-red-600 mt-0.5">{desc}</p>
+
+            {/* ── Auto-Blacklist Reset settings panel ── */}
+            {showResetSettings && (
+              <div className="rounded-lg border border-red-200 bg-white/70 p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <p className="text-xs font-semibold text-slate-700">Auto-Blacklist Reset</p>
+                </div>
+
+                {/* Cooldown selector */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <Timer className="h-3.5 w-3.5 text-slate-500" />
+                    <span className="text-xs text-slate-600">Jeda reset:</span>
+                  </div>
+                  <div className="flex gap-1">
+                    {[15, 30, 60, 90].map(d => (
+                      <button
+                        key={d}
+                        onClick={() => setCooldownDays(d)}
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                          cooldownDays === d
+                            ? "bg-red-500 text-white"
+                            : "bg-muted text-muted-foreground hover:bg-muted/70"
+                        }`}
+                      >
+                        {d}h
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-[11px] text-slate-500">
+                    {eligibleCount > 0
+                      ? <span className="text-amber-600 font-medium">{eligibleCount} booking eligible untuk reset sekarang</span>
+                      : "Belum ada yang melewati jeda ini"}
+                  </span>
+                </div>
+
+                {/* Auto-reset toggle */}
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className={`h-3.5 w-3.5 ${autoResetEnabled ? "text-amber-500" : "text-slate-400"}`} />
+                    <div>
+                      <p className="text-xs font-medium text-slate-700">Reset Otomatis saat Halaman Dimuat</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Blacklist direset otomatis setelah jeda {cooldownDays} hari saat kamu membuka halaman ini.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setAutoResetEnabled(v => !v)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                      autoResetEnabled ? "bg-amber-500" : "bg-slate-300"
+                    }`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                      autoResetEnabled ? "translate-x-4" : "translate-x-0.5"
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Bulk reset action */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5 text-xs border-red-300 text-red-700 hover:bg-red-50"
+                    disabled={resettingAll || eligibleCount === 0}
+                    onClick={() => bulkResetEligible(cooldownDays, bookings, reviewRequestsMap)}
+                  >
+                    {resettingAll
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <ShieldOff className="h-3.5 w-3.5" />
+                    }
+                    Reset {eligibleCount > 0 ? `${eligibleCount} Booking Eligible` : "Semua Eligible"}
+                  </Button>
+                  <p className="text-[10px] text-slate-500">
+                    Hanya booking yang blacklistnya sudah lebih dari {cooldownDays} hari yang akan direset.
+                  </p>
                 </div>
               </div>
-            ))}
+            )}
+
+            {unresponsiveBookings.length > 0 && (
+              <p className="text-[11px] text-red-500">
+                {unresponsiveBookings.length} pembeli · {pct(unresponsiveBookings.length, bookings.length)}% dari total booking selesai
+                {totalSent > 0 && ` · rasio notif gagal konversi: ${pct(unresponsiveBookings.length, totalSent)}%`}
+                {eligibleCount > 0 && ` · ${eligibleCount} sudah melewati jeda ${cooldownDays} hari`}
+              </p>
+            )}
           </div>
-          {unresponsiveBookings.length > 0 && (
-            <p className="text-[11px] text-red-500">
-              {unresponsiveBookings.length} pembeli · {pct(unresponsiveBookings.length, bookings.length)}% dari total booking selesai
-              {totalSent > 0 && ` · rasio notif gagal konversi: ${pct(unresponsiveBookings.length, totalSent)}%`}
-            </p>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {loading ? (
         <div className="space-y-3">
@@ -626,11 +820,26 @@ function BookingReviewsPage() {
                             </Button>
                           )}
 
-                          {/* Tombstone when unresponsive */}
+                          {/* Tombstone + Reset button when unresponsive */}
                           {isUnresponsive && (
-                            <span className="text-[10px] text-red-600 italic">
-                              Sistem berhenti mengirim notif ke pembeli ini.
-                            </span>
+                            <>
+                              <span className="text-[10px] text-red-600 italic">
+                                Sistem berhenti mengirim notif ke pembeli ini.
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 gap-1 px-2 text-[10px] border-slate-300 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                                disabled={resettingId === b.id}
+                                onClick={() => resetBooking(b.id)}
+                              >
+                                {resettingId === b.id
+                                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                                  : <ShieldOff className="h-3 w-3" />
+                                }
+                                Reset Blacklist
+                              </Button>
+                            </>
                           )}
                         </div>
                       );
