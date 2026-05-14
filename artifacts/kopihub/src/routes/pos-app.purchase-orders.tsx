@@ -227,18 +227,27 @@ function POPage() {
     setRowBusy(null);
   }
 
-  async function deletePO(p: PO) {
+  function requestDelete(p: PO) {
     if (p.status !== "draft" && p.status !== "cancelled") {
       toast.error("Hanya PO draft atau dibatalkan yang bisa dihapus");
       return;
     }
-    if (!confirm(`Hapus PO ${p.po_no}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    setDeleteTarget(p);
+  }
+
+  async function confirmDeletePO() {
+    const p = deleteTarget;
+    if (!p) return;
+    setDeleting(true);
     setRowBusy(p.id);
     await supabase.from("purchase_order_items").delete().eq("po_id", p.id);
     const { error } = await supabase.from("purchase_orders").delete().eq("id", p.id);
-    if (error) toast.error(error.message);
-    else { toast.success("PO dihapus"); load(); }
+    setDeleting(false);
     setRowBusy(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`PO ${p.po_no} dihapus`);
+    setDeleteTarget(null);
+    load();
   }
 
   async function duplicatePO(p: PO) {
