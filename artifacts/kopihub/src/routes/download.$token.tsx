@@ -4,8 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Download, CheckCircle2, AlertCircle, Clock, FileText, Loader2, ExternalLink, ShieldCheck } from "lucide-react";
+import {
+  Download,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  FileText,
+  Loader2,
+  ExternalLink,
+  ShieldCheck,
+  Key,
+  Copy,
+} from "lucide-react";
 import { formatIDR } from "@/lib/format";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/download/$token")({ component: DownloadPage });
 
@@ -19,10 +31,12 @@ type DownloadInfo = {
   download_count: number;
   expires_at: string | null;
   order_id: string;
+  product_id: string;
   order_number: string | null;
   paid_at: string | null;
   shop_name: string;
   price: number;
+  license_type: string | null;
 };
 
 export default function DownloadPage() {
@@ -32,11 +46,11 @@ export default function DownloadPage() {
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [licenseKey, setLicenseKey] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      // The token is: base64(orderId:productId)
       let orderId: string, productId: string;
       try {
         const decoded = atob(token);
@@ -65,7 +79,7 @@ export default function DownloadPage() {
       // Fetch product
       const { data: product } = await (supabase as any)
         .from("menu_items")
-        .select("id, name, description, price, download_url, download_limit, download_expires_hours, file_type, file_size_kb")
+        .select("id, name, description, price, download_url, download_limit, download_expires_hours, file_type, file_size_kb, license_type")
         .eq("id", productId)
         .maybeSingle();
 
@@ -73,9 +87,11 @@ export default function DownloadPage() {
       if (!product.download_url) { setError("URL download belum dikonfigurasi oleh toko."); setLoading(false); return; }
 
       // Check expiry
+      let expiresAt: string | null = null;
       if (product.download_expires_hours) {
         const expiry = new Date(order.created_at);
         expiry.setHours(expiry.getHours() + product.download_expires_hours);
+        expiresAt = expiry.toISOString();
         if (new Date() > expiry) {
           setError(`Link download sudah kadaluarsa (${product.download_expires_hours} jam setelah pembelian).`);
           setLoading(false);
@@ -83,19 +99,44 @@ export default function DownloadPage() {
         }
       }
 
-      // Get/init download count from localStorage (proxy for real download_count)
-      const dlKey = `dl_count_${orderId}_${productId}`;
-      const dlCount = parseInt(localStorage.getItem(dlKey) ?? "0");
+      // Try to fetch current license from DB (server-side count)
+      let dlCount = 0;
+      let existingKey: string | null = null;
+      try {
+        const { data: lic } = await (supabase as any)
+          .from("digital_licenses")
+          .select("download_count, max_downloads, is_active, license_key")
+          .eq("order_id", orderId)
+          .eq("product_id", productId)
+          .maybeSingle();
 
-      if (product.download_limit && dlCount >= product.download_limit) {
-        setError(`Batas unduhan sudah tercapai (${product.download_limit}x). Hubungi toko jika perlu unduh ulang.`);
-        setLoading(false);
-        return;
+        if (lic) {
+          dlCount = lic.download_count ?? 0;
+          existingKey = lic.license_key ?? null;
+
+          if (!lic.is_active) {
+            setError("Lisensi unduhan ini telah dinonaktifkan. Hubungi toko untuk informasi lebih lanjut.");
+            setLoading(false);
+            return;
+          }
+          if (lic.max_downloads !== null && dlCount >= lic.max_downloads) {
+            setError(`Batas unduhan sudah tercapai (${lic.max_downloads}×). Hubungi toko jika perlu unduh ulang.`);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // DB tables not yet created — fall back to localStorage
+        const dlKey = `dl_count_${orderId}_${productId}`;
+        dlCount = parseInt(localStorage.getItem(dlKey) ?? "0");
+        if (product.download_limit && dlCount >= product.download_limit) {
+          setError(`Batas unduhan sudah tercapai (${product.download_limit}×). Hubungi toko jika perlu unduh ulang.`);
+          setLoading(false);
+          return;
+        }
       }
 
-      const expiresAt = product.download_expires_hours
-        ? (() => { const d = new Date(order.created_at); d.setHours(d.getHours() + product.download_expires_hours!); return d.toISOString(); })()
-        : null;
+      if (existingKey) setLicenseKey(existingKey);
 
       setInfo({
         product_name: product.name,
@@ -107,10 +148,12 @@ export default function DownloadPage() {
         download_count: dlCount,
         expires_at: expiresAt,
         order_id: order.id,
+        product_id: productId,
         order_number: order.order_number,
         paid_at: order.created_at,
         shop_name: (order as any).coffee_shops?.name ?? "Toko",
         price: product.price,
+        license_type: product.license_type ?? null,
       });
       setLoading(false);
     }
@@ -120,10 +163,42 @@ export default function DownloadPage() {
   async function handleDownload() {
     if (!info) return;
     setDownloading(true);
-    const dlKey = `dl_count_${info.order_id}_${token.split(":")[1]}`;
-    const newCount = info.download_count + 1;
-    localStorage.setItem(dlKey, String(newCount));
-    setInfo(i => i ? { ...i, download_count: newCount } : i);
+
+    // Try server-side tracking via RPC
+    let newCount = info.download_count + 1;
+    let serverKey: string | null = null;
+    try {
+      const { data: result, error: rpcErr } = await (supabase as any).rpc("record_download", {
+        p_order_id: info.order_id,
+        p_product_id: info.product_id,
+      });
+
+      if (!rpcErr && result) {
+        if (result.ok === false) {
+          if (result.reason === "limit_reached") {
+            setError(`Batas unduhan sudah tercapai (${result.limit}×). Hubungi toko jika perlu unduh ulang.`);
+            setDownloading(false);
+            return;
+          }
+          if (result.reason === "revoked") {
+            setError("Lisensi unduhan ini telah dinonaktifkan. Hubungi toko untuk informasi lebih lanjut.");
+            setDownloading(false);
+            return;
+          }
+        }
+        if (result.ok) {
+          newCount = result.download_count;
+          serverKey = result.license_key ?? null;
+        }
+      }
+    } catch {
+      // Fallback: localStorage
+      const dlKey = `dl_count_${info.order_id}_${info.product_id}`;
+      localStorage.setItem(dlKey, String(newCount));
+    }
+
+    if (serverKey) setLicenseKey(serverKey);
+    setInfo((i) => i ? { ...i, download_count: newCount } : i);
 
     // Trigger download
     const a = document.createElement("a");
@@ -139,7 +214,10 @@ export default function DownloadPage() {
 
   function fmtDate(s: string | null) {
     if (!s) return "—";
-    return new Date(s).toLocaleString("id-ID", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return new Date(s).toLocaleString("id-ID", {
+      day: "2-digit", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
   }
 
   function formatFileSize(kb: number | null) {
@@ -153,6 +231,12 @@ export default function DownloadPage() {
     const diff = new Date(info.expires_at).getTime() - Date.now();
     return diff > 0 && diff < 24 * 60 * 60 * 1000;
   }
+
+  const LICENSE_LABEL: Record<string, string> = {
+    personal: "Lisensi Personal",
+    commercial: "Lisensi Komersial",
+    extended: "Lisensi Extended",
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
@@ -202,7 +286,9 @@ export default function DownloadPage() {
               <div className="space-y-2.5 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Nomor Pesanan</span>
-                  <span className="font-mono font-medium">{info.order_number ?? info.order_id.slice(0, 8)}</span>
+                  <span className="font-mono font-medium">
+                    {info.order_number ?? info.order_id.slice(0, 8)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tanggal Pembelian</span>
@@ -220,18 +306,32 @@ export default function DownloadPage() {
                     <span>{formatFileSize(info.file_size_kb)}</span>
                   </div>
                 )}
+                {info.license_type && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tipe Lisensi</span>
+                    <Badge className="bg-purple-100 text-purple-800">
+                      {LICENSE_LABEL[info.license_type] ?? info.license_type}
+                    </Badge>
+                  </div>
+                )}
                 {info.download_limit && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Sisa Unduhan</span>
-                    <Badge variant={info.download_count >= info.download_limit - 1 ? "destructive" : "secondary"}>
-                      {info.download_limit - info.download_count}x dari {info.download_limit}x
+                    <Badge
+                      variant={
+                        info.download_count >= info.download_limit - 1 ? "destructive" : "secondary"
+                      }
+                    >
+                      {Math.max(0, info.download_limit - info.download_count)}× dari {info.download_limit}×
                     </Badge>
                   </div>
                 )}
                 {info.expires_at && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Link Kadaluarsa</span>
-                    <span className={`flex items-center gap-1 ${isExpiringSoon() ? "text-amber-600 font-medium" : ""}`}>
+                    <span
+                      className={`flex items-center gap-1 ${isExpiringSoon() ? "text-amber-600 font-medium" : ""}`}
+                    >
                       {isExpiringSoon() && <Clock className="h-3.5 w-3.5" />}
                       {fmtDate(info.expires_at)}
                     </span>
@@ -253,7 +353,12 @@ export default function DownloadPage() {
                 </div>
               )}
 
-              <Button className="w-full" size="lg" onClick={handleDownload} disabled={downloading}>
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={handleDownload}
+                disabled={downloading}
+              >
                 {downloading ? (
                   <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Memproses...</>
                 ) : (
@@ -269,6 +374,35 @@ export default function DownloadPage() {
                 </Button>
               )}
             </Card>
+
+            {/* License key card (shown after first download) */}
+            {licenseKey && (
+              <Card className="p-4 border-purple-200 bg-purple-50/60">
+                <div className="flex items-center gap-2 mb-2">
+                  <Key className="h-4 w-4 text-purple-600" />
+                  <p className="text-sm font-semibold text-purple-800">License Key Anda</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-sm font-mono bg-white border border-purple-200 rounded px-3 py-2 tracking-widest">
+                    {licenseKey}
+                  </code>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-purple-300 shrink-0"
+                    onClick={() => {
+                      navigator.clipboard.writeText(licenseKey);
+                      toast.success("License key disalin");
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <p className="text-xs text-purple-600 mt-2">
+                  Simpan license key ini — diperlukan untuk verifikasi kepemilikan produk.
+                </p>
+              </Card>
+            )}
 
             <p className="text-xs text-center text-muted-foreground">
               Butuh bantuan? Hubungi <strong>{info.shop_name}</strong> atau{" "}

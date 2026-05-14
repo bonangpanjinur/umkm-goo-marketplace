@@ -85,6 +85,7 @@ import { Route as PosAppFlashSaleRouteImport } from './routes/pos-app.flash-sale
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppEmailMarketingRouteImport } from './routes/pos-app.email-marketing'
 import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
+import { Route as PosAppDigitalLicensesRouteImport } from './routes/pos-app.digital-licenses'
 import { Route as PosAppDigitalRouteImport } from './routes/pos-app.digital'
 import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
 import { Route as PosAppCustomersRouteImport } from './routes/pos-app.customers'
@@ -572,6 +573,11 @@ const PosAppEmailMarketingRoute = PosAppEmailMarketingRouteImport.update({
 const PosAppDomainRoute = PosAppDomainRouteImport.update({
   id: '/domain',
   path: '/domain',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppDigitalLicensesRoute = PosAppDigitalLicensesRouteImport.update({
+  id: '/digital-licenses',
+  path: '/digital-licenses',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppDigitalRoute = PosAppDigitalRouteImport.update({
@@ -1199,6 +1205,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
+  '/pos-app/digital-licenses': typeof PosAppDigitalLicensesRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
@@ -1379,6 +1386,7 @@ export interface FileRoutesByTo {
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
+  '/pos-app/digital-licenses': typeof PosAppDigitalLicensesRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
@@ -1563,6 +1571,7 @@ export interface FileRoutesById {
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
+  '/pos-app/digital-licenses': typeof PosAppDigitalLicensesRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
@@ -1749,6 +1758,7 @@ export interface FileRouteTypes {
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
+    | '/pos-app/digital-licenses'
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
@@ -1929,6 +1939,7 @@ export interface FileRouteTypes {
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
+    | '/pos-app/digital-licenses'
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
@@ -2112,6 +2123,7 @@ export interface FileRouteTypes {
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
+    | '/pos-app/digital-licenses'
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
@@ -2767,6 +2779,13 @@ declare module '@tanstack/react-router' {
       path: '/domain'
       fullPath: '/pos-app/domain'
       preLoaderRoute: typeof PosAppDomainRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/digital-licenses': {
+      id: '/pos-app/digital-licenses'
+      path: '/digital-licenses'
+      fullPath: '/pos-app/digital-licenses'
+      preLoaderRoute: typeof PosAppDigitalLicensesRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/digital': {
@@ -3750,6 +3769,7 @@ interface PosAppRouteChildren {
   PosAppCustomersRoute: typeof PosAppCustomersRoute
   PosAppDeliveryRoute: typeof PosAppDeliveryRoute
   PosAppDigitalRoute: typeof PosAppDigitalRoute
+  PosAppDigitalLicensesRoute: typeof PosAppDigitalLicensesRoute
   PosAppDomainRoute: typeof PosAppDomainRoute
   PosAppEmailMarketingRoute: typeof PosAppEmailMarketingRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
@@ -3829,6 +3849,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppCustomersRoute: PosAppCustomersRoute,
   PosAppDeliveryRoute: PosAppDeliveryRoute,
   PosAppDigitalRoute: PosAppDigitalRoute,
+  PosAppDigitalLicensesRoute: PosAppDigitalLicensesRoute,
   PosAppDomainRoute: PosAppDomainRoute,
   PosAppEmailMarketingRoute: PosAppEmailMarketingRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,

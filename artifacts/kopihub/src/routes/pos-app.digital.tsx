@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useShop } from "@/lib/use-shop";
@@ -15,6 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Download,
@@ -27,6 +34,7 @@ import {
   RefreshCw,
   Copy,
   ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/digital")({ component: DigitalProducts });
@@ -42,6 +50,7 @@ type DigitalProduct = {
   download_expires_hours: number | null;
   file_size_kb: number | null;
   file_type: string | null;
+  license_type: "personal" | "commercial" | "extended" | null;
   total_sold: number;
 };
 
@@ -55,6 +64,13 @@ const EMPTY: Omit<DigitalProduct, "id" | "total_sold"> = {
   download_expires_hours: 48,
   file_size_kb: null,
   file_type: null,
+  license_type: "personal",
+};
+
+const LICENSE_TYPE_LABEL: Record<string, string> = {
+  personal:   "Personal — hanya untuk penggunaan pribadi",
+  commercial: "Komersial — boleh digunakan untuk bisnis",
+  extended:   "Extended — distribusi & modifikasi diizinkan",
 };
 
 function DigitalProducts() {
@@ -63,7 +79,7 @@ function DigitalProducts() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DigitalProduct | null>(null);
-  const [form, setForm] = useState({ ...EMPTY, download_url: "", download_limit: "", download_expires_hours: "48", file_size_kb: "", file_type: "", name: "", description: "", price: "" });
+  const [form, setForm] = useState({ ...EMPTY, download_url: "", download_limit: "", download_expires_hours: "48", file_size_kb: "", file_type: "", name: "", description: "", price: "", license_type: "personal" as string });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -73,7 +89,7 @@ function DigitalProducts() {
     try {
       const { data, error } = await supabase
         .from("menu_items" as any)
-        .select("id, name, description, price, is_available, download_url, download_limit, download_expires_hours, file_size_kb, file_type")
+        .select("id, name, description, price, is_available, download_url, download_limit, download_expires_hours, file_size_kb, file_type, license_type")
         .eq("shop_id", shop.id)
         .eq("product_type", "digital")
         .order("created_at", { ascending: false }) as any;
@@ -107,7 +123,7 @@ function DigitalProducts() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ ...EMPTY, download_url: "", download_limit: "", download_expires_hours: "48", file_size_kb: "", file_type: "", name: "", description: "", price: "" });
+    setForm({ ...EMPTY, download_url: "", download_limit: "", download_expires_hours: "48", file_size_kb: "", file_type: "", name: "", description: "", price: "", license_type: "personal" });
     setOpen(true);
   };
 
@@ -123,6 +139,7 @@ function DigitalProducts() {
       download_expires_hours: item.download_expires_hours != null ? String(item.download_expires_hours) : "48",
       file_size_kb: item.file_size_kb != null ? String(item.file_size_kb) : "",
       file_type: item.file_type ?? "",
+      license_type: item.license_type ?? "personal",
     });
     setOpen(true);
   };
@@ -144,6 +161,7 @@ function DigitalProducts() {
       download_expires_hours: form.download_expires_hours ? Number(form.download_expires_hours) : 48,
       file_size_kb: form.file_size_kb ? Number(form.file_size_kb) : null,
       file_type: form.file_type?.trim() || null,
+      license_type: form.license_type || "personal",
       track_stock: false,
     };
     let error;
@@ -304,6 +322,11 @@ function DigitalProducts() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-purple-500 hover:text-purple-700" asChild title="Lihat lisensi & unduhan">
+                    <Link to="/pos-app/digital-licenses" search={{ product: item.id } as any}>
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(item)}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -416,6 +439,25 @@ function DigitalProducts() {
                 placeholder="cth: 2048 = 2 MB"
                 className="mt-1"
               />
+            </div>
+            <div>
+              <Label>Tipe Lisensi</Label>
+              <Select
+                value={form.license_type}
+                onValueChange={(v) => setForm((f) => ({ ...f, license_type: v }))}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LICENSE_TYPE_LABEL).map(([k, label]) => (
+                    <SelectItem key={k} value={k}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ditampilkan di halaman unduhan pembeli & tercatat di setiap lisensi
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Switch
