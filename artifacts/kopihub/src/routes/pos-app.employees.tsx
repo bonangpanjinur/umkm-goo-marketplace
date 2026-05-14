@@ -257,7 +257,10 @@ function EmployeesPage() {
     setManualAvatar(sm.avatar_url ?? "");
     setManualWithLogin(false);
     setManualEmail("");
+    setManualPassword("");
+    setShowPassword(false);
     setLastInviteUrl(null);
+    setLastCredentials(null);
     setManualOpen(true);
   }
 
