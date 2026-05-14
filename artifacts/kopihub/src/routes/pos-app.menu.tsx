@@ -109,6 +109,7 @@ function MenuPage() {
   const [aiTags, setAiTags] = useState<string[]>([]);
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
+  const [copiedDescId, setCopiedDescId] = useState<string | null>(null);
 
   const [batchOpen, setBatchOpen] = useState(false);
   const [batchRunning, setBatchRunning] = useState(false);
@@ -891,9 +892,27 @@ function MenuPage() {
                     )}
                   </div>
                   {it.description?.trim() ? (
-                    <p className="mt-1.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">
-                      {it.description.trim()}
-                    </p>
+                    <div className="group/desc mt-1.5 flex items-start gap-1">
+                      <p className="line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground">
+                        {it.description.trim()}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(it.description!.trim());
+                          setCopiedDescId(it.id);
+                          setTimeout(() => setCopiedDescId(null), 1500);
+                        }}
+                        title="Salin deskripsi"
+                        className="shrink-0 rounded p-0.5 text-muted-foreground/40 opacity-0 transition-opacity hover:text-muted-foreground group-hover/desc:opacity-100"
+                      >
+                        {copiedDescId === it.id ? (
+                          <Check className="h-3 w-3 text-emerald-500" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </button>
+                    </div>
                   ) : (
                     <p className="mt-1.5 text-[11px] italic text-muted-foreground/50">
                       Belum ada deskripsi
