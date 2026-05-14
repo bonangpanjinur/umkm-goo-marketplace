@@ -101,7 +101,7 @@ function StokTerpadu() {
     const { error } = await supabase
       .from("menu_items")
       .update({
-        stock_qty: item.stock_qty,
+        stock: item.stock,
         low_stock_threshold: item.low_stock_threshold,
         auto_disable_on_empty: item.auto_disable_on_empty,
         is_available: item.is_available,
@@ -118,22 +118,22 @@ function StokTerpadu() {
   const filtered = items.filter((it) => {
     const matchSearch = it.name.toLowerCase().includes(search.toLowerCase());
     if (!matchSearch) return false;
-    if (filter === "empty") return (it.stock_qty ?? 0) === 0;
+    if (filter === "empty") return (it.stock ?? 0) === 0;
     if (filter === "low") {
       const threshold = it.low_stock_threshold ?? 5;
-      return (it.stock_qty ?? 0) > 0 && (it.stock_qty ?? 0) <= threshold;
+      return (it.stock ?? 0) > 0 && (it.stock ?? 0) <= threshold;
     }
     return true;
   });
 
   const lowCount = items.filter((it) => {
     const t = it.low_stock_threshold ?? 5;
-    return (it.stock_qty ?? 0) > 0 && (it.stock_qty ?? 0) <= t;
+    return (it.stock ?? 0) > 0 && (it.stock ?? 0) <= t;
   }).length;
-  const emptyCount = items.filter((it) => (it.stock_qty ?? 0) === 0).length;
+  const emptyCount = items.filter((it) => (it.stock ?? 0) === 0).length;
 
   const stockStatus = (item: StokItem) => {
-    const qty = item.stock_qty ?? 0;
+    const qty = item.stock ?? 0;
     if (qty === 0) return "empty";
     const t = item.low_stock_threshold ?? 5;
     if (qty <= t) return "low";
@@ -259,11 +259,11 @@ function StokTerpadu() {
                         type="number"
                         min={0}
                         className="w-24 mt-1 h-8 text-sm font-semibold"
-                        value={item.stock_qty ?? ""}
+                        value={item.stock ?? ""}
                         placeholder="∞"
                         onChange={(e) =>
                           updateLocal(item.id, {
-                            stock_qty: e.target.value === "" ? null : Number(e.target.value),
+                            stock: e.target.value === "" ? null : Number(e.target.value),
                           })
                         }
                       />
