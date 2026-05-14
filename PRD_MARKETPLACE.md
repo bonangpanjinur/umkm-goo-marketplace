@@ -1469,6 +1469,1212 @@ Tema otomatis menyesuaikan komponen dengan kategori:
 
 ---
 
+---
+
+## BAGIAN 15: POS PANEL PER TIPE BISNIS
+
+> **Masalah Saat Ini:** Semua merchant mendapatkan sidebar POS yang sama persis — 10 grup dengan 70+ menu item. Barbershop melihat menu "Resep & HPP". Rental mobil melihat "KDS Dapur". Ini membingungkan dan tidak profesional.
+>
+> **Solusi:** Panel POS dikonfigurasi otomatis berdasarkan `business_category` toko. Satu `category_type` → satu set menu yang relevan. Item yang tidak relevan disembunyikan, bukan dihapus.
+
+---
+
+### 15.1 Konsep Implementasi
+
+```
+Saat merchant login ke POS:
+  1. Baca `coffee_shops.business_category_id`
+  2. Join ke `business_categories.category_type` (fnb / booking_session / rental / digital / custom)
+  3. Filter NAV_GROUPS berdasarkan `category_type`
+  4. Sembunyikan grup/item yang tidak relevan
+  5. Tampilkan grup tambahan yang spesifik untuk kategori tersebut
+
+Kode implementasi (pos-app.tsx):
+  const shopCategoryType = shop?.category_type ?? "general"
+  const visibleGroups = NAV_GROUPS.filter(g => g.showFor.includes(shopCategoryType))
+```
+
+---
+
+### 15.2 POS Panel — F&B (Tipe 1A: Restoran, Kafe, Warung)
+
+**Identitas Panel:** Fokus pada kasir cepat, dapur, dan meja. Pesanan masuk dari berbagai sumber dan langsung masuk KDS.
+
+```
+SIDEBAR F&B:
+├── 🏠 UTAMA
+│   ├── Dashboard (omset hari ini, pesanan masuk, meja aktif)
+│   └── 🔴 POS Kasir [PROMINENT — akses 1 klik]
+│
+├── 📋 PESANAN
+│   ├── Semua Pesanan (tab: POS / Online / Marketplace)
+│   └── 🍳 Kitchen Display (KDS) [tampil menonjol]
+│
+├── 🍽️ KATALOG & MENU
+│   ├── Menu / Produk
+│   ├── Kategori Menu
+│   ├── Varian (ukuran, topping, level pedas)
+│   ├── Bundle / Paket Combo
+│   └── Import Menu CSV
+│
+├── 📦 STOK & DAPUR
+│   ├── Stok Terpadu
+│   ├── Inventori Bahan Baku
+│   ├── Resep & HPP
+│   └── Supplier & Purchase Order
+│
+├── 🪑 MEJA & LAYANAN
+│   ├── Manajemen Meja
+│   ├── Table Map & QR
+│   ├── Reservasi Meja [OPSIONAL — toggle per toko]
+│   └── Waitlist Virtual
+│
+├── 👥 TIM
+│   ├── Pegawai & Shift
+│   ├── Absensi
+│   └── Jadwal Kerja
+│
+├── 🎯 PELANGGAN & PROMO
+│   ├── Database Pelanggan
+│   ├── Inbox Chat
+│   ├── Promo & Flash Sale
+│   ├── Voucher Toko
+│   ├── Happy Hour [KHAS F&B]
+│   ├── Loyalty & Poin
+│   └── Email Marketing (PRO)
+│
+├── 💰 KEUANGAN & LAPORAN
+│   ├── Keuangan & Wallet
+│   ├── Laporan Harian (share WA)
+│   ├── Laporan Penjualan
+│   ├── Profit & Margin (L/R)
+│   └── Invoice PDF
+│
+└── ⚙️ PENGATURAN
+    ├── Tampilan Toko (tema, banner)
+    ├── QR Code Meja
+    ├── Printer Thermal
+    ├── Pengaturan Toko
+    └── Verifikasi KTP (KYC)
+
+DISEMBUNYIKAN untuk F&B:
+  ✗ Booking Jadwal Staff (diganti Reservasi Meja — opsional)
+  ✗ Armada / Unit Rental
+  ✗ Kalender Ketersediaan Rental
+  ✗ Produk Digital
+  ✗ Custom Order Form
+  ✗ Portofolio Galeri Karya
+  ✗ Paket Layanan & Add-on Booking
+```
+
+**Dashboard F&B — Widget Utama:**
+```
+┌─────────────────────────────────────────────────┐
+│  Omset Hari Ini        Pesanan Masuk    Meja Aktif │
+│  Rp 2.450.000          47 pesanan       8/12 meja  │
+│  ↑ 12% vs kemarin      ↑ 5 baru         3 waiting  │
+├─────────────────────────────────────────────────┤
+│  Top Menu Hari Ini          Stok Kritis           │
+│  1. Es Kopi Susu (34)       ⚠ Susu (2 liter)     │
+│  2. Nasi Goreng (28)        ⚠ Telur (5 butir)    │
+│  3. Roti Bakar (19)                               │
+├─────────────────────────────────────────────────┤
+│  [Buka Kasir POS]    [Lihat KDS]    [Laporan WA] │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+### 15.3 POS Panel — Produk Fisik Non-F&B (Tipe 1B: Fashion, Skincare, Kerajinan, dll.)
+
+**Identitas Panel:** Fokus pada katalog produk, stok, pesanan online, dan pengiriman. Tidak ada dapur, tidak ada meja.
+
+```
+SIDEBAR PRODUK FISIK:
+├── 🏠 UTAMA
+│   ├── Dashboard (penjualan, pesanan, stok menipis)
+│   └── POS Kasir [untuk walk-in langsung]
+│
+├── 📋 PESANAN
+│   └── Semua Pesanan (tab: POS Walk-in / Marketplace / Website)
+│       [TIDAK ADA KDS]
+│
+├── 📦 KATALOG & STOK
+│   ├── Produk & Katalog
+│   ├── Kategori Produk
+│   ├── Varian (ukuran, warna, material)
+│   ├── Atribut Produk (bahan, ukuran, berat)
+│   ├── Bundle / Paket
+│   ├── Pre-order Mode [untuk limited drop]
+│   ├── Stok Terpadu
+│   ├── Import CSV
+│   └── Harga Grosir / Bulk Pricing
+│
+├── 🚚 PENGIRIMAN
+│   ├── Delivery & Kurir
+│   ├── RajaOngkir
+│   └── Label Pengiriman
+│
+├── 🎯 PELANGGAN & PROMO
+│   ├── Database Pelanggan
+│   ├── Inbox Chat
+│   ├── Promo & Flash Sale
+│   ├── Voucher Toko
+│   ├── Ulasan Pembeli
+│   ├── Q&A Produk
+│   ├── Sering Dibeli Bersama [Upsell Engine]
+│   ├── Loyalty & Poin
+│   └── Email Marketing (PRO)
+│
+├── 🏪 TAMPILAN TOKO
+│   ├── Storefront Builder
+│   ├── Katalog Shareable
+│   └── Iklan & Promosi
+│
+├── 💰 KEUANGAN & LAPORAN
+│   ├── Keuangan & Wallet
+│   ├── Laporan Penjualan
+│   ├── Profit & Margin
+│   └── Invoice PDF
+│
+└── ⚙️ PENGATURAN
+
+DISEMBUNYIKAN untuk Produk Fisik Non-F&B:
+  ✗ KDS Dapur
+  ✗ Manajemen Meja & QR Meja
+  ✗ Resep & HPP (hanya ada jika merchant aktifkan)
+  ✗ Booking Jadwal Staff
+  ✗ Armada Rental
+  ✗ Produk Digital
+  ✗ Happy Hour (kecuali fashion yang mau promo jam)
+```
+
+---
+
+### 15.4 POS Panel — Booking Sesi (Tipe 3: Barber, Salon, Spa, Klinik, Fotografer, Les Privat)
+
+**Identitas Panel:** Booking adalah inti bisnis. Dashboard harus langsung menampilkan jadwal hari ini dan slot yang tersedia/terisi. Tidak ada kasir POS konvensional — transaksi terjadi via booking.
+
+```
+SIDEBAR BOOKING SESI:
+├── 🏠 UTAMA
+│   ├── Dashboard Booking (jadwal hari ini, pending konfirmasi, revenue)
+│   └── [TIDAK ADA "POS Kasir" konvensional — hanya Walk-in Booking]
+│
+├── 📅 BOOKING [GRUP UTAMA — ditaruh paling atas]
+│   ├── 🔴 Kalender & Slot [PROMINENT]
+│   ├── Booking Masuk (pending → konfirmasi)
+│   ├── Riwayat Booking (done / cancelled)
+│   ├── Voucher Khusus Booking
+│   ├── Analitik Voucher Booking
+│   ├── Reminder H-1 / H-3
+│   └── Waitlist Virtual
+│
+├── 💼 LAYANAN & TIM
+│   ├── Daftar Layanan (nama, durasi, harga) [bukan "Menu Produk"]
+│   ├── Paket Layanan & Add-on [❌ belum ada]
+│   ├── Staff / Terapis / Fotografer
+│   ├── Jadwal Staff (jam tersedia per hari)
+│   └── Absensi & Shift
+│
+├── 🖼️ PORTOFOLIO
+│   ├── Galeri Karya / Before-After [KRITIS untuk jasa]
+│   └── Kategori Portofolio (mis. Potong / Warna / Waxing)
+│
+├── 👥 PELANGGAN
+│   ├── Database Pelanggan
+│   ├── Catatan per Pelanggan (riwayat kunjungan) [❌ belum ada]
+│   ├── Inbox Chat
+│   ├── Ulasan Pembeli
+│   ├── Loyalty Stamp [khas barber/salon]
+│   └── Membership / Paket Sesi
+│
+├── 🎯 PROMO
+│   ├── Voucher Toko
+│   ├── Flash Sale Layanan
+│   └── Iklan & Promosi
+│
+├── 💰 KEUANGAN & LAPORAN
+│   ├── Keuangan & Wallet
+│   ├── Laporan Booking (per periode, per staff)
+│   ├── Laporan Penjualan
+│   └── Invoice PDF
+│
+└── ⚙️ PENGATURAN BOOKING
+    ├── Pengaturan Deposit (% DP, kebijakan refund)
+    ├── Kebijakan Pembatalan (H-3/H-1/H-0)
+    ├── Min. jam sebelumnya bisa booking
+    ├── Maks. hari ke depan yang bisa dibooking
+    └── Jam Operasional Toko
+
+DISEMBUNYIKAN untuk Booking Sesi:
+  ✗ KDS Dapur
+  ✗ Manajemen Meja & QR Meja (kecuali klinik/restoran)
+  ✗ Resep & HPP (tidak relevan)
+  ✗ Inventori Bahan Baku (tidak relevan)
+  ✗ Supplier & Purchase Order
+  ✗ RajaOngkir (tidak ada pengiriman)
+  ✗ Label Pengiriman
+  ✗ Armada / Unit Rental
+  ✗ Produk Digital
+```
+
+**Dashboard Booking Sesi — Widget Utama:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Hari Ini: Senin, 14 Mei 2026                               │
+│                                                             │
+│  📅 Jadwal Hari Ini          💰 Pendapatan Hari Ini         │
+│  12 booking terkonfirmasi    Rp 1.840.000                   │
+│   3 pending konfirmasi       ↑ 8% vs minggu lalu            │
+│   2 slot masih kosong                                       │
+├─────────────────────────────────────────────────────────────┤
+│  Booking Berikutnya (Today)                                 │
+│  09:00  Andi Saputra     Potong + Creambath   [Reza]        │
+│  10:00  Siti Rahayu      Highlight Rambut     [Maya]  DP ✓  │
+│  11:00  ——— SLOT KOSONG ———                                 │
+│  13:00  Budi Santoso     Shave + Waxing       [Reza]        │
+├─────────────────────────────────────────────────────────────┤
+│  ⚠ 3 Booking Pending Konfirmasi                             │
+│  [Konfirmasi Semua]  [Lihat Detail]  [Tambah Walk-in]       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 15.5 POS Panel — Booking Rental (Tipe 4: Rental Mobil, Villa, Pet Hotel, Sewa Alat)
+
+**Identitas Panel:** Armada/unit adalah aset utama. Dashboard menampilkan status unit per hari: tersedia, disewa, dalam perawatan. Booking adalah berdasarkan rentang tanggal, bukan slot jam.
+
+```
+SIDEBAR BOOKING RENTAL:
+├── 🏠 UTAMA
+│   ├── Dashboard Armada (unit tersedia hari ini, sedang disewa, return hari ini)
+│   └── Kalender Ketersediaan [overview semua unit]
+│
+├── 🚗 ARMADA & UNIT [GRUP UTAMA]
+│   ├── 🔴 Daftar Armada / Unit [PROMINENT]
+│   │    (nama, foto, kondisi, harga/hari, status, nomor polisi/ID unit)
+│   ├── Kalender Ketersediaan (per unit, per tanggal)
+│   ├── Cek Ketersediaan Real-time
+│   └── Kondisi & Perawatan Unit [❌ belum ada]
+│
+├── 📅 BOOKING RENTAL
+│   ├── Booking Masuk (pending → konfirmasi)
+│   ├── Booking Aktif (sedang disewa)
+│   ├── Return Hari Ini
+│   ├── Riwayat Booking
+│   ├── Checklist Sebelum/Sesudah [❌ belum ada]
+│   └── Dokumen Pelanggan (KTP/SIM uploaded) [❌ belum ada]
+│
+├── 👥 PELANGGAN
+│   ├── Database Pelanggan
+│   ├── Riwayat Sewa per Pelanggan
+│   ├── Inbox Chat
+│   └── Ulasan
+│
+├── 💰 KEUANGAN & LAPORAN
+│   ├── Keuangan & Wallet
+│   ├── Laporan Pendapatan per Unit
+│   ├── Laporan Utilisasi Armada (hari tersewa / hari tersedia)
+│   ├── Denda & Biaya Tambahan [❌ belum ada]
+│   └── Invoice PDF
+│
+└── ⚙️ PENGATURAN RENTAL
+    ├── Kebijakan Sewa (min. durasi, max. durasi)
+    ├── Deposit (%, kebijakan refund, denda)
+    ├── Dokumen wajib (toggle: KTP / SIM / KK)
+    └── Biaya denda keterlambatan per jam/hari
+
+DISEMBUNYIKAN untuk Rental:
+  ✗ KDS Dapur
+  ✗ Manajemen Meja & QR Meja
+  ✗ Resep & HPP
+  ✗ Inventori Bahan Baku
+  ✗ Kasir POS konvensional (ada versi sederhana untuk walk-in)
+  ✗ Produk Digital
+  ✗ Custom Order Form
+```
+
+**Dashboard Rental — Widget Utama:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Status Armada — Hari Ini (14 Mei 2026)                     │
+│                                                             │
+│  🟢 Tersedia: 4 unit    🔴 Disewa: 8 unit    🔧 Servis: 1  │
+├─────────────────────────────────────────────────────────────┤
+│  Return Hari Ini (jadwal pengembalian)                      │
+│  Avanza Hitam B-1234-XX  → Budi S.    Jam 12:00  [Cek]     │
+│  Innova Putih B-5678-YY  → Andi K.    Jam 16:00  [Cek]     │
+├─────────────────────────────────────────────────────────────┤
+│  Booking Baru Masuk (3 pending)                             │
+│  Honda Beat   16–18 Mei  Siti R.   DP: Rp 200k   [Konfirm] │
+│  Avanza       20–25 Mei  Reza P.   DP: Rp 500k   [Konfirm] │
+├─────────────────────────────────────────────────────────────┤
+│  Utilisasi Bulan Ini: 73%  |  Revenue: Rp 28.400.000       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 15.6 POS Panel — Produk Digital (Tipe 2)
+
+**Identitas Panel:** Tidak ada pengiriman, tidak ada stok fisik. Panel sangat simpel. Fokus pada upload produk, lisensi, dan analitik download.
+
+```
+SIDEBAR PRODUK DIGITAL:
+├── 🏠 UTAMA
+│   └── Dashboard (penjualan hari ini, total download, produk terlaris)
+│
+├── 💾 PRODUK DIGITAL [GRUP UTAMA]
+│   ├── 🔴 Daftar Produk Digital [PROMINENT]
+│   ├── Upload / Edit Produk
+│   ├── Preview & Watermark [❌ belum ada]
+│   ├── Manajemen Lisensi [❌ belum ada]
+│   └── Update Versi [❌ belum ada]
+│
+├── 📋 PESANAN & DOWNLOAD
+│   ├── Riwayat Penjualan
+│   └── Log Download per Pembeli
+│
+├── 👥 PELANGGAN & PROMO
+│   ├── Database Pembeli
+│   ├── Voucher Toko
+│   ├── Ulasan Produk
+│   └── Q&A Produk
+│
+├── 💰 KEUANGAN & LAPORAN
+│   ├── Keuangan & Wallet
+│   ├── Laporan Penjualan
+│   └── Invoice PDF
+│
+└── ⚙️ PENGATURAN
+
+DISEMBUNYIKAN untuk Produk Digital:
+  ✗ KDS, Meja, QR, Reservasi
+  ✗ Stok fisik, Resep, Inventori, Supplier
+  ✗ Booking Jadwal Staff
+  ✗ Armada Rental
+  ✗ Pengiriman (RajaOngkir, Label, Kurir)
+  ✗ Pre-order (bisa ada tapi optional)
+```
+
+---
+
+### 15.7 POS Panel — Pre-order & Custom (Tipe 5: Bakeri, Katering, Konveksi, Desainer)
+
+```
+SIDEBAR CUSTOM / PRE-ORDER:
+├── 🏠 UTAMA
+│   └── Dashboard (custom order masuk, jadwal produksi, deadline minggu ini)
+│
+├── 📝 CUSTOM ORDER [GRUP UTAMA]
+│   ├── 🔴 Permintaan Custom [PROMINENT]
+│   │    (incoming brief → review → terima/tolak → produksi → selesai)
+│   ├── Pre-order Mode
+│   ├── Status & Timeline per Order
+│   └── WA Template per Status
+│
+├── 📦 KATALOG
+│   ├── Produk Jadi (stok ready)
+│   ├── Template Layanan Custom (harga mulai dari)
+│   └── Portofolio / Galeri Hasil Karya
+│
+├── 📅 JADWAL PRODUKSI [opsional]
+│   ├── Kalender Deadline
+│   └── Queue produksi
+│
+├── 👥 PELANGGAN & PROMO
+│   ├── Database Pelanggan
+│   ├── Inbox Chat & Brief
+│   ├── Ulasan + Foto Hasil Karya
+│   └── Voucher Toko
+│
+├── 💰 KEUANGAN & LAPORAN
+│   ├── Keuangan & Wallet
+│   ├── Laporan per Custom Order
+│   └── Invoice PDF
+│
+└── ⚙️ PENGATURAN
+```
+
+---
+
+### 15.8 Matriks Visibilitas Menu POS per Tipe
+
+| Menu POS | F&B | Produk Fisik | Booking Sesi | Rental | Digital | Custom |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| POS Kasir | ✅ | ✅ | ⬜ Walk-in | ⬜ | — | ⬜ |
+| KDS Dapur | ✅ | — | — | — | — | — |
+| Manajemen Meja + QR | ✅ | — | — | — | — | — |
+| Reservasi Meja | ⬜ opsional | — | — | — | — | — |
+| Menu / Produk | ✅ | ✅ | ⬜ Layanan | — | ✅ Digital | ✅ |
+| Resep & HPP | ✅ | — | — | — | — | — |
+| Inventori Bahan Baku | ✅ | — | — | — | — | — |
+| Kalender & Slot Booking | — | — | ✅ | — | — | — |
+| Staff / Terapis | — | — | ✅ | ⬜ Sopir | — | — |
+| Portofolio / Galeri | — | — | ✅ | — | — | ✅ |
+| Armada / Unit | — | — | — | ✅ | — | — |
+| Kalender Rental | — | — | — | ✅ | — | — |
+| Checklist Kondisi | — | — | — | ✅ | — | — |
+| Pre-order | ⬜ | ✅ | — | — | — | ✅ |
+| Custom Order | — | — | — | — | — | ✅ |
+| Produk Digital | — | — | — | — | ✅ | — |
+| RajaOngkir / Kurir | — | ✅ | — | — | — | ✅ |
+| Happy Hour | ✅ | ⬜ | — | — | — | — |
+| Membership / Paket | ✅ | ✅ | ✅ | — | ✅ | — |
+| Loyalty Stamp | ✅ | ✅ | ✅ | — | — | — |
+| Upselling Engine | ✅ | ✅ | ⬜ | — | ✅ | — |
+| Waitlist Virtual | ✅ | — | ✅ | — | — | — |
+| Reminder H-1/H-3 | — | — | ✅ | ✅ | — | ⬜ |
+
+**Legenda:** ✅ Tampil | ⬜ Opsional (toggle) | — Disembunyikan
+
+---
+
+## BAGIAN 16: DESAIN HALAMAN PUBLIK PER TIPE BISNIS
+
+> **Masalah Saat Ini:** Semua halaman toko (`/toko/:slug`) menampilkan layout yang sama: header toko → grid produk → ulasan. Tidak ada diferensiasi antara barbershop (yang butuh tombol Booking besar), rental mobil (yang butuh kalender), dan toko fashion (yang butuh filter ukuran/warna).
+>
+> **Solusi:** `toko.$slug.tsx` membaca `business_category_id` dan merender layout yang sesuai. Tidak perlu membuat file route baru — cukup conditional rendering per `category_type`.
+
+---
+
+### 16.1 Prinsip Desain Halaman Publik
+
+```
+PRINSIP UTAMA:
+1. CTA Utama harus langsung terlihat tanpa scroll (above the fold)
+   - F&B: "Pesan Sekarang" / "QR Order"
+   - Booking Sesi: "Booking Layanan" (tombol besar, warna primer)
+   - Rental: "Cek Ketersediaan & Sewa"
+   - Digital: "Lihat Produk" / "Download Preview"
+
+2. Informasi kritis berbeda per tipe:
+   - F&B: harga, alergen, jam buka, estimasi siap
+   - Booking Sesi: ketersediaan hari ini, durasi layanan, daftar staff
+   - Rental: harga/hari, unit tersedia sekarang, syarat dokumen
+   - Digital: lisensi, format file, jumlah download
+
+3. Mobile-first: 375px nyaman, tombol CTA sticky di bottom
+
+4. Konten yang tidak relevan DISEMBUNYIKAN (bukan ditampilkan kosong)
+   - Rental: tidak ada grid produk "tambah ke keranjang"
+   - Digital: tidak ada alamat pengiriman, tidak ada kalender
+   - F&B: tidak ada tombol "Booking Layanan" (kecuali reservasi meja diaktifkan)
+```
+
+---
+
+### 16.2 Layout Publik — F&B (Restoran, Kafe, Warung)
+
+```
+URL: /toko/:slug  (category_type = fnb_*)
+
+┌─────────────────────────────────────────────────────────┐
+│  [HEADER MARKETPLACE]                                   │
+├─────────────────────────────────────────────────────────┤
+│  HERO TOKO                                              │
+│  ┌───────┐  Nama Kafe Kopimu ✓ Verified                │
+│  │ Logo  │  ⭐ 4.8 (342 ulasan) · Gold Seller           │
+│  │  Foto │  📍 Jl. Sudirman No.12, Jakarta              │
+│  └───────┘  🕐 Buka 08:00–22:00 · Estimasi 15–25 mnt   │
+│             [❤ Follow]  [💬 Chat]  [📍 Maps]            │
+├─────────────────────────────────────────────────────────┤
+│  TAG INFO (chip row)                                    │
+│  [🍽 Dine-in] [🛵 Delivery] [🥡 Takeaway]              │
+│  [🌿 Vegetarian Friendly] [🚫 Bebas Gluten] [🅿 Parkir] │
+├─────────────────────────────────────────────────────────┤
+│  FLASH SALE BANNER (jika ada promo aktif)               │
+│  🔥 Flash Sale! Es Kopi Susu Rp 15.000 (hemat 25%)     │
+│  Berakhir dalam: 02:34:11                               │
+├─────────────────────────────────────────────────────────┤
+│  SEARCH DALAM MENU                                      │
+│  [🔍 Cari menu...                              ]        │
+├─────────────────────────────────────────────────────────┤
+│  TAB NAVIGASI                                           │
+│  [Menu ●] [Info] [Ulasan (342)]                        │
+├─────────────────────────────────────────────────────────┤
+│  TAB: MENU                                              │
+│  Filter Kategori (scroll horizontal):                   │
+│  [Semua] [Kopi] [Non-Kopi] [Makanan] [Snack] [Paket]   │
+│                                                         │
+│  Grid Produk (2 kolom mobile, 3-4 kolom desktop):       │
+│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐        │
+│  │  Foto  │  │  Foto  │  │  Foto  │  │  Foto  │        │
+│  │ Es K.  │  │ Nasi G.│  │ Roti B.│  │ Jus A. │        │
+│  │Rp 25k  │  │ Rp 35k │  │ Rp 20k │  │ Rp 30k │        │
+│  │[+ Pesan│  │[+ Pesan│  │[+ Pesan│  │[+ Pesan│        │
+│  └────────┘  └────────┘  └────────┘  └────────┘        │
+│                                                         │
+│  [Muat lebih banyak]                                    │
+├─────────────────────────────────────────────────────────┤
+│  TAB: INFO                                              │
+│  📍 Alamat lengkap + embed Google Maps                  │
+│  🕐 Jam operasional per hari                            │
+│  ☎ Telepon + tombol "Call" / "WA"                      │
+│  🏷 Fasilitas: WiFi / AC / Parkir / Toilet              │
+│  ⚠ Info alergen umum (jika diisi merchant)             │
+├─────────────────────────────────────────────────────────┤
+│  TAB: ULASAN                                            │
+│  ⭐⭐⭐⭐⭐ 4.8 dari 342 ulasan                          │
+│  [5★ ████████ 78%] [4★ ████ 15%] [3★ ██ 5%] ...       │
+│  Foto Ulasan (grid 6 foto)                              │
+│  Daftar ulasan terbaru                                  │
+├─────────────────────────────────────────────────────────┤
+│  STICKY BOTTOM BAR (mobile)                             │
+│  🛒 Keranjang (3 item)      [Pesan Sekarang →]          │
+└─────────────────────────────────────────────────────────┘
+
+KHUSUS F&B — Fitur opsional jika diaktifkan:
+  + Tombol "Reservasi Meja" (secondary, di bawah tombol Pesan)
+  + Section Happy Hour (banner jam promo aktif)
+  + Section Waitlist (jika restoran penuh)
+
+TIDAK ADA di halaman F&B:
+  ✗ Tombol "Booking Layanan"
+  ✗ Kalender slot booking
+  ✗ Daftar Staff/Terapis
+  ✗ Galeri Before/After
+  ✗ Kalender ketersediaan unit (rental)
+  ✗ Download produk digital
+```
+
+---
+
+### 16.3 Layout Publik — Booking Sesi (Barber, Salon, Spa, Klinik, Fotografer)
+
+```
+URL: /toko/:slug  (category_type = beauty_barber / beauty_salon / health_clinic / dll.)
+
+┌─────────────────────────────────────────────────────────┐
+│  [HEADER MARKETPLACE]                                   │
+├─────────────────────────────────────────────────────────┤
+│  HERO TOKO                                              │
+│  [FOTO TOKO / GALERI SLIDESHOW — full width]            │
+│  ┌───────┐  Fresh Cut Barbershop ✓ Verified             │
+│  │ Logo  │  ⭐ 4.9 (218 ulasan) · Platinum              │
+│  │       │  📍 Jl. Gatot Subroto No.7, Bandung           │
+│  └───────┘  🕐 Buka 09:00–21:00                         │
+│             [❤ Follow]  [💬 Chat]  [📍 Maps]            │
+├─────────────────────────────────────────────────────────┤
+│  🔴 CTA UTAMA — PROMINENT (above the fold)              │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  📅 Booking Layanan                              │    │
+│  │  Tersedia hari ini: 4 slot kosong               │    │
+│  │  [Booking Sekarang →]  (tombol besar, primer)   │    │
+│  └─────────────────────────────────────────────────┘    │
+├─────────────────────────────────────────────────────────┤
+│  LAYANAN & HARGA                                        │
+│  ┌──────────────────┐  ┌──────────────────┐            │
+│  │ ✂ Potong Rambut  │  │ 🎨 Highlight     │            │
+│  │ 30 menit         │  │ 90 menit         │            │
+│  │ Rp 50.000        │  │ Rp 250.000       │            │
+│  │ [Pilih & Booking]│  │ [Pilih & Booking]│            │
+│  └──────────────────┘  └──────────────────┘            │
+│  ┌──────────────────┐  ┌──────────────────┐            │
+│  │ 🧴 Creambath     │  │ 🪒 Shave         │            │
+│  │ 45 menit         │  │ 20 menit         │            │
+│  │ Rp 75.000        │  │ Rp 35.000        │            │
+│  │ [Pilih & Booking]│  │ [Pilih & Booking]│            │
+│  └──────────────────┘  └──────────────────┘            │
+├─────────────────────────────────────────────────────────┤
+│  TEAM / STAFF                                           │
+│  "Pilih stylist favoritmu"                              │
+│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐               │
+│  │ Foto │  │ Foto │  │ Foto │  │ Foto │               │
+│  │ Reza │  │ Maya │  │ Dika │  │ Lisa │               │
+│  │⭐4.9 │  │⭐4.8 │  │⭐4.7 │  │⭐5.0 │               │
+│  │Barber│  │Stylis│  │Barber│  │Nail  │               │
+│  │[Book]│  │[Book]│  │[Book]│  │[Book]│               │
+│  └──────┘  └──────┘  └──────┘  └──────┘               │
+├─────────────────────────────────────────────────────────┤
+│  GALERI KARYA (Before / After)                          │
+│  [Filter: Semua | Potong | Warna | Waxing | Nail]       │
+│  Grid foto 3 kolom — klik untuk lightbox                │
+│  Before/After slider untuk foto transformasi            │
+├─────────────────────────────────────────────────────────┤
+│  TAB: ULASAN (218)                                      │
+│  ⭐ 4.9 · Foto ulasan · Daftar ulasan terbaru           │
+├─────────────────────────────────────────────────────────┤
+│  INFO TOKO                                              │
+│  📍 Alamat + Maps  🕐 Jam operasional  ☎ Kontak        │
+├─────────────────────────────────────────────────────────┤
+│  STICKY BOTTOM BAR (mobile)                             │
+│  [📅 Booking Sekarang →]              (full width)      │
+└─────────────────────────────────────────────────────────┘
+
+TIDAK ADA di halaman Booking Sesi:
+  ✗ "Tambah ke Keranjang" konvensional
+  ✗ Filter ukuran/warna produk
+  ✗ Kalender rental tanggal mulai-selesai
+  ✗ Daftar armada/unit
+  ✗ Download produk digital
+```
+
+---
+
+### 16.4 Layout Publik — Booking Rental (Rental Mobil, Villa, Sewa Alat)
+
+```
+URL: /toko/:slug  (category_type = auto_rental_car / property_villa / rental_camping / dll.)
+
+┌─────────────────────────────────────────────────────────┐
+│  [HEADER MARKETPLACE]                                   │
+├─────────────────────────────────────────────────────────┤
+│  HERO TOKO                                              │
+│  [FOTO ARMADA — slideshow highlight unit terbaik]       │
+│  ┌───────┐  AutoRent Jakarta ✓ Verified                 │
+│  │ Logo  │  ⭐ 4.7 (94 ulasan) · Top Seller             │
+│  │       │  📍 Jl. MT Haryono No.45, Jakarta Selatan    │
+│  └───────┘  🕐 Buka 07:00–20:00                         │
+│             [❤ Follow]  [💬 Chat]  [📍 Maps]            │
+├─────────────────────────────────────────────────────────┤
+│  🔴 CEK KETERSEDIAAN — PROMINENT (above the fold)       │
+│  ┌────────────────────────────────────────────────┐     │
+│  │  📅 Tanggal Sewa                               │     │
+│  │  Mulai: [14 Mei 2026 ▾]  Selesai: [17 Mei ▾] │     │
+│  │  [Cek Ketersediaan →]  (tombol besar)          │     │
+│  └────────────────────────────────────────────────┘     │
+├─────────────────────────────────────────────────────────┤
+│  DAFTAR ARMADA / UNIT TERSEDIA                          │
+│  (berubah setelah pilih tanggal — tersedia vs merah)    │
+│                                                         │
+│  ┌─────────────────────┐  ┌─────────────────────┐      │
+│  │ 📷 Foto Avanza      │  │ 📷 Foto Innova       │      │
+│  │ Toyota Avanza 2022  │  │ Toyota Innova 2023   │      │
+│  │ Manual · 6 orang   │  │ AT · 8 orang         │      │
+│  │ 🟢 Tersedia         │  │ 🟢 Tersedia          │      │
+│  │ Rp 450.000/hari    │  │ Rp 650.000/hari      │      │
+│  │ DP: Rp 200.000     │  │ DP: Rp 300.000       │      │
+│  │ [Sewa Sekarang]    │  │ [Sewa Sekarang]      │      │
+│  └─────────────────────┘  └─────────────────────┘      │
+│  ┌─────────────────────┐  ┌─────────────────────┐      │
+│  │ 📷 Foto Xpander     │  │ 📷 Foto Pajero       │      │
+│  │ Mitsubishi Xpander  │  │ Mitsubishi Pajero    │      │
+│  │ AT · 7 orang       │  │ AT · 7 orang · 4WD   │      │
+│  │ 🔴 Tidak Tersedia   │  │ 🟢 Tersedia          │      │
+│  │ (14–17 Mei penuh)  │  │ Rp 900.000/hari      │      │
+│  │ [Lihat Tanggal Lain]│  │ [Sewa Sekarang]      │      │
+│  └─────────────────────┘  └─────────────────────┘      │
+├─────────────────────────────────────────────────────────┤
+│  SYARAT & KETENTUAN SEWA                                │
+│  📋 Dokumen yang dibutuhkan: KTP + SIM A/C              │
+│  📋 Minimal sewa: 1 hari                                │
+│  📋 Kebijakan deposit: 30% dari total sewa              │
+│  📋 Denda keterlambatan: Rp 50.000/jam                  │
+├─────────────────────────────────────────────────────────┤
+│  ULASAN (94)                                            │
+│  ⭐ 4.7 · Daftar ulasan terbaru + foto                  │
+├─────────────────────────────────────────────────────────┤
+│  INFO TOKO                                              │
+│  📍 Alamat + Maps (lokasi ambil kendaraan)              │
+│  🕐 Jam operasional  ☎ Kontak WA                       │
+├─────────────────────────────────────────────────────────┤
+│  STICKY BOTTOM BAR (mobile)                             │
+│  Pilih tanggal dulu untuk lihat ketersediaan           │
+│  [📅 Cek Ketersediaan →]             (full width)       │
+└─────────────────────────────────────────────────────────┘
+
+TIDAK ADA di halaman Rental:
+  ✗ Grid menu "tambah ke keranjang" konvensional
+  ✗ Tombol "Booking Layanan" (slot jam)
+  ✗ Daftar staff/terapis
+  ✗ Galeri before/after layanan
+  ✗ Download produk digital
+```
+
+---
+
+### 16.5 Layout Publik — Produk Digital (Template, E-book, Preset)
+
+```
+URL: /toko/:slug  (category_type = digital_product / edu_online)
+
+┌─────────────────────────────────────────────────────────┐
+│  [HEADER MARKETPLACE]                                   │
+├─────────────────────────────────────────────────────────┤
+│  HERO TOKO                                              │
+│  [BANNER TOKO — digital aesthetic]                      │
+│  ┌───────┐  PixelCraft Templates ✓ Verified             │
+│  │ Logo  │  ⭐ 4.9 (512 ulasan) · Platinum              │
+│  │       │  💾 Template · Font · Preset · E-book        │
+│  └───────┘  [❤ Follow]  [💬 Chat]                       │
+├─────────────────────────────────────────────────────────┤
+│  FILTER PRODUK                                          │
+│  [Semua] [Template] [Font] [Preset Foto] [E-book]       │
+│  Lisensi: [Semua ▾]  Urutkan: [Terpopuler ▾]          │
+├─────────────────────────────────────────────────────────┤
+│  GRID PRODUK DIGITAL (3 kolom mobile, 4 desktop)        │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
+│  │ [Preview]  │  │ [Preview]  │  │ [Preview]  │        │
+│  │ WATERMARK  │  │ WATERMARK  │  │ WATERMARK  │        │
+│  │            │  │            │  │            │        │
+│  │ Template   │  │ Font Pack  │  │ Preset Film│        │
+│  │ Sosmed     │  │ Nusantara  │  │ Collection │        │
+│  │ ⬇ 1.2k dl │  │ ⬇ 834 dl  │  │ ⬇ 2.1k dl │        │
+│  │ 🔒 Personal│  │ 🔓 Comm.  │  │ 🔒 Personal│        │
+│  │ Rp 35.000  │  │ Rp 125.000 │  │ Rp 75.000  │        │
+│  │ [Beli Now] │  │ [Beli Now] │  │ [Beli Now] │        │
+│  └────────────┘  └────────────┘  └────────────┘        │
+├─────────────────────────────────────────────────────────┤
+│  ULASAN (512)                                           │
+│  ⭐ 4.9 · "File langsung dapat, tidak ribet!"           │
+├─────────────────────────────────────────────────────────┤
+│  INFO TOKO                                              │
+│  Kebijakan lisensi · Cara download · Format file        │
+└─────────────────────────────────────────────────────────┘
+
+TIDAK ADA di halaman Digital:
+  ✗ Alamat pengiriman
+  ✗ Pilih kurir
+  ✗ Tombol Booking
+  ✗ Kalender
+  ✗ Daftar staff
+```
+
+---
+
+### 16.6 Layout Publik — Custom & Pre-order (Bakeri, Konveksi, Desainer)
+
+```
+URL: /toko/:slug  (category_type = fnb_catering / fashion_custom / craft_handmade / dll.)
+
+┌─────────────────────────────────────────────────────────┐
+│  HERO TOKO                                              │
+│  [PORTOFOLIO SLIDESHOW — foto karya terbaik]            │
+│  ┌───────┐  Sweet Moment Bakery ✓ Verified              │
+│  │ Logo  │  ⭐ 4.9 (167 ulasan) · Gold Seller           │
+│  │       │  🎂 Kue Custom · Pre-order · Katering        │
+│  └───────┘  [❤ Follow]  [💬 Chat]  [📍 Maps]            │
+├─────────────────────────────────────────────────────────┤
+│  CTA UTAMA                                              │
+│  [📝 Pesan Custom]    [📦 Lihat Pre-order]              │
+├─────────────────────────────────────────────────────────┤
+│  PORTOFOLIO / GALERI KARYA                              │
+│  [Filter: Semua | Wedding | Ulang Tahun | Corporate]    │
+│  Masonry grid foto karya — klik untuk lightbox          │
+├─────────────────────────────────────────────────────────┤
+│  PRODUK SIAP (stok ready)                               │
+│  [Produk jadi yang bisa langsung dibeli]                │
+│  Grid produk + filter + add to cart                     │
+├─────────────────────────────────────────────────────────┤
+│  PRE-ORDER (tanggal tersedia)                           │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ 🎂 Kue Ultah Custom (Pre-order)                 │   │
+│  │ Tersedia mulai: 20 Mei 2026                     │   │
+│  │ Min. order: 1 hari sebelumnya                   │   │
+│  │ Harga mulai Rp 250.000                          │   │
+│  │ [Pre-order Sekarang]                            │   │
+│  └─────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────┤
+│  CARA PESAN CUSTOM                                      │
+│  1️⃣ Isi brief (konsep, tanggal butuh, budget)           │
+│  2️⃣ Merchant konfirmasi & kirim penawaran              │
+│  3️⃣ Setuju → bayar DP                                  │
+│  4️⃣ Proses produksi → update berkala                   │
+│  5️⃣ Selesai → bayar sisa → terima pesanan              │
+├─────────────────────────────────────────────────────────┤
+│  ULASAN + FOTO HASIL KARYA                              │
+│  ⭐ 4.9 · Foto ulasan real dari pelanggan               │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 16.7 Halaman Booking (`/toko/:slug/booking`) — UX Flow Lengkap
+
+Halaman ini diakses dari tombol "Booking" di halaman toko. Layout harus mobile-first dan wizard yang jelas.
+
+```
+WIZARD BOOKING (Tipe 3 — Booking Sesi):
+
+LANGKAH 1: Pilih Layanan
+┌─────────────────────────────────────────────────────────┐
+│  ← Kembali                    Booking Layanan           │
+│  Fresh Cut Barbershop                         [1/3]     │
+│  ─────────────────────────────────────────────────────  │
+│  Pilih Layanan yang Ingin Dipesan:                      │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ ○  ✂ Potong Rambut                              │   │
+│  │    30 menit · Rp 50.000                         │   │
+│  └─────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ ○  🎨 Highlight / Warna Rambut                  │   │
+│  │    90 menit · Rp 250.000                        │   │
+│  └─────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ ○  🧴 Creambath + Potong                        │   │
+│  │    60 menit · Rp 120.000                        │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  Pilih Staff (opsional):                               │
+│  [Siapa saja] [Reza] [Maya] [Dika] [Lisa]              │
+│                                                         │
+│  [Lanjut: Pilih Tanggal & Waktu →]                     │
+└─────────────────────────────────────────────────────────┘
+
+LANGKAH 2: Pilih Tanggal & Slot
+┌─────────────────────────────────────────────────────────┐
+│  ← Kembali                    Booking Layanan           │
+│  Layanan: Potong Rambut (30 menit)            [2/3]     │
+│  ─────────────────────────────────────────────────────  │
+│                                                         │
+│  Pilih Tanggal:                                         │
+│  [Kalender mini — highlight: hari ini, tersedia]        │
+│  Mei 2026: ← [L] [S] [S] [R] [K] [J] [S] →            │
+│             ... 12  13  14  15  16  17  18 ...         │
+│                 ✓   ●       ✓   ✓   ●   ✓              │
+│  ● = penuh   ✓ = ada slot   [kosong] = libur            │
+│                                                         │
+│  Slot Tersedia (Rabu, 14 Mei 2026):                    │
+│  [09:00] [09:30] [🔴 penuh] [10:30] [11:00]            │
+│  [12:30] [13:00] [🔴 penuh] [14:00] [14:30]            │
+│                                                         │
+│  [Lanjut: Isi Data Diri →]                             │
+└─────────────────────────────────────────────────────────┘
+
+LANGKAH 3: Konfirmasi & Pembayaran
+┌─────────────────────────────────────────────────────────┐
+│  ← Kembali                    Booking Layanan           │
+│  Ringkasan Booking                            [3/3]     │
+│  ─────────────────────────────────────────────────────  │
+│                                                         │
+│  📅 Rabu, 14 Mei 2026 · 09:00                          │
+│  ✂ Potong Rambut · 30 menit                            │
+│  👤 Staff: Reza (atau siapa saja)                       │
+│  📍 Fresh Cut Barbershop                               │
+│                                                         │
+│  ─────────────────────────────────────────────────────  │
+│  Nama Lengkap   [________________________]              │
+│  No. WhatsApp   [________________________]              │
+│  Catatan        [________________________] (opsional)   │
+│                                                         │
+│  Kode Voucher   [________] [Terapkan]                   │
+│                                                         │
+│  ─────────────────────────────────────────────────────  │
+│  Subtotal:           Rp 50.000                          │
+│  Diskon voucher:    -Rp 10.000                          │
+│  Total:              Rp 40.000                          │
+│                                                         │
+│  DP Wajib (30%):     Rp 12.000                         │
+│  [ℹ Transfer ke: BCA 1234567890 a/n Fresh Cut]          │
+│                                                         │
+│  [Konfirmasi Booking]                                   │
+│  Dengan menekan tombol ini, Anda menyetujui S&K         │
+└─────────────────────────────────────────────────────────┘
+
+SUKSES PAGE:
+┌─────────────────────────────────────────────────────────┐
+│  ✅ Booking Berhasil!                                   │
+│                                                         │
+│  ID Booking: #BK-20240514-001                          │
+│  Rabu, 14 Mei 2026 · 09:00                             │
+│  Fresh Cut Barbershop                                   │
+│                                                         │
+│  ⚠ Harap transfer DP Rp 12.000 ke:                    │
+│  BCA 1234567890 a/n Fresh Cut Barbershop               │
+│  dan kirim bukti ke WhatsApp kami                      │
+│                                                         │
+│  [💬 Konfirmasi via WhatsApp]                          │
+│  [📋 Salin Link Batalkan Booking]                      │
+│  [← Kembali ke Toko]                                   │
+│                                                         │
+│  Reminder akan dikirim H-3 dan H-1 sebelum jadwal.     │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 16.8 Logika Conditional Rendering `toko.$slug.tsx`
+
+```typescript
+// Implementasi berdasarkan category_type
+const categoryType = shop?.business_category?.category_type
+
+const isBookingSession = ["beauty_salon","beauty_barber","beauty_spa",
+  "beauty_waxing","beauty_tattoo","creative_photo","creative_video",
+  "health_clinic","health_therapy","health_gym","health_massage",
+  "pet_grooming","pet_vet","edu_private","edu_group","edu_tutor_center",
+  "travel_tour","travel_guide","event_organizer","event_entertainer"
+].includes(categoryType)
+
+const isRental = ["auto_rental_car","auto_rental_moto","auto_rental_bike",
+  "auto_workshop","auto_washing","rental_camping","rental_tools",
+  "rental_event","rental_sport","rental_baby","rental_electronic",
+  "rental_costume","rental_vehicle_heavy","property_villa",
+  "property_coworking","property_studio","property_kost","pet_hotel",
+  "event_venue","travel_transport"
+].includes(categoryType)
+
+const isDigital = ["digital_product","edu_online"].includes(categoryType)
+
+const isCustom = ["fnb_catering","fnb_bakery","fashion_custom",
+  "home_furniture","home_interior","creative_design","creative_printing",
+  "craft_handmade","art_visual","event_organizer"
+].includes(categoryType)
+
+const isFnB = categoryType?.startsWith("fnb_")
+
+// Render sections berdasarkan tipe:
+return (
+  <>
+    <ShopHero shop={shop} />
+
+    {/* CTA Utama — berbeda per tipe */}
+    {isBookingSession && <BookingCTA shopSlug={slug} />}
+    {isRental && <RentalAvailabilityChecker shopSlug={slug} />}
+    {isFnB && <FnBOrderCTA shopSlug={slug} />}
+    {isDigital && <DigitalProductFilter />}
+
+    {/* Konten per tipe */}
+    {isBookingSession && <ServiceList shopId={shop.id} />}
+    {isBookingSession && <StaffGrid shopId={shop.id} />}
+    {isRental && <FleetGrid shopId={shop.id} selectedDates={dates} />}
+    {!isRental && !isDigital && <ProductGrid products={products} />}
+    {isDigital && <DigitalProductGrid shopId={shop.id} />}
+
+    {/* Portofolio — untuk jasa & custom */}
+    {(isBookingSession || isCustom) && <PortfolioGallery shopId={shop.id} />}
+
+    {/* Reservasi meja — hanya F&B jika diaktifkan */}
+    {isFnB && shop.table_reservation_enabled && <TableReservationCTA />}
+
+    {/* Bagian universal */}
+    <ReviewsSection shopId={shop.id} />
+    <ShopInfoSection shop={shop} />
+  </>
+)
+```
+
+---
+
+## BAGIAN 17: LOGIKA KATEGORI DINAMIS — TAMPIL HANYA YANG ADA TOKONYA
+
+> **Masalah Saat Ini:** Homepage dan halaman `/kategori` menampilkan SEMUA kategori dari database, termasuk kategori yang belum ada satu pun toko aktif. Ini membuat platform terlihat kosong dan tidak profesional.
+>
+> **Prinsip:** Kategori hanya tampil di homepage jika memiliki minimal 1 toko aktif. Di halaman `/kategori`, kategori tanpa toko ditampilkan tapi dengan state "Jadilah yang pertama!" untuk mendorong pendaftaran.
+
+---
+
+### 17.1 Logika Homepage (`/`)
+
+```typescript
+// index.tsx — saat ini:
+const { data: cats } = await supabase
+  .from("business_categories")
+  .select("id, slug, name, icon_url")
+  .eq("is_active", true)
+  .order("sort_order")
+
+// YANG PERLU DIUBAH — filter berdasarkan shop count:
+// Opsi 1: Query dengan subquery count (1 round trip)
+const { data: cats } = await supabase.rpc("get_active_categories_with_shops")
+// Fungsi ini return: kategori + shop_count, filter WHERE shop_count > 0
+
+// Opsi 2: Query shops, hitung per kategori, filter (2 round trips — lebih simpel):
+const [catsRes, shopsRes] = await Promise.all([
+  supabase.from("business_categories").select("id,slug,name,icon_url").eq("is_active",true).order("sort_order"),
+  supabase.from("coffee_shops").select("business_category_id").eq("is_active",true)
+])
+const shopCount = {}
+for (const s of shopsRes.data ?? []) {
+  if (s.business_category_id)
+    shopCount[s.business_category_id] = (shopCount[s.business_category_id]??0)+1
+}
+// Filter: hanya kategori dengan shop_count > 0
+// Urutkan: berdasarkan shop_count DESC (kategori terpopuler = paling atas)
+const filteredCats = (catsRes.data ?? [])
+  .filter(c => (shopCount[c.id]??0) > 0)
+  .sort((a,b) => (shopCount[b.id]??0) - (shopCount[a.id]??0))
+  .slice(0, 16) // maksimal 16 di homepage
+```
+
+**Aturan urutan kategori di homepage:**
+```
+1. Kategori dengan shop_count terbanyak (paling populer) → paling atas/kiri
+2. Jika shop_count sama → ikut sort_order dari admin
+3. Maksimal 16 kategori di homepage (scroll horizontal di mobile)
+4. Tombol "Lihat semua kategori →" mengarah ke /kategori
+```
+
+---
+
+### 17.2 Logika Halaman Kategori (`/kategori`)
+
+```typescript
+// kategori.index.tsx — tampilkan SEMUA, tapi diferensiasi visual:
+
+// Kategori dengan toko → card normal, klik ke /kategori/:slug
+// Kategori tanpa toko → card greyed out, klik ke halaman daftar dengan CTA
+
+// Visual state:
+// Ada toko:     card border normal, warna penuh, "X toko aktif"
+// Belum ada:    card opacity-60, badge "Segera Hadir", klik → /signup dengan param kategori
+
+// Implementasi:
+{cats.map(c => (
+  <div
+    key={c.id}
+    className={cn(
+      "group rounded-xl border bg-card overflow-hidden transition",
+      counts[c.id] > 0
+        ? "hover:border-primary/50 hover:shadow-md cursor-pointer"
+        : "opacity-60 cursor-default"
+    )}
+  >
+    {/* Banner image */}
+    <div className="aspect-[16/9] bg-gradient-to-br from-primary/10 to-primary/5">
+      {c.banner_url
+        ? <img src={c.banner_url} className="h-full w-full object-cover" />
+        : <DefaultCategoryIcon slug={c.slug} />
+      }
+      {counts[c.id] === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-gray-700">
+            Segera Hadir
+          </span>
+        </div>
+      )}
+    </div>
+    <div className="p-4">
+      <h3 className="text-sm font-semibold">{c.name}</h3>
+      {c.description && <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
+      <div className="mt-2 text-xs">
+        {counts[c.id] > 0
+          ? <span className="text-primary font-medium">{counts[c.id]} toko aktif</span>
+          : <Link to="/signup" className="text-primary hover:underline">Jadilah yang pertama →</Link>
+        }
+      </div>
+    </div>
+  </div>
+))}
+```
+
+---
+
+### 17.3 Logika Halaman per Kategori (`/kategori/:slug`)
+
+```typescript
+// kategori.$slug.tsx — tampilkan konten berbeda berdasarkan apakah ada toko:
+
+// JIKA kategori punya toko:
+// → Tampilkan grid toko + produk unggulan dari kategori ini
+// → Filter: harga, rating, lokasi, metode bayar
+// → Sort: Terpopuler / Rating / Terbaru / Terdekat
+
+// JIKA kategori belum punya toko:
+// → Tampilkan halaman "Jadilah Merchant Pertama di Kategori Ini"
+// → CTA besar: "Daftar Sekarang & Buka Toko Gratis"
+// → Info keuntungan: 0% komisi bulan pertama, onboarding gratis, dll.
+
+// Implementasi:
+if (shops.length === 0) {
+  return <EmptyCategoryPage category={category} />
+}
+
+// EmptyCategoryPage:
+// - Hero dengan warna/icon kategori
+// - "Belum ada toko di kategori [Nama Kategori]"
+// - "Kamu bisa jadi yang pertama! Daftar gratis, aktif dalam 5 menit."
+// - [Daftar Sekarang] button
+// - List keuntungan: no fee pertama, support onboarding, dll.
+```
+
+---
+
+### 17.4 Aturan Tampilan Kategori — Ringkasan
+
+| Context | Kondisi | Tampilan |
+|---|---|---|
+| **Homepage** `/` | shop_count > 0 | Tampil normal, urut berdasarkan shop_count |
+| **Homepage** `/` | shop_count = 0 | **TIDAK TAMPIL sama sekali** |
+| **Homepage** `/` | Semua kategori kosong | Tampilkan 4-6 kategori placeholder (mode dev) |
+| **Halaman Kategori** `/kategori` | shop_count > 0 | Card normal + klik ke halaman kategori |
+| **Halaman Kategori** `/kategori` | shop_count = 0 | Card greyed out + badge "Segera Hadir" + link signup |
+| **Halaman per Kategori** `/kategori/:slug` | Ada toko | Grid toko + produk + filter |
+| **Halaman per Kategori** `/kategori/:slug` | Tidak ada toko | Landing "Jadilah yang Pertama" + CTA daftar |
+| **Onboarding merchant** | Pilih kategori | Tampil SEMUA kategori (termasuk yang kosong) |
+
+---
+
+### 17.5 Performa & Caching
+
+```typescript
+// Hitungan shop per kategori di-cache untuk menghindari query berulang:
+
+// Di index.tsx: ambil sekali bersamaan dengan data lain (Promise.all)
+// Cache di localStorage 5 menit:
+const CACHE_KEY = "category_shop_counts"
+const CACHE_TTL = 5 * 60 * 1000 // 5 menit
+
+function getCachedCounts() {
+  const raw = localStorage.getItem(CACHE_KEY)
+  if (!raw) return null
+  const { counts, ts } = JSON.parse(raw)
+  if (Date.now() - ts > CACHE_TTL) return null
+  return counts
+}
+
+function setCachedCounts(counts: Record<string, number>) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ counts, ts: Date.now() }))
+}
+
+// Di Supabase: tambahkan view materialized atau computed column
+// Ini bisa diganti dengan Supabase RPC:
+// CREATE OR REPLACE FUNCTION get_category_shop_counts()
+// RETURNS TABLE(category_id uuid, shop_count bigint)
+// LANGUAGE sql STABLE AS $$
+//   SELECT business_category_id, COUNT(*) as shop_count
+//   FROM coffee_shops
+//   WHERE is_active = true AND business_category_id IS NOT NULL
+//   GROUP BY business_category_id
+// $$;
+```
+
+---
+
+### 17.6 Icon Default per Kategori (Tanpa `icon_url`)
+
+Saat ini semua kategori tanpa icon_url menampilkan icon `Store` generik. Harus diganti dengan icon yang relevan per kategori:
+
+```typescript
+const CATEGORY_ICONS: Record<string, string> = {
+  // F&B
+  fnb_restaurant: "🍽️",  fnb_cafe: "☕",  fnb_street: "🥘",
+  fnb_catering: "🍱",    fnb_bakery: "🎂", fnb_packaged: "📦",
+  fnb_healthy: "🥗",
+  // Beauty
+  beauty_salon: "💇",    beauty_barber: "✂️",  beauty_spa: "💆",
+  beauty_skincare: "🧴", beauty_waxing: "🌸",  beauty_tattoo: "🎨",
+  // Otomotif
+  auto_rental_car: "🚗", auto_rental_moto: "🏍️", auto_workshop: "🔧",
+  auto_washing: "🚿",
+  // Rental
+  rental_camping: "⛺",  rental_tools: "🔨", rental_event: "🎪",
+  rental_electronic: "📷",
+  // Properti
+  property_villa: "🏡",  property_coworking: "💼", property_kost: "🏠",
+  // Digital
+  digital_product: "💾", digital_service: "💻", edu_online: "📚",
+  // Kesehatan
+  health_clinic: "🏥",   health_gym: "🏋️", health_massage: "💆",
+  // Fashion
+  fashion_ready: "👗",   fashion_custom: "🧵", fashion_preloved: "♻️",
+  // Kreatif
+  creative_photo: "📸",  creative_design: "🎨",
+  // Hewan
+  pet_grooming: "🐕",   pet_hotel: "🏠",
+  // Wisata
+  travel_tour: "✈️",    travel_guide: "🗺️",
+  // Event
+  event_organizer: "🎉", event_venue: "🏟️",
+}
+```
+
+---
+
 ## GLOSARIUM
 
 | Istilah | Definisi |
@@ -1487,6 +2693,8 @@ Tema otomatis menyesuaikan komponen dengan kategori:
 | **Tipe 3** | Booking Sesi — reservasi waktu layanan (barber, salon, klinik) |
 | **Tipe 4** | Booking Rental — sewa berdasarkan rentang tanggal (rental mobil, villa) |
 | **Tipe 5** | Pre-order & Custom — pesan dulu, dibuat kemudian |
+| category_type | Field di `business_categories` yang menentukan fitur POS & layout publik toko |
 | Booking Sesi | Reservasi layanan dengan durasi tetap (potong rambut, foto, pijat) |
 | Booking Rental | Reservasi barang/kendaraan/tempat dengan rentang tanggal sewa |
 | Booking Tempat | Reservasi meja/venue berdasarkan tanggal + kapasitas |
+| Shop Count | Jumlah toko aktif per kategori — menentukan apakah kategori tampil di homepage |
