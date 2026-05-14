@@ -418,29 +418,25 @@ function SchedulePage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={inviteOpen} onOpenChange={(o) => { if (!o) { setInviteOpen(false); setLastInviteUrl(null); } }}>
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Undang pegawai</DialogTitle>
+            <DialogTitle>Tambah pegawai</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
-              <Label>Email</Label>
+              <Label>Nama pegawai *</Label>
               <Input
-                type="email"
-                value={invEmail}
-                onChange={(e) => setInvEmail(e.target.value)}
-                placeholder="pegawai@toko.com"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Mis. Budi Santoso"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground">
-                Pegawai mendaftar dengan email yang sama untuk menerima undangan.
-              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Peran</Label>
-                <Select value={invRole} onValueChange={setInvRole}>
+                <Select value={newRole} onValueChange={setNewRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="manager">Manager</SelectItem>
@@ -451,7 +447,7 @@ function SchedulePage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Outlet</Label>
-                <Select value={invOutletId} onValueChange={setInvOutletId}>
+                <Select value={newOutletId} onValueChange={setNewOutletId}>
                   <SelectTrigger><SelectValue placeholder="Pilih outlet" /></SelectTrigger>
                   <SelectContent>
                     {outlets.map((o) => (
@@ -461,31 +457,24 @@ function SchedulePage() {
                 </Select>
               </div>
             </div>
-            {lastInviteUrl && (
-              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
-                <div className="mb-1 font-medium text-foreground">Tautan undangan:</div>
-                <div className="break-all font-mono text-muted-foreground">{lastInviteUrl}</div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-2"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(lastInviteUrl);
-                    toast.success("Tersalin");
-                  }}
-                >
-                  Salin lagi
-                </Button>
-              </div>
-            )}
+            <div className="space-y-1.5">
+              <Label>No. HP / WhatsApp (opsional)</Label>
+              <Input
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                placeholder="08xxxxxxxxxx"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pegawai ini ditambahkan tanpa akun login — hanya untuk dijadwalkan.
+              Untuk akses POS, undang lewat halaman Pegawai.
+            </p>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => { setInviteOpen(false); setLastInviteUrl(null); }}>
-              Tutup
-            </Button>
-            <Button onClick={inviteEmployee} disabled={inviting || !invEmail.trim()}>
-              {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <UserPlus className="mr-2 h-4 w-4" /> Buat undangan
+            <Button variant="ghost" onClick={() => setAddOpen(false)}>Batal</Button>
+            <Button onClick={addStaff} disabled={adding || !newName.trim()}>
+              {adding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <UserPlus className="mr-2 h-4 w-4" /> Simpan
             </Button>
           </DialogFooter>
         </DialogContent>
