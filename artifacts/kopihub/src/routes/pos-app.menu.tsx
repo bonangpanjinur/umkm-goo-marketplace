@@ -108,6 +108,7 @@ function MenuPage() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiTags, setAiTags] = useState<string[]>([]);
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
+  const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
 
   const [batchOpen, setBatchOpen] = useState(false);
   const [batchRunning, setBatchRunning] = useState(false);
@@ -238,6 +239,48 @@ function MenuPage() {
       toast.error("Gagal menghubungi server AI.");
     } finally {
       setAiGenerating(false);
+    }
+  }
+
+  async function generateForItem(it: MenuItem) {
+    setGeneratingIds((prev) => new Set(prev).add(it.id));
+    try {
+      const categoryName = categories.find((c) => c.id === it.category_id)?.name;
+      const res = await fetch("/api/ai/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: it.name,
+          image_url: it.image_url ?? undefined,
+          category: categoryName,
+          price: it.price,
+        }),
+      });
+      const data = await res.json() as { description?: string; error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Gagal menghasilkan deskripsi.");
+        return;
+      }
+      if (data.description) {
+        const { error } = await supabase
+          .from("menu_items")
+          .update({ description: data.description })
+          .eq("id", it.id);
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success(`Deskripsi "${it.name}" berhasil dibuat!`);
+          load();
+        }
+      }
+    } catch {
+      toast.error("Gagal menghubungi server AI.");
+    } finally {
+      setGeneratingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(it.id);
+        return next;
+      });
     }
   }
 
@@ -853,6 +896,20 @@ function MenuPage() {
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setModifierItem(it)} title="Varian & Modifier">
                       <SlidersHorizontal className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateForItem(it)}
+                      disabled={generatingIds.has(it.id)}
+                      title={it.description?.trim() ? "Generate ulang deskripsi AI" : "Generate deskripsi AI"}
+                      className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+                    >
+                      {generatingIds.has(it.id) ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
                     </Button>
                     <Button
                       variant="ghost"
