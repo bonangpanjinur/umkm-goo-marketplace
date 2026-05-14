@@ -186,6 +186,39 @@ function EmployeesPage() {
     setTimeout(() => setCopied(null), 1500);
   }
 
+  async function addManual() {
+    if (!shop || !manualName.trim()) return;
+    setManualSaving(true);
+    const { error } = await supabase.from("staff_members").insert({
+      shop_id: shop.id,
+      outlet_id: manualOutletId || null,
+      name: manualName.trim(),
+      role: manualRole as "manager" | "cashier" | "barista",
+      phone: manualPhone.trim() || null,
+      avatar_url: manualAvatar.trim() || null,
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pegawai ditambahkan");
+      setManualName("");
+      setManualPhone("");
+      setManualAvatar("");
+      setManualOpen(false);
+      load();
+    }
+    setManualSaving(false);
+  }
+
+  async function removeManual(id: string) {
+    if (!confirm("Hapus pegawai ini?")) return;
+    const { error } = await supabase.from("staff_members").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pegawai dihapus");
+      load();
+    }
+  }
+
   if (shopLoading) {
     return (
       <div className="flex h-full items-center justify-center">
