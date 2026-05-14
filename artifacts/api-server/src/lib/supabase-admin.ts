@@ -32,6 +32,34 @@ export async function supabaseUpdate(
 }
 
 /**
+ * Select rows from a Supabase table via the REST API.
+ * `filters` is a map of column → value (all joined with AND using eq. operator).
+ */
+export async function supabaseSelect(
+  table: string,
+  filters: Record<string, string>,
+  columns = "*",
+): Promise<Record<string, unknown>[]> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return [];
+  const query = Object.entries(filters)
+    .map(([col, val]) => `${encodeURIComponent(col)}=eq.${encodeURIComponent(val)}`)
+    .join("&");
+  const url = `${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(columns)}&${query}`;
+  const res = await fetch(url, {
+    headers: {
+      "apikey": SUPABASE_SERVICE_KEY,
+      "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+      "Accept": "application/json",
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase SELECT ${table} failed ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<Record<string, unknown>[]>;
+}
+
+/**
  * Insert a row into a Supabase table via the REST API.
  */
 export async function supabaseInsert(

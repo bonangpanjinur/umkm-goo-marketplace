@@ -22,7 +22,7 @@ import {
   buildMidtransConfig,
   buildXenditConfig,
 } from "../lib/gateway-config.js";
-import { supabaseUpdate } from "../lib/supabase-admin.js";
+import { supabaseUpdate, supabaseInsert, supabaseSelect } from "../lib/supabase-admin.js";
 
 /** If the orderId belongs to an ad payment (format: "ad-{adRequestId}-{ts}"),
  *  extract and return the ad_request id. */
@@ -41,6 +41,67 @@ async function activateAdRequest(adRequestId: string): Promise<void> {
     logger.info({ adRequestId }, "ad_request promoted to pending after payment");
   } catch (err) {
     logger.error({ err, adRequestId }, "Failed to activate ad_request after payment");
+  }
+}
+
+/** Extract bookingId from order_id format "booking-{uuid}" */
+function extractBookingId(orderId: string): string | null {
+  const m = orderId.match(/^booking-([0-9a-f-]{36})$/i);
+  return m ? m[1]! : null;
+}
+
+/**
+ * When a deposit payment is confirmed by the gateway webhook, mark the booking
+ * deposit_status as "paid" and fire an owner notification.
+ */
+async function handleBookingDepositPaid(orderId: string, gatewayTxId?: string): Promise<void> {
+  const bookingId = extractBookingId(orderId);
+  if (!bookingId) return;
+
+  try {
+    // Fetch the booking row to get shop_id + customer info
+    const rows = await supabaseSelect(
+      "bookings",
+      { id: bookingId },
+      "id,shop_id,customer_name,customer_phone,deposit_amount,deposit_status",
+    );
+
+    if (rows.length === 0) {
+      logger.warn({ bookingId }, "Webhook deposit paid: booking not found");
+      return;
+    }
+
+    const booking = rows[0]!;
+
+    // Only advance if it's still waiting / submitted
+    if (booking["deposit_status"] === "paid" || booking["deposit_status"] === "verified") {
+      logger.info({ bookingId }, "Booking deposit already paid/verified — skipping webhook update");
+      return;
+    }
+
+    await supabaseUpdate("bookings", bookingId, {
+      deposit_status: "paid",
+      updated_at: new Date().toISOString(),
+    });
+
+    if (booking["shop_id"]) {
+      const amountFormatted = booking["deposit_amount"]
+        ? `Rp ${Number(booking["deposit_amount"]).toLocaleString("id-ID")}`
+        : "";
+      await supabaseInsert("owner_notifications", {
+        shop_id: booking["shop_id"],
+        type: "deposit_paid",
+        title: `✅ DP LUNAS — ${booking["customer_name"] ?? "Pelanggan"}`,
+        body: `DP ${amountFormatted} LUNAS via payment gateway${gatewayTxId ? ` (TX: ${gatewayTxId})` : ""}`,
+        severity: "info",
+        link: "/pos-app/booking",
+        dedupe_key: `deposit_paid_${bookingId}`,
+      });
+    }
+
+    logger.info({ bookingId, orderId, gatewayTxId }, "Booking deposit_status set to paid via webhook");
+  } catch (err) {
+    logger.error({ err, bookingId, orderId }, "Failed to update booking deposit status from webhook");
   }
 }
 
@@ -318,10 +379,10 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
 
       logger.info({ transaction_id: tx.id, order_id: tx.orderId, status: newStatus }, "Midtrans payment status updated");
 
-      // If this is an ad payment, promote the ad_request to pending
       if (newStatus === "paid") {
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
+        await handleBookingDepositPaid(tx.orderId, notification.transaction_id);
       }
     }
 
@@ -406,10 +467,10 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
 
       logger.info({ transaction_id: tx.id, order_id: tx.orderId, status: newStatus }, "Xendit payment status updated");
 
-      // If this is an ad payment, promote the ad_request to pending
       if (newStatus === "paid") {
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
+        await handleBookingDepositPaid(tx.orderId, payload.payment_id ?? payload.id);
       }
     }
 
