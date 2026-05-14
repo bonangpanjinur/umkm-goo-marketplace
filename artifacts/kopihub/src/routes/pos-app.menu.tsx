@@ -405,6 +405,7 @@ function MenuPage() {
   }
 
   const filtered = items.filter((it) => {
+    if (filter === "no_description") return !it.description?.trim();
     if (filter === "all") return true;
     if (filter === NO_CATEGORY) return !it.category_id;
     return it.category_id === filter;
@@ -431,12 +432,22 @@ function MenuPage() {
         </div>
         <div className="flex items-center gap-2">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-52">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua kategori</SelectItem>
               <SelectItem value={NO_CATEGORY}>Tanpa kategori</SelectItem>
+              {noDescCount > 0 && (
+                <SelectItem value="no_description">
+                  <span className="flex items-center gap-1.5">
+                    Tanpa deskripsi
+                    <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                      {noDescCount}
+                    </span>
+                  </span>
+                </SelectItem>
+              )}
               {categories.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
@@ -461,17 +472,29 @@ function MenuPage() {
             <Upload className="h-4 w-4" /> Import CSV
           </a>
           {noDescCount > 0 && (
-            <button
-              type="button"
-              onClick={openBatch}
-              className="inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-900/50"
-            >
-              <Sparkles className="h-4 w-4" />
-              Generate Massal
-              <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold text-white">
-                {noDescCount}
-              </span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setFilter("no_description")}
+                className="inline-flex items-center gap-1.5 rounded-l-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
+                title="Tampilkan produk tanpa deskripsi"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Tanpa Deskripsi
+                <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                  {noDescCount}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={openBatch}
+                className="inline-flex items-center gap-1.5 rounded-r-md border border-l-0 border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300 dark:hover:bg-violet-900/50"
+                title="Generate deskripsi AI untuk semua produk tanpa deskripsi"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generate Massal
+              </button>
+            </div>
           )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
