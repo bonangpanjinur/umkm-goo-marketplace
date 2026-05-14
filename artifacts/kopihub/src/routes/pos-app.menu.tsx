@@ -48,6 +48,8 @@ type MenuItem = {
   accepts_custom_order?: boolean | null;
   skin_type_tags?: string[] | null;
   restock_deadline?: string | null;
+  nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
+  production_days?: number | null;
 };
 
 type HPPRow = {
@@ -105,6 +107,12 @@ function MenuPage() {
   const [acceptsCustomOrder, setAcceptsCustomOrder] = useState(false);
   const [skinTypeTags, setSkinTypeTags] = useState<string[]>([]);
   const [restockDeadline, setRestockDeadline] = useState<string>("");
+  const [nutritionCal, setNutritionCal] = useState<string>("");
+  const [nutritionProtein, setNutritionProtein] = useState<string>("");
+  const [nutritionCarbs, setNutritionCarbs] = useState<string>("");
+  const [nutritionFat, setNutritionFat] = useState<string>("");
+  const [nutritionFiber, setNutritionFiber] = useState<string>("");
+  const [productionDays, setProductionDays] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -135,7 +143,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -186,6 +194,8 @@ function MenuPage() {
     setAcceptsCustomOrder(false);
     setSkinTypeTags([]);
     setRestockDeadline("");
+    setNutritionCal(""); setNutritionProtein(""); setNutritionCarbs(""); setNutritionFat(""); setNutritionFiber("");
+    setProductionDays("");
     setAiTags([]);
     setOpen(true);
   }
@@ -214,6 +224,13 @@ function MenuPage() {
     setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
     setSkinTypeTags((it as any).skin_type_tags ?? []);
     setRestockDeadline(it.restock_deadline ?? "");
+    const ni = (it as any).nutrition_info ?? {};
+    setNutritionCal(ni.calories != null ? String(ni.calories) : "");
+    setNutritionProtein(ni.protein != null ? String(ni.protein) : "");
+    setNutritionCarbs(ni.carbs != null ? String(ni.carbs) : "");
+    setNutritionFat(ni.fat != null ? String(ni.fat) : "");
+    setNutritionFiber(ni.fiber != null ? String(ni.fiber) : "");
+    setProductionDays((it as any).production_days != null ? String((it as any).production_days) : "");
     setAiTags([]);
     setOpen(true);
   }
@@ -433,7 +450,15 @@ function MenuPage() {
       accepts_custom_order: acceptsCustomOrder,
       skin_type_tags: skinTypeTags.length > 0 ? skinTypeTags : null,
       restock_deadline: restockDeadline || null,
-    };
+      nutrition_info: (nutritionCal || nutritionProtein || nutritionCarbs || nutritionFat || nutritionFiber) ? {
+        ...(nutritionCal ? { calories: Number(nutritionCal) } : {}),
+        ...(nutritionProtein ? { protein: Number(nutritionProtein) } : {}),
+        ...(nutritionCarbs ? { carbs: Number(nutritionCarbs) } : {}),
+        ...(nutritionFat ? { fat: Number(nutritionFat) } : {}),
+        ...(nutritionFiber ? { fiber: Number(nutritionFiber) } : {}),
+      } : null,
+      production_days: productionDays ? Number(productionDays) : null,
+    } as any;
     if (editing) {
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
       if (error) toast.error(error.message);
@@ -739,6 +764,52 @@ function MenuPage() {
                     </div>
                   </div>
                   <Switch checked={acceptsCustomOrder} onCheckedChange={setAcceptsCustomOrder} />
+                </div>
+
+                {/* R-10: Informasi Nutrisi */}
+                <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+                  <div className="text-sm font-semibold flex items-center gap-1.5">🥗 Informasi Nutrisi <span className="text-xs text-muted-foreground font-normal">(per porsi, opsional)</span></div>
+                  <div className="text-[11px] text-muted-foreground mb-2">Ditampilkan di halaman produk untuk transparansi kepada pembeli. Kosongkan jika tidak relevan.</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-[11px]">Kalori (kkal)</Label>
+                      <input type="number" min={0} step="1" value={nutritionCal} onChange={e => setNutritionCal(e.target.value)} placeholder="250" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Protein (g)</Label>
+                      <input type="number" min={0} step="0.1" value={nutritionProtein} onChange={e => setNutritionProtein(e.target.value)} placeholder="8" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Karbohidrat (g)</Label>
+                      <input type="number" min={0} step="0.1" value={nutritionCarbs} onChange={e => setNutritionCarbs(e.target.value)} placeholder="35" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Lemak (g)</Label>
+                      <input type="number" min={0} step="0.1" value={nutritionFat} onChange={e => setNutritionFat(e.target.value)} placeholder="10" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Serat (g)</Label>
+                      <input type="number" min={0} step="0.1" value={nutritionFiber} onChange={e => setNutritionFiber(e.target.value)} placeholder="3" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2 text-[11px] text-muted-foreground mt-1">
+                    Butuh kolom baru di DB — jalankan sekali di Supabase SQL Editor:<br />
+                    <code className="font-mono select-all">ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS nutrition_info jsonb;</code>
+                  </div>
+                </div>
+
+                {/* KR-02: Estimasi Waktu Produksi */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">🕐 Estimasi Waktu Produksi <span className="text-xs text-muted-foreground font-normal">(opsional)</span></Label>
+                  <div className="flex items-center gap-2">
+                    <input type="number" min={1} step="1" value={productionDays} onChange={e => setProductionDays(e.target.value)} placeholder="3" className="flex h-9 w-24 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                    <span className="text-sm text-muted-foreground">hari kerja</span>
+                    {productionDays && <button type="button" onClick={() => setProductionDays("")} className="text-[11px] text-muted-foreground hover:text-destructive ml-auto">Hapus</button>}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Ditampilkan di halaman produk: "Dibuat dalam ~3 hari kerja." Cocok untuk produk custom/handmade/kerajinan.</p>
+                  <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:border-amber-800 dark:bg-amber-950/20 px-3 py-2 text-[11px] text-muted-foreground">
+                    <code className="font-mono select-all">ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS production_days integer;</code>
+                  </div>
                 </div>
 
                 <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">

@@ -52,6 +52,8 @@ type Product = {
   flash_starts_at?: string | null;
   flash_ends_at?: string | null;
   restock_deadline?: string | null;
+  nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
+  production_days?: number | null;
 };
 
 type PricePoint = { recorded_at: string; price: number };
@@ -293,7 +295,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags, restock_deadline")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags, restock_deadline, nutrition_info, production_days")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -484,9 +486,57 @@ function ProductDetailPage() {
                 </div>
               )}
 
+              {/* KR-02: Estimasi waktu produksi */}
+              {product.production_days != null && product.production_days > 0 && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50/60 dark:border-blue-800 dark:bg-blue-950/20 px-3 py-2 text-sm">
+                  <span className="text-base">🕐</span>
+                  <span className="text-blue-800 dark:text-blue-300 font-medium">Dibuat dalam ~{product.production_days} hari kerja</span>
+                  <span className="text-blue-600 dark:text-blue-400 text-xs">(produk custom/handmade)</span>
+                </div>
+              )}
+
               {/* FA-07: Restock notification */}
               {product.track_stock && product.stock !== null && product.stock <= 0 && (
                 <StockAlertSection productId={product.id} productName={product.name} shopId={product.shop_id} restockDeadline={product.restock_deadline} />
+              )}
+
+              {/* R-10: Informasi Nutrisi */}
+              {product.nutrition_info && Object.values(product.nutrition_info).some(v => v != null) && (
+                <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                  <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">🥗 Informasi Nutrisi <span className="font-normal text-muted-foreground">(per porsi)</span></p>
+                  <div className="grid grid-cols-5 gap-2 text-center">
+                    {product.nutrition_info.calories != null && (
+                      <div className="rounded-lg border border-border bg-background p-2 flex flex-col items-center">
+                        <span className="text-base font-bold text-foreground">{product.nutrition_info.calories}</span>
+                        <span className="text-[10px] text-muted-foreground">kkal</span>
+                      </div>
+                    )}
+                    {product.nutrition_info.protein != null && (
+                      <div className="rounded-lg border border-border bg-background p-2 flex flex-col items-center">
+                        <span className="text-base font-bold text-foreground">{product.nutrition_info.protein}g</span>
+                        <span className="text-[10px] text-muted-foreground">Protein</span>
+                      </div>
+                    )}
+                    {product.nutrition_info.carbs != null && (
+                      <div className="rounded-lg border border-border bg-background p-2 flex flex-col items-center">
+                        <span className="text-base font-bold text-foreground">{product.nutrition_info.carbs}g</span>
+                        <span className="text-[10px] text-muted-foreground">Karbo</span>
+                      </div>
+                    )}
+                    {product.nutrition_info.fat != null && (
+                      <div className="rounded-lg border border-border bg-background p-2 flex flex-col items-center">
+                        <span className="text-base font-bold text-foreground">{product.nutrition_info.fat}g</span>
+                        <span className="text-[10px] text-muted-foreground">Lemak</span>
+                      </div>
+                    )}
+                    {product.nutrition_info.fiber != null && (
+                      <div className="rounded-lg border border-border bg-background p-2 flex flex-col items-center">
+                        <span className="text-base font-bold text-foreground">{product.nutrition_info.fiber}g</span>
+                        <span className="text-[10px] text-muted-foreground">Serat</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* P-09: Ingredient list & BPOM */}

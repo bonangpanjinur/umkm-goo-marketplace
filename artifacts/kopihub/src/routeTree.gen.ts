@@ -51,6 +51,7 @@ import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
 import { Route as PosAppRestockNotifyRouteImport } from './routes/pos-app.restock-notify'
 import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
+import { Route as PosAppRentalTncRouteImport } from './routes/pos-app.rental-tnc'
 import { Route as PosAppRentalChecklistRouteImport } from './routes/pos-app.rental-checklist'
 import { Route as PosAppRentalAvailabilityRouteImport } from './routes/pos-app.rental-availability'
 import { Route as PosAppRekeningBankRouteImport } from './routes/pos-app.rekening-bank'
@@ -87,6 +88,7 @@ import { Route as PosAppFlashSaleRouteImport } from './routes/pos-app.flash-sale
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppEmailMarketingRouteImport } from './routes/pos-app.email-marketing'
 import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
+import { Route as PosAppDigitalVersionRouteImport } from './routes/pos-app.digital-version'
 import { Route as PosAppDigitalLicensesRouteImport } from './routes/pos-app.digital-licenses'
 import { Route as PosAppDigitalRouteImport } from './routes/pos-app.digital'
 import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
@@ -410,6 +412,11 @@ const PosAppReportsRoute = PosAppReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppRentalTncRoute = PosAppRentalTncRouteImport.update({
+  id: '/rental-tnc',
+  path: '/rental-tnc',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppRentalChecklistRoute = PosAppRentalChecklistRouteImport.update({
   id: '/rental-checklist',
   path: '/rental-checklist',
@@ -590,6 +597,11 @@ const PosAppEmailMarketingRoute = PosAppEmailMarketingRouteImport.update({
 const PosAppDomainRoute = PosAppDomainRouteImport.update({
   id: '/domain',
   path: '/domain',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppDigitalVersionRoute = PosAppDigitalVersionRouteImport.update({
+  id: '/digital-version',
+  path: '/digital-version',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppDigitalLicensesRoute = PosAppDigitalLicensesRouteImport.update({
@@ -1252,6 +1264,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
   '/pos-app/digital-licenses': typeof PosAppDigitalLicensesRoute
+  '/pos-app/digital-version': typeof PosAppDigitalVersionRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
@@ -1288,6 +1301,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
+  '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
@@ -1440,6 +1454,7 @@ export interface FileRoutesByTo {
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
   '/pos-app/digital-licenses': typeof PosAppDigitalLicensesRoute
+  '/pos-app/digital-version': typeof PosAppDigitalVersionRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
@@ -1476,6 +1491,7 @@ export interface FileRoutesByTo {
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
+  '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
@@ -1632,6 +1648,7 @@ export interface FileRoutesById {
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
   '/pos-app/digital-licenses': typeof PosAppDigitalLicensesRoute
+  '/pos-app/digital-version': typeof PosAppDigitalVersionRoute
   '/pos-app/domain': typeof PosAppDomainRoute
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
@@ -1668,6 +1685,7 @@ export interface FileRoutesById {
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
+  '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
@@ -1826,6 +1844,7 @@ export interface FileRouteTypes {
     | '/pos-app/delivery'
     | '/pos-app/digital'
     | '/pos-app/digital-licenses'
+    | '/pos-app/digital-version'
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
@@ -1862,6 +1881,7 @@ export interface FileRouteTypes {
     | '/pos-app/rekening-bank'
     | '/pos-app/rental-availability'
     | '/pos-app/rental-checklist'
+    | '/pos-app/rental-tnc'
     | '/pos-app/reports'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
@@ -2014,6 +2034,7 @@ export interface FileRouteTypes {
     | '/pos-app/delivery'
     | '/pos-app/digital'
     | '/pos-app/digital-licenses'
+    | '/pos-app/digital-version'
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
@@ -2050,6 +2071,7 @@ export interface FileRouteTypes {
     | '/pos-app/rekening-bank'
     | '/pos-app/rental-availability'
     | '/pos-app/rental-checklist'
+    | '/pos-app/rental-tnc'
     | '/pos-app/reports'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
@@ -2205,6 +2227,7 @@ export interface FileRouteTypes {
     | '/pos-app/delivery'
     | '/pos-app/digital'
     | '/pos-app/digital-licenses'
+    | '/pos-app/digital-version'
     | '/pos-app/domain'
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
@@ -2241,6 +2264,7 @@ export interface FileRouteTypes {
     | '/pos-app/rekening-bank'
     | '/pos-app/rental-availability'
     | '/pos-app/rental-checklist'
+    | '/pos-app/rental-tnc'
     | '/pos-app/reports'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
@@ -2627,6 +2651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppReportsRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/rental-tnc': {
+      id: '/pos-app/rental-tnc'
+      path: '/rental-tnc'
+      fullPath: '/pos-app/rental-tnc'
+      preLoaderRoute: typeof PosAppRentalTncRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/rental-checklist': {
       id: '/pos-app/rental-checklist'
       path: '/rental-checklist'
@@ -2877,6 +2908,13 @@ declare module '@tanstack/react-router' {
       path: '/domain'
       fullPath: '/pos-app/domain'
       preLoaderRoute: typeof PosAppDomainRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/digital-version': {
+      id: '/pos-app/digital-version'
+      path: '/digital-version'
+      fullPath: '/pos-app/digital-version'
+      preLoaderRoute: typeof PosAppDigitalVersionRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/digital-licenses': {
@@ -3922,6 +3960,7 @@ interface PosAppRouteChildren {
   PosAppDeliveryRoute: typeof PosAppDeliveryRoute
   PosAppDigitalRoute: typeof PosAppDigitalRoute
   PosAppDigitalLicensesRoute: typeof PosAppDigitalLicensesRoute
+  PosAppDigitalVersionRoute: typeof PosAppDigitalVersionRoute
   PosAppDomainRoute: typeof PosAppDomainRoute
   PosAppEmailMarketingRoute: typeof PosAppEmailMarketingRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
@@ -3958,6 +3997,7 @@ interface PosAppRouteChildren {
   PosAppRekeningBankRoute: typeof PosAppRekeningBankRoute
   PosAppRentalAvailabilityRoute: typeof PosAppRentalAvailabilityRoute
   PosAppRentalChecklistRoute: typeof PosAppRentalChecklistRoute
+  PosAppRentalTncRoute: typeof PosAppRentalTncRoute
   PosAppReportsRoute: typeof PosAppReportsRouteWithChildren
   PosAppRestockNotifyRoute: typeof PosAppRestockNotifyRoute
   PosAppReviewsRoute: typeof PosAppReviewsRoute
@@ -4005,6 +4045,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppDeliveryRoute: PosAppDeliveryRoute,
   PosAppDigitalRoute: PosAppDigitalRoute,
   PosAppDigitalLicensesRoute: PosAppDigitalLicensesRoute,
+  PosAppDigitalVersionRoute: PosAppDigitalVersionRoute,
   PosAppDomainRoute: PosAppDomainRoute,
   PosAppEmailMarketingRoute: PosAppEmailMarketingRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
@@ -4041,6 +4082,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppRekeningBankRoute: PosAppRekeningBankRoute,
   PosAppRentalAvailabilityRoute: PosAppRentalAvailabilityRoute,
   PosAppRentalChecklistRoute: PosAppRentalChecklistRoute,
+  PosAppRentalTncRoute: PosAppRentalTncRoute,
   PosAppReportsRoute: PosAppReportsRouteWithChildren,
   PosAppRestockNotifyRoute: PosAppRestockNotifyRoute,
   PosAppReviewsRoute: PosAppReviewsRoute,

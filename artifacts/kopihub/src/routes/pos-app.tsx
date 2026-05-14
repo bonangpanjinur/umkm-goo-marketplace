@@ -63,6 +63,8 @@ import {
   Hash,
   ClipboardCheck,
   GraduationCap,
+  ScrollText,
+  History,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -135,6 +137,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/categories",     label: "Kategori",        icon: Tags },
       { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC },
       { to: "/pos-app/digital-licenses", label: "Lisensi Digital", icon: ShieldCheck, hint: "Lacak unduhan pembeli & kelola lisensi per produk digital — anti-sharing", onlyFor: DIGITAL_SVC },
+      { to: "/pos-app/digital-version",  label: "Update Versi",    icon: History, hint: "Rilis versi baru produk digital — pembeli lama dapat notifikasi otomatis", onlyFor: DIGITAL_SVC },
       { to: "/pos-app/kursus",           label: "Kursus Online",   icon: GraduationCap, hint: "Kelola kursus video online: modul, pelajaran, dan pantau progress pembeli", onlyFor: DIGITAL_SVC },
       { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag },
       { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers },
@@ -190,6 +193,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/waitlist",           label: "Antrian Waitlist",  icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh", onlyFor: FNB_SVC },
       { to: "/pos-app/rental-availability",label: "Ketersediaan Rental",icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal", onlyFor: SVC },
       { to: "/pos-app/rental-checklist",   label: "Checklist Kondisi",  icon: ClipboardCheck, hint: "Dokumentasi kondisi unit sebelum & sesudah sewa + tanda tangan digital", onlyFor: SVC },
+      { to: "/pos-app/rental-tnc",         label: "Syarat & Ketentuan", icon: ScrollText, hint: "Kelola T&C sewa: deposit %, denda keterlambatan, dan teks syarat penuh", onlyFor: SVC },
       { to: "/pos-app/booking-reminders",  label: "Reminder Booking",  icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-reviews",   label: "Ulasan Booking",    icon: Star, hint: "Monitor ulasan & kirim pengingat WhatsApp minta ulasan ke pelanggan", onlyFor: FNB_SVC },
       { to: "/pos-app/booking-analytics", label: "Analitik Booking",  icon: BarChart3, hint: "Pantau pendapatan deposit, tingkat pembatalan, jam slot terpopuler & tren booking", onlyFor: FNB_SVC },

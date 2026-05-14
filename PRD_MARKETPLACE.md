@@ -20,6 +20,76 @@
 
 ---
 
+## 🚦 TABEL FITUR BELUM DIKERJAKAN — DIURUTKAN BERDASARKAN PRIORITAS
+
+> **Terakhir diperbarui:** 15 Mei 2026 | Status diverifikasi langsung dari kode. ✅ = sudah ada di kode · ❌ = belum ada · ⚠️ = parsial
+
+### 🔴 PRIORITAS 1 — Tinggi (Impact Besar, Effort Kecil–Sedang, Feasible Sekarang)
+
+| # | Kode | Fitur | Kategori | Metrik | Catatan |
+|---|---|---|---|---|---|
+| 1 | R-10 | ✅ **Informasi Nutrisi** (kalori, protein, karbohidrat, lemak, serat) per menu item | F&B | Konversi / Trust | Diimplementasi 15 Mei 2026 — form di menu editor + tampilan card di halaman produk. SQL: `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS nutrition_info jsonb;` |
+| 2 | KR-02 | ✅ **Estimasi Waktu Produksi** per produk (dalam hari) | Custom/Kerajinan | Konversi | Diimplementasi 15 Mei 2026 — field `production_days` di menu editor + badge biru di halaman produk. SQL: `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS production_days integer;` |
+| 3 | R-07 | **Reservasi Meja customer-facing** dari halaman `/toko/:slug` | F&B | Konversi | Merchant-side sudah ada; pembeli belum bisa reservasi dari marketplace |
+| 4 | RT-08 | ✅ **Syarat & Ketentuan Sewa** per toko rental (dokumen, denda, deposit) | Rental | Trust / Legal | Diimplementasi 15 Mei 2026 — halaman `/pos-app/rental-tnc` dengan kebijakan kunci (deposit %, denda, durasi min, wajib KTP) + teks T&C lengkap + preview. SQL: `ALTER TABLE coffee_shops ADD COLUMN IF NOT EXISTS rental_tnc text, ADD COLUMN IF NOT EXISTS rental_deposit_pct integer, ...` |
+| 5 | RT-04 | **Hitung Deposit Otomatis Rental** (harga × durasi × %) | Rental | Konversi | Tidak ada kalkulasi otomatis saat pilih tanggal di wizard booking |
+| 6 | SA-03 | **Automated Payout Scheduler** — payout terjadwal tanpa approval manual | Super Admin | Pendapatan | Belum ada; saat ini setiap payout perlu approval manual satu-satu |
+| 7 | SA-11 | **Tax Management** — laporan PPh/PPN format SPT per periode | Super Admin | Compliance | Laporan keuangan ada tapi belum format standar SPT/akuntansi |
+| 8 | RT-05 | **Perpanjangan Sewa Mandiri** oleh penyewa | Rental | Retensi | Tidak ada fitur extend rental dari sisi pelanggan |
+| 9 | RT-07 | **Billing Denda Keterlambatan** (per jam/hari) | Rental | Pendapatan | Tidak ada mekanisme denda otomatis saat pengembalian terlambat |
+| 10 | SA-01 | **Merchant Onboarding Automation** — email sequence Hari 1/3/7 | Super Admin | Retensi | Tidak ada trigger email otomatis saat merchant baru daftar |
+| 11 | PD-06 | ✅ **Update Versi Produk Digital** → pembeli lama dapat notifikasi | Digital | Retensi | Diimplementasi 15 Mei 2026 — halaman `/pos-app/digital-version` dengan riwayat versi per produk, upload file, changelog, tombol "Notif Pembeli". Tabel `digital_product_versions`. |
+| 12 | R-09 | **Menu Paket / Combo Builder** F&B | F&B | AOV | Bundle produk ada tapi tidak spesifik untuk combo F&B (pilih varian, set hemat) |
+| 13 | RT-10 | **Notifikasi "Unit Siap Diambil"** ke penyewa | Rental | UX | Tidak ada notif otomatis saat rental siap diambil |
+
+### 🟡 PRIORITAS 2 — Sedang (Impact Sedang, Effort Sedang, Bisa Dikerjakan Berikutnya)
+
+| # | Kode | Fitur | Kategori | Metrik | Catatan |
+|---|---|---|---|---|---|
+| 14 | R-11 | **Kitchen Load Monitor** — estimasi waktu tunggu per pesanan | F&B | UX | Tidak ada estimasi beban dapur realtime |
+| 15 | FA-03 | **Panduan Ukuran Interaktif** ("Tinggi 165cm → pilih M") | Fashion | Konversi | Size chart ada, tapi belum ada kalkulator ukuran dinamis |
+| 16 | FA-04 | **Label "Pre-loved / Second"** kondisi A/B/C untuk produk bekas | Fashion | Trust | Tidak ada field kondisi barang bekas |
+| 17 | FA-05 | **Lookbook / Foto Model** yang pakai produk | Fashion | Konversi | Tidak ada section lookbook di halaman produk |
+| 18 | BE-04 | **Quiz Rekomendasi Produk** berdasarkan jenis kulit | Skincare | Konversi | Tidak ada quiz/tool rekomendasi |
+| 19 | BE-05 | **Klaim Verifikasi** ("Dermatologically tested") | Skincare | Trust | Tidak ada field/badge klaim uji klinis |
+| 20 | KL-02 | **Anamnesis Digital** sebelum konsultasi klinik | Klinik | UX | Tidak ada form anamnesis/keluhan awal pre-booking |
+| 21 | KL-05 | **Tagihan & Resep Digital** per pasien | Klinik | UX | Tidak ada invoice + resep digital dari dashboard merchant |
+| 22 | KL-07 | **Reminder Jadwal Kontrol Ulang** | Klinik | Retensi | Tidak ada notif reminder kontrol otomatis |
+| 23 | JU-06 | **Milestone Tracking** untuk project jangka panjang | Jasa Digital | Retensi | Custom order ada tapi tanpa milestone/fase |
+| 24 | JU-07 | **Escrow per Milestone** — bayar bertahap sesuai progress | Jasa Digital | Trust | Tidak ada sistem escrow milestone |
+| 25 | JU-08 | **Kontrak Freelance Digital** | Jasa Digital | Trust | Tidak ada agreement/kontrak digital per order |
+| 26 | KR-03 | **Certificate of Authenticity (COA) Digital** | Kerajinan/Seni | Trust | Tidak ada sertifikat keaslian otomatis |
+| 27 | KR-04 | **Edisi Terbatas** dengan counter stok visible | Kerajinan | Konversi | Stok ada tapi tidak ada label/countdown "Limited Edition X tersisa" |
+| 28 | KR-05 | **Galeri Proses Pembuatan** (work-in-progress) | Kerajinan | Trust | Portofolio ada tapi tidak ada section WIP |
+| 29 | SB-06 | **Pengingat Potong Rambut** — notif 4 minggu setelah kunjungan | Barber/Salon | Retensi | Tidak ada trigger notif otomatis post-visit |
+| 30 | SA-06 | **Multi-Admin Super Admin** (Finance, Support, Content) | Super Admin | Skala | Saat ini hanya satu role super_admin |
+| 31 | SA-07 | **Cohort & LTV Analytics** — merchant aktif 3/6/12 bulan | Super Admin | Retensi | Dashboard ada tapi tanpa analisis cohort LTV |
+| 32 | SA-08 | **Data Export / GDPR Tools** | Super Admin | Compliance | Tidak ada fitur right-to-erasure atau data export per user |
+| 33 | SA-09 | **Sandbox / Demo Mode** | Super Admin | Akuisisi | Tidak ada mode demo dengan data dummy untuk calon merchant |
+| 34 | SA-12 | **SLA & Response Time Monitor** | Super Admin | Kualitas | Tidak ada monitor uptime/response time 30 hari |
+| 35 | SA-13 | **Affiliate & Partner Management** | Super Admin | Pendapatan | Tidak ada sistem afiliator, tracking klik & komisi |
+| 36 | ADM-1 | **Broadcast Notifikasi ke Pembeli** (terpisah dari merchant) | Super Admin | Retensi | Broadcast hanya ke merchant; belum bisa target pembeli |
+| 37 | ADM-2 | **Kredit Manual & Suspend Pembeli** | Super Admin | Kontrol | Manajemen pembeli hanya bisa lihat data, tidak ada aksi |
+| 38 | ADM-3 | **Churn Auto Re-engagement** — email otomatis jika tidak login 14 hari | Super Admin | Retensi | Dashboard churn ada tapi tanpa trigger otomatis |
+| 39 | ADM-4 | **Fraud ML Scoring** 0–100 per transaksi | Super Admin | Keamanan | Hanya rule-based dasar; belum ada skor risiko ML |
+
+### 🟢 PRIORITAS 3 — Masa Depan (Kompleks, 3+ Hari, atau Butuh Infrastruktur Eksternal)
+
+| # | Kode | Fitur | Estimasi | Catatan |
+|---|---|---|---|---|
+| 40 | F-16 | **Deposit via Payment Gateway** (Midtrans/Xendit) untuk Booking | 3 hari | Butuh merchant setup gateway key; konfirmasi manual ✅ sudah ada |
+| 41 | F-01 | **Group Buy / Patungan** | 3 hari | Kompleks: escrow, batas waktu, refund jika gagal |
+| 42 | F-02 | **Subscription / Langganan Produk Rutin** | 3 hari | Butuh recurring billing & auto-debit |
+| 43 | F-06 | **Affiliate Program per Toko** | 3 hari | Tracking klik unik, komisi, dashboard afiliator |
+| 44 | F-07 | **Google Analytics & Meta Pixel Integration** | 2 hari | Perlu consent management & iframe safety |
+| 45 | F-09 | **Live Streaming Commerce** | 7+ hari | Infrastruktur streaming besar, WebRTC/HLS |
+| 46 | F-10 | **BNPL / Cicilan** (Kredivo, Akulaku) | 5 hari | Integrasi API pihak ketiga, KYC pembeli |
+| 47 | F-11 | **Mobile App** (React Native / Expo) | 3+ minggu | Proyek besar tersendiri |
+| 48 | KL-06 | **Telemedicine / Konsultasi Video** | 5+ hari | WebRTC, rekaman, privacy |
+| 49 | SA-10 | **A/B Testing Manager** | 3 hari | Experiment framework, statistik signifikansi |
+
+---
+
 ## RINGKASAN EKSEKUTIF
 
 Platform ini sudah sangat kuat dari sisi infrastruktur. **70–75% fitur inti sudah ada.** Gap terbesar bukan di fitur yang rumit, tapi di pengalaman pengguna yang lengkap:
