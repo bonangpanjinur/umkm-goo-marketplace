@@ -81,15 +81,18 @@ function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Manual add
+  // Manual add / edit
   const [manualOpen, setManualOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [manualName, setManualName] = useState("");
   const [manualRole, setManualRole] = useState("cashier");
   const [manualOutletId, setManualOutletId] = useState<string>("");
   const [manualPhone, setManualPhone] = useState("");
   const [manualAvatar, setManualAvatar] = useState("");
   const [manualSaving, setManualSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     if (!shop) return;
