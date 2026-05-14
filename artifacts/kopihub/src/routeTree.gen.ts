@@ -86,6 +86,7 @@ import { Route as PosAppDomainRouteImport } from './routes/pos-app.domain'
 import { Route as PosAppDigitalRouteImport } from './routes/pos-app.digital'
 import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
 import { Route as PosAppCustomersRouteImport } from './routes/pos-app.customers'
+import { Route as PosAppCustomerAnalyticsRouteImport } from './routes/pos-app.customer-analytics'
 import { Route as PosAppCustomOrdersRouteImport } from './routes/pos-app.custom-orders'
 import { Route as PosAppCustomCssRouteImport } from './routes/pos-app.custom-css'
 import { Route as PosAppCouriersRouteImport } from './routes/pos-app.couriers'
@@ -572,6 +573,11 @@ const PosAppDeliveryRoute = PosAppDeliveryRouteImport.update({
 const PosAppCustomersRoute = PosAppCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppCustomerAnalyticsRoute = PosAppCustomerAnalyticsRouteImport.update({
+  id: '/customer-analytics',
+  path: '/customer-analytics',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppCustomOrdersRoute = PosAppCustomOrdersRouteImport.update({
@@ -1163,6 +1169,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/custom-css': typeof PosAppCustomCssRoute
   '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
+  '/pos-app/customer-analytics': typeof PosAppCustomerAnalyticsRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1338,6 +1345,7 @@ export interface FileRoutesByTo {
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/custom-css': typeof PosAppCustomCssRoute
   '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
+  '/pos-app/customer-analytics': typeof PosAppCustomerAnalyticsRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1517,6 +1525,7 @@ export interface FileRoutesById {
   '/pos-app/couriers': typeof PosAppCouriersRoute
   '/pos-app/custom-css': typeof PosAppCustomCssRoute
   '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
+  '/pos-app/customer-analytics': typeof PosAppCustomerAnalyticsRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1698,6 +1707,7 @@ export interface FileRouteTypes {
     | '/pos-app/couriers'
     | '/pos-app/custom-css'
     | '/pos-app/custom-orders'
+    | '/pos-app/customer-analytics'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -1873,6 +1883,7 @@ export interface FileRouteTypes {
     | '/pos-app/couriers'
     | '/pos-app/custom-css'
     | '/pos-app/custom-orders'
+    | '/pos-app/customer-analytics'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -2051,6 +2062,7 @@ export interface FileRouteTypes {
     | '/pos-app/couriers'
     | '/pos-app/custom-css'
     | '/pos-app/custom-orders'
+    | '/pos-app/customer-analytics'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -2714,6 +2726,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/pos-app/customers'
       preLoaderRoute: typeof PosAppCustomersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/customer-analytics': {
+      id: '/pos-app/customer-analytics'
+      path: '/customer-analytics'
+      fullPath: '/pos-app/customer-analytics'
+      preLoaderRoute: typeof PosAppCustomerAnalyticsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/custom-orders': {
@@ -3649,6 +3668,7 @@ interface PosAppRouteChildren {
   PosAppCouriersRoute: typeof PosAppCouriersRoute
   PosAppCustomCssRoute: typeof PosAppCustomCssRoute
   PosAppCustomOrdersRoute: typeof PosAppCustomOrdersRoute
+  PosAppCustomerAnalyticsRoute: typeof PosAppCustomerAnalyticsRoute
   PosAppCustomersRoute: typeof PosAppCustomersRoute
   PosAppDeliveryRoute: typeof PosAppDeliveryRoute
   PosAppDigitalRoute: typeof PosAppDigitalRoute
@@ -3723,6 +3743,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppCouriersRoute: PosAppCouriersRoute,
   PosAppCustomCssRoute: PosAppCustomCssRoute,
   PosAppCustomOrdersRoute: PosAppCustomOrdersRoute,
+  PosAppCustomerAnalyticsRoute: PosAppCustomerAnalyticsRoute,
   PosAppCustomersRoute: PosAppCustomersRoute,
   PosAppDeliveryRoute: PosAppDeliveryRoute,
   PosAppDigitalRoute: PosAppDigitalRoute,

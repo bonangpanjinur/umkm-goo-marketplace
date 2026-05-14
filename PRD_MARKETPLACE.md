@@ -597,6 +597,9 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 14 Mei 2026 | Sprint 14 | **M-18 Review Post-Booking** — tabel `booking_reviews`; form ulasan inline (bintang + teks) di riwayat booking pelanggan; panel merchant `/pos-app/booking-reviews` + tombol "Minta Ulasan via WA" | ✅ |
 | 14 Mei 2026 | Sprint 15 | **M-18a Auto-Trigger H+1** — Edge Function `send-review-requests`; kolom `review_request_sent_at` di `bookings`; tabel `booking_review_requests`; pg_cron harian 09:00 WIB; banner + highlight card amber di `akun.bookings.tsx`; panel analitik konversi funnel (terkirim → dibuka → diulas) + breakdown bulanan di `pos-app.booking-reviews.tsx` | ✅ |
 | 14 Mei 2026 | Sprint 15 | **M-18b Notif Score** — kolom `resend_count` + `is_unresponsive` di `booking_review_requests`; tombol "Kirim Ulang Notif" dengan counter (1/3, 2/3, 3/3); setelah 3 ulang notif tanpa respons sistem otomatis menandai booking sebagai "Tidak Responsif" (badge merah) dan memblokir pengiriman selanjutnya; toast peringatan saat batas tercapai | ✅ |
+| 14 Mei 2026 | Sprint 16 | **Sertifikat Toko Terpercaya** — `TrustCertBadge` + `TrustCertCard` + `TrustCertProgress` shared components; kriteria otomatis: avg_rating ≥ 4.5, ≥ 50 ulasan, reply_rate > 80%; badge tampil di `/toko/:slug` (header + panel detail), `/leaderboard` (podium + list), `/pos-app/reviews` (progress bar owner); SQL migration `fase6_trust_cert.sql` dengan trigger auto-update per review insert/update | ✅ |
+| 14 Mei 2026 | Sprint 16 | **Tab "Tidak Responsif" + Auto-Blacklist Reset** — tab filter ke-4 di `/pos-app/booking-reviews`; stat card unresponsive yang clickable; banner konteks segmen; settings panel: cooldown selector (15/30/60/90 hari), toggle auto-reset saat page load, tombol bulk reset eligible; tombol "Reset Blacklist" per-booking di kartu individual | ✅ |
+| 14 Mei 2026 | Sprint 16 | **M-18c Analitik Pembeli Booking** — `/pos-app/customer-analytics`; 5 segmen otomatis: Pelanggan Setia / Pelanggan Baru / Perlu Diaktivasi / Churn Risk / Tidak Responsif; KPI cards (total pembeli, setia, churn risk, tidak responsif); breakdown bar distribusi segmen; tabel sortable (booking, nilai, terakhir booking); expand per-baris untuk detail + tip + tombol WA reaktivasi/win-back; export CSV | ✅ |
 
 ---
 
@@ -883,6 +886,9 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | M-18 | **Review Post-Booking Otomatis H+1** | Jasa T3&T4 | Kepercayaan | ✅ Selesai |
 | M-19 | **Galeri Portofolio tampil di halaman publik /toko/:slug** | Jasa/Kreatif | Kepercayaan | ✅ Selesai |
 | M-20 | **Halaman Produk Digital di Akun** (`/akun/digital-products`) | Digital T2 | UX | ✅ Selesai |
+| M-21 | **Sertifikat Toko Terpercaya** — badge otomatis (rating ≥ 4.5, ≥ 50 ulasan, reply > 80%) | Merchant | Kepercayaan | ✅ Selesai Sprint 16 |
+| M-22 | **Tab Tidak Responsif + Auto-Blacklist Reset** — cooldown selector, toggle auto-reset, bulk/individual reset | Jasa T3&T4 | Retensi | ✅ Selesai Sprint 16 |
+| M-18c | **Analitik Pembeli Booking** — 5 segmen (Setia/Baru/Perlu Aktivasi/Churn Risk/Tidak Responsif) + WA reaktivasi + export CSV | Jasa T3&T4 | Retensi | ✅ Selesai Sprint 16 |
 
 ### 🟢 Masa Depan (Dampak Besar, Effort Besar — 3+ hari)
 
