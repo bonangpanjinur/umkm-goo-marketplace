@@ -466,6 +466,73 @@ function EmployeesPage() {
             )}
           </section>
 
+          {staffMembers.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+                PEGAWAI MANUAL ({staffMembers.length})
+              </h2>
+              <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left">Nama</th>
+                      <th className="px-4 py-2.5 text-left">Peran</th>
+                      <th className="px-4 py-2.5 text-left">Outlet</th>
+                      <th className="px-4 py-2.5 text-left">No. HP</th>
+                      <th className="px-4 py-2.5"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {staffMembers.map((sm) => {
+                      const outlet = outlets.find((o) => o.id === sm.outlet_id);
+                      return (
+                        <tr key={sm.id} className="hover:bg-muted/30">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold uppercase text-accent-foreground">
+                                {sm.avatar_url ? (
+                                  <img src={sm.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+                                ) : (
+                                  sm.name.charAt(0)
+                                )}
+                              </div>
+                              <span className="font-medium">{sm.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium">
+                              {roleLabel(sm.role)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{outlet?.name ?? "Semua"}</td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {sm.phone ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Phone className="h-3 w-3" /> {sm.phone}
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeManual(sm.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
           {pending.length > 0 && (
             <section>
               <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
