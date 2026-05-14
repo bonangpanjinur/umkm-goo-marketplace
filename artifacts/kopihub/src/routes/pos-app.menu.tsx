@@ -890,6 +890,15 @@ function MenuPage() {
                       </span>
                     )}
                   </div>
+                  {it.description?.trim() ? (
+                    <p className="mt-1.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">
+                      {it.description.trim()}
+                    </p>
+                  ) : (
+                    <p className="mt-1.5 text-[11px] italic text-muted-foreground/50">
+                      Belum ada deskripsi
+                    </p>
+                  )}
                   <div className="mt-auto flex items-center gap-1 pt-2">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(it)} title="Edit">
                       <Pencil className="h-3.5 w-3.5" />
