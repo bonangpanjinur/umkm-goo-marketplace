@@ -807,14 +807,43 @@ function EmployeesPage() {
                             {outlet?.name ?? "Semua"}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeMember(m)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setPwDialog({
+                                    userId: m.user_id,
+                                    name: m.profile?.display_name ?? "Pegawai",
+                                  })
+                                }
+                                title="Ubah kata sandi"
+                              >
+                                <KeyRound className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => sendResetPassword(m)}
+                                disabled={resetting === m.id}
+                                title="Kirim tautan reset"
+                              >
+                                {resetting === m.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeMember(m)}
+                                className="text-destructive hover:text-destructive"
+                                title="Keluarkan dari toko"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
