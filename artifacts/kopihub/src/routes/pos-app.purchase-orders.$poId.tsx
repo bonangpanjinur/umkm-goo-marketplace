@@ -12,13 +12,14 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Loader2, ArrowLeft, CheckCircle2, X, Trash2, Send, Printer, Eye, Save, Settings2,
-  History, Pencil, Plus, AlertCircle, MessageCircle, FileText,
+  History, Pencil, AlertCircle, FileText, Package, TrendingUp, ArrowRight, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import { buildWAMessage, openWA, loadTemplate, type WATemplate, WA_TEMPLATE_LABELS } from "@/lib/po-whatsapp";
+
 
 export const Route = createFileRoute("/pos-app/purchase-orders/$poId")({
   component: PODetailPage,
@@ -156,6 +157,20 @@ function formatPONo(raw: string): string {
   return /^PO[-_]/i.test(s) ? s : `PO-${s}`;
 }
 
+function auditActionLabel(action: string): string {
+  const map: Record<string, string> = {
+    status_change: "Perubahan status",
+    received: "PO diterima",
+    deleted: "PO dihapus",
+    draft_edited: "Draft diperbarui",
+    created: "PO dibuat",
+  };
+  return map[action] ?? action;
+}
+function auditStatusLabel(s: string): string {
+  return ({ draft: "Draft", ordered: "Sudah dipesan", received: "Diterima", cancelled: "Dibatalkan" } as Record<string, string>)[s] ?? s;
+}
+
 function statusBadge(status: PO["status"]) {
   const map: Record<PO["status"], string> = {
     draft: "bg-muted text-muted-foreground",
@@ -175,9 +190,24 @@ function PODetailPage() {
   const [ingMap, setIngMap] = useState<Record<string, Ingredient>>({});
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"summary" | "items" | "history">("summary");
+
+  // Modal states
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [receiveOpen, setReceiveOpen] = useState(false);
+
+  // Draft editing
+  const [editMode, setEditMode] = useState(false);
+  const [editItems, setEditItems] = useState<POItem[]>([]);
+  const [editNote, setEditNote] = useState("");
+
   const [prefs, setPrefs] = useState<PrintPrefs>(() => loadPrefs());
   const [presets, setPresets] = useState<PrinterPreset[]>(() => loadPresets());
   const [defaultPresetId, setDefaultPresetId] = useState<string | null>(() => loadDefaultPresetId());
@@ -293,51 +323,171 @@ function PODetailPage() {
     const { data: poData, error } = await supabase.from("purchase_orders").select("*").eq("id", poId).single();
     if (error || !poData) { toast.error(error?.message ?? "PO tidak ditemukan"); setLoading(false); return; }
     setPo(poData as PO);
-    const [itRes, ingRes, supRes, shopRes] = await Promise.all([
+    const [itRes, ingRes, supRes, shopRes, auditRes] = await Promise.all([
       supabase.from("purchase_order_items").select("*").eq("po_id", poId),
-      supabase.from("ingredients").select("id, name, unit").eq("shop_id", poData.shop_id),
+      supabase.from("ingredients").select("id, name, unit, current_stock, cost_per_unit").eq("shop_id", poData.shop_id),
       poData.supplier_id
         ? supabase.from("suppliers").select("id, name, phone, contact_name, address, email").eq("id", poData.supplier_id).single()
         : Promise.resolve({ data: null }),
       supabase.from("coffee_shops").select("id, name, address, phone, email, logo_url").eq("id", poData.shop_id).single(),
+      supabase.from("po_audit_log").select("id, action, from_status, to_status, reason, actor_name, created_at").eq("po_id", poId).order("created_at", { ascending: false }),
     ]);
-    setItems((itRes.data ?? []) as POItem[]);
+    const itList = (itRes.data ?? []) as POItem[];
+    setItems(itList);
+    setEditItems(itList);
+    setEditNote((poData as PO).note ?? "");
     const map: Record<string, Ingredient> = {};
     ((ingRes.data ?? []) as Ingredient[]).forEach((i) => { map[i.id] = i; });
     setIngMap(map);
     setSupplier((supRes as { data: Supplier | null }).data ?? null);
     setShop((shopRes as { data: Shop | null }).data ?? null);
+    setAudit((auditRes.data ?? []) as AuditEntry[]);
     setLoading(false);
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [poId]);
 
-  async function setStatus(status: PO["status"]) {
+  async function logAudit(action: string, fromStatus: PO["status"] | null, toStatus: PO["status"] | null, reason: string | null) {
+    if (!po) return;
+    const { data: auth } = await supabase.auth.getUser();
+    await supabase.from("po_audit_log").insert({
+      po_id: po.id,
+      shop_id: po.shop_id,
+      action,
+      from_status: fromStatus,
+      to_status: toStatus,
+      reason,
+      actor_id: auth.user?.id ?? null,
+      actor_name: auth.user?.email ?? null,
+    });
+  }
+
+  async function setStatus(status: PO["status"], reason: string | null = null) {
     if (!po) return;
     setBusy(true);
+    const fromStatus = po.status;
     const { error } = await supabase.from("purchase_orders").update({ status }).eq("id", po.id);
-    if (error) toast.error(error.message); else { toast.success("Status diperbarui"); load(); }
+    if (error) { toast.error(error.message); setBusy(false); return; }
+    await logAudit("status_change", fromStatus, status, reason);
+    toast.success("Status diperbarui");
+    await load();
     setBusy(false);
   }
 
-  async function receivePO() {
+  async function confirmCancel() {
+    if (!cancelReason.trim()) { toast.error("Alasan pembatalan wajib diisi"); return; }
+    await setStatus("cancelled", cancelReason.trim());
+    setCancelOpen(false);
+    setCancelReason("");
+  }
+
+  async function confirmReceive() {
     if (!po) return;
-    if (!confirm(`Terima PO ${formatPONo(po.po_no)}? Stok akan otomatis bertambah dan HPP akan di-update.`)) return;
     setBusy(true);
+    const fromStatus = po.status;
     const { error } = await supabase.rpc("receive_purchase_order", { _po_id: po.id });
-    if (error) toast.error(error.message); else { toast.success("PO diterima — stok diperbarui"); load(); }
+    if (error) { toast.error(error.message); setBusy(false); return; }
+    await logAudit("received", fromStatus, "received", null);
+    toast.success("PO diterima — stok & HPP diperbarui");
+    setReceiveOpen(false);
+    await load();
     setBusy(false);
   }
 
-  async function deletePO() {
+  async function confirmDelete() {
     if (!po) return;
-    if (!confirm(`Hapus PO ${formatPONo(po.po_no)}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!deleteReason.trim()) { toast.error("Alasan penghapusan wajib diisi"); return; }
     setBusy(true);
+    await logAudit("deleted", po.status, null, deleteReason.trim());
     await supabase.from("purchase_order_items").delete().eq("po_id", po.id);
     const { error } = await supabase.from("purchase_orders").delete().eq("id", po.id);
-    if (error) { toast.error(error.message); setBusy(false); }
-    else { toast.success("PO dihapus"); nav({ to: "/pos-app/purchase-orders" }); }
+    if (error) { toast.error(error.message); setBusy(false); return; }
+    toast.success("PO dihapus");
+    nav({ to: "/pos-app/purchase-orders" });
   }
+
+  // Draft editing helpers
+  function updateEditItem(id: string, patch: Partial<POItem>) {
+    setEditItems((arr) => arr.map((it) => {
+      if (it.id !== id) return it;
+      const merged = { ...it, ...patch };
+      const qty = Number(merged.quantity) || 0;
+      const cost = Number(merged.unit_cost) || 0;
+      return { ...merged, subtotal: qty * cost };
+    }));
+  }
+  function removeEditItem(id: string) {
+    setEditItems((arr) => arr.filter((it) => it.id !== id));
+  }
+  const editSubtotal = useMemo(() => editItems.reduce((s, it) => s + Number(it.subtotal || 0), 0), [editItems]);
+  const editTotal = editSubtotal + Number(po?.tax ?? 0);
+
+  async function saveDraftEdits() {
+    if (!po) return;
+    setBusy(true);
+    // Update each existing item
+    const original = new Map(items.map((it) => [it.id, it]));
+    const ops: Promise<unknown>[] = [];
+    for (const it of editItems) {
+      const orig = original.get(it.id);
+      if (!orig) continue;
+      if (orig.quantity !== it.quantity || orig.unit_cost !== it.unit_cost || orig.subtotal !== it.subtotal) {
+        ops.push(
+          supabase.from("purchase_order_items")
+            .update({ quantity: it.quantity, unit_cost: it.unit_cost, subtotal: it.subtotal })
+            .eq("id", it.id),
+        );
+      }
+    }
+    // Deletes
+    const remainingIds = new Set(editItems.map((it) => it.id));
+    for (const orig of items) {
+      if (!remainingIds.has(orig.id)) {
+        ops.push(supabase.from("purchase_order_items").delete().eq("id", orig.id));
+      }
+    }
+    // Update PO totals + note
+    ops.push(
+      supabase.from("purchase_orders")
+        .update({ subtotal: editSubtotal, total: editTotal, note: editNote || null })
+        .eq("id", po.id),
+    );
+    const results = await Promise.all(ops);
+    const firstError = results.find((r): r is { error: { message: string } } =>
+      typeof r === "object" && r !== null && "error" in r && (r as { error: unknown }).error != null,
+    );
+    if (firstError) { toast.error(firstError.error.message); setBusy(false); return; }
+    await logAudit("draft_edited", po.status, po.status, null);
+    toast.success("Perubahan draft disimpan");
+    setEditMode(false);
+    await load();
+    setBusy(false);
+  }
+
+  // Stock preview for receive modal
+  const stockPreview = useMemo(() => {
+    return items.map((it) => {
+      const ig = ingMap[it.ingredient_id];
+      const currentStock = Number(ig?.current_stock ?? 0);
+      const currentCost = Number(ig?.cost_per_unit ?? 0);
+      const qty = Number(it.quantity);
+      const newStock = currentStock + qty;
+      // Weighted average HPP
+      const newCost = newStock > 0
+        ? ((currentStock * currentCost) + (qty * Number(it.unit_cost))) / newStock
+        : Number(it.unit_cost);
+      return {
+        id: it.id,
+        name: ig?.name ?? "—",
+        unit: ig?.unit ?? "",
+        currentStock,
+        addQty: qty,
+        newStock,
+        currentCost,
+        newCost,
+      };
+    });
+  }, [items, ingMap]);
 
   // Compute fit-to-page zoom: scale paper width to fit available preview area.
   const previewMaxPx = 760; // approximate inner dialog width budget
@@ -387,7 +537,14 @@ function PODetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{formatPONo(po.po_no)}</h1>
-            <div className="mt-2">{statusBadge(po.status)}</div>
+            <div className="mt-2 flex items-center gap-2">
+              {statusBadge(po.status)}
+              {audit.length > 0 && (
+                <Badge variant="outline" className="text-xs font-normal">
+                  <History className="mr-1 h-3 w-3" /> {audit.length} aktivitas
+                </Badge>
+              )}
+            </div>
           </div>
           <div className="text-right text-sm">
             <div className="text-muted-foreground">Tanggal terbit: <span className="text-foreground">{formatDateID(po.order_date)}</span></div>
@@ -396,70 +553,195 @@ function PODetailPage() {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-border bg-background p-3">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Supplier</div>
-            {supplier ? (
-              <div className="mt-1">
-                <Link to="/pos-app/suppliers" className="font-medium hover:underline">{supplier.name}</Link>
-                {supplier.contact_name && <div className="text-xs text-muted-foreground">{supplier.contact_name}</div>}
-                {supplier.phone && <div className="text-xs text-muted-foreground">{supplier.phone}</div>}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mt-5">
+          <TabsList>
+            <TabsTrigger value="summary"><FileText className="mr-1.5 h-3.5 w-3.5" /> Ringkasan</TabsTrigger>
+            <TabsTrigger value="items"><Package className="mr-1.5 h-3.5 w-3.5" /> Item ({items.length})</TabsTrigger>
+            <TabsTrigger value="history"><History className="mr-1.5 h-3.5 w-3.5" /> Riwayat ({audit.length})</TabsTrigger>
+          </TabsList>
+
+          {/* RINGKASAN */}
+          <TabsContent value="summary" className="mt-4 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg border border-border bg-background p-3">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Supplier</div>
+                {supplier ? (
+                  <div className="mt-1">
+                    <Link to="/pos-app/suppliers" className="font-medium hover:underline">{supplier.name}</Link>
+                    {supplier.contact_name && <div className="text-xs text-muted-foreground">{supplier.contact_name}</div>}
+                    {supplier.phone && <div className="text-xs text-muted-foreground">{supplier.phone}</div>}
+                  </div>
+                ) : <div className="mt-1 text-sm text-muted-foreground">— tidak ditentukan —</div>}
               </div>
-            ) : <div className="mt-1 text-sm text-muted-foreground">— tidak ditentukan —</div>}
-          </div>
-          <div className="rounded-lg border border-border bg-background p-3">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Catatan</div>
-            <div className="mt-1 text-sm whitespace-pre-wrap">{po.note || <span className="text-muted-foreground">—</span>}</div>
-          </div>
-        </div>
+              <div className="rounded-lg border border-border bg-background p-3">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Catatan</div>
+                <div className="mt-1 text-sm whitespace-pre-wrap">{po.note || <span className="text-muted-foreground">—</span>}</div>
+              </div>
+            </div>
 
-        <div className="mt-5 overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2.5 text-left">Bahan</th>
-                <th className="px-3 py-2.5 text-right">Qty</th>
-                <th className="px-3 py-2.5 text-right">Harga / unit</th>
-                <th className="px-3 py-2.5 text-right">Subtotal</th>
-                {po.status === "received" && <th className="px-3 py-2.5 text-right">Diterima</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {items.map((it) => {
-                const ig = ingMap[it.ingredient_id];
-                return (
-                  <tr key={it.id}>
-                    <td className="px-3 py-2.5 font-medium">{ig?.name ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{Number(it.quantity)} {ig?.unit}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{formatIDR(it.unit_cost)}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{formatIDR(it.subtotal)}</td>
-                    {po.status === "received" && (
-                      <td className="px-3 py-2.5 text-right tabular-nums text-emerald-600">+{Number(it.received_qty)} {ig?.unit}</td>
-                    )}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-border bg-background p-3">
+                <div className="text-xs text-muted-foreground">Subtotal</div>
+                <div className="mt-1 text-lg font-semibold tabular-nums">{formatIDR(po.subtotal)}</div>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-3">
+                <div className="text-xs text-muted-foreground">Pajak</div>
+                <div className="mt-1 text-lg font-semibold tabular-nums">{formatIDR(po.tax)}</div>
+              </div>
+              <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
+                <div className="text-xs text-muted-foreground">Total</div>
+                <div className="mt-1 text-lg font-bold tabular-nums text-primary">{formatIDR(po.total)}</div>
+              </div>
+            </div>
+
+            {po.status === "received" && (
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+                <CheckCircle2 className="mr-1.5 inline h-4 w-4" />
+                PO sudah diterima — stok bahan dan HPP rata-rata otomatis terupdate.
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ITEM */}
+          <TabsContent value="items" className="mt-4">
+            {po.status === "draft" && (
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="text-sm text-muted-foreground">
+                  {editMode ? "Mode edit — ubah qty atau harga, lalu simpan." : "Item dalam PO ini."}
+                </div>
+                <div className="flex gap-2">
+                  {editMode ? (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => { setEditMode(false); setEditItems(items); setEditNote(po.note ?? ""); }}>Batal</Button>
+                      <Button size="sm" onClick={saveDraftEdits} disabled={busy}>
+                        {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+                        Simpan perubahan
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit draft
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="overflow-hidden rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2.5 text-left">Bahan</th>
+                    <th className="px-3 py-2.5 text-right">Qty</th>
+                    <th className="px-3 py-2.5 text-right">Harga / unit</th>
+                    <th className="px-3 py-2.5 text-right">Subtotal</th>
+                    {po.status === "received" && <th className="px-3 py-2.5 text-right">Diterima</th>}
+                    {editMode && <th className="px-3 py-2.5"></th>}
                   </tr>
-                );
-              })}
-              {items.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">Tidak ada item.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {(editMode ? editItems : items).map((it) => {
+                    const ig = ingMap[it.ingredient_id];
+                    if (editMode) {
+                      return (
+                        <tr key={it.id}>
+                          <td className="px-3 py-2 font-medium">{ig?.name ?? "—"}</td>
+                          <td className="px-3 py-2 text-right">
+                            <Input type="number" min="0" step="0.01" className="h-8 w-24 ml-auto text-right tabular-nums"
+                              value={it.quantity}
+                              onChange={(e) => updateEditItem(it.id, { quantity: Number(e.target.value) })} />
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <Input type="number" min="0" step="1" className="h-8 w-32 ml-auto text-right tabular-nums"
+                              value={it.unit_cost}
+                              onChange={(e) => updateEditItem(it.id, { unit_cost: Number(e.target.value) })} />
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums">{formatIDR(it.subtotal)}</td>
+                          <td className="px-3 py-2 text-right">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeEditItem(it.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return (
+                      <tr key={it.id}>
+                        <td className="px-3 py-2.5 font-medium">{ig?.name ?? "—"}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{Number(it.quantity)} {ig?.unit}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{formatIDR(it.unit_cost)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{formatIDR(it.subtotal)}</td>
+                        {po.status === "received" && (
+                          <td className="px-3 py-2.5 text-right tabular-nums text-emerald-600">+{Number(it.received_qty)} {ig?.unit}</td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                  {(editMode ? editItems : items).length === 0 && (
+                    <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">Tidak ada item.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        <div className="mt-4 ml-auto max-w-xs space-y-1 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">{formatIDR(po.subtotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Pajak</span><span className="tabular-nums">{formatIDR(po.tax)}</span></div>
-          <div className="flex justify-between border-t border-border pt-1.5 text-base font-semibold"><span>Total</span><span className="tabular-nums">{formatIDR(po.total)}</span></div>
-        </div>
+            {editMode && (
+              <div className="mt-3">
+                <Label className="text-xs text-muted-foreground">Catatan</Label>
+                <Textarea value={editNote} onChange={(e) => setEditNote(e.target.value)} className="mt-1" rows={2} />
+              </div>
+            )}
 
-        {po.status !== "received" && po.status !== "cancelled" && (
+            <div className="mt-4 ml-auto max-w-xs space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">{formatIDR(editMode ? editSubtotal : po.subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Pajak</span><span className="tabular-nums">{formatIDR(po.tax)}</span></div>
+              <div className="flex justify-between border-t border-border pt-1.5 text-base font-semibold"><span>Total</span><span className="tabular-nums">{formatIDR(editMode ? editTotal : po.total)}</span></div>
+            </div>
+          </TabsContent>
+
+          {/* RIWAYAT */}
+          <TabsContent value="history" className="mt-4">
+            {audit.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+                Belum ada riwayat aktivitas.
+              </div>
+            ) : (
+              <ol className="relative space-y-3 border-l border-border pl-4">
+                {audit.map((a) => (
+                  <li key={a.id} className="relative">
+                    <span className="absolute -left-[21px] top-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-primary ring-4 ring-background" />
+                    <div className="rounded-lg border border-border bg-background p-3">
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="font-medium">{auditActionLabel(a.action)}</span>
+                        {a.from_status && a.to_status && (
+                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                            {auditStatusLabel(a.from_status)} <ArrowRight className="h-3 w-3" /> {auditStatusLabel(a.to_status)}
+                          </span>
+                        )}
+                      </div>
+                      {a.reason && (
+                        <div className="mt-1.5 rounded bg-muted/40 px-2 py-1 text-xs text-foreground">
+                          <span className="text-muted-foreground">Alasan:</span> {a.reason}
+                        </div>
+                      )}
+                      <div className="mt-1.5 text-xs text-muted-foreground">
+                        {a.actor_name ?? "Sistem"} · {new Date(a.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {po.status !== "received" && po.status !== "cancelled" && !editMode && (
           <div className="mt-6 flex flex-wrap items-center justify-end gap-2 print:hidden">
             {po.status === "draft" && (
               <>
-                <Button variant="ghost" onClick={deletePO} disabled={busy} className="text-destructive hover:text-destructive">
+                <Button variant="ghost" onClick={() => setDeleteOpen(true)} disabled={busy} className="text-destructive hover:text-destructive">
                   <Trash2 className="mr-1.5 h-4 w-4" /> Hapus
                 </Button>
-                <Button variant="outline" onClick={() => setStatus("cancelled")} disabled={busy}>
+                <Button variant="outline" onClick={() => setCancelOpen(true)} disabled={busy}>
                   <X className="mr-1.5 h-4 w-4" /> Batalkan
                 </Button>
                 <Button onClick={() => setStatus("ordered")} disabled={busy}>
@@ -469,26 +751,167 @@ function PODetailPage() {
             )}
             {po.status === "ordered" && (
               <>
-                <Button variant="outline" onClick={() => setStatus("cancelled")} disabled={busy}>
+                <Button variant="outline" onClick={() => setCancelOpen(true)} disabled={busy}>
                   <X className="mr-1.5 h-4 w-4" /> Batalkan
                 </Button>
-                <Button onClick={receivePO} disabled={busy}>
-                  {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
+                <Button onClick={() => setReceiveOpen(true)} disabled={busy}>
+                  <CheckCircle2 className="mr-1.5 h-4 w-4" />
                   Terima & update stok
                 </Button>
               </>
             )}
           </div>
         )}
-
-        {po.status === "received" && (
-          <div className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300 print:hidden">
-            <CheckCircle2 className="mr-1.5 inline h-4 w-4" />
-            PO sudah diterima — stok bahan dan HPP rata-rata sudah otomatis terupdate.
-          </div>
-        )}
       </div>
     </div>
+
+    {/* Cancel modal */}
+    <Dialog open={cancelOpen} onOpenChange={(o) => { if (!busy) setCancelOpen(o); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/15 text-amber-600">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            Batalkan PO
+          </DialogTitle>
+          <DialogDescription>
+            PO <span className="font-medium text-foreground">{formatPONo(po.po_no)}</span> akan diset menjadi <span className="font-medium text-foreground">Dibatalkan</span>. Tindakan ini akan tercatat di riwayat.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label className="text-sm">Alasan pembatalan <span className="text-destructive">*</span></Label>
+          <Textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="mis. Salah supplier, harga tidak sesuai, dsb."
+            rows={3}
+            autoFocus
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setCancelOpen(false)} disabled={busy}>Tutup</Button>
+          <Button variant="destructive" onClick={confirmCancel} disabled={busy || !cancelReason.trim()}>
+            {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <X className="mr-1.5 h-4 w-4" />}
+            Konfirmasi pembatalan
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* Delete modal */}
+    <Dialog open={deleteOpen} onOpenChange={(o) => { if (!busy) setDeleteOpen(o); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-destructive/15 text-destructive">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            Hapus PO permanen
+          </DialogTitle>
+          <DialogDescription>
+            PO <span className="font-medium text-foreground">{formatPONo(po.po_no)}</span> beserta seluruh item akan dihapus permanen. Riwayat tetap tersimpan untuk audit.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label className="text-sm">Alasan penghapusan <span className="text-destructive">*</span></Label>
+          <Textarea
+            value={deleteReason}
+            onChange={(e) => setDeleteReason(e.target.value)}
+            placeholder="mis. Dibuat duplikat, data uji coba, dsb."
+            rows={3}
+            autoFocus
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setDeleteOpen(false)} disabled={busy}>Tutup</Button>
+          <Button variant="destructive" onClick={confirmDelete} disabled={busy || !deleteReason.trim()}>
+            {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Trash2 className="mr-1.5 h-4 w-4" />}
+            Hapus permanen
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* Receive modal — stock & HPP preview */}
+    <Dialog open={receiveOpen} onOpenChange={(o) => { if (!busy) setReceiveOpen(o); }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            Terima & update stok
+          </DialogTitle>
+          <DialogDescription>
+            Tinjau perubahan stok dan HPP rata-rata berikut sebelum mengonfirmasi.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-auto -mx-6 px-6">
+          <div className="overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left">Bahan</th>
+                  <th className="px-3 py-2 text-right">Stok</th>
+                  <th className="px-3 py-2 text-right">HPP rata-rata</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {stockPreview.map((p) => {
+                  const costDelta = p.newCost - p.currentCost;
+                  return (
+                    <tr key={p.id}>
+                      <td className="px-3 py-2.5 font-medium">{p.name}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums">
+                        <div className="text-muted-foreground text-xs">{p.currentStock} {p.unit}</div>
+                        <div className="flex items-center justify-end gap-1 font-medium">
+                          <ArrowRight className="h-3 w-3 text-emerald-600" />
+                          {p.newStock} {p.unit}
+                          <span className="text-xs text-emerald-600">(+{p.addQty})</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 text-right tabular-nums">
+                        <div className="text-muted-foreground text-xs">{formatIDR(p.currentCost)}</div>
+                        <div className="flex items-center justify-end gap-1 font-medium">
+                          <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                          {formatIDR(p.newCost)}
+                          {Math.abs(costDelta) >= 0.5 && (
+                            <span className={`text-xs ${costDelta > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                              {costDelta > 0 ? "↑" : "↓"} {formatIDR(Math.abs(costDelta))}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><TrendingUp className="h-3.5 w-3.5" /> Total nilai pembelian</div>
+              <div className="mt-1 text-lg font-bold tabular-nums">{formatIDR(po.total)}</div>
+            </div>
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400"><Info className="h-3.5 w-3.5" /> Setelah konfirmasi</div>
+              <div className="mt-1 text-xs text-muted-foreground">Stok & HPP rata-rata otomatis ter-update; status PO menjadi <span className="font-medium text-foreground">Diterima</span>.</div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setReceiveOpen(false)} disabled={busy}>Tutup</Button>
+          <Button onClick={confirmReceive} disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
+            Konfirmasi terima
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     {/* Print-only sheet */}
     <div className="po-print">
