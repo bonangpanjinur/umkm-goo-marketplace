@@ -440,6 +440,10 @@ function PODetailPage() {
 
   async function saveDraftEdits() {
     if (!po) return;
+    if (!editValid) {
+      toast.error(editItems.length === 0 ? "Tidak ada item yang bisa disimpan" : "Periksa kembali qty & harga");
+      return;
+    }
     setBusy(true);
     // Update each existing item
     const original = new Map(items.map((it) => [it.id, it]));
