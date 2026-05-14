@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { useAuth } from "@/lib/auth";
@@ -21,8 +21,9 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone } from "lucide-react";
+import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone, Pencil, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/pos-app/employees")({
   component: EmployeesPage,
@@ -80,15 +81,18 @@ function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Manual add
+  // Manual add / edit
   const [manualOpen, setManualOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [manualName, setManualName] = useState("");
   const [manualRole, setManualRole] = useState("cashier");
   const [manualOutletId, setManualOutletId] = useState<string>("");
   const [manualPhone, setManualPhone] = useState("");
   const [manualAvatar, setManualAvatar] = useState("");
   const [manualSaving, setManualSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     if (!shop) return;
@@ -186,23 +190,89 @@ function EmployeesPage() {
     setTimeout(() => setCopied(null), 1500);
   }
 
+  function resetManualForm() {
+    setEditingId(null);
+    setManualName("");
+    setManualPhone("");
+    setManualAvatar("");
+    setManualRole("cashier");
+    setManualOutletId(outlets[0]?.id ?? "");
+  }
+
+  function openEditManual(sm: StaffMember) {
+    setEditingId(sm.id);
+    setManualName(sm.name);
+    setManualRole(sm.role);
+    setManualOutletId(sm.outlet_id ?? "");
+    setManualPhone(sm.phone ?? "");
+    setManualAvatar(sm.avatar_url ?? "");
+    setManualOpen(true);
+  }
+
+  async function handleAvatarUpload(file: File) {
+    if (!shop) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Format harus JPG, PNG, atau WEBP");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Ukuran maksimal 2MB");
+      return;
+    }
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${shop.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("staff-avatars").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+    if (upErr) {
+      toast.error(upErr.message);
+      setUploadingAvatar(false);
+      return;
+    }
+    const { data } = supabase.storage.from("staff-avatars").getPublicUrl(path);
+    setManualAvatar(data.publicUrl);
+    setUploadingAvatar(false);
+    toast.success("Foto terupload");
+  }
+
+  function validateManual(): string | null {
+    const name = manualName.trim();
+    if (!name) return "Nama wajib diisi";
+    if (name.length < 2) return "Nama terlalu pendek";
+    const phone = manualPhone.trim();
+    if (phone && !/^[0-9+\-\s]{6,20}$/.test(phone)) return "No. HP hanya boleh angka (6-20 digit)";
+    if (manualOutletId && !outlets.some((o) => o.id === manualOutletId)) {
+      return "Outlet tidak valid untuk toko ini";
+    }
+    return null;
+  }
+
   async function addManual() {
-    if (!shop || !manualName.trim()) return;
+    if (!shop) return;
+    const err = validateManual();
+    if (err) {
+      toast.error(err);
+      return;
+    }
     setManualSaving(true);
-    const { error } = await supabase.from("staff_members").insert({
-      shop_id: shop.id,
+    // Normalize phone to digits + leading +
+    const phone = manualPhone.trim().replace(/[\s-]/g, "") || null;
+    const payload = {
       outlet_id: manualOutletId || null,
       name: manualName.trim(),
       role: manualRole as "manager" | "cashier" | "barista",
-      phone: manualPhone.trim() || null,
+      phone,
       avatar_url: manualAvatar.trim() || null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("staff_members").update(payload).eq("id", editingId)
+      : await supabase.from("staff_members").insert({ ...payload, shop_id: shop.id });
     if (error) toast.error(error.message);
     else {
-      toast.success("Pegawai ditambahkan");
-      setManualName("");
-      setManualPhone("");
-      setManualAvatar("");
+      toast.success(editingId ? "Pegawai diperbarui" : "Pegawai ditambahkan");
+      resetManualForm();
       setManualOpen(false);
       load();
     }
@@ -210,7 +280,8 @@ function EmployeesPage() {
   }
 
   async function removeManual(id: string) {
-    if (!confirm("Hapus pegawai ini?")) return;
+    if (!confirm("Hapus pegawai ini? Semua jadwalnya juga akan dihapus.")) return;
+    await supabase.from("shifts").delete().eq("user_id", id);
     const { error } = await supabase.from("staff_members").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
@@ -239,24 +310,80 @@ function EmployeesPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+          <Dialog
+            open={manualOpen}
+            onOpenChange={(o) => {
+              setManualOpen(o);
+              if (!o) resetManualForm();
+            }}
+          >
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => resetManualForm()}>
                 <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Tambah pegawai</DialogTitle>
+                <DialogTitle>{editingId ? "Edit pegawai" : "Tambah pegawai"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3 py-2">
+              <div className="space-y-4 py-2">
+                <div className="flex items-center gap-4">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-accent">
+                    {manualAvatar ? (
+                      <img src={manualAvatar} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-lg font-semibold uppercase text-accent-foreground">
+                        {manualName.charAt(0) || "?"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleAvatarUpload(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                      >
+                        {uploadingAvatar ? (
+                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="mr-1.5 h-3.5 w-3.5" />
+                        )}
+                        {manualAvatar ? "Ganti foto" : "Upload foto"}
+                      </Button>
+                      {manualAvatar && (
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setManualAvatar("")}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">JPG/PNG/WEBP, maks 2MB</p>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
-                  <Label>Nama lengkap</Label>
+                  <Label>
+                    Nama lengkap <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     value={manualName}
                     onChange={(e) => setManualName(e.target.value)}
                     placeholder="cth. Andi Saputra"
                     maxLength={120}
+                    autoFocus
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -292,34 +419,29 @@ function EmployeesPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>No. HP</Label>
+                  <Label>No. HP (opsional)</Label>
                   <Input
                     value={manualPhone}
-                    onChange={(e) => setManualPhone(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9+\-\s]/g, "");
+                      setManualPhone(v);
+                    }}
+                    inputMode="tel"
                     placeholder="08xxxxxxxxxx"
                     maxLength={20}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>URL foto (opsional)</Label>
-                  <Input
-                    value={manualAvatar}
-                    onChange={(e) => setManualAvatar(e.target.value)}
-                    placeholder="https://..."
-                    maxLength={500}
-                  />
-                </div>
                 <p className="text-xs text-muted-foreground">
-                  Pegawai ini hanya untuk pencatatan & jadwal — tidak punya akses login.
+                  Pegawai ini bisa langsung dijadwalkan di halaman Jadwal — tidak perlu akun login.
                 </p>
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setManualOpen(false)}>
                   Batal
                 </Button>
-                <Button onClick={addManual} disabled={manualSaving || !manualName.trim()}>
+                <Button onClick={addManual} disabled={manualSaving || uploadingAvatar || !manualName.trim()}>
                   {manualSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Simpan
+                  {editingId ? "Simpan perubahan" : "Simpan"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -515,14 +637,25 @@ function EmployeesPage() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeManual(sm.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditManual(sm)}
+                                title="Edit pegawai"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeManual(sm.id)}
+                                className="text-destructive hover:text-destructive"
+                                title="Hapus pegawai"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
