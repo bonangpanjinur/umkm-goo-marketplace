@@ -279,6 +279,49 @@ function EmployeesPage() {
   const [confirmRevokeInv, setConfirmRevokeInv] = useState<Invitation | null>(null);
   const [confirmCloseCreds, setConfirmCloseCreds] = useState(false);
 
+  // Bulk selection
+  const [selLogin, setSelLogin] = useState<Set<string>>(new Set());
+  const [selManual, setSelManual] = useState<Set<string>>(new Set());
+  const [selInv, setSelInv] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [confirmBulk, setConfirmBulk] = useState<null | { kind: "activate" | "deactivate" | "resend"; count: number }>(null);
+  const totalSelected = selLogin.size + selManual.size + selInv.size;
+
+  function clearSelection() { setSelLogin(new Set()); setSelManual(new Set()); setSelInv(new Set()); }
+  function toggleSel(set: Set<string>, setter: (s: Set<string>) => void, id: string) {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setter(next);
+  }
+
+  async function runBulk(kind: "activate" | "deactivate" | "resend") {
+    if (!shop) return;
+    setBulkRunning(true);
+    let ok = 0, fail = 0;
+    if (kind === "resend") {
+      for (const id of selInv) {
+        try { await callStaffApi("resend-invitation", { shop_id: shop.id, invitation_id: id }); ok++; }
+        catch { fail++; }
+      }
+    } else {
+      const isActive = kind === "activate";
+      for (const uid of selLogin) {
+        try { await callStaffApi("update-role", { shop_id: shop.id, user_id: uid, is_active: isActive }); ok++; }
+        catch { fail++; }
+      }
+      for (const sid of selManual) {
+        try { await callStaffApi("set-manual-active", { shop_id: shop.id, staff_member_id: sid, is_active: isActive }); ok++; }
+        catch { fail++; }
+      }
+    }
+    setBulkRunning(false);
+    setConfirmBulk(null);
+    if (ok > 0) toast.success(`${ok} berhasil${fail > 0 ? `, ${fail} gagal` : ""}`);
+    else toast.error(`Semua ${fail} gagal`);
+    clearSelection();
+    load();
+  }
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
