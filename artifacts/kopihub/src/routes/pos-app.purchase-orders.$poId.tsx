@@ -407,13 +407,20 @@ function PODetailPage() {
   }
 
   // Draft editing helpers
+  function clampNum(v: unknown): number {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return n;
+  }
   function updateEditItem(id: string, patch: Partial<POItem>) {
     setEditItems((arr) => arr.map((it) => {
       if (it.id !== id) return it;
-      const merged = { ...it, ...patch };
-      const qty = Number(merged.quantity) || 0;
-      const cost = Number(merged.unit_cost) || 0;
-      return { ...merged, subtotal: qty * cost };
+      const next = { ...it, ...patch };
+      if (patch.quantity !== undefined) next.quantity = clampNum(patch.quantity);
+      if (patch.unit_cost !== undefined) next.unit_cost = clampNum(patch.unit_cost);
+      const qty = Number(next.quantity) || 0;
+      const cost = Number(next.unit_cost) || 0;
+      return { ...next, subtotal: Math.round(qty * cost * 100) / 100 };
     }));
   }
   function removeEditItem(id: string) {
@@ -421,6 +428,15 @@ function PODetailPage() {
   }
   const editSubtotal = useMemo(() => editItems.reduce((s, it) => s + Number(it.subtotal || 0), 0), [editItems]);
   const editTotal = editSubtotal + Number(po?.tax ?? 0);
+  const editErrors = useMemo(() => {
+    const errs: Record<string, string> = {};
+    for (const it of editItems) {
+      if (!(Number(it.quantity) > 0)) errs[it.id] = "Qty harus lebih dari 0";
+      else if (Number(it.unit_cost) < 0) errs[it.id] = "Harga tidak boleh negatif";
+    }
+    return errs;
+  }, [editItems]);
+  const editValid = editItems.length > 0 && Object.keys(editErrors).length === 0;
 
   async function saveDraftEdits() {
     if (!po) return;
