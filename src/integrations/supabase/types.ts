@@ -3215,6 +3215,76 @@ export type Database = {
           },
         ]
       }
+      product_attribute_defs: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          field_type: string
+          id: string
+          is_required: boolean
+          key: string
+          name: string
+          options: Json
+          placeholder: string | null
+          shop_id: string
+          sort_order: number
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          field_type?: string
+          id?: string
+          is_required?: boolean
+          key: string
+          name: string
+          options?: Json
+          placeholder?: string | null
+          shop_id: string
+          sort_order?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          field_type?: string
+          id?: string
+          is_required?: boolean
+          key?: string
+          name?: string
+          options?: Json
+          placeholder?: string | null
+          shop_id?: string
+          sort_order?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_attribute_defs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_attribute_defs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_attribute_defs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       product_reviews: {
         Row: {
           comment: string | null
