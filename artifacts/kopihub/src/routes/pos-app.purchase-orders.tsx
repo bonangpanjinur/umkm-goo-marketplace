@@ -342,9 +342,31 @@ function POPage() {
         </div>
         <div className="flex items-center gap-2">
           {pos.length > 0 && (
-            <Button variant="outline" onClick={exportCSV}>
-              <Download className="mr-2 h-4 w-4" /> Export CSV
-            </Button>
+            <>
+              <Select value={waTemplate} onValueChange={(v) => changeTemplate(v as WATemplate)}>
+                <SelectTrigger className="h-9 w-[160px]" title="Template pesan WhatsApp">
+                  <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["ringkas", "lengkap", "formal"] as WATemplate[]).map((t) => (
+                    <SelectItem key={t} value={t}>
+                      <div className="flex flex-col">
+                        <span>WA {WA_TEMPLATE_LABELS[t]}</span>
+                        <span className="text-[10px] text-muted-foreground">{WA_TEMPLATE_DESC[t]}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={openBatchDialog} disabled={batchEligible.length === 0}
+                title={batchEligible.length === 0 ? "Tidak ada PO terfilter dengan nomor WhatsApp" : `Kirim ulang ${batchEligible.length} PO`}>
+                <Repeat className="mr-2 h-4 w-4" /> Kirim ulang ({batchEligible.length})
+              </Button>
+              <Button variant="outline" onClick={exportCSV}>
+                <Download className="mr-2 h-4 w-4" /> Export CSV
+              </Button>
+            </>
           )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> PO baru</Button></DialogTrigger>
