@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import {
   Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
-  TrendingUp, ArrowRight, RotateCcw,
+  TrendingUp, ArrowRight, RotateCcw, BellOff, UserX, HandHelping,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -120,7 +120,7 @@ function BookingReviewsPage() {
   const [bookings, setBookings] = useState<CompletedBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [filter, setFilter] = useState<"all" | "reviewed" | "pending">("pending");
+  const [filter, setFilter] = useState<"all" | "reviewed" | "pending" | "unresponsive">("pending");
   const [sentReminders, setSentReminders] = useState<Set<string>>(new Set());
   const [reviewRequestsMap, setReviewRequestsMap] = useState<Record<string, ReviewRequestStat>>({});
   const [resending, setResending] = useState<string | null>(null);
@@ -262,13 +262,18 @@ function BookingReviewsPage() {
     return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
 
-  const reviewed = bookings.filter(b => b.review);
-  const pendingReview = bookings.filter(b => !b.review);
+  const reviewed           = bookings.filter(b => b.review);
+  const pendingReview      = bookings.filter(b => !b.review);
+  const unresponsiveBookings = bookings.filter(b => reviewRequestsMap[b.id]?.is_unresponsive === true && !b.review);
   const avgRating = reviewed.length > 0
     ? (reviewed.reduce((s, b) => s + (b.review!.rating), 0) / reviewed.length).toFixed(1)
     : null;
 
-  const shown = filter === "all" ? bookings : filter === "reviewed" ? reviewed : pendingReview;
+  const shown =
+    filter === "all"          ? bookings :
+    filter === "reviewed"     ? reviewed :
+    filter === "unresponsive" ? unresponsiveBookings :
+    pendingReview;
 
   // ── Analytics derivations ────────────────────────────────────────────────
   const totalCompleted  = bookings.length;
@@ -315,7 +320,7 @@ function BookingReviewsPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border bg-card px-4 py-3">
           <p className="text-xs text-muted-foreground">Total Selesai</p>
           <p className="text-2xl font-bold mt-0.5">{bookings.length}</p>
@@ -331,6 +336,24 @@ function BookingReviewsPage() {
             {avgRating && <Star className="h-5 w-5 fill-amber-400 text-amber-400" />}
           </div>
         </div>
+        <button
+          onClick={() => setFilter("unresponsive")}
+          className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+            unresponsiveBookings.length > 0
+              ? "border-red-200 bg-red-50 hover:bg-red-100"
+              : "border-border bg-card"
+          }`}
+        >
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <BellOff className="h-3 w-3" /> Tidak Responsif
+          </p>
+          <p className={`text-2xl font-bold mt-0.5 ${unresponsiveBookings.length > 0 ? "text-red-600" : ""}`}>
+            {unresponsiveBookings.length}
+          </p>
+          {unresponsiveBookings.length > 0 && (
+            <p className="text-[10px] text-red-500 mt-0.5">perlu pendekatan manual</p>
+          )}
+        </button>
       </div>
 
       {/* ── Analitik Konversi H+1 ───────────────────────────────────────── */}
@@ -425,21 +448,73 @@ function BookingReviewsPage() {
       )}
 
       {/* Filter tabs */}
-      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit">
+      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit flex-wrap">
         {([
-          { key: "pending",  label: `Belum Diulas (${pendingReview.length})` },
-          { key: "reviewed", label: `Sudah Diulas (${reviewed.length})` },
-          { key: "all",      label: `Semua (${bookings.length})` },
+          { key: "pending",       label: "Belum Diulas",    count: pendingReview.length,        warn: false },
+          { key: "reviewed",      label: "Sudah Diulas",    count: reviewed.length,             warn: false },
+          { key: "unresponsive",  label: "Tidak Responsif", count: unresponsiveBookings.length, warn: unresponsiveBookings.length > 0 },
+          { key: "all",           label: "Semua",           count: bookings.length,             warn: false },
         ] as const).map(tab => (
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${filter === tab.key ? "bg-background shadow-sm" : "hover:bg-background/60"}`}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all flex items-center gap-1.5 ${
+              filter === tab.key ? "bg-background shadow-sm" : "hover:bg-background/60"
+            }`}
           >
+            {tab.warn && tab.count > 0 && (
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+            )}
             {tab.label}
+            <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+              tab.warn && tab.count > 0
+                ? "bg-red-100 text-red-700"
+                : "bg-muted text-muted-foreground"
+            }`}>
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>
+
+      {/* Unresponsive context banner */}
+      {filter === "unresponsive" && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100">
+              <UserX className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-red-800">Segmen Pembeli Tidak Responsif</p>
+              <p className="text-xs text-red-700 mt-0.5 leading-relaxed">
+                Booking ini sudah menerima {MAX_RESENDS}x notifikasi otomatis namun pembeli tidak memberikan ulasan.
+                Sistem telah berhenti mengirim notif otomatis — tindakan manual diperlukan untuk mendekati mereka kembali.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3 text-xs">
+            {[
+              { icon: BellOff,     color: "text-red-600",    title: "Blacklist Notif Otomatis",   desc: "Tidak ada notifikasi lagi dari sistem." },
+              { icon: HandHelping, color: "text-orange-600", title: "Pendekatan Manual via WA",    desc: "Hubungi langsung dengan pesan personal." },
+              { icon: TrendingUp,  color: "text-blue-600",   title: "Pantau Rasio Tidak Responsif", desc: "Gunakan angka ini untuk evaluasi kualitas layanan." },
+            ].map(({ icon: Icon, color, title, desc }) => (
+              <div key={title} className="flex items-start gap-2 rounded-lg bg-white/60 border border-red-100 p-2.5">
+                <Icon className={`h-4 w-4 ${color} shrink-0 mt-0.5`} />
+                <div>
+                  <p className="font-semibold text-red-800">{title}</p>
+                  <p className="text-red-600 mt-0.5">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {unresponsiveBookings.length > 0 && (
+            <p className="text-[11px] text-red-500">
+              {unresponsiveBookings.length} pembeli · {pct(unresponsiveBookings.length, bookings.length)}% dari total booking selesai
+              {totalSent > 0 && ` · rasio notif gagal konversi: ${pct(unresponsiveBookings.length, totalSent)}%`}
+            </p>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-3">
@@ -449,7 +524,9 @@ function BookingReviewsPage() {
         <div className="rounded-xl border border-dashed border-border py-14 text-center">
           <CheckCircle2 className="mx-auto h-10 w-10 text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">
-            {filter === "pending" ? "Semua booking yang selesai sudah diulas!" : "Belum ada data."}
+            {filter === "pending"       ? "Semua booking yang selesai sudah diulas! 🎉" :
+             filter === "unresponsive"  ? "Belum ada pembeli yang ditandai tidak responsif." :
+             "Belum ada data."}
           </p>
         </div>
       ) : (
