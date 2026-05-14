@@ -663,21 +663,39 @@ function PODetailPage() {
                   {(editMode ? editItems : items).map((it) => {
                     const ig = ingMap[it.ingredient_id];
                     if (editMode) {
+                      const rowErr = editErrors[it.id];
                       return (
-                        <tr key={it.id}>
-                          <td className="px-3 py-2 font-medium">{ig?.name ?? "—"}</td>
-                          <td className="px-3 py-2 text-right">
-                            <Input type="number" min="0" step="0.01" className="h-8 w-24 ml-auto text-right tabular-nums"
-                              value={it.quantity}
-                              onChange={(e) => updateEditItem(it.id, { quantity: Number(e.target.value) })} />
+                        <tr key={it.id} className={rowErr ? "bg-destructive/5" : undefined}>
+                          <td className="px-3 py-2 font-medium align-top">
+                            {ig?.name ?? "—"}
+                            {rowErr && (
+                              <div className="mt-0.5 text-[11px] text-destructive flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" /> {rowErr}
+                              </div>
+                            )}
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            <Input type="number" min="0" step="1" className="h-8 w-32 ml-auto text-right tabular-nums"
-                              value={it.unit_cost}
-                              onChange={(e) => updateEditItem(it.id, { unit_cost: Number(e.target.value) })} />
+                          <td className="px-3 py-2 text-right align-top">
+                            <Input
+                              type="number" min="0" step="0.01"
+                              className={`h-8 w-24 ml-auto text-right tabular-nums ${rowErr?.includes("Qty") ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                              value={it.quantity === 0 ? "" : it.quantity}
+                              placeholder="0"
+                              onChange={(e) => updateEditItem(it.id, { quantity: e.target.value === "" ? 0 : Number(e.target.value) })}
+                              onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }}
+                            />
                           </td>
-                          <td className="px-3 py-2 text-right tabular-nums">{formatIDR(it.subtotal)}</td>
-                          <td className="px-3 py-2 text-right">
+                          <td className="px-3 py-2 text-right align-top">
+                            <Input
+                              type="number" min="0" step="1"
+                              className={`h-8 w-32 ml-auto text-right tabular-nums ${rowErr?.includes("Harga") ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                              value={it.unit_cost === 0 ? "" : it.unit_cost}
+                              placeholder="0"
+                              onChange={(e) => updateEditItem(it.id, { unit_cost: e.target.value === "" ? 0 : Number(e.target.value) })}
+                              onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }}
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums align-top">{formatIDR(it.subtotal)}</td>
+                          <td className="px-3 py-2 text-right align-top">
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeEditItem(it.id)}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
