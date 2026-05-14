@@ -247,12 +247,30 @@ router.post("/staff/reset-password", async (req, res) => {
   }
   const body = (req.body ?? {}) as Record<string, unknown>;
   const shop_id = String(body["shop_id"] ?? "");
-  const email = String(body["email"] ?? "").trim().toLowerCase();
+  let email = String(body["email"] ?? "").trim().toLowerCase();
+  const user_id = body["user_id"] ? String(body["user_id"]) : "";
   const redirect_to = body["redirect_to"] ? String(body["redirect_to"]) : undefined;
-  if (!shop_id || !email) return badRequest(res, "shop_id & email wajib");
+  if (!shop_id || (!email && !user_id)) return badRequest(res, "shop_id & (email|user_id) wajib");
   if (!(await assertOwnsShop(callerId, shop_id))) {
     res.status(403).json({ ok: false, error: "Bukan pemilik toko" });
     return;
+  }
+
+  // Resolve email from user_id if needed
+  if (!email && user_id) {
+    const ur = await fetch(`${SUPABASE_URL()}/auth/v1/admin/users/${user_id}`, {
+      headers: adminHeaders(),
+    });
+    if (!ur.ok) {
+      res.status(404).json({ ok: false, error: "User tidak ditemukan" });
+      return;
+    }
+    const ud = (await ur.json()) as { email?: string };
+    email = (ud.email ?? "").toLowerCase();
+    if (!email) {
+      res.status(404).json({ ok: false, error: "Email user tidak ditemukan" });
+      return;
+    }
   }
 
   const linkRes = await fetch(`${SUPABASE_URL()}/auth/v1/admin/generate_link`, {
