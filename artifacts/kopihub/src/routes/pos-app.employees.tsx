@@ -1361,7 +1361,19 @@ function EmployeesPage() {
                 {filtered.map((u) => {
                   const outlet = outlets.find((o) => o.id === u.outlet_id);
                   return (
-                    <div key={u.key} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+                     <div key={u.key} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+                      {(() => {
+                        const selSet = u.kind === "login" ? selLogin : selManual;
+                        const setSelSet = u.kind === "login" ? setSelLogin : setSelManual;
+                        const id = u.kind === "login" ? u.raw.user_id : u.raw.id;
+                        return (
+                          <Checkbox
+                            className="mt-1"
+                            checked={selSet.has(id)}
+                            onCheckedChange={() => toggleSel(selSet, setSelSet, id)}
+                          />
+                        );
+                      })()}
                       <Avatar name={u.name} url={u.avatarUrl} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
@@ -1642,6 +1654,36 @@ function EmployeesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk action confirm */}
+      <AlertDialog open={!!confirmBulk} onOpenChange={(o) => !o && !bulkRunning && setConfirmBulk(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmBulk?.kind === "activate" && `Aktifkan ${confirmBulk.count} pegawai?`}
+              {confirmBulk?.kind === "deactivate" && `Nonaktifkan ${confirmBulk.count} pegawai?`}
+              {confirmBulk?.kind === "resend" && `Kirim ulang ${confirmBulk?.count} undangan?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmBulk?.kind === "deactivate"
+                ? "Pegawai tidak akan bisa login atau muncul di jadwal sampai diaktifkan kembali."
+                : confirmBulk?.kind === "activate"
+                ? "Pegawai akan kembali bisa login dan muncul di jadwal."
+                : "Email undangan baru akan dikirim ke setiap penerima."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkRunning}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={bulkRunning}
+              onClick={(e) => { e.preventDefault(); if (confirmBulk) runBulk(confirmBulk.kind); }}
+            >
+              {bulkRunning ? "Memproses..." : "Lanjutkan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Edit login member */}
       <Dialog open={!!loginEdit} onOpenChange={(o) => !o && setLoginEdit(null)}>
         <DialogContent>
