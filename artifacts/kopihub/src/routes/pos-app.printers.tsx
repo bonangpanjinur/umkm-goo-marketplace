@@ -226,12 +226,13 @@ function PrintersPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="connection_type">Jenis Koneksi</Label>
-                <Select name="connection_type" defaultValue={editing?.connection_type || "browser"}>
+                <Select name="connection_type" defaultValue={editing?.connection_type || "wifi"}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="browser">Browser Print (Sistem)</SelectItem>
-                    <SelectItem value="network">Network / IP</SelectItem>
+                    <SelectItem value="wifi">WiFi</SelectItem>
+                    <SelectItem value="network">Network / IP (LAN)</SelectItem>
                     <SelectItem value="bluetooth">Bluetooth</SelectItem>
+                    <SelectItem value="usb">USB</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
