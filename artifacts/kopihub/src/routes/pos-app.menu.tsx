@@ -892,27 +892,43 @@ function MenuPage() {
                     )}
                   </div>
                   {it.description?.trim() ? (
-                    <div className="group/desc mt-1.5 flex items-start gap-1">
-                      <p className="line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground">
-                        {it.description.trim()}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(it.description!.trim());
-                          setCopiedDescId(it.id);
-                          setTimeout(() => setCopiedDescId(null), 1500);
-                        }}
-                        title="Salin deskripsi"
-                        className="shrink-0 rounded p-0.5 text-muted-foreground/40 opacity-0 transition-opacity hover:text-muted-foreground group-hover/desc:opacity-100"
-                      >
-                        {copiedDescId === it.id ? (
-                          <Check className="h-3 w-3 text-emerald-500" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                      </button>
-                    </div>
+                    <>
+                      <div className="group/desc mt-1.5 flex items-start gap-1">
+                        <p className="line-clamp-2 flex-1 text-[11px] leading-snug text-muted-foreground">
+                          {it.description.trim()}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(it.description!.trim());
+                            setCopiedDescId(it.id);
+                            setTimeout(() => setCopiedDescId(null), 1500);
+                          }}
+                          title="Salin deskripsi"
+                          className="shrink-0 rounded p-0.5 text-muted-foreground/40 opacity-0 transition-opacity hover:text-muted-foreground group-hover/desc:opacity-100"
+                        >
+                          {copiedDescId === it.id ? (
+                            <Check className="h-3 w-3 text-emerald-500" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </button>
+                      </div>
+                      {(() => {
+                        const len = it.description.trim().length;
+                        const color = len < 50
+                          ? "text-amber-500"
+                          : len <= 300
+                          ? "text-emerald-600"
+                          : "text-destructive";
+                        const label = len < 50 ? "terlalu pendek" : len > 300 ? "terlalu panjang" : "ideal";
+                        return (
+                          <span className={`mt-0.5 block text-[10px] tabular-nums ${color}`}>
+                            {len} karakter · {label}
+                          </span>
+                        );
+                      })()}
+                    </>
                   ) : (
                     <p className="mt-1.5 text-[11px] italic text-muted-foreground/50">
                       Belum ada deskripsi
