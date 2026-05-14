@@ -242,7 +242,10 @@ function EmployeesPage() {
     setManualOutletId(outlets[0]?.id ?? "");
     setManualWithLogin(false);
     setManualEmail("");
+    setManualPassword("");
+    setShowPassword(false);
     setLastInviteUrl(null);
+    setLastCredentials(null);
   }
 
   function openEditManual(sm: StaffMember) {
