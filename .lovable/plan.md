@@ -1,85 +1,90 @@
+## Cakupan
 
-# Analisis Menu Pegawai (Tim)
+Empat fitur untuk halaman **Jadwal** dan **Tim**. Saya pertahankan stack yang sudah ada (Supabase langsung dari client + RLS owner) dan menambah trigger DB untuk audit & validasi konflik agar konsisten meski jadwal diubah lewat realtime.
 
-## Yang sudah ada
-- Tambah pegawai manual + opsi buat akun login (email/sandi).
-- Undang via email (token invite).
-- Edit pegawai manual, upload avatar, validasi nama/HP.
-- Reset sandi & set sandi manual untuk anggota aktif.
-- Daftar Anggota Aktif, Pegawai Manual, Undangan Pending.
-- Realtime sync ke halaman Jadwal.
+### 1. Validasi konflik jadwal (real-time)
 
-## Kekurangan yang ditemukan
+**Masalah:** Saat ini `shifts` bisa di-insert/update tanpa cek apakah pegawai sudah punya shift yang overlap di hari yang sama.
 
-### Fitur
-1. **Tidak ada pencarian/filter** — daftar bisa panjang, tak ada search bar, filter peran, atau filter outlet.
-2. **Tidak ada bulk action** — tidak bisa pilih banyak untuk hapus / pindah outlet / ganti peran sekaligus.
-3. **Tidak ada status aktif/nonaktif** — hanya "hapus permanen". Tidak bisa nonaktifkan sementara (cuti, resign sementara).
-4. **Tidak terlihat aktivitas pegawai** — tidak ada info "terakhir login", "jumlah shift bulan ini", "transaksi yang ditangani".
-5. **Tidak ada riwayat audit** — siapa undang, siapa reset sandi, kapan peran diubah.
-6. **Tidak ada role detail / izin granular** — hanya 3 peran fix (manager/kasir/barista), tidak bisa custom permission.
-7. **Anggota aktif tidak bisa diedit** — hanya manual yang bisa edit. Anggota dengan login tak bisa ganti peran/outlet dari UI ini (harus hapus & undang ulang).
-8. **Tidak ada "promote" pegawai manual → akun login** — owner harus hapus & buat ulang.
-9. **Undangan tidak bisa di-resend / kirim ulang via email** — hanya copy link manual.
-10. **Tidak ada limit / kuota info** — owner tak tahu berapa banyak pegawai yang dipakai vs paket.
-11. **Tidak ada export** (CSV daftar pegawai untuk HR/payroll).
-12. **Field pegawai minim** — tidak ada tanggal masuk, tarif/upah per jam, alamat, catatan internal, dokumen (KTP).
+**Solusi:**
+- **DB trigger** `validate_shift_no_overlap` di tabel `shifts` (BEFORE INSERT/UPDATE):
+  - Reject jika ada shift lain untuk `(shop_id, user_id, day_of_week)` yang range jamnya tumpang tindih (`tstzrange`/`OVERLAPS`).
+  - Reject jika `end_time <= start_time` (kecuali overnight — untuk sekarang larang dulu, kasih pesan jelas).
+- **Frontend** `pos-app.schedule.tsx`:
+  - Cek overlap di sisi client sebelum submit (pakai data `shifts` yang sudah dimuat) → tampilkan inline error di dialog dengan daftar shift yang bentrok.
+  - Tangkap error dari trigger dan tampilkan toast yang ramah.
 
-### UI/UX
-1. **Dua tabel terpisah (Aktif vs Manual) membingungkan** — pegawai yang sama bisa muncul di dua tempat (saat manual + login). Sebaiknya satu daftar terpadu dengan badge "Login aktif" / "Manual".
-2. **Tidak responsif di mobile** — tabel lebar, scroll horizontal terpotong di viewport 889px ke bawah.
-3. **Action icon-only tanpa label** — tombol kunci/reset/hapus hanya ikon, owner awam bingung. Perlu dropdown menu "..." dengan label jelas.
-4. **Empty state minim** — saat 0 pegawai, tidak ada CTA besar atau ilustrasi pemandu.
-5. **Form Tambah pegawai panjang vertikal** — di layar pendek perlu scroll. Bisa dipecah jadi tab (Info → Akses login) atau accordion.
-6. **Kredensial baru ditampilkan dalam dialog tertutup** — kalau owner tutup tanpa salin, hilang selamanya. Perlu konfirmasi/warning sebelum tutup.
-7. **Tidak ada indikator outlet** di header — bila owner punya banyak outlet, sulit tahu konteks aktif.
-8. **Avatar fallback** hanya 1 huruf — sebaiknya pakai inisial 2 huruf + warna konsisten per nama.
-9. **Tidak ada loading skeleton** — hanya spinner satu titik, terasa kosong.
-10. **Tidak ada konfirmasi destruktif yang ramah** — pakai `confirm()` browser asli (jelek). Sebaiknya pakai AlertDialog shadcn.
-11. **Undangan pending tidak menunjukkan kadaluarsa visual** — tanggal teks saja, tak ada warning "akan expired 2 hari lagi".
+**Catatan:** "sudah check-in / selesai" butuh tabel attendance (mis. clock_in/clock_out) yang belum ada di skema. Saya tidak akan membuat tabel baru di luar konteks; saya tinggalkan TODO singkat di kode dan fokus ke overlap. Kalau Anda ingin attendance, kita garap di siklus berikutnya.
 
----
+### 2. Aksi massal di halaman Tim
 
-# Rencana Perbaikan (bertahap)
+Di `pos-app.employees.tsx`:
+- Tambah kolom checkbox di setiap row daftar pegawai (login + manual) dan kartu undangan pending.
+- Sticky toolbar saat ≥1 dipilih: **Aktifkan**, **Nonaktifkan**, **Kirim ulang undangan** (hanya muncul kalau seleksi mengandung undangan pending).
+- Implementasi:
+  - Aktifkan/nonaktifkan: panggil `staff/update-role` (sudah ada) berturut-turut dengan `Promise.allSettled`, tampilkan ringkasan toast (`X berhasil, Y gagal`).
+  - Resend invitations: panggil `staff/resend-invitation` per id, sama polanya.
+  - Konfirmasi pakai `AlertDialog` sebelum eksekusi.
 
-## Fase 1 — Quick wins UX (prioritas tinggi)
-1. **Search bar + filter** (peran, outlet, status) di atas daftar.
-2. **Gabungkan dua tabel** jadi satu dengan kolom "Tipe akses" (Login / Manual) sebagai badge.
-3. **Ganti `confirm()` → AlertDialog** shadcn untuk hapus, reset, revoke.
-4. **Action menu (DropdownMenu "...")** menggantikan deretan ikon — label jelas: "Edit", "Ubah sandi", "Kirim reset", "Nonaktifkan", "Hapus".
-5. **Empty state ramah** dengan ilustrasi + dua CTA besar (Tambah / Undang).
-6. **Loading skeleton** untuk daftar.
-7. **Responsif mobile** — daftar jadi card di breakpoint kecil.
-8. **Avatar inisial 2 huruf + warna deterministik** dari nama.
+### 3. Audit log perubahan jadwal
 
-## Fase 2 — Fitur penting
-9. **Edit anggota aktif (login)** — buka dialog yang sama untuk ubah peran & outlet.
-10. **Status Aktif/Nonaktif** — tambah kolom `is_active` di `staff_members` & `user_roles`; sembunyikan dari Jadwal saat nonaktif.
-11. **Resend undangan** — tombol kirim ulang + perpanjang `expires_at`.
-12. **Promote manual → login** — tombol "Aktifkan akun login" pada pegawai manual.
-13. **Field tambahan**: tanggal masuk, upah/jam, catatan internal (kolom baru di `staff_members`).
-14. **Indikator kadaluarsa undangan** — badge merah/kuning bila < 3 hari.
+- **DB trigger** `log_shift_change` di `shifts` (AFTER INSERT/UPDATE/DELETE) → insert ke `staff_audit_logs`:
+  - `action = 'shift_create' | 'shift_update' | 'shift_delete'`
+  - `actor_id = auth.uid()`, `target_user_id = NEW.user_id` (atau OLD jika delete)
+  - `meta = { day_of_week, start_time, end_time, outlet_id, before, after }`
+- **UI** baru di `pos-app.schedule.tsx`: tombol **Riwayat** di header → `Sheet` slide-in yang menampilkan 50 entri terakhir dari `staff_audit_logs` di `shop_id` ini, di-scope ke `action LIKE 'shift_%'`. Format: ikon, "Budi memperbarui shift Andi (Sen 08:00–16:00 → 09:00–17:00) · 5 menit lalu".
+  - Resolve nama actor lewat `profiles.display_name`, target lewat `profiles` atau `staff_members`.
 
-## Fase 3 — Insight & operasional
-15. **Statistik mini per pegawai**: jumlah shift bulan ini, transaksi tertangani, terakhir login.
-16. **Audit log** sederhana (`staff_audit_logs`) — undang, reset, ubah peran, hapus.
-17. **Export CSV** daftar pegawai.
-18. **Bulk action** (pilih banyak → ubah outlet/peran/nonaktif).
+### 4. Buat jadwal otomatis dari template
 
----
+Dialog baru di `pos-app.schedule.tsx` — tombol header **Buat dari template**:
+1. **Step 1 — pilih template:**
+   - Pilihan default cepat: *Pagi 07–15*, *Siang 11–19*, *Malam 15–23*, atau *Custom* (masukkan jam sendiri).
+   - Pilih hari (multi-select Sen–Min, default Sen–Jum).
+   - Pilih outlet.
+   - Filter pegawai: by peran (manager/cashier/barista/all) atau pilih manual.
+2. **Step 2 — preview:**
+   - Tampilkan tabel kandidat shift yang akan dibuat (pegawai × hari).
+   - Setiap baris bisa diubah jam/outlet, atau di-toggle skip.
+   - Tampilkan badge merah untuk baris yang bentrok dengan shift existing (pakai logic yang sama dengan validasi).
+3. **Step 3 — simpan:**
+   - Insert batch lewat `supabase.from('shifts').insert(rows)`.
+   - Yang ditolak trigger akan di-skip dengan toast ringkas (`X dibuat, Y dilewati karena bentrok`).
 
-# Catatan teknis (untuk implementasi)
+## Detail teknis
 
-- **Migrasi DB** dibutuhkan di Fase 2 & 3:
-  - `ALTER TABLE staff_members ADD COLUMN is_active boolean DEFAULT true, hire_date date, hourly_rate numeric, notes text;`
-  - `ALTER TABLE user_roles ADD COLUMN is_active boolean DEFAULT true;`
-  - Tabel baru `staff_audit_logs (id, shop_id, actor_id, target_user_id, action, meta jsonb, created_at)` + RLS owner-only.
-- **API server** (`artifacts/api-server/src/routes/staff.ts`) perlu endpoint baru: `update-user-role`, `resend-invitation`, `promote-to-login`.
-- **Komponen baru** yang perlu dibuat: `StaffRow`, `StaffFilters`, `StaffActionsMenu`, `StaffEmptyState`, `StaffSkeleton`.
-- File utama yang berubah: `artifacts/kopihub/src/routes/pos-app.employees.tsx` (refaktor besar — pecah jadi sub-komponen di folder `artifacts/kopihub/src/components/employees/`).
+### Migrasi SQL
 
----
+```sql
+-- Trigger: tolak overlap
+CREATE OR REPLACE FUNCTION validate_shift_no_overlap() RETURNS trigger ...
+  -- cek end_time > start_time
+  -- cek tidak ada shift lain untuk (shop_id,user_id,day_of_week) yang overlap
+CREATE TRIGGER trg_validate_shift_no_overlap BEFORE INSERT OR UPDATE ON shifts ...
 
-**Saran eksekusi**: kerjakan **Fase 1 dulu** (UX) karena dampaknya besar tanpa migrasi DB. Lalu konfirmasi sebelum lanjut ke Fase 2 (perlu migrasi).
+-- Trigger: audit
+CREATE OR REPLACE FUNCTION log_shift_change() RETURNS trigger ...
+CREATE TRIGGER trg_log_shift_change AFTER INSERT OR UPDATE OR DELETE ON shifts ...
 
-Pilih: lanjut implementasi Fase 1, atau ada item yang ingin kamu prioritaskan/buang?
+-- Tambah RLS SELECT untuk staff_audit_logs (owner only) — cek apakah sudah ada
+```
+
+### Frontend
+
+- `pos-app.schedule.tsx`: tambah state untuk template dialog, audit sheet, helper `findOverlap()`. Refactor `save()` untuk surface error trigger.
+- `pos-app.employees.tsx`: tambah `Set<string>` selection state, toolbar, helper `bulkAction()`.
+- Re-use komponen shadcn yang sudah ada (`Sheet`, `Checkbox`, `AlertDialog`).
+
+### Yang tidak saya kerjakan
+- Tabel attendance / clock-in (skema baru besar — tunggu sinyal Anda).
+- Audit log untuk perubahan profil pegawai (sudah ada lewat `staff/update-role` yang menulis manual). Saya hanya perlu menampilkannya — bisa saya gabungkan ke sheet yang sama dengan filter tab "Semua / Jadwal / Pegawai".
+
+## Urutan eksekusi
+
+1. Migrasi DB (overlap + audit shift + RLS check).
+2. Schedule: validasi overlap + tangkap error.
+3. Schedule: dialog template + preview.
+4. Schedule: sheet riwayat audit.
+5. Employees: bulk action toolbar.
+
+Lanjut implementasi?

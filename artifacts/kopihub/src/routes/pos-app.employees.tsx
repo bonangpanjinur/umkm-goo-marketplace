@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -277,6 +278,49 @@ function EmployeesPage() {
   const [confirmRemoveManual, setConfirmRemoveManual] = useState<StaffMember | null>(null);
   const [confirmRevokeInv, setConfirmRevokeInv] = useState<Invitation | null>(null);
   const [confirmCloseCreds, setConfirmCloseCreds] = useState(false);
+
+  // Bulk selection
+  const [selLogin, setSelLogin] = useState<Set<string>>(new Set());
+  const [selManual, setSelManual] = useState<Set<string>>(new Set());
+  const [selInv, setSelInv] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [confirmBulk, setConfirmBulk] = useState<null | { kind: "activate" | "deactivate" | "resend"; count: number }>(null);
+  const totalSelected = selLogin.size + selManual.size + selInv.size;
+
+  function clearSelection() { setSelLogin(new Set()); setSelManual(new Set()); setSelInv(new Set()); }
+  function toggleSel(set: Set<string>, setter: (s: Set<string>) => void, id: string) {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setter(next);
+  }
+
+  async function runBulk(kind: "activate" | "deactivate" | "resend") {
+    if (!shop) return;
+    setBulkRunning(true);
+    let ok = 0, fail = 0;
+    if (kind === "resend") {
+      for (const id of selInv) {
+        try { await callStaffApi("resend-invitation", { shop_id: shop.id, invitation_id: id }); ok++; }
+        catch { fail++; }
+      }
+    } else {
+      const isActive = kind === "activate";
+      for (const uid of selLogin) {
+        try { await callStaffApi("update-role", { shop_id: shop.id, user_id: uid, is_active: isActive }); ok++; }
+        catch { fail++; }
+      }
+      for (const sid of selManual) {
+        try { await callStaffApi("set-manual-active", { shop_id: shop.id, staff_member_id: sid, is_active: isActive }); ok++; }
+        catch { fail++; }
+      }
+    }
+    setBulkRunning(false);
+    setConfirmBulk(null);
+    if (ok > 0) toast.success(`${ok} berhasil${fail > 0 ? `, ${fail} gagal` : ""}`);
+    else toast.error(`Semua ${fail} gagal`);
+    clearSelection();
+    load();
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1193,6 +1237,34 @@ function EmployeesPage() {
             </span>
           </div>
 
+          {/* Bulk toolbar */}
+          {totalSelected > 0 && (
+            <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
+              <span className="font-medium">{totalSelected} dipilih</span>
+              <div className="ml-auto flex flex-wrap gap-2">
+                {(selLogin.size + selManual.size) > 0 && (
+                  <>
+                    <Button size="sm" variant="outline" disabled={bulkRunning}
+                      onClick={() => setConfirmBulk({ kind: "activate", count: selLogin.size + selManual.size })}>
+                      Aktifkan
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={bulkRunning}
+                      onClick={() => setConfirmBulk({ kind: "deactivate", count: selLogin.size + selManual.size })}>
+                      Nonaktifkan
+                    </Button>
+                  </>
+                )}
+                {selInv.size > 0 && (
+                  <Button size="sm" variant="outline" disabled={bulkRunning}
+                    onClick={() => setConfirmBulk({ kind: "resend", count: selInv.size })}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Kirim ulang ({selInv.size})
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={clearSelection}>Batal</Button>
+              </div>
+            </div>
+          )}
+
           {/* Unified list */}
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
@@ -1210,6 +1282,7 @@ function EmployeesPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
+                      <th className="w-10 px-3 py-2.5"></th>
                       <th className="px-4 py-2.5 text-left">Nama</th>
                       <th className="px-4 py-2.5 text-left">Peran</th>
                       <th className="px-4 py-2.5 text-left">Outlet</th>
@@ -1221,8 +1294,14 @@ function EmployeesPage() {
                   <tbody className="divide-y divide-border">
                     {filtered.map((u) => {
                       const outlet = outlets.find((o) => o.id === u.outlet_id);
+                      const selSet = u.kind === "login" ? selLogin : selManual;
+                      const selSetter = u.kind === "login" ? setSelLogin : setSelManual;
+                      const selId = u.kind === "login" ? u.raw.user_id : u.raw.id;
                       return (
                         <tr key={u.key} className="hover:bg-muted/30">
+                          <td className="px-3 py-3">
+                            <Checkbox checked={selSet.has(selId)} onCheckedChange={() => toggleSel(selSet, selSetter, selId)} />
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
                               <Avatar name={u.name} url={u.avatarUrl} />
@@ -1337,6 +1416,7 @@ function EmployeesPage() {
                     className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
+                      <Checkbox checked={selInv.has(inv.id)} onCheckedChange={() => toggleSel(selInv, setSelInv, inv.id)} />
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <div className="text-sm font-medium">{inv.email}</div>
