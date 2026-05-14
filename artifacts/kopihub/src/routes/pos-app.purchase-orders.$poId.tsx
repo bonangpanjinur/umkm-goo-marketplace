@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -10,9 +10,15 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Loader2, ArrowLeft, CheckCircle2, X, Trash2, Send, Printer, Eye, Save, Settings2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Loader2, ArrowLeft, CheckCircle2, X, Trash2, Send, Printer, Eye, Save, Settings2,
+  History, Pencil, Plus, AlertCircle, MessageCircle, FileText,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import { buildWAMessage, openWA, loadTemplate, type WATemplate, WA_TEMPLATE_LABELS } from "@/lib/po-whatsapp";
 
 export const Route = createFileRoute("/pos-app/purchase-orders/$poId")({
   component: PODetailPage,
@@ -41,9 +47,18 @@ type POItem = {
   subtotal: number;
   received_qty: number;
 };
-type Ingredient = { id: string; name: string; unit: string };
+type Ingredient = { id: string; name: string; unit: string; current_stock?: number; cost_per_unit?: number };
 type Supplier = { id: string; name: string; phone: string | null; contact_name: string | null; address?: string | null; email?: string | null };
 type Shop = { id: string; name: string; address?: string | null; phone?: string | null; email?: string | null; logo_url?: string | null };
+type AuditEntry = {
+  id: string;
+  action: string;
+  from_status: string | null;
+  to_status: string | null;
+  reason: string | null;
+  actor_name: string | null;
+  created_at: string;
+};
 
 type PaperSize = "a4" | "letter" | "thermal80" | "thermal58";
 type MarginMode = "narrow" | "normal" | "wide";

@@ -16,9 +16,14 @@ import {
 import {
   Loader2, Plus, FileText, Trash2, Search, MoreHorizontal, Eye, Copy, Send,
   X as XIcon, MessageCircle, Download, FileClock, CheckCircle2, ShoppingCart, Package,
+  Repeat, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import {
+  buildWAMessage, openWA, loadTemplate, saveTemplate, normalizePhone,
+  WA_TEMPLATE_LABELS, WA_TEMPLATE_DESC, type WATemplate,
+} from "@/lib/po-whatsapp";
 
 export const Route = createFileRoute("/pos-app/purchase-orders")({ component: POPage });
 
@@ -46,11 +51,8 @@ function genPONo() {
   return `PO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 900 + 100)}`;
 }
 
-function normalizePhone(raw: string | null | undefined): string {
-  if (!raw) return "";
-  const d = raw.replace(/[^\d+]/g, "").replace(/^\+?62/, "0").replace(/\D/g, "");
-  return d.startsWith("0") ? `62${d.slice(1)}` : d;
-}
+// (normalizePhone diimpor dari po-whatsapp helper)
+
 
 function POPage() {
   const nav = useNavigate();
@@ -78,6 +80,13 @@ function POPage() {
 
   // Per-row busy state
   const [rowBusy, setRowBusy] = useState<string | null>(null);
+
+  // WhatsApp template + batch dialog
+  const [waTemplate, setWaTemplate] = useState<WATemplate>(() => loadTemplate());
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchSent, setBatchSent] = useState<Record<string, boolean>>({});
+  function changeTemplate(t: WATemplate) { setWaTemplate(t); saveTemplate(t); }
+
 
   async function load() {
     if (!shop) return;
@@ -255,16 +264,44 @@ function POPage() {
   function sendWhatsApp(p: PO) {
     const sup = suppliers.find((s) => s.id === p.supplier_id);
     if (!sup?.phone) { toast.error("Supplier belum punya nomor WhatsApp"); return; }
-    const phone = normalizePhone(sup.phone);
-    const msg =
-      `Halo ${sup.name},\n\nMohon proses Purchase Order berikut:\n` +
-      `No. PO: ${p.po_no}\n` +
-      `Tanggal: ${p.order_date}\n` +
-      (p.expected_date ? `Kedatangan: ${p.expected_date}\n` : "") +
-      `Total: ${formatIDR(p.total)}\n\n` +
-      `Terima kasih.`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+    const msg = buildWAMessage({
+      template: waTemplate,
+      supplierName: sup.name,
+      shopName: shop?.name,
+      po: p,
+    });
+    if (!openWA(sup.phone, msg)) toast.error("Nomor WhatsApp tidak valid");
   }
+
+  // Daftar PO eligible untuk batch resend (dari hasil filter & punya supplier dgn nomor)
+  const batchEligible = useMemo(() => {
+    return filtered
+      .map((p) => {
+        const sup = suppliers.find((s) => s.id === p.supplier_id);
+        const phone = normalizePhone(sup?.phone);
+        return phone && sup ? { po: p, supplier: sup, phone } : null;
+      })
+      .filter((x): x is { po: PO; supplier: Supplier; phone: string } => x !== null);
+  }, [filtered, suppliers]);
+
+  function sendBatchOne(poId: string) {
+    const item = batchEligible.find((x) => x.po.id === poId);
+    if (!item) return;
+    const msg = buildWAMessage({
+      template: waTemplate,
+      supplierName: item.supplier.name,
+      shopName: shop?.name,
+      po: item.po,
+    });
+    if (openWA(item.phone, msg)) {
+      setBatchSent((m) => ({ ...m, [poId]: true }));
+    }
+  }
+  function openBatchDialog() {
+    setBatchSent({});
+    setBatchOpen(true);
+  }
+
 
   function exportCSV() {
     const header = ["No PO", "Tanggal", "Supplier", "Item", "Status", "Subtotal", "Pajak", "Total", "Catatan"];
@@ -305,9 +342,31 @@ function POPage() {
         </div>
         <div className="flex items-center gap-2">
           {pos.length > 0 && (
-            <Button variant="outline" onClick={exportCSV}>
-              <Download className="mr-2 h-4 w-4" /> Export CSV
-            </Button>
+            <>
+              <Select value={waTemplate} onValueChange={(v) => changeTemplate(v as WATemplate)}>
+                <SelectTrigger className="h-9 w-[160px]" title="Template pesan WhatsApp">
+                  <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["ringkas", "lengkap", "formal"] as WATemplate[]).map((t) => (
+                    <SelectItem key={t} value={t}>
+                      <div className="flex flex-col">
+                        <span>WA {WA_TEMPLATE_LABELS[t]}</span>
+                        <span className="text-[10px] text-muted-foreground">{WA_TEMPLATE_DESC[t]}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={openBatchDialog} disabled={batchEligible.length === 0}
+                title={batchEligible.length === 0 ? "Tidak ada PO terfilter dengan nomor WhatsApp" : `Kirim ulang ${batchEligible.length} PO`}>
+                <Repeat className="mr-2 h-4 w-4" /> Kirim ulang ({batchEligible.length})
+              </Button>
+              <Button variant="outline" onClick={exportCSV}>
+                <Download className="mr-2 h-4 w-4" /> Export CSV
+              </Button>
+            </>
           )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> PO baru</Button></DialogTrigger>
@@ -537,6 +596,67 @@ function POPage() {
           </table>
         </div>
       )}
+      {/* Batch resend WhatsApp dialog */}
+      <Dialog open={batchOpen} onOpenChange={setBatchOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Repeat className="h-4 w-4" /> Kirim ulang PO via WhatsApp
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs">
+              <span className="text-muted-foreground">Template:</span>
+              <Select value={waTemplate} onValueChange={(v) => changeTemplate(v as WATemplate)}>
+                <SelectTrigger className="h-7 w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(["ringkas", "lengkap", "formal"] as WATemplate[]).map((t) => (
+                    <SelectItem key={t} value={t}>WA {WA_TEMPLATE_LABELS[t]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-muted-foreground ml-auto">{WA_TEMPLATE_DESC[waTemplate]}</span>
+            </div>
+            {batchEligible.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Tidak ada PO yang cocok dengan filter dan punya nomor WhatsApp supplier.
+              </div>
+            ) : (
+              <div className="max-h-[50vh] overflow-y-auto rounded-md border">
+                {batchEligible.map(({ po, supplier }) => {
+                  const sent = batchSent[po.id];
+                  return (
+                    <div key={po.id} className="flex items-center justify-between gap-3 border-b last:border-b-0 px-3 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{po.po_no}</span>
+                          <span className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium ${STATUS_BADGE[po.status]}`}>
+                            {STATUS_LABEL[po.status]}
+                          </span>
+                          {sent && <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600"><CheckCircle2 className="h-3 w-3" /> dibuka</span>}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {supplier.name} · {po.order_date} · <span className="tabular-nums">{formatIDR(po.total)}</span>
+                        </div>
+                      </div>
+                      <Button size="sm" variant={sent ? "outline" : "default"} onClick={() => sendBatchOne(po.id)}>
+                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                        {sent ? "Kirim lagi" : "Buka WA"}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground">
+              Tiap tombol membuka tab WhatsApp baru. Browser bisa memblokir popup saat banyak — izinkan popup untuk situs ini.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBatchOpen(false)}>Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
