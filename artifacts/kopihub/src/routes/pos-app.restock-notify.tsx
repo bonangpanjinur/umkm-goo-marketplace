@@ -1,17 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   Bell, MessageCircle, Search, Loader2, Package, RefreshCw,
-  ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle, Trash2,
+  ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle, Trash2, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -95,6 +97,10 @@ function formatWA(wa: string): string {
   return clean.startsWith("62") ? `+${clean}` : clean.startsWith("0") ? `+62${clean.slice(1)}` : `+62${clean}`;
 }
 
+function autoNotifyKey(shopId: string) {
+  return `restock_auto_notify_${shopId}`;
+}
+
 export default function RestockNotifyPage() {
   const { shop } = useCurrentShop();
   const [groups, setGroups] = useState<ProductGroup[]>([]);
@@ -103,11 +109,32 @@ export default function RestockNotifyPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "notified">("all");
   const [notifying, setNotifying] = useState<string | null>(null);
+  const [autoNotify, setAutoNotify] = useState(true);
+
+  // keep a ref so the realtime callback always sees the latest groups/autoNotify
+  const groupsRef = useRef<ProductGroup[]>([]);
+  const autoNotifyRef = useRef(true);
 
   const shopId = (shop as any)?.id as string | undefined;
   const shopName = (shop as any)?.name as string | undefined;
 
-  async function load() {
+  // Load persisted auto-notify preference once shopId is known
+  useEffect(() => {
+    if (!shopId) return;
+    const stored = localStorage.getItem(autoNotifyKey(shopId));
+    const val = stored === null ? true : stored === "1";
+    setAutoNotify(val);
+    autoNotifyRef.current = val;
+  }, [shopId]);
+
+  // Persist preference whenever it changes
+  useEffect(() => {
+    if (!shopId) return;
+    localStorage.setItem(autoNotifyKey(shopId), autoNotify ? "1" : "0");
+    autoNotifyRef.current = autoNotify;
+  }, [autoNotify, shopId]);
+
+  const load = useCallback(async () => {
     if (!shopId) return;
     setLoading(true);
     try {
@@ -127,7 +154,6 @@ export default function RestockNotifyPage() {
       }
 
       const subscribers: Subscriber[] = subs ?? [];
-
       const productIds = [...new Set(subscribers.map((s: Subscriber) => s.product_id))];
 
       let itemMap: Record<string, { stock: number | null; is_available: boolean; track_stock: boolean; image_url: string | null }> = {};
@@ -168,15 +194,76 @@ export default function RestockNotifyPage() {
         else groupMap[sub.product_id].pending_count++;
       }
 
-      setGroups(Object.values(groupMap).sort((a, b) => b.pending_count - a.pending_count));
+      const result = Object.values(groupMap).sort((a, b) => b.pending_count - a.pending_count);
+      setGroups(result);
+      groupsRef.current = result;
       setTableReady(true);
     } catch (err: any) {
       toast.error("Gagal memuat data: " + (err?.message ?? "Unknown error"));
     }
     setLoading(false);
-  }
+  }, [shopId]);
 
-  useEffect(() => { load(); }, [shopId]);
+  useEffect(() => { load(); }, [load]);
+
+  // Realtime: watch menu_items for products coming back in stock → auto-mark
+  useEffect(() => {
+    if (!shopId || !tableReady) return;
+
+    const ch = supabase
+      .channel(`restock-auto-${shopId}`)
+      .on(
+        "postgres_changes" as any,
+        { event: "UPDATE", schema: "public", table: "menu_items", filter: `shop_id=eq.${shopId}` },
+        async (payload: any) => {
+          if (!autoNotifyRef.current) return;
+
+          const updated = payload.new as any;
+          const prev = payload.old as any;
+
+          // Determine if the item just came back in stock
+          const nowAvailable = updated.is_available === true;
+          const nowHasStock = !updated.track_stock || (updated.stock_qty ?? 0) > 0;
+          const wasUnavailable =
+            prev.is_available === false ||
+            (prev.track_stock && (prev.stock_qty ?? 0) <= 0);
+
+          if (!nowAvailable || !nowHasStock || !wasUnavailable) return;
+
+          // Find matching group with pending subscribers
+          const group = groupsRef.current.find(g => g.product_id === updated.id);
+          if (!group || group.pending_count === 0) return;
+
+          const pendingIds = group.subscribers
+            .filter(s => !s.notified_at)
+            .map(s => s.id);
+
+          if (pendingIds.length === 0) return;
+
+          try {
+            await (supabase as any)
+              .from("restock_subscribers")
+              .update({ notified_at: new Date().toISOString() })
+              .in("id", pendingIds);
+
+            await load();
+
+            toast.success(
+              `✅ "${group.product_name}" kembali tersedia!`,
+              {
+                description: `${pendingIds.length} pelanggan otomatis ditandai sudah dinotifikasi.`,
+                duration: 8000,
+              },
+            );
+          } catch {
+            // silent — manual fallback still works
+          }
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(ch); };
+  }, [shopId, tableReady, load]);
 
   async function markNotified(subscriberId: string) {
     await (supabase as any)
@@ -188,7 +275,7 @@ export default function RestockNotifyPage() {
 
   async function markAllNotified(productId: string) {
     setNotifying(productId);
-    const ids = groups
+    const ids = groupsRef.current
       .find(g => g.product_id === productId)
       ?.subscribers.filter(s => !s.notified_at)
       .map(s => s.id) ?? [];
@@ -261,6 +348,7 @@ export default function RestockNotifyPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
@@ -275,6 +363,42 @@ export default function RestockNotifyPage() {
           <RefreshCw className="h-4 w-4" /> Refresh
         </Button>
       </div>
+
+      {/* Auto-notify toggle */}
+      <Card className={autoNotify
+        ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/10"
+        : "border-border bg-muted/30"
+      }>
+        <CardContent className="flex items-start sm:items-center justify-between gap-4 py-4">
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 rounded-full p-1.5 ${autoNotify ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" : "bg-muted text-muted-foreground"}`}>
+              <Zap className="h-4 w-4" />
+            </div>
+            <div>
+              <Label htmlFor="auto-notify-toggle" className="text-sm font-semibold cursor-pointer">
+                Auto-tandai saat produk kembali tersedia
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-sm">
+                {autoNotify
+                  ? "Aktif — saat stok produk bertambah atau produk diaktifkan kembali, semua pelanggan yang menunggu otomatis ditandai sudah dinotifikasi."
+                  : "Nonaktif — tandai pelanggan secara manual setelah mengirim WhatsApp."}
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="auto-notify-toggle"
+            checked={autoNotify}
+            onCheckedChange={val => {
+              setAutoNotify(val);
+              toast.success(val
+                ? "Auto-notifikasi diaktifkan"
+                : "Auto-notifikasi dinonaktifkan",
+              );
+            }}
+            className="shrink-0"
+          />
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
@@ -381,6 +505,12 @@ export default function RestockNotifyPage() {
                               {group.notified_count} sudah dikirim
                             </Badge>
                           )}
+                          {autoNotify && !isOutOfStock && pendingSubs.length > 0 && (
+                            <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 text-xs gap-1">
+                              <Zap className="h-3 w-3" />
+                              akan di-auto-tandai
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -388,7 +518,6 @@ export default function RestockNotifyPage() {
                     <div className="flex flex-wrap gap-2 shrink-0">
                       {pendingSubs.length > 0 && (
                         <>
-                          {/* WhatsApp blast link opens for first pending subscriber, rest must be done manually */}
                           {pendingSubs.length === 1 ? (
                             <a
                               href={waLink(pendingSubs[0].customer_wa, blastMsg)}
