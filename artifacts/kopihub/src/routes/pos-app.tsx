@@ -171,6 +171,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/membership",         label: "Membership",        icon: Award, hint: "Tier berlangganan dengan diskon otomatis & perks" },
       { to: "/pos-app/wallet-config",      label: "Top-up Saldo",      icon: Award, hint: "Atur preset top-up saldo dengan bonus" },
       { to: "/pos-app/wallet-approvals",   label: "Approval Top-up",   icon: Award, hint: "Setujui pembayaran top-up pelanggan" },
+      { to: "/pos-app/broadcast-wa",         label: "Broadcast WhatsApp", icon: MessageCircle, hint: "Kirim pesan WA serentak ke segmen pelanggan: Churn Risk, VIP, Pelanggan Baru" },
       { to: "/pos-app/email-marketing",    label: "Email Marketing",   icon: Bell, proOnly: true },
       { to: "/pos-app/wishlist-analytics",    label: "Analitik Wishlist",  icon: Award },
       { to: "/pos-app/customer-analytics",   label: "Analitik Pembeli",   icon: BarChart3, hint: "Segmentasi: Pelanggan Setia, Perlu Diaktivasi, Churn Risk, Tidak Responsif" },

@@ -94,6 +94,7 @@ import { Route as PosAppCourierRouteImport } from './routes/pos-app.courier'
 import { Route as PosAppCategoriesRouteImport } from './routes/pos-app.categories'
 import { Route as PosAppBundlesRouteImport } from './routes/pos-app.bundles'
 import { Route as PosAppBulkPricingRouteImport } from './routes/pos-app.bulk-pricing'
+import { Route as PosAppBroadcastWaRouteImport } from './routes/pos-app.broadcast-wa'
 import { Route as PosAppBookingReviewsRouteImport } from './routes/pos-app.booking-reviews'
 import { Route as PosAppBookingRemindersRouteImport } from './routes/pos-app.booking-reminders'
 import { Route as PosAppBookingRouteImport } from './routes/pos-app.booking'
@@ -613,6 +614,11 @@ const PosAppBundlesRoute = PosAppBundlesRouteImport.update({
 const PosAppBulkPricingRoute = PosAppBulkPricingRouteImport.update({
   id: '/bulk-pricing',
   path: '/bulk-pricing',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppBroadcastWaRoute = PosAppBroadcastWaRouteImport.update({
+  id: '/broadcast-wa',
+  path: '/broadcast-wa',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppBookingReviewsRoute = PosAppBookingReviewsRouteImport.update({
@@ -1162,6 +1168,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/booking-reminders': typeof PosAppBookingRemindersRoute
   '/pos-app/booking-reviews': typeof PosAppBookingReviewsRoute
+  '/pos-app/broadcast-wa': typeof PosAppBroadcastWaRoute
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
@@ -1338,6 +1345,7 @@ export interface FileRoutesByTo {
   '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/booking-reminders': typeof PosAppBookingRemindersRoute
   '/pos-app/booking-reviews': typeof PosAppBookingReviewsRoute
+  '/pos-app/broadcast-wa': typeof PosAppBroadcastWaRoute
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
@@ -1518,6 +1526,7 @@ export interface FileRoutesById {
   '/pos-app/booking': typeof PosAppBookingRoute
   '/pos-app/booking-reminders': typeof PosAppBookingRemindersRoute
   '/pos-app/booking-reviews': typeof PosAppBookingReviewsRoute
+  '/pos-app/broadcast-wa': typeof PosAppBroadcastWaRoute
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
@@ -1700,6 +1709,7 @@ export interface FileRouteTypes {
     | '/pos-app/booking'
     | '/pos-app/booking-reminders'
     | '/pos-app/booking-reviews'
+    | '/pos-app/broadcast-wa'
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
@@ -1876,6 +1886,7 @@ export interface FileRouteTypes {
     | '/pos-app/booking'
     | '/pos-app/booking-reminders'
     | '/pos-app/booking-reviews'
+    | '/pos-app/broadcast-wa'
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
@@ -2055,6 +2066,7 @@ export interface FileRouteTypes {
     | '/pos-app/booking'
     | '/pos-app/booking-reminders'
     | '/pos-app/booking-reviews'
+    | '/pos-app/broadcast-wa'
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/categories'
@@ -2782,6 +2794,13 @@ declare module '@tanstack/react-router' {
       path: '/bulk-pricing'
       fullPath: '/pos-app/bulk-pricing'
       preLoaderRoute: typeof PosAppBulkPricingRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/broadcast-wa': {
+      id: '/pos-app/broadcast-wa'
+      path: '/broadcast-wa'
+      fullPath: '/pos-app/broadcast-wa'
+      preLoaderRoute: typeof PosAppBroadcastWaRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/booking-reviews': {
@@ -3661,6 +3680,7 @@ interface PosAppRouteChildren {
   PosAppBookingRoute: typeof PosAppBookingRoute
   PosAppBookingRemindersRoute: typeof PosAppBookingRemindersRoute
   PosAppBookingReviewsRoute: typeof PosAppBookingReviewsRoute
+  PosAppBroadcastWaRoute: typeof PosAppBroadcastWaRoute
   PosAppBulkPricingRoute: typeof PosAppBulkPricingRoute
   PosAppBundlesRoute: typeof PosAppBundlesRoute
   PosAppCategoriesRoute: typeof PosAppCategoriesRoute
@@ -3736,6 +3756,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppBookingRoute: PosAppBookingRoute,
   PosAppBookingRemindersRoute: PosAppBookingRemindersRoute,
   PosAppBookingReviewsRoute: PosAppBookingReviewsRoute,
+  PosAppBroadcastWaRoute: PosAppBroadcastWaRoute,
   PosAppBulkPricingRoute: PosAppBulkPricingRoute,
   PosAppBundlesRoute: PosAppBundlesRoute,
   PosAppCategoriesRoute: PosAppCategoriesRoute,
