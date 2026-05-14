@@ -1282,6 +1282,7 @@ function EmployeesPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
+                      <th className="w-10 px-3 py-2.5"></th>
                       <th className="px-4 py-2.5 text-left">Nama</th>
                       <th className="px-4 py-2.5 text-left">Peran</th>
                       <th className="px-4 py-2.5 text-left">Outlet</th>
@@ -1293,8 +1294,14 @@ function EmployeesPage() {
                   <tbody className="divide-y divide-border">
                     {filtered.map((u) => {
                       const outlet = outlets.find((o) => o.id === u.outlet_id);
+                      const selSet = u.kind === "login" ? selLogin : selManual;
+                      const selSetter = u.kind === "login" ? setSelLogin : setSelManual;
+                      const selId = u.kind === "login" ? u.raw.user_id : u.raw.id;
                       return (
                         <tr key={u.key} className="hover:bg-muted/30">
+                          <td className="px-3 py-3">
+                            <Checkbox checked={selSet.has(selId)} onCheckedChange={() => toggleSel(selSet, selSetter, selId)} />
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
                               <Avatar name={u.name} url={u.avatarUrl} />
