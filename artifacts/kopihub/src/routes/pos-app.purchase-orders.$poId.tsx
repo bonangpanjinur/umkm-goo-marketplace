@@ -47,9 +47,18 @@ type POItem = {
   subtotal: number;
   received_qty: number;
 };
-type Ingredient = { id: string; name: string; unit: string };
+type Ingredient = { id: string; name: string; unit: string; current_stock?: number; cost_per_unit?: number };
 type Supplier = { id: string; name: string; phone: string | null; contact_name: string | null; address?: string | null; email?: string | null };
 type Shop = { id: string; name: string; address?: string | null; phone?: string | null; email?: string | null; logo_url?: string | null };
+type AuditEntry = {
+  id: string;
+  action: string;
+  from_status: string | null;
+  to_status: string | null;
+  reason: string | null;
+  actor_name: string | null;
+  created_at: string;
+};
 
 type PaperSize = "a4" | "letter" | "thermal80" | "thermal58";
 type MarginMode = "narrow" | "normal" | "wide";
