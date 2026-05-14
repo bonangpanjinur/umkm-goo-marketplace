@@ -4278,6 +4278,57 @@ export type Database = {
           },
         ]
       }
+      staff_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          meta: Json
+          shop_id: string
+          target_email: string | null
+          target_name: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          shop_id: string
+          target_email?: string | null
+          target_name?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          shop_id?: string
+          target_email?: string | null
+          target_name?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_audit_logs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_audit_logs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       staff_invitations: {
         Row: {
           accepted_at: string | null
@@ -4327,8 +4378,12 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          hire_date: string | null
+          hourly_rate: number | null
           id: string
+          is_active: boolean
           name: string
+          notes: string | null
           outlet_id: string | null
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -4338,8 +4393,12 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          hire_date?: string | null
+          hourly_rate?: number | null
           id?: string
+          is_active?: boolean
           name: string
+          notes?: string | null
           outlet_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -4349,8 +4408,12 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          hire_date?: string | null
+          hourly_rate?: number | null
           id?: string
+          is_active?: boolean
           name?: string
+          notes?: string | null
           outlet_id?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -4693,6 +4756,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_active: boolean
           outlet_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           shop_id: string | null
@@ -4701,6 +4765,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_active?: boolean
           outlet_id?: string | null
           role: Database["public"]["Enums"]["app_role"]
           shop_id?: string | null
@@ -4709,6 +4774,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_active?: boolean
           outlet_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           shop_id?: string | null
