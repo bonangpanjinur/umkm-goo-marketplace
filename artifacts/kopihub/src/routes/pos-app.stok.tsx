@@ -51,7 +51,7 @@ function StokTerpadu() {
     try {
       const { data: products, error } = await supabase
         .from("menu_items")
-        .select("id, name, stock_qty, low_stock_threshold, auto_disable_on_empty, is_available, category")
+        .select("id, name, stock, low_stock_threshold, auto_disable_on_empty, is_available, categories:category_id(name)")
         .eq("shop_id", shop.id)
         .order("name");
       if (error) throw error;
@@ -77,7 +77,13 @@ function StokTerpadu() {
       }
 
       const enriched: StokItem[] = (products ?? []).map((p: any) => ({
-        ...p,
+        id: p.id,
+        name: p.name,
+        stock: p.stock,
+        low_stock_threshold: p.low_stock_threshold,
+        auto_disable_on_empty: p.auto_disable_on_empty,
+        is_available: p.is_available,
+        category: p.categories?.name ?? null,
         pos_sold_today: salesByProduct[p.id]?.pos ?? 0,
         marketplace_sold_today: salesByProduct[p.id]?.marketplace ?? 0,
         online_sold_today: salesByProduct[p.id]?.online ?? 0,
