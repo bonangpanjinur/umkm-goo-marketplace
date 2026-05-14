@@ -916,7 +916,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | F-14 | Automated Payout Scheduler | 2 hari | ❌ |
 | F-15 | Multi-Admin Super Admin (Finance/Support/Content) | 2 hari | ❌ |
 | F-16 | Deposit via Payment Gateway (Midtrans/Xendit) untuk Booking | 3 hari | ❌ |
-| F-17 | Reschedule Mandiri Booking | 2 hari | ❌ |
+| F-17 | Reschedule Mandiri Booking | 2 hari | ✅ Selesai — tombol "Pindah Jadwal" di booking confirmed + dialog pilih slot + atomic RPC + log histori |
 | F-18 | Antrean Digital Klinik (nomor antrian + estimasi tunggu) | 2 hari | ❌ |
 | F-19 | Checklist Kondisi Rental (sebelum & sesudah) | 2 hari | ❌ |
 | F-20 | Lisensi & Limit Download Produk Digital | 2 hari | ❌ |

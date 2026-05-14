@@ -47,6 +47,9 @@ import {
   Star,
   GripVertical,
   Edit2,
+  ArrowRightLeft,
+  CalendarClock,
+  History,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
@@ -136,6 +139,17 @@ type BookingAddon = {
   created_at: string;
 };
 
+type RescheduleLog = {
+  id: string;
+  booking_id: string;
+  old_slot_id: string;
+  new_slot_id: string;
+  note: string | null;
+  created_at: string;
+  old_slot?: { service_name: string; slot_date: string; slot_time: string };
+  new_slot?: { service_name: string; slot_date: string; slot_time: string };
+};
+
 const PKG_COLORS = [
   { value: "blue",   label: "Biru"   },
   { value: "green",  label: "Hijau"  },
@@ -168,6 +182,20 @@ function BookingPage() {
   const [savingBooking, setSavingBooking] = useState(false);
 
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+
+  // ── F-17: Reschedule Mandiri Booking ───────────────────────────────
+  const [rescheduleOpen, setRescheduleOpen]   = useState(false);
+  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+  const [rescheduleDate, setRescheduleDate]   = useState(isoDate(new Date()));
+  const [rescheduleSlots, setRescheduleSlots] = useState<Slot[]>([]);
+  const [rescheduleSlot, setRescheduleSlot]   = useState<string>("");
+  const [rescheduleNote, setRescheduleNote]   = useState("");
+  const [loadingRescheduleSlots, setLoadingRescheduleSlots] = useState(false);
+  const [savingReschedule, setSavingReschedule] = useState(false);
+  const [rescheduleHistory, setRescheduleHistory] = useState<RescheduleLog[]>([]);
+  const [historyOpen, setHistoryOpen]         = useState(false);
+  const [historyBookingId, setHistoryBookingId] = useState<string | null>(null);
+  const [loadingHistory, setLoadingHistory]   = useState(false);
 
   // ── Packages & Add-ons management (M-17) ───────────────────────────
   const [pkgList, setPkgList]             = useState<ServicePackage[]>([]);
@@ -202,6 +230,14 @@ function BookingPage() {
   }, [shop?.id]);
 
   useEffect(() => { if (view === "packages") loadPkgData(); }, [view, loadPkgData]);
+
+  // F-17: Auto-load slot saat dialog reschedule dibuka dengan tanggal awal
+  useEffect(() => {
+    if (rescheduleOpen && rescheduleDate && rescheduleBooking) {
+      loadRescheduleSlots(rescheduleDate);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rescheduleOpen, rescheduleBooking?.id]);
 
   const openNewPkg = () => {
     setEditingPkg(null);
@@ -582,6 +618,103 @@ function BookingPage() {
     setStatusUpdating(null);
     if (error) toast.error(error.message);
     else { toast.success("Status diperbarui"); load(); }
+  };
+
+  // ── F-17: Reschedule functions ──────────────────────────────────────
+  const openReschedule = (bk: Booking) => {
+    setRescheduleBooking(bk);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setRescheduleDate(isoDate(tomorrow));
+    setRescheduleSlots([]);
+    setRescheduleSlot("");
+    setRescheduleNote("");
+    setRescheduleOpen(true);
+  };
+
+  const loadRescheduleSlots = useCallback(async (targetDate: string) => {
+    if (!shop?.id || !rescheduleBooking) return;
+    setLoadingRescheduleSlots(true);
+    try {
+      const { data } = await (supabase as any)
+        .from("booking_slots")
+        .select("*")
+        .eq("shop_id", shop.id)
+        .eq("slot_date", targetDate)
+        .order("slot_time");
+      const list: Slot[] = ((data ?? []) as any[])
+        .map((s: any) => ({
+          ...s,
+          price: Number(s.price),
+          duration_min: Number(s.duration_min ?? s.duration_minutes ?? 60),
+          max_capacity: Number(s.max_capacity ?? s.capacity ?? 1),
+          booked_count: Number(s.booked_count ?? 0),
+        }))
+        .filter((s: Slot) => {
+          // Kecualikan slot yang sedang dipakai booking ini
+          if (rescheduleBooking.slot_id === s.id) return false;
+          // Kecualikan slot yang sudah penuh
+          const avail = s.max_capacity - s.booked_count;
+          return avail >= 1;
+        });
+      setRescheduleSlots(list);
+      setRescheduleSlot("");
+    } finally {
+      setLoadingRescheduleSlots(false);
+    }
+  }, [shop?.id, rescheduleBooking]);
+
+  const executeReschedule = async () => {
+    if (!rescheduleBooking || !rescheduleSlot) {
+      toast.error("Pilih slot tujuan terlebih dahulu");
+      return;
+    }
+    setSavingReschedule(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("reschedule_booking", {
+        p_booking_id:  rescheduleBooking.id,
+        p_new_slot_id: rescheduleSlot,
+        p_note:        rescheduleNote.trim() || null,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (!data?.ok) {
+        toast.error(data?.error ?? "Reschedule gagal");
+        return;
+      }
+      const newSlot = rescheduleSlots.find(s => s.id === rescheduleSlot);
+      toast.success(
+        newSlot
+          ? `Booking dipindahkan ke ${newSlot.service_name} — ${new Date(newSlot.slot_date + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${newSlot.slot_time}`
+          : "Booking berhasil dipindahkan"
+      );
+      setRescheduleOpen(false);
+      load();
+    } finally {
+      setSavingReschedule(false);
+    }
+  };
+
+  const openRescheduleHistory = async (bookingId: string) => {
+    setHistoryBookingId(bookingId);
+    setHistoryOpen(true);
+    setLoadingHistory(true);
+    try {
+      const { data } = await (supabase as any)
+        .from("booking_reschedule_logs")
+        .select(`
+          *,
+          old_slot:old_slot_id(service_name, slot_date, slot_time),
+          new_slot:new_slot_id(service_name, slot_date, slot_time)
+        `)
+        .eq("booking_id", bookingId)
+        .order("created_at", { ascending: false });
+      setRescheduleHistory((data ?? []) as RescheduleLog[]);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const fmtDate = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -1280,7 +1413,7 @@ function BookingPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                     {bk.status === "pending" && (
                       <>
                         <Button
@@ -1306,16 +1439,39 @@ function BookingPage() {
                       </>
                     )}
                     {bk.status === "confirmed" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs"
-                        disabled={statusUpdating === bk.id}
-                        onClick={() => updateStatus(bk, "done")}
+                      <>
+                        {/* F-17: Tombol Reschedule */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs gap-1 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                          onClick={() => openReschedule(bk)}
+                        >
+                          <ArrowRightLeft className="h-3 w-3" />
+                          Pindah Jadwal
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          disabled={statusUpdating === bk.id}
+                          onClick={() => updateStatus(bk, "done")}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1 text-primary" />
+                          Selesai
+                        </Button>
+                      </>
+                    )}
+                    {/* F-17: Riwayat reschedule (tampil jika ada) */}
+                    {(bk as any).reschedule_count > 0 && (
+                      <button
+                        className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 underline decoration-dashed underline-offset-2"
+                        onClick={() => openRescheduleHistory(bk.id)}
+                        title="Lihat riwayat perpindahan jadwal"
                       >
-                        <CheckCircle className="h-3 w-3 mr-1 text-primary" />
-                        Selesai
-                      </Button>
+                        <History className="h-3 w-3" />
+                        {(bk as any).reschedule_count}× dipindah
+                      </button>
                     )}
                     {bk.status === "done" && <AlertCircle className="h-4 w-4 text-muted-foreground" />}
                   </div>
@@ -1325,6 +1481,200 @@ function BookingPage() {
           })}
         </div>
       )}
+
+      {/* ─── F-17: Reschedule Dialog ─── */}
+      <Dialog open={rescheduleOpen} onOpenChange={(open) => { setRescheduleOpen(open); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4 text-blue-600" />
+              Pindah Jadwal Booking
+            </DialogTitle>
+          </DialogHeader>
+
+          {rescheduleBooking && (
+            <div className="space-y-4 mt-1">
+              {/* Info booking saat ini */}
+              <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 dark:border-blue-800 p-3 space-y-1">
+                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                  <CalendarClock className="h-3.5 w-3.5" /> Jadwal Saat Ini
+                </p>
+                <p className="text-sm font-semibold">{rescheduleBooking.customer_name}</p>
+                {rescheduleBooking.slot && (
+                  <p className="text-xs text-muted-foreground">
+                    {rescheduleBooking.slot.service_name} ·{" "}
+                    {new Date(rescheduleBooking.slot.slot_date + "T00:00:00").toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" })} · {rescheduleBooking.slot.slot_time}
+                  </p>
+                )}
+              </div>
+
+              {/* Pilih tanggal baru */}
+              <div>
+                <Label className="text-xs font-semibold">Pilih Tanggal Baru *</Label>
+                <Input
+                  type="date"
+                  className="mt-1"
+                  value={rescheduleDate}
+                  min={isoDate(new Date())}
+                  onChange={e => {
+                    setRescheduleDate(e.target.value);
+                    if (e.target.value) loadRescheduleSlots(e.target.value);
+                  }}
+                />
+              </div>
+
+              {/* Pilih slot baru */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs font-semibold">Pilih Slot Tujuan *</Label>
+                  {rescheduleDate && (
+                    <button
+                      className="text-[11px] text-primary hover:underline"
+                      onClick={() => loadRescheduleSlots(rescheduleDate)}
+                      disabled={loadingRescheduleSlots}
+                    >
+                      {loadingRescheduleSlots ? "Memuat…" : "Muat ulang"}
+                    </button>
+                  )}
+                </div>
+
+                {!rescheduleDate ? (
+                  <p className="text-xs text-muted-foreground py-3 text-center border border-dashed rounded-lg">
+                    Pilih tanggal dulu untuk melihat slot tersedia
+                  </p>
+                ) : loadingRescheduleSlots ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : rescheduleSlots.length === 0 ? (
+                  <div className="rounded-lg border border-dashed py-5 text-center text-xs text-muted-foreground">
+                    Tidak ada slot tersedia di tanggal ini.
+                    <br />
+                    <span className="text-[11px]">Coba tanggal lain atau buat slot baru dulu.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
+                    {rescheduleSlots.map(slot => {
+                      const avail = slot.max_capacity - slot.booked_count;
+                      const isSelected = rescheduleSlot === slot.id;
+                      return (
+                        <button
+                          key={slot.id}
+                          onClick={() => setRescheduleSlot(slot.id)}
+                          className={`w-full text-left rounded-lg border px-3 py-2.5 transition-all text-sm ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 ring-1 ring-blue-500"
+                              : "border-border hover:border-blue-300 hover:bg-muted/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <span className="font-semibold">{slot.service_name}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{slot.slot_time} ({slot.duration_min} mnt)</span>
+                            </div>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${
+                              avail <= 1 ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"
+                            }`}>
+                              {avail} slot tersisa
+                            </span>
+                          </div>
+                          {slot.price > 0 && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{formatIDR(slot.price)}</p>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Catatan (opsional) */}
+              <div>
+                <Label className="text-xs font-semibold">Catatan Reschedule (opsional)</Label>
+                <Input
+                  className="mt-1 text-sm"
+                  placeholder="cth: Permintaan pelanggan via WA"
+                  value={rescheduleNote}
+                  onChange={e => setRescheduleNote(e.target.value)}
+                />
+              </div>
+
+              {/* Tombol aksi */}
+              <div className="flex gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setRescheduleOpen(false)}
+                  disabled={savingReschedule}
+                >
+                  Batal
+                </Button>
+                <Button
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={executeReschedule}
+                  disabled={savingReschedule || !rescheduleSlot}
+                >
+                  {savingReschedule
+                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Memindahkan…</>
+                    : <><ArrowRightLeft className="h-3.5 w-3.5 mr-1.5" />Pindahkan Jadwal</>
+                  }
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── F-17: Reschedule History Dialog ─── */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-4 w-4 text-muted-foreground" />
+              Riwayat Perpindahan Jadwal
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : rescheduleHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                Tidak ada riwayat perpindahan jadwal
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {rescheduleHistory.map((log, idx) => (
+                  <div key={log.id} className="relative pl-5">
+                    {idx < rescheduleHistory.length - 1 && (
+                      <div className="absolute left-[7px] top-5 bottom-0 w-px bg-border" />
+                    )}
+                    <div className="absolute left-0 top-1 h-3.5 w-3.5 rounded-full border-2 border-blue-400 bg-background" />
+                    <div className="rounded-lg border border-border p-3 space-y-1">
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(log.created_at).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs flex-wrap">
+                        <span className="text-muted-foreground line-through">
+                          {log.old_slot?.service_name} · {log.old_slot?.slot_date ? new Date(log.old_slot.slot_date + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "-"} {log.old_slot?.slot_time}
+                        </span>
+                        <ArrowRightLeft className="h-3 w-3 text-blue-500 shrink-0" />
+                        <span className="font-semibold text-foreground">
+                          {log.new_slot?.service_name} · {log.new_slot?.slot_date ? new Date(log.new_slot.slot_date + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : "-"} {log.new_slot?.slot_time}
+                        </span>
+                      </div>
+                      {log.note && (
+                        <p className="text-[11px] text-muted-foreground italic">"{log.note}"</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── Create Voucher Dialog ─── */}
       <Dialog open={voucherOpen} onOpenChange={setVoucherOpen}>
