@@ -66,42 +66,45 @@ function SchedulePage() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Invite employee dialog
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [invEmail, setInvEmail] = useState("");
-  const [invRole, setInvRole] = useState("cashier");
-  const [invOutletId, setInvOutletId] = useState("");
-  const [inviting, setInviting] = useState(false);
-  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+  // Add staff (manual, no login) dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newRole, setNewRole] = useState("cashier");
+  const [newOutletId, setNewOutletId] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [adding, setAdding] = useState(false);
 
-  async function inviteEmployee() {
-    if (!shop || !user || !invEmail.trim()) return;
-    setInviting(true);
-    const { data, error } = await supabase
-      .from("staff_invitations")
-      .insert({
-        shop_id: shop.id,
-        outlet_id: invOutletId || null,
-        email: invEmail.trim().toLowerCase(),
-        role: invRole as "manager" | "cashier" | "barista",
-        invited_by: user.id,
-      })
-      .select("token")
-      .single();
-    setInviting(false);
+  async function addStaff() {
+    if (!shop || !newName.trim()) return;
+    setAdding(true);
+    const { error } = await supabase.from("staff_members").insert({
+      shop_id: shop.id,
+      outlet_id: newOutletId || null,
+      name: newName.trim(),
+      role: newRole as "manager" | "cashier" | "barista",
+      phone: newPhone.trim() || null,
+    });
+    setAdding(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    const url = `${window.location.origin}/invite/${data!.token}`;
-    setLastInviteUrl(url);
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Undangan dibuat — tautan disalin");
-    } catch {
-      toast.success("Undangan dibuat");
+    toast.success("Pegawai ditambahkan");
+    setNewName("");
+    setNewPhone("");
+    setAddOpen(false);
+    load();
+  }
+
+  async function removeManualStaff(manualId: string, name: string) {
+    if (!confirm(`Hapus pegawai "${name}"? Semua jadwalnya juga akan dihapus.`)) return;
+    await supabase.from("shifts").delete().eq("user_id", manualId);
+    const { error } = await supabase.from("staff_members").delete().eq("id", manualId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pegawai dihapus");
+      load();
     }
-    setInvEmail("");
   }
 
   async function load() {
