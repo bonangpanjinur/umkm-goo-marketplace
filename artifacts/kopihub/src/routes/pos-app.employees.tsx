@@ -658,6 +658,9 @@ function EmployeesPage() {
       role: manualRole as "manager" | "cashier" | "barista",
       phone,
       avatar_url: manualAvatar.trim() || null,
+      hire_date: manualHireDate || null,
+      hourly_rate: manualHourlyRate ? Number(manualHourlyRate) : null,
+      notes: manualNotes.trim() || null,
     };
     const { error } = editingId
       ? await supabase.from("staff_members").update(payload).eq("id", editingId)
