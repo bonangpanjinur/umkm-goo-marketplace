@@ -28,6 +28,8 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Copy,
+  Check,
   Banknote,
   Save,
   ToggleLeft,
@@ -160,6 +162,96 @@ const PKG_COLORS = [
 
 function isoDate(d: Date) {
   return d.toISOString().split("T")[0];
+}
+
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
+
+/** Shown on cancelled bookings where deposit was paid via gateway.
+ *  Fetches the gateway TX ID and lets the owner mark the refund as processed. */
+function RefundPanel({ bookingId, onRefunded }: { bookingId: string; onRefunded: () => void }) {
+  const [tx, setTx] = useState<{
+    gateway: string;
+    gateway_transaction_id: string | null;
+    amount: string | null;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [marking, setMarking] = useState(false);
+
+  const fetchTx = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/payments/booking-${bookingId}/status`);
+      if (res.ok) {
+        const data = await res.json();
+        setTx({ gateway: data.gateway ?? "gateway", gateway_transaction_id: data.gateway_transaction_id ?? null, amount: data.amount ?? null });
+      }
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  const markRefunded = async () => {
+    setMarking(true);
+    try {
+      await (supabase as any).from("bookings").update({ deposit_status: "refunded" }).eq("id", bookingId);
+      toast.success("DP ditandai sudah di-refund");
+      onRefunded();
+    } catch {
+      toast.error("Gagal memperbarui status refund");
+    }
+    setMarking(false);
+  };
+
+  return (
+    <div className="rounded-lg border border-rose-200 bg-rose-50/40 dark:bg-rose-950/10 p-2.5 space-y-2">
+      <p className="text-[10px] font-semibold text-rose-700 flex items-center gap-1.5">
+        <Banknote className="h-3 w-3" /> Refund DP Diminta oleh Pelanggan
+      </p>
+      {!tx ? (
+        <button
+          onClick={fetchTx}
+          disabled={loading}
+          className="text-[10px] text-rose-700 hover:underline flex items-center gap-1 font-medium"
+        >
+          {loading ? <><Loader2 className="h-3 w-3 animate-spin" /> Memuat TX ID…</> : "Lihat TX ID Gateway →"}
+        </button>
+      ) : (
+        <div className="space-y-1.5">
+          {tx.gateway_transaction_id ? (
+            <div className="flex items-center gap-1.5">
+              <code className="flex-1 text-[10px] font-mono bg-white dark:bg-card border border-rose-200 px-1.5 py-0.5 rounded text-rose-800 truncate">
+                {tx.gateway_transaction_id}
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(tx.gateway_transaction_id!);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="shrink-0 text-[10px] flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-rose-300 text-rose-700 hover:bg-rose-100 transition-colors"
+              >
+                {copied ? <><Check className="h-3 w-3" /> Disalin</> : <><Copy className="h-3 w-3" /> Salin</>}
+              </button>
+            </div>
+          ) : (
+            <p className="text-[10px] text-muted-foreground italic">TX ID tidak tersedia</p>
+          )}
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            <span className="capitalize">{tx.gateway}</span>
+            {tx.amount && <span>· Rp {Number(tx.amount).toLocaleString("id-ID")}</span>}
+          </div>
+          <p className="text-[10px] text-muted-foreground">Gunakan TX ID ini untuk mengajukan refund melalui dashboard {tx.gateway === "midtrans" ? "Midtrans" : "Xendit"}.</p>
+        </div>
+      )}
+      <button
+        onClick={markRefunded}
+        disabled={marking}
+        className="text-[10px] flex items-center gap-1 px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60 font-medium"
+      >
+        {marking ? <><Loader2 className="h-3 w-3 animate-spin" /> Menyimpan…</> : <><Check className="h-3 w-3" /> Tandai Refunded</>}
+      </button>
+    </div>
+  );
 }
 
 function BookingPage() {
@@ -1364,37 +1456,48 @@ function BookingPage() {
                     </div>
                     {bk.notes && <p className="text-xs text-muted-foreground mt-1 italic">"{bk.notes}"</p>}
                     {bk.deposit_required && (
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <Banknote className="h-3 w-3 text-amber-500" />
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          bk.deposit_status === "submitted"
-                            ? "bg-amber-100 text-amber-700"
-                            : bk.deposit_status === "paid"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : bk.deposit_status === "verified"
+                      <div className="mt-1.5 space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Banknote className="h-3 w-3 text-amber-500" />
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                            bk.deposit_status === "submitted"
+                              ? "bg-amber-100 text-amber-700"
+                              : bk.deposit_status === "paid"
                                 ? "bg-emerald-100 text-emerald-700"
-                                : "bg-red-100 text-red-700"
-                        }`}>
-                          DP {bk.deposit_amount ? `Rp ${Number(bk.deposit_amount).toLocaleString("id-ID")}` : ""} ·{" "}
-                          {bk.deposit_status === "submitted"
-                            ? "Menunggu Verifikasi"
-                            : bk.deposit_status === "paid"
-                              ? "Lunas (Gateway)"
-                              : bk.deposit_status === "verified"
-                                ? "Terverifikasi"
-                                : "Belum Bayar"}
-                        </span>
-                        {bk.deposit_status === "submitted" && (
-                          <button
-                            className="text-[10px] text-emerald-600 hover:underline font-medium"
-                            onClick={async () => {
-                              await (supabase as any).from("bookings").update({ deposit_status: "verified" }).eq("id", bk.id);
-                              toast.success("DP terverifikasi");
-                              load();
-                            }}
-                          >
-                            Verifikasi
-                          </button>
+                                : bk.deposit_status === "verified"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : bk.deposit_status === "refunded"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-red-100 text-red-700"
+                          }`}>
+                            DP {bk.deposit_amount ? `Rp ${Number(bk.deposit_amount).toLocaleString("id-ID")}` : ""} ·{" "}
+                            {bk.deposit_status === "submitted"
+                              ? "Menunggu Verifikasi"
+                              : bk.deposit_status === "paid"
+                                ? "Lunas (Gateway)"
+                                : bk.deposit_status === "verified"
+                                  ? "Terverifikasi"
+                                  : bk.deposit_status === "refunded"
+                                    ? "Refunded"
+                                    : "Belum Bayar"}
+                          </span>
+                          {bk.deposit_status === "submitted" && (
+                            <button
+                              className="text-[10px] text-emerald-600 hover:underline font-medium"
+                              onClick={async () => {
+                                await (supabase as any).from("bookings").update({ deposit_status: "verified" }).eq("id", bk.id);
+                                toast.success("DP terverifikasi");
+                                load();
+                              }}
+                            >
+                              Verifikasi
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Refund panel — shown for cancelled bookings with gateway-paid deposit */}
+                        {bk.status === "cancelled" && bk.deposit_status === "paid" && (
+                          <RefundPanel bookingId={bk.id} onRefunded={load} />
                         )}
                       </div>
                     )}

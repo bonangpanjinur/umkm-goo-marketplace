@@ -289,6 +289,7 @@ router.get("/payments/:orderId/status", async (req: Request, res: Response) => {
     order_id: orderId,
     transaction_id: latest.id,
     gateway: latest.gateway,
+    gateway_transaction_id: latest.gatewayTransactionId,
     status: latest.status,
     payment_method: latest.paymentMethod,
     payment_url: latest.paymentUrl,

@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   CalendarCheck, Clock, User, AlertTriangle, CheckCircle2,
-  XCircle, Loader2, Phone, ArrowLeft, ShieldCheck,
+  XCircle, Loader2, Phone, ArrowLeft, ShieldCheck, Copy, Check, Banknote,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
 
 export const Route = createFileRoute("/booking/cancel/$token")({
   component: BookingCancelPage,
@@ -24,6 +26,7 @@ type BookingDetail = {
   cancelled_at: string | null;
   deposit_required: boolean | null;
   deposit_amount: number | null;
+  deposit_status: string | null;
   voucher_code: string | null;
   voucher_discount: number | null;
   slot: {
@@ -59,6 +62,12 @@ function BookingCancelPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [step, setStep] = useState<"view" | "confirm" | "cancelling" | "done" | "already_cancelled" | "past">("view");
+  const [paymentTx, setPaymentTx] = useState<{
+    gateway: string;
+    gateway_transaction_id: string | null;
+    amount: string | null;
+  } | null>(null);
+  const [txCopied, setTxCopied] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -67,7 +76,7 @@ function BookingCancelPage() {
         .from("bookings")
         .select(`
           id, status, customer_name, customer_phone, party_size, notes,
-          cancelled_at, deposit_required, deposit_amount,
+          cancelled_at, deposit_required, deposit_amount, deposit_status,
           voucher_code, voucher_discount,
           booking_slots!inner (
             id, service_name, slot_date, slot_time, duration_min, price, booked_count,
@@ -97,6 +106,7 @@ function BookingCancelPage() {
         cancelled_at: raw.cancelled_at,
         deposit_required: raw.deposit_required,
         deposit_amount: raw.deposit_amount ? Number(raw.deposit_amount) : null,
+        deposit_status: raw.deposit_status ?? null,
         voucher_code: raw.voucher_code,
         voucher_discount: raw.voucher_discount ? Number(raw.voucher_discount) : null,
         slot: {
@@ -112,6 +122,23 @@ function BookingCancelPage() {
       };
 
       setBooking(parsed);
+
+      // If deposit was paid via gateway, fetch the payment TX for refund info
+      if (raw.deposit_status === "paid") {
+        try {
+          const txRes = await fetch(`${API_BASE}/payments/booking-${raw.id}/status`);
+          if (txRes.ok) {
+            const tx = await txRes.json();
+            setPaymentTx({
+              gateway: tx.gateway ?? "gateway",
+              gateway_transaction_id: tx.gateway_transaction_id ?? null,
+              amount: tx.amount ?? null,
+            });
+          }
+        } catch {
+          // non-critical — won't block cancellation
+        }
+      }
 
       // Determine initial step
       if (raw.status === "cancelled") {
@@ -162,6 +189,24 @@ function BookingCancelPage() {
           link: "/pos-app/booking",
           dedupe_key: `cancel_${booking.id}`,
         });
+
+      // If DP was paid via gateway, send a refund_requested notification with TX details
+      if (booking.deposit_status === "paid" && booking.deposit_amount) {
+        const txLine = paymentTx?.gateway_transaction_id
+          ? ` · TX ID: ${paymentTx.gateway_transaction_id} (${paymentTx.gateway})`
+          : "";
+        await (supabase as any)
+          .from("owner_notifications")
+          .insert({
+            shop_id: booking.slot.shop.id,
+            type: "refund_requested",
+            title: `💸 Refund DP diminta — ${booking.customer_name}`,
+            body: `DP ${formatIDR(booking.deposit_amount)} perlu di-refund ke ${booking.customer_name} (${booking.customer_phone})${txLine}`,
+            severity: "warn",
+            link: "/pos-app/booking",
+            dedupe_key: `refund_${booking.id}`,
+          });
+      }
 
       // Check waitlist — notify owner if someone is waiting for this slot
       const { data: nextInLine } = await (supabase as any)
@@ -352,23 +397,43 @@ function BookingCancelPage() {
               <DetailCard />
 
               {booking.deposit_required && booking.deposit_amount && (
-                <Card className="p-4 border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10">
-                  <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5 mb-1">
+                <Card className="p-4 border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10 space-y-2">
+                  <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
                     <AlertTriangle className="h-3.5 w-3.5" /> Perhatian — DP Telah Dibayar
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Kamu sudah membayar DP sebesar <strong>{formatIDR(booking.deposit_amount)}</strong>.
-                    Kebijakan refund tergantung kebijakan toko. Hubungi toko untuk konfirmasi refund.
-                  </p>
-                  {slot.shop.phone && (
-                    <a
-                      href={`https://wa.me/${slot.shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Halo ${slot.shop.name}, saya ingin tanya soal refund DP ${formatIDR(booking.deposit_amount)} untuk booking ${slot.service_name} tanggal ${fmtDate(slot.slot_date)}. Nama: ${booking.customer_name}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber-700 hover:underline"
-                    >
-                      <Phone className="h-3 w-3" /> Tanya toko via WA
-                    </a>
+                  {booking.deposit_status === "paid" ? (
+                    <>
+                      <p className="text-xs text-muted-foreground">
+                        DP sebesar <strong>{formatIDR(booking.deposit_amount)}</strong> sudah lunas via payment gateway.
+                        Jika kamu membatalkan, permintaan refund akan <strong>otomatis dikirim ke toko</strong>.
+                      </p>
+                      {paymentTx?.gateway_transaction_id && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-muted-foreground">TX ID:</span>
+                          <code className="text-[10px] font-mono text-amber-800 bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded truncate max-w-[180px]">
+                            {paymentTx.gateway_transaction_id}
+                          </code>
+                          <span className="text-[10px] text-muted-foreground capitalize">({paymentTx.gateway})</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground">
+                        Kamu sudah membayar DP sebesar <strong>{formatIDR(booking.deposit_amount)}</strong>.
+                        Kebijakan refund tergantung kebijakan toko. Hubungi toko untuk konfirmasi refund.
+                      </p>
+                      {slot.shop.phone && (
+                        <a
+                          href={`https://wa.me/${slot.shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Halo ${slot.shop.name}, saya ingin tanya soal refund DP ${formatIDR(booking.deposit_amount)} untuk booking ${slot.service_name} tanggal ${fmtDate(slot.slot_date)}. Nama: ${booking.customer_name}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1.5 text-xs text-amber-700 hover:underline"
+                        >
+                          <Phone className="h-3 w-3" /> Tanya toko via WA
+                        </a>
+                      )}
+                    </>
                   )}
                 </Card>
               )}
@@ -452,23 +517,69 @@ function BookingCancelPage() {
               </div>
 
               {booking.deposit_required && booking.deposit_amount && (
-                <Card className="p-4 border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10 text-left">
-                  <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5 mb-1">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Pertanyaan soal Refund DP?
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Hubungi toko langsung untuk menanyakan pengembalian DP {formatIDR(booking.deposit_amount)}.
-                  </p>
-                  {slot.shop.phone && (
-                    <Button asChild variant="outline" size="sm" className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50">
-                      <a
-                        href={`https://wa.me/${slot.shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Halo ${slot.shop.name}, booking saya untuk ${slot.service_name} tanggal ${fmtDate(slot.slot_date)} sudah saya batalkan. Ingin konfirmasi refund DP ${formatIDR(booking.deposit_amount)}. Nama: ${booking.customer_name}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Phone className="h-3.5 w-3.5" /> Tanya Refund via WA
-                      </a>
-                    </Button>
+                <Card className="p-4 border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/10 text-left space-y-2">
+                  {booking.deposit_status === "paid" ? (
+                    <>
+                      <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
+                        <Banknote className="h-3.5 w-3.5" /> Permintaan Refund DP Terkirim
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Permintaan refund DP <strong>{formatIDR(booking.deposit_amount)}</strong> sudah otomatis dikirim ke toko.
+                        Toko akan memprosesnya dan menghubungimu via WhatsApp.
+                      </p>
+                      {paymentTx?.gateway_transaction_id && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground">Simpan TX ID ini untuk referensi:</p>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-[10px] font-mono text-amber-800 bg-amber-100 dark:bg-amber-900/40 px-2 py-1 rounded truncate">
+                              {paymentTx.gateway_transaction_id}
+                            </code>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(paymentTx.gateway_transaction_id!);
+                                setTxCopied(true);
+                                setTimeout(() => setTxCopied(false), 2000);
+                              }}
+                              className="shrink-0 text-[10px] flex items-center gap-1 px-2 py-1 rounded border border-amber-300 text-amber-700 hover:bg-amber-100 transition-colors"
+                            >
+                              {txCopied ? <><Check className="h-3 w-3" /> Disalin</> : <><Copy className="h-3 w-3" /> Salin</>}
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground capitalize">Gateway: {paymentTx.gateway}</p>
+                        </div>
+                      )}
+                      {slot.shop.phone && (
+                        <Button asChild variant="outline" size="sm" className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50 mt-1">
+                          <a
+                            href={`https://wa.me/${slot.shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Halo ${slot.shop.name}, booking saya untuk ${slot.service_name} tanggal ${fmtDate(slot.slot_date)} sudah dibatalkan. Saya tunggu proses refund DP ${formatIDR(booking.deposit_amount)}${paymentTx?.gateway_transaction_id ? ` (TX: ${paymentTx.gateway_transaction_id})` : ""}. Nama: ${booking.customer_name} (${booking.customer_phone})`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Phone className="h-3.5 w-3.5" /> Follow-up via WA
+                          </a>
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Pertanyaan soal Refund DP?
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Hubungi toko langsung untuk menanyakan pengembalian DP {formatIDR(booking.deposit_amount)}.
+                      </p>
+                      {slot.shop.phone && (
+                        <Button asChild variant="outline" size="sm" className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50">
+                          <a
+                            href={`https://wa.me/${slot.shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Halo ${slot.shop.name}, booking saya untuk ${slot.service_name} tanggal ${fmtDate(slot.slot_date)} sudah saya batalkan. Ingin konfirmasi refund DP ${formatIDR(booking.deposit_amount)}. Nama: ${booking.customer_name}`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Phone className="h-3.5 w-3.5" /> Tanya Refund via WA
+                          </a>
+                        </Button>
+                      )}
+                    </>
                   )}
                 </Card>
               )}
