@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
   QrCode, Smartphone, Wallet, ExternalLink, Zap, ListOrdered,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
-import { initiatePayment, openMidtransSnap } from "@/lib/payment-gateway";
+import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payment-gateway";
 
 export const Route = createFileRoute("/toko/$slug/booking")({
   component: PublicBookingPage,
@@ -146,6 +146,8 @@ export default function PublicBookingPage() {
   const [depositProcessing, setDepositProcessing] = useState(false);
   const [xenditPaymentUrl, setXenditPaymentUrl] = useState<string | null>(null);
   const [xenditTxId, setXenditTxId] = useState<string | null>(null);
+  const [depositPolling, setDepositPolling] = useState(false);
+  const depositPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Voucher state
   const [voucherInput, setVoucherInput] = useState("");
@@ -285,6 +287,60 @@ export default function PublicBookingPage() {
       }
     })();
   }, []);
+
+  // ── Deposit payment status polling ────────────────────────────────────────
+  // Starts when a gateway payment link is open; stops on success / failure / step change.
+  useEffect(() => {
+    const shouldPoll =
+      step === "deposit" &&
+      !!bookingId &&
+      bookingId !== "ok" &&
+      !!xenditPaymentUrl; // only poll once a gateway payment has been initiated
+
+    if (!shouldPoll) {
+      if (depositPollRef.current) {
+        clearInterval(depositPollRef.current);
+        depositPollRef.current = null;
+        setDepositPolling(false);
+      }
+      return;
+    }
+
+    // Guard: don't create duplicate intervals
+    if (depositPollRef.current) return;
+
+    setDepositPolling(true);
+    const orderId = `booking-${bookingId}`;
+
+    depositPollRef.current = setInterval(async () => {
+      try {
+        const result = await getPaymentStatus(orderId);
+        if (result.status === "paid") {
+          clearInterval(depositPollRef.current!);
+          depositPollRef.current = null;
+          setDepositPolling(false);
+          await markDepositPaid(result.transaction_id);
+        } else if (result.status === "failed" || result.status === "expired") {
+          clearInterval(depositPollRef.current!);
+          depositPollRef.current = null;
+          setDepositPolling(false);
+          toast.error("Pembayaran gagal atau kedaluwarsa. Silakan coba lagi.");
+        }
+        // "pending" → keep polling
+      } catch {
+        // network hiccup — silently retry next tick
+      }
+    }, 5000);
+
+    return () => {
+      if (depositPollRef.current) {
+        clearInterval(depositPollRef.current);
+        depositPollRef.current = null;
+      }
+    };
+  // markDepositPaid is stable (defined in component body, no external deps that change)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, bookingId, xenditPaymentUrl]);
 
   const hasStaff    = staffList.length > 0;
   const hasPackages = packagesLoaded && (packages.length > 0 || addons.length > 0);
@@ -1824,22 +1880,39 @@ export default function PublicBookingPage() {
               </div>
             )}
 
-            {/* Xendit pending state: show "already paid" option */}
+            {/* Xendit pending state: auto-poll + manual fallback */}
             {depositPaymentMethod === "xendit_invoice" && xenditPaymentUrl && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
-                <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
-                  Link pembayaran sudah dibuka di tab baru. Setelah selesai bayar, klik tombol di bawah.
-                </p>
+                {depositPolling ? (
+                  <div className="flex items-center gap-2.5">
+                    <Loader2 className="h-4 w-4 animate-spin text-amber-600 shrink-0" />
+                    <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                      Menunggu konfirmasi pembayaran… halaman ini akan otomatis lanjut setelah bayar.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                    Link pembayaran sudah dibuka di tab baru. Setelah selesai bayar, halaman ini akan otomatis lanjut — atau klik tombol di bawah.
+                  </p>
+                )}
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" className="gap-1.5" asChild>
                     <a href={xenditPaymentUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-3.5 w-3.5" /> Buka Link Lagi
                     </a>
                   </Button>
-                  <Button size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={() => markDepositPaid(xenditTxId ?? undefined)}>
+                  <Button
+                    size="sm"
+                    className="gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                    onClick={() => markDepositPaid(xenditTxId ?? undefined)}
+                    disabled={depositPolling}
+                  >
                     <Check className="h-3.5 w-3.5" /> Saya Sudah Bayar
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Memeriksa status setiap 5 detik secara otomatis.
+                </p>
               </div>
             )}
 
