@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useIsSuperAdmin } from "@/lib/use-plan";
-import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search, Image, Tv2, Users, ShieldAlert, TrendingUp, TrendingDown, FileSpreadsheet, ShieldX, Bell, SearchX, Tags, Sparkles, Trophy } from "lucide-react";
+import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe, Settings, ArrowLeft, Activity, Blocks, Megaphone, ScrollText, Menu as MenuIcon, Banknote, Ticket, AlertOctagon, BarChart3, BadgeCheck, CreditCard, Percent, Palette, Clock, UserCog, Flag, Calculator, GitCompare, Mail, Search, Image, Tv2, Users, ShieldAlert, TrendingUp, TrendingDown, FileSpreadsheet, ShieldX, Bell, SearchX, Tags, Sparkles, Trophy, FlaskConical, Link2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
@@ -51,7 +51,20 @@ const NAV = [
   { to: "/admin/push-config", label: "Push Notification (VAPID)", icon: Bell },
   { to: "/admin/revenue-leakage", label: "Revenue Leakage", icon: SearchX },
   { to: "/admin/health-score", label: "Health Score Toko", icon: Activity },
-  { to: "/admin/merchant-tiers", label: "Program Tier Merchant", icon: Trophy },
+  { to: "/admin/merchant-tiers",          label: "Program Tier Merchant",     icon: Trophy },
+  { to: "/admin/payout-scheduler",       label: "Payout Scheduler",          icon: Zap },
+  { to: "/admin/tax-report",             label: "Laporan Pajak PPh/PPN",     icon: FileSpreadsheet },
+  { to: "/admin/onboarding-automation",  label: "Onboarding Otomatis",       icon: Mail },
+  { to: "/admin/multi-admin",            label: "Multi-Admin & Role",        icon: Users },
+  { to: "/admin/cohort-analytics",       label: "Cohort & LTV Analytics",    icon: TrendingUp },
+  { to: "/admin/gdpr-tools",             label: "GDPR / Data Export",        icon: ShieldCheck },
+  { to: "/admin/sandbox",                label: "Sandbox & Demo Mode",       icon: FlaskConical },
+  { to: "/admin/sla-monitor",            label: "SLA Monitor",               icon: Activity },
+  { to: "/admin/affiliate",              label: "Affiliate & Partner",       icon: Link2 },
+  { to: "/admin/broadcast-buyers",       label: "Broadcast Pembeli",         icon: Megaphone },
+  { to: "/admin/buyer-actions",          label: "Manajemen Pembeli",         icon: Users },
+  { to: "/admin/churn-reengagement",     label: "Churn Re-engagement",       icon: TrendingDown },
+  { to: "/admin/fraud-scoring",          label: "Fraud ML Scoring",          icon: ShieldAlert },
 ] as const;
 
 function AdminLayout() {
