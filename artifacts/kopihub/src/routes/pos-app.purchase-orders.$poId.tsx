@@ -157,6 +157,20 @@ function formatPONo(raw: string): string {
   return /^PO[-_]/i.test(s) ? s : `PO-${s}`;
 }
 
+function auditActionLabel(action: string): string {
+  const map: Record<string, string> = {
+    status_change: "Perubahan status",
+    received: "PO diterima",
+    deleted: "PO dihapus",
+    draft_edited: "Draft diperbarui",
+    created: "PO dibuat",
+  };
+  return map[action] ?? action;
+}
+function auditStatusLabel(s: string): string {
+  return ({ draft: "Draft", ordered: "Sudah dipesan", received: "Diterima", cancelled: "Dibatalkan" } as Record<string, string>)[s] ?? s;
+}
+
 function statusBadge(status: PO["status"]) {
   const map: Record<PO["status"], string> = {
     draft: "bg-muted text-muted-foreground",
