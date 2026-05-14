@@ -21,7 +21,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Trash2, Users, Copy, Check, Mail } from "lucide-react";
+import { Loader2, Trash2, Users, Copy, Check, Mail, UserPlus, Phone } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/employees")({
@@ -45,6 +45,15 @@ type Invitation = {
   created_at: string;
 };
 type Outlet = { id: string; name: string };
+type StaffMember = {
+  id: string;
+  name: string;
+  role: string;
+  outlet_id: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  created_at: string;
+};
 
 const ROLES = [
   { value: "manager", label: "Manager" },
@@ -71,10 +80,20 @@ function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // Manual add
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualRole, setManualRole] = useState("cashier");
+  const [manualOutletId, setManualOutletId] = useState<string>("");
+  const [manualPhone, setManualPhone] = useState("");
+  const [manualAvatar, setManualAvatar] = useState("");
+  const [manualSaving, setManualSaving] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+
   async function load() {
     if (!shop) return;
     setLoading(true);
-    const [r, i, o] = await Promise.all([
+    const [r, i, o, s] = await Promise.all([
       supabase.from("user_roles").select("id, user_id, role, outlet_id").eq("shop_id", shop.id),
       supabase
         .from("staff_invitations")
@@ -82,6 +101,11 @@ function EmployeesPage() {
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
+      supabase
+        .from("staff_members")
+        .select("id, name, role, outlet_id, phone, avatar_url, created_at")
+        .eq("shop_id", shop.id)
+        .order("created_at", { ascending: false }),
     ]);
     const rows = (r.data ?? []) as RoleRow[];
     // Hydrate profiles
@@ -99,7 +123,11 @@ function EmployeesPage() {
     setMembers(rows);
     setInvitations((i.data ?? []) as Invitation[]);
     setOutlets((o.data ?? []) as Outlet[]);
-    if (!outletId && o.data && o.data.length > 0) setOutletId(o.data[0].id);
+    setStaffMembers((s.data ?? []) as StaffMember[]);
+    if (!outletId && o.data && o.data.length > 0) {
+      setOutletId(o.data[0].id);
+      setManualOutletId(o.data[0].id);
+    }
     setLoading(false);
   }
 
@@ -158,6 +186,39 @@ function EmployeesPage() {
     setTimeout(() => setCopied(null), 1500);
   }
 
+  async function addManual() {
+    if (!shop || !manualName.trim()) return;
+    setManualSaving(true);
+    const { error } = await supabase.from("staff_members").insert({
+      shop_id: shop.id,
+      outlet_id: manualOutletId || null,
+      name: manualName.trim(),
+      role: manualRole as "manager" | "cashier" | "barista",
+      phone: manualPhone.trim() || null,
+      avatar_url: manualAvatar.trim() || null,
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pegawai ditambahkan");
+      setManualName("");
+      setManualPhone("");
+      setManualAvatar("");
+      setManualOpen(false);
+      load();
+    }
+    setManualSaving(false);
+  }
+
+  async function removeManual(id: string) {
+    if (!confirm("Hapus pegawai ini?")) return;
+    const { error } = await supabase.from("staff_members").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pegawai dihapus");
+      load();
+    }
+  }
+
   if (shopLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -177,73 +238,160 @@ function EmployeesPage() {
             Undang tim, atur peran, dan kelola akses ke POS.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Undang pegawai
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Undang pegawai</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 py-2">
-              <div className="space-y-1.5">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="pegawai@toko.com"
-                />
+        <div className="flex flex-wrap items-center gap-2">
+          <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Tambah pegawai</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="space-y-1.5">
+                  <Label>Nama lengkap</Label>
+                  <Input
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    placeholder="cth. Andi Saputra"
+                    maxLength={120}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Peran</Label>
+                    <Select value={manualRole} onValueChange={setManualRole}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Outlet</Label>
+                    <Select value={manualOutletId} onValueChange={setManualOutletId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih outlet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {outlets.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>No. HP</Label>
+                  <Input
+                    value={manualPhone}
+                    onChange={(e) => setManualPhone(e.target.value)}
+                    placeholder="08xxxxxxxxxx"
+                    maxLength={20}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>URL foto (opsional)</Label>
+                  <Input
+                    value={manualAvatar}
+                    onChange={(e) => setManualAvatar(e.target.value)}
+                    placeholder="https://..."
+                    maxLength={500}
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Pegawai harus daftar dengan email yang sama untuk menerima undangan.
+                  Pegawai ini hanya untuk pencatatan & jadwal — tidak punya akses login.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setManualOpen(false)}>
+                  Batal
+                </Button>
+                <Button onClick={addManual} disabled={manualSaving || !manualName.trim()}>
+                  {manualSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Simpan
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Mail className="mr-2 h-4 w-4" /> Undang via email
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Undang pegawai</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
                 <div className="space-y-1.5">
-                  <Label>Peran</Label>
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="pegawai@toko.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Pegawai harus daftar dengan email yang sama untuk menerima undangan.
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Outlet</Label>
-                  <Select value={outletId} onValueChange={setOutletId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih outlet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {outlets.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>
-                          {o.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Peran</Label>
+                    <Select value={role} onValueChange={setRole}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Outlet</Label>
+                    <Select value={outletId} onValueChange={setOutletId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih outlet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {outlets.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setOpen(false)}>
-                Batal
-              </Button>
-              <Button onClick={invite} disabled={saving || !email.trim()}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Buat undangan
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setOpen(false)}>
+                  Batal
+                </Button>
+                <Button onClick={invite} disabled={saving || !email.trim()}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Buat undangan
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {loading ? (
@@ -317,6 +465,73 @@ function EmployeesPage() {
               </div>
             )}
           </section>
+
+          {staffMembers.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+                PEGAWAI MANUAL ({staffMembers.length})
+              </h2>
+              <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left">Nama</th>
+                      <th className="px-4 py-2.5 text-left">Peran</th>
+                      <th className="px-4 py-2.5 text-left">Outlet</th>
+                      <th className="px-4 py-2.5 text-left">No. HP</th>
+                      <th className="px-4 py-2.5"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {staffMembers.map((sm) => {
+                      const outlet = outlets.find((o) => o.id === sm.outlet_id);
+                      return (
+                        <tr key={sm.id} className="hover:bg-muted/30">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold uppercase text-accent-foreground">
+                                {sm.avatar_url ? (
+                                  <img src={sm.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+                                ) : (
+                                  sm.name.charAt(0)
+                                )}
+                              </div>
+                              <span className="font-medium">{sm.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium">
+                              {roleLabel(sm.role)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{outlet?.name ?? "Semua"}</td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {sm.phone ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Phone className="h-3 w-3" /> {sm.phone}
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeManual(sm.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {pending.length > 0 && (
             <section>
