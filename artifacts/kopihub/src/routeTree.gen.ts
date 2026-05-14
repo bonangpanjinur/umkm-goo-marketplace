@@ -50,6 +50,7 @@ import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
 import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
+import { Route as PosAppRentalChecklistRouteImport } from './routes/pos-app.rental-checklist'
 import { Route as PosAppRentalAvailabilityRouteImport } from './routes/pos-app.rental-availability'
 import { Route as PosAppRekeningBankRouteImport } from './routes/pos-app.rekening-bank'
 import { Route as PosAppRecipesRouteImport } from './routes/pos-app.recipes'
@@ -394,6 +395,11 @@ const PosAppReviewsRoute = PosAppReviewsRouteImport.update({
 const PosAppReportsRoute = PosAppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppRentalChecklistRoute = PosAppRentalChecklistRouteImport.update({
+  id: '/rental-checklist',
+  path: '/rental-checklist',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppRentalAvailabilityRoute =
@@ -1227,6 +1233,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/recipes': typeof PosAppRecipesRoute
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
+  '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
@@ -1406,6 +1413,7 @@ export interface FileRoutesByTo {
   '/pos-app/recipes': typeof PosAppRecipesRoute
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
+  '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
@@ -1589,6 +1597,7 @@ export interface FileRoutesById {
   '/pos-app/recipes': typeof PosAppRecipesRoute
   '/pos-app/rekening-bank': typeof PosAppRekeningBankRoute
   '/pos-app/rental-availability': typeof PosAppRentalAvailabilityRoute
+  '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
@@ -1774,6 +1783,7 @@ export interface FileRouteTypes {
     | '/pos-app/recipes'
     | '/pos-app/rekening-bank'
     | '/pos-app/rental-availability'
+    | '/pos-app/rental-checklist'
     | '/pos-app/reports'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
@@ -1953,6 +1963,7 @@ export interface FileRouteTypes {
     | '/pos-app/recipes'
     | '/pos-app/rekening-bank'
     | '/pos-app/rental-availability'
+    | '/pos-app/rental-checklist'
     | '/pos-app/reports'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
@@ -2135,6 +2146,7 @@ export interface FileRouteTypes {
     | '/pos-app/recipes'
     | '/pos-app/rekening-bank'
     | '/pos-app/rental-availability'
+    | '/pos-app/rental-checklist'
     | '/pos-app/reports'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
@@ -2510,6 +2522,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/pos-app/reports'
       preLoaderRoute: typeof PosAppReportsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/rental-checklist': {
+      id: '/pos-app/rental-checklist'
+      path: '/rental-checklist'
+      fullPath: '/pos-app/rental-checklist'
+      preLoaderRoute: typeof PosAppRentalChecklistRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/rental-availability': {
@@ -3765,6 +3784,7 @@ interface PosAppRouteChildren {
   PosAppRecipesRoute: typeof PosAppRecipesRoute
   PosAppRekeningBankRoute: typeof PosAppRekeningBankRoute
   PosAppRentalAvailabilityRoute: typeof PosAppRentalAvailabilityRoute
+  PosAppRentalChecklistRoute: typeof PosAppRentalChecklistRoute
   PosAppReportsRoute: typeof PosAppReportsRouteWithChildren
   PosAppReviewsRoute: typeof PosAppReviewsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
@@ -3843,6 +3863,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppRecipesRoute: PosAppRecipesRoute,
   PosAppRekeningBankRoute: PosAppRekeningBankRoute,
   PosAppRentalAvailabilityRoute: PosAppRentalAvailabilityRoute,
+  PosAppRentalChecklistRoute: PosAppRentalChecklistRoute,
   PosAppReportsRoute: PosAppReportsRouteWithChildren,
   PosAppReviewsRoute: PosAppReviewsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
