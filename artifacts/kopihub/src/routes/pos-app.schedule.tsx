@@ -19,8 +19,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Trash2, CalendarDays } from "lucide-react";
+import { Loader2, Plus, Trash2, CalendarDays, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/pos-app/schedule")({
   component: SchedulePage,
