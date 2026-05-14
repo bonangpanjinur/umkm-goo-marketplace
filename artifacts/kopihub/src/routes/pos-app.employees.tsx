@@ -92,6 +92,9 @@ function EmployeesPage() {
   const [manualSaving, setManualSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [manualWithLogin, setManualWithLogin] = useState(false);
+  const [manualEmail, setManualEmail] = useState("");
+  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
