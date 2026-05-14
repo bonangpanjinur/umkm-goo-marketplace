@@ -50,6 +50,7 @@ import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
 import { Route as PosAppRestockNotifyRouteImport } from './routes/pos-app.restock-notify'
+import { Route as PosAppReservasiRouteImport } from './routes/pos-app.reservasi'
 import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
 import { Route as PosAppRentalTncRouteImport } from './routes/pos-app.rental-tnc'
 import { Route as PosAppRentalChecklistRouteImport } from './routes/pos-app.rental-checklist'
@@ -173,6 +174,7 @@ import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as OrderSlugIndexRouteImport } from './routes/order.$slug.index'
 import { Route as AkunPesananIndexRouteImport } from './routes/akun.pesanan.index'
 import { Route as TokoSlugSaldoRouteImport } from './routes/toko.$slug.saldo'
+import { Route as TokoSlugReservasiRouteImport } from './routes/toko.$slug.reservasi'
 import { Route as TokoSlugMembershipRouteImport } from './routes/toko.$slug.membership'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
 import { Route as TokoSlugCustomOrderRouteImport } from './routes/toko.$slug.custom-order'
@@ -405,6 +407,11 @@ const PosAppReviewsRoute = PosAppReviewsRouteImport.update({
 const PosAppRestockNotifyRoute = PosAppRestockNotifyRouteImport.update({
   id: '/restock-notify',
   path: '/restock-notify',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppReservasiRoute = PosAppReservasiRouteImport.update({
+  id: '/reservasi',
+  path: '/reservasi',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppReportsRoute = PosAppReportsRouteImport.update({
@@ -1025,6 +1032,11 @@ const TokoSlugSaldoRoute = TokoSlugSaldoRouteImport.update({
   path: '/saldo',
   getParentRoute: () => TokoSlugRoute,
 } as any)
+const TokoSlugReservasiRoute = TokoSlugReservasiRouteImport.update({
+  id: '/reservasi',
+  path: '/reservasi',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const TokoSlugMembershipRoute = TokoSlugMembershipRouteImport.update({
   id: '/membership',
   path: '/membership',
@@ -1303,6 +1315,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
@@ -1352,6 +1365,7 @@ export interface FileRoutesByFullPath {
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
+  '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
   '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1493,6 +1507,7 @@ export interface FileRoutesByTo {
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
@@ -1541,6 +1556,7 @@ export interface FileRoutesByTo {
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
+  '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
   '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan': typeof AkunPesananIndexRoute
   '/order/$slug': typeof OrderSlugIndexRoute
@@ -1687,6 +1703,7 @@ export interface FileRoutesById {
   '/pos-app/rental-checklist': typeof PosAppRentalChecklistRoute
   '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
+  '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
@@ -1736,6 +1753,7 @@ export interface FileRoutesById {
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
+  '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
   '/toko/$slug/saldo': typeof TokoSlugSaldoRoute
   '/akun/pesanan/': typeof AkunPesananIndexRoute
   '/order/$slug/': typeof OrderSlugIndexRoute
@@ -1883,6 +1901,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-checklist'
     | '/pos-app/rental-tnc'
     | '/pos-app/reports'
+    | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
@@ -1932,6 +1951,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
     | '/toko/$slug/membership'
+    | '/toko/$slug/reservasi'
     | '/toko/$slug/saldo'
     | '/akun/pesanan/'
     | '/order/$slug/'
@@ -2073,6 +2093,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-checklist'
     | '/pos-app/rental-tnc'
     | '/pos-app/reports'
+    | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
@@ -2121,6 +2142,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
     | '/toko/$slug/membership'
+    | '/toko/$slug/reservasi'
     | '/toko/$slug/saldo'
     | '/akun/pesanan'
     | '/order/$slug'
@@ -2266,6 +2288,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-checklist'
     | '/pos-app/rental-tnc'
     | '/pos-app/reports'
+    | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
     | '/pos-app/schedule'
@@ -2315,6 +2338,7 @@ export interface FileRouteTypes {
     | '/toko/$slug/custom-order'
     | '/toko/$slug/map'
     | '/toko/$slug/membership'
+    | '/toko/$slug/reservasi'
     | '/toko/$slug/saldo'
     | '/akun/pesanan/'
     | '/order/$slug/'
@@ -2642,6 +2666,13 @@ declare module '@tanstack/react-router' {
       path: '/restock-notify'
       fullPath: '/pos-app/restock-notify'
       preLoaderRoute: typeof PosAppRestockNotifyRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/reservasi': {
+      id: '/pos-app/reservasi'
+      path: '/reservasi'
+      fullPath: '/pos-app/reservasi'
+      preLoaderRoute: typeof PosAppReservasiRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/reports': {
@@ -3505,6 +3536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TokoSlugSaldoRouteImport
       parentRoute: typeof TokoSlugRoute
     }
+    '/toko/$slug/reservasi': {
+      id: '/toko/$slug/reservasi'
+      path: '/reservasi'
+      fullPath: '/toko/$slug/reservasi'
+      preLoaderRoute: typeof TokoSlugReservasiRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/toko/$slug/membership': {
       id: '/toko/$slug/membership'
       path: '/membership'
@@ -3999,6 +4037,7 @@ interface PosAppRouteChildren {
   PosAppRentalChecklistRoute: typeof PosAppRentalChecklistRoute
   PosAppRentalTncRoute: typeof PosAppRentalTncRoute
   PosAppReportsRoute: typeof PosAppReportsRouteWithChildren
+  PosAppReservasiRoute: typeof PosAppReservasiRoute
   PosAppRestockNotifyRoute: typeof PosAppRestockNotifyRoute
   PosAppReviewsRoute: typeof PosAppReviewsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
@@ -4084,6 +4123,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppRentalChecklistRoute: PosAppRentalChecklistRoute,
   PosAppRentalTncRoute: PosAppRentalTncRoute,
   PosAppReportsRoute: PosAppReportsRouteWithChildren,
+  PosAppReservasiRoute: PosAppReservasiRoute,
   PosAppRestockNotifyRoute: PosAppRestockNotifyRoute,
   PosAppReviewsRoute: PosAppReviewsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
@@ -4178,6 +4218,7 @@ interface TokoSlugRouteChildren {
   TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRouteWithChildren
   TokoSlugMapRoute: typeof TokoSlugMapRoute
   TokoSlugMembershipRoute: typeof TokoSlugMembershipRoute
+  TokoSlugReservasiRoute: typeof TokoSlugReservasiRoute
   TokoSlugSaldoRoute: typeof TokoSlugSaldoRoute
   TokoSlugProdukProductIdRoute: typeof TokoSlugProdukProductIdRoute
 }
@@ -4188,6 +4229,7 @@ const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugCustomOrderRoute: TokoSlugCustomOrderRouteWithChildren,
   TokoSlugMapRoute: TokoSlugMapRoute,
   TokoSlugMembershipRoute: TokoSlugMembershipRoute,
+  TokoSlugReservasiRoute: TokoSlugReservasiRoute,
   TokoSlugSaldoRoute: TokoSlugSaldoRoute,
   TokoSlugProdukProductIdRoute: TokoSlugProdukProductIdRoute,
 }

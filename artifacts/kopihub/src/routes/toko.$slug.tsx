@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, UtensilsCrossed } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useSeo } from "@/lib/use-seo";
@@ -370,6 +370,12 @@ function ShopPage() {
                   <Link to="/toko/$slug/booking" params={{ slug }}>
                     <CalendarCheck className="h-3.5 w-3.5" />
                     Booking Layanan
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <Link to="/toko/$slug/reservasi" params={{ slug }}>
+                    <UtensilsCrossed className="h-3.5 w-3.5" />
+                    Reservasi Meja
                   </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
