@@ -133,7 +133,7 @@ function MarketplaceOrdersPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, escrow_status, tracking_number, courier_name, tracking_url, tracking_set_at, requires_deposit, deposit_amount, deposit_paid, deposit_paid_at, balance_due, balance_paid, balance_paid_at, items:order_items(id, name, qty, price, total)")
+      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, commission_amount, net_to_shop, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, escrow_status, tracking_number, courier_name, tracking_url, tracking_set_at, requires_deposit, deposit_amount, deposit_paid, deposit_paid_at, balance_due, balance_paid, balance_paid_at, items:order_items(id, name, quantity, unit_price, subtotal)")
       .eq("shop_id", shop.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -484,8 +484,8 @@ function MarketplaceOrdersPage() {
                     <div className="border-t pt-2 space-y-1">
                       {(o.items || []).map((it: any) => (
                         <div key={it.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{it.qty}× <span className="text-foreground">{it.name}</span></span>
-                          <span className="font-medium">{formatIDR(it.total)}</span>
+                          <span className="text-muted-foreground">{it.quantity}× <span className="text-foreground">{it.name}</span></span>
+                          <span className="font-medium">{formatIDR(it.subtotal)}</span>
                         </div>
                       ))}
                     </div>
