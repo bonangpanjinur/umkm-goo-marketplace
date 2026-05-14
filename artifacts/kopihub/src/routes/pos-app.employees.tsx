@@ -284,7 +284,7 @@ function EmployeesPage() {
     if (!shop) return;
     setLoading(true);
     const [r, i, o, s] = await Promise.all([
-      supabase.from("user_roles").select("id, user_id, role, outlet_id").eq("shop_id", shop.id),
+      supabase.from("user_roles").select("id, user_id, role, outlet_id, is_active").eq("shop_id", shop.id),
       supabase
         .from("staff_invitations")
         .select("id, email, role, token, expires_at, accepted_at, created_at")
@@ -293,7 +293,7 @@ function EmployeesPage() {
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
       supabase
         .from("staff_members")
-        .select("id, name, role, outlet_id, phone, avatar_url, created_at")
+        .select("id, name, role, outlet_id, phone, avatar_url, is_active, hire_date, hourly_rate, notes, created_at")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
     ]);
