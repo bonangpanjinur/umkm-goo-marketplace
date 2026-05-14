@@ -22,7 +22,8 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, UtensilsCrossed, Upload, ImageIcon, AlertTriangle, TrendingUp, TrendingDown, SlidersHorizontal, ExternalLink, Sparkles, X, Copy, Check } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, UtensilsCrossed, Upload, ImageIcon, AlertTriangle, TrendingUp, TrendingDown, SlidersHorizontal, ExternalLink, Sparkles, X, Copy, Check, Info, Apple, Recycle, Clock, Droplet, Tag as TagIcon, Zap, Boxes, Settings2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ModifierManager } from "@/components/modifier-manager";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
