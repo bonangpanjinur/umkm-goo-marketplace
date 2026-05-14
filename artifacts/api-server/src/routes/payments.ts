@@ -438,4 +438,14 @@ router.get("/payments/webhooks/recent", async (_req: Request, res: Response) => 
   res.json({ logs: logs.reverse() });
 });
 
+router.get("/payments/gateway-config", (_req: Request, res: Response) => {
+  const settings = mergeGatewaySettings(null);
+  res.json({
+    midtrans_enabled: settings.midtrans_enabled,
+    midtrans_client_key: settings.midtrans_client_key,
+    midtrans_mode: settings.midtrans_mode,
+    xendit_enabled: settings.xendit_enabled,
+  });
+});
+
 export default router;

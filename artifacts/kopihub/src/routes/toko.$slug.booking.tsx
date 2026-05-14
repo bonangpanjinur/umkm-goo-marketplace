@@ -16,8 +16,10 @@ import {
   ArrowLeft, ShieldCheck, Star, Scissors, UserCheck, Banknote, Copy, Check,
   AlertTriangle, Ticket, Tag, X, XCircle, Package, Plus,
   FileText, Upload, Trash2, CreditCard, Car,
+  QrCode, Smartphone, Wallet, ExternalLink, Zap, ListOrdered,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+import { initiatePayment, openMidtransSnap } from "@/lib/payment-gateway";
 
 export const Route = createFileRoute("/toko/$slug/booking")({
   component: PublicBookingPage,
@@ -133,6 +135,18 @@ export default function PublicBookingPage() {
   const [copied, setCopied] = useState(false);
   const [cancelLinkCopied, setCancelLinkCopied] = useState(false);
 
+  // Gateway config + deposit payment state
+  const [gatewayConfig, setGatewayConfig] = useState<{
+    midtrans_enabled: boolean;
+    midtrans_client_key: string | null;
+    midtrans_mode: string;
+    xendit_enabled: boolean;
+  } | null>(null);
+  const [depositPaymentMethod, setDepositPaymentMethod] = useState("transfer");
+  const [depositProcessing, setDepositProcessing] = useState(false);
+  const [xenditPaymentUrl, setXenditPaymentUrl] = useState<string | null>(null);
+  const [xenditTxId, setXenditTxId] = useState<string | null>(null);
+
   // Voucher state
   const [voucherInput, setVoucherInput] = useState("");
   const [voucherApplying, setVoucherApplying] = useState(false);
@@ -245,6 +259,32 @@ export default function PublicBookingPage() {
       loadPackages(shop.id);
     }
   }, [shop?.id, loadSlots, loadStaff, loadPackages]);
+
+  // Load gateway config + Midtrans Snap.js
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/payments/gateway-config");
+        if (!res.ok) return;
+        const cfg = await res.json() as typeof gatewayConfig;
+        setGatewayConfig(cfg);
+        if (cfg?.midtrans_enabled && cfg?.midtrans_client_key) {
+          const existing = document.querySelector('script[src*="snap.js"]');
+          if (!existing) {
+            const script = document.createElement("script");
+            const isSandbox = cfg.midtrans_mode !== "production";
+            script.src = isSandbox
+              ? "https://app.sandbox.midtrans.com/snap/snap.js"
+              : "https://app.midtrans.com/snap/snap.js";
+            script.setAttribute("data-client-key", cfg.midtrans_client_key);
+            document.head.appendChild(script);
+          }
+        }
+      } catch {
+        // gateway config unavailable — transfer-only fallback
+      }
+    })();
+  }, []);
 
   const hasStaff    = staffList.length > 0;
   const hasPackages = packagesLoaded && (packages.length > 0 || addons.length > 0);
@@ -482,6 +522,91 @@ export default function PublicBookingPage() {
       setStep("success");
     } finally {
       setConfirmingDeposit(false);
+    }
+  };
+
+  const markDepositPaid = async (txId?: string) => {
+    if (!bookingId || bookingId === "ok") { setStep("success"); return; }
+    try {
+      await supabase
+        .from("bookings" as any)
+        .update({ deposit_status: "paid" } as any)
+        .eq("id" as any, bookingId);
+      if (shop?.id) {
+        await supabase.from("owner_notifications" as any).insert({
+          shop_id: shop.id,
+          type: "deposit_paid",
+          title: `✅ DP LUNAS — ${name.trim()}`,
+          body: `${selectedSlot?.service_name} · ${fmtDate(selectedSlot?.slot_date ?? "")} · DP ${formatIDR(depositAmount)} LUNAS via payment gateway${txId ? ` (TX: ${txId})` : ""}`,
+          severity: "info",
+          link: "/pos-app/booking",
+          dedupe_key: `deposit_paid_${bookingId}`,
+        } as any);
+      }
+      toast.success("Pembayaran DP berhasil! Booking Anda dikonfirmasi.");
+      setStep("success");
+    } catch {
+      toast.success("Pembayaran berhasil!");
+      setStep("success");
+    }
+  };
+
+  const initiateDepositPayment = async () => {
+    if (!bookingId || !shop || !selectedSlot) return;
+    if (depositPaymentMethod === "transfer") {
+      await confirmDeposit();
+      return;
+    }
+    setDepositProcessing(true);
+    try {
+      const orderId = `booking-${bookingId}`;
+      const result = await initiatePayment({
+        order_id: orderId,
+        amount: depositAmount,
+        payment_method: depositPaymentMethod,
+        customer_name: name,
+        customer_phone: phone,
+        items: [{
+          id: selectedSlot.id,
+          name: `DP Booking: ${selectedSlot.service_name}`,
+          price: depositAmount,
+          quantity: 1,
+        }],
+        success_redirect_url: window.location.href,
+        failure_redirect_url: window.location.href,
+      });
+
+      if (result.gateway === "midtrans" && result.snap_token) {
+        openMidtransSnap(result.snap_token, {
+          onSuccess: async () => {
+            await markDepositPaid(result.transaction_id);
+            setDepositProcessing(false);
+          },
+          onPending: () => {
+            toast.info("Pembayaran sedang diproses, menunggu konfirmasi.");
+            setDepositProcessing(false);
+          },
+          onError: () => {
+            toast.error("Pembayaran gagal. Silakan coba lagi atau pilih metode lain.");
+            setDepositProcessing(false);
+          },
+          onClose: () => {
+            setDepositProcessing(false);
+          },
+        });
+      } else if (result.gateway === "xendit" && result.payment_url) {
+        setXenditPaymentUrl(result.payment_url);
+        setXenditTxId(result.transaction_id);
+        window.open(result.payment_url, "_blank");
+        setDepositProcessing(false);
+        toast.info("Selesaikan pembayaran di tab baru, lalu kembali ke sini untuk konfirmasi.");
+      } else {
+        await markDepositPaid(result.transaction_id);
+        setDepositProcessing(false);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal memulai pembayaran. Coba lagi.");
+      setDepositProcessing(false);
     }
   };
 
@@ -1612,15 +1737,13 @@ export default function PublicBookingPage() {
         {/* ─── Step: Deposit ─── */}
         {step === "deposit" && selectedSlot && shop && (
           <div className="space-y-5">
-            <div className="flex items-center gap-2">
-              <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Banknote className="h-5 w-5 text-primary" /> Bayar Uang Muka (DP)
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Booking dikonfirmasi setelah DP diterima toko
-                </p>
-              </div>
+            <div>
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Banknote className="h-5 w-5 text-primary" /> Bayar Uang Muka (DP)
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Booking dikonfirmasi otomatis setelah DP diterima
+              </p>
             </div>
 
             {/* DP Amount Card */}
@@ -1628,15 +1751,65 @@ export default function PublicBookingPage() {
               <p className="text-sm text-muted-foreground mb-1">Jumlah DP yang harus dibayar</p>
               <p className="text-4xl font-bold text-primary">{formatIDR(depositAmount)}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                ({shop.deposit_percent ?? 50}% dari {formatIDR(selectedSlot.price)})
+                ({shop.deposit_percent ?? 50}% dari {formatIDR(effectivePrice)})
               </p>
             </div>
 
-            {/* Payment Info */}
-            {shop.deposit_notes && (
+            {/* Booking summary */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-1.5 text-sm">
+              <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">Detail Booking</p>
+              <p><span className="text-muted-foreground">Layanan:</span> <span className="font-medium">{selectedSlot.service_name}</span></p>
+              <p><span className="text-muted-foreground">Tanggal:</span> <span className="font-medium">{fmtDate(selectedSlot.slot_date)} · {fmtTime(selectedSlot.slot_time)}</span></p>
+              <p><span className="text-muted-foreground">Nama:</span> <span className="font-medium">{name}</span></p>
+              <p><span className="text-muted-foreground">WhatsApp:</span> <span className="font-medium">{phone}</span></p>
+            </div>
+
+            {/* Payment method selector */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold">Pilih Metode Pembayaran DP</p>
+              <div className="grid gap-2 grid-cols-2">
+                {([
+                  { id: "qris",           label: "QRIS",           sub: "Semua e-wallet via QR",    Icon: QrCode,       midtrans: true,  xendit: false },
+                  { id: "gopay",          label: "GoPay",          sub: "via aplikasi Gojek",       Icon: Smartphone,   midtrans: true,  xendit: false },
+                  { id: "shopeepay",      label: "ShopeePay",      sub: "via aplikasi Shopee",      Icon: Smartphone,   midtrans: true,  xendit: false },
+                  { id: "ovo",            label: "OVO",            sub: "via aplikasi OVO",         Icon: Smartphone,   midtrans: true,  xendit: false },
+                  { id: "dana",           label: "DANA",           sub: "via aplikasi DANA",        Icon: Wallet,       midtrans: true,  xendit: false },
+                  { id: "cc",             label: "Kartu Kredit",   sub: "Visa / Mastercard",        Icon: CreditCard,   midtrans: true,  xendit: false },
+                  { id: "xendit_invoice", label: "Invoice Online", sub: "Bayar via link Xendit",    Icon: ExternalLink, midtrans: false, xendit: true  },
+                  { id: "transfer",       label: "Transfer Bank",  sub: "Konfirmasi manual",        Icon: Banknote,     midtrans: false, xendit: false },
+                ] as const).filter(m => {
+                  if (m.midtrans) return gatewayConfig?.midtrans_enabled ?? false;
+                  if (m.xendit)   return gatewayConfig?.xendit_enabled   ?? false;
+                  return true;
+                }).map(({ id, label, sub, Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => { setDepositPaymentMethod(id); setXenditPaymentUrl(null); }}
+                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
+                      depositPaymentMethod === id
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 ${depositPaymentMethod === id ? "text-primary" : "text-muted-foreground"}`} />
+                    <div className="min-w-0">
+                      <p className={`text-sm font-medium ${depositPaymentMethod === id ? "text-primary" : ""}`}>{label}</p>
+                      <p className="text-xs text-muted-foreground truncate">{sub}</p>
+                    </div>
+                    {depositPaymentMethod === id && (
+                      <div className="ml-auto h-4 w-4 rounded-full border-2 border-primary bg-primary shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Transfer: show bank account info */}
+            {depositPaymentMethod === "transfer" && shop.deposit_notes && (
               <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <p className="text-sm font-semibold flex items-center gap-2">
-                  <Banknote className="h-4 w-4 text-primary" /> Informasi Pembayaran
+                  <Banknote className="h-4 w-4 text-primary" /> Informasi Rekening
                 </p>
                 <div className="rounded-lg bg-muted/50 p-3">
                   <p className="text-sm text-foreground whitespace-pre-wrap">{shop.deposit_notes}</p>
@@ -1651,28 +1824,44 @@ export default function PublicBookingPage() {
               </div>
             )}
 
-            {/* Booking summary */}
-            <div className="rounded-xl border border-border bg-card p-4 space-y-1.5 text-sm">
-              <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">Detail Booking</p>
-              <p><span className="text-muted-foreground">Layanan:</span> <span className="font-medium">{selectedSlot.service_name}</span></p>
-              <p><span className="text-muted-foreground">Tanggal:</span> <span className="font-medium">{fmtDate(selectedSlot.slot_date)} · {fmtTime(selectedSlot.slot_time)}</span></p>
-              <p><span className="text-muted-foreground">Nama:</span> <span className="font-medium">{name}</span></p>
-              <p><span className="text-muted-foreground">WhatsApp:</span> <span className="font-medium">{phone}</span></p>
-            </div>
+            {/* Xendit pending state: show "already paid" option */}
+            {depositPaymentMethod === "xendit_invoice" && xenditPaymentUrl && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
+                <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                  Link pembayaran sudah dibuka di tab baru. Setelah selesai bayar, klik tombol di bawah.
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <a href={xenditPaymentUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3.5 w-3.5" /> Buka Link Lagi
+                    </a>
+                  </Button>
+                  <Button size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={() => markDepositPaid(xenditTxId ?? undefined)}>
+                    <Check className="h-3.5 w-3.5" /> Saya Sudah Bayar
+                  </Button>
+                </div>
+              </div>
+            )}
 
+            {/* Main CTA */}
             <div className="space-y-2.5">
-              <Button
-                className="w-full h-12 text-base gap-2"
-                onClick={confirmDeposit}
-                disabled={confirmingDeposit}
-              >
-                {confirmingDeposit ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Memproses…</>
-                ) : (
-                  <><Check className="h-4 w-4" /> Saya Sudah Transfer DP</>
-                )}
-              </Button>
-              {shop.phone && (
+              {!(depositPaymentMethod === "xendit_invoice" && xenditPaymentUrl) && (
+                <Button
+                  className="w-full h-12 text-base gap-2"
+                  onClick={initiateDepositPayment}
+                  disabled={depositProcessing || confirmingDeposit}
+                >
+                  {(depositProcessing || confirmingDeposit) ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Memproses…</>
+                  ) : depositPaymentMethod === "transfer" ? (
+                    <><Check className="h-4 w-4" /> Saya Sudah Transfer DP</>
+                  ) : (
+                    <><Zap className="h-4 w-4" /> Bayar DP {formatIDR(depositAmount)}</>
+                  )}
+                </Button>
+              )}
+
+              {depositPaymentMethod === "transfer" && shop.phone && (
                 <Button variant="outline" className="w-full gap-2" asChild>
                   <a
                     href={`https://wa.me/${shop.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
@@ -1686,11 +1875,14 @@ export default function PublicBookingPage() {
                 </Button>
               )}
             </div>
+
             <p className="text-xs text-center text-muted-foreground">
-              Setelah transfer, klik tombol di atas agar toko segera memverifikasi pembayaran Anda
+              {depositPaymentMethod === "transfer"
+                ? "Setelah transfer, klik tombol di atas agar toko segera memverifikasi pembayaran Anda."
+                : "Pembayaran diproses aman via gateway resmi. Booking terkonfirmasi otomatis setelah DP lunas."}
             </p>
 
-            {/* ─── Cancellation link (deposit step) ─── */}
+            {/* Cancellation link */}
             {cancellationToken && (
               <div className="rounded-xl border border-rose-200/60 bg-rose-50/40 dark:bg-rose-950/10 p-4 space-y-2 text-left">
                 <p className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">

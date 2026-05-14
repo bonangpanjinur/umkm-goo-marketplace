@@ -1,0 +1,96 @@
+🔴 KRITIS — Memblokir Alur Bisnis Inti
+#	Kode	Fitur	Area / Tipe Usaha	Status	Catatan
+1	F-16	Deposit via Payment Gateway (Midtrans/Xendit) untuk Booking	Booking T3 & T4	❌ Belum	Saat ini masih konfirmasi manual via WA. Blocking monetisasi booking serius.
+2	SA-05	Konfigurasi Booking per Kategori dari Admin	Super Admin	❌ Belum	Admin harus bisa toggle kategori mana yang aktifkan T3/T4 + set parameter per kategori
+3	SA-03	Automated Payout Scheduler	Super Admin	❌ Belum	Payout otomatis terjadwal — saat ini masih approval manual per item
+4	SA-04	Merchant Tier Program	Super Admin	❌ Belum	Starter → Verified → Top Seller → Elite, dinilai otomatis harian
+5	R-07	Reservasi Meja dari sisi Pembeli di marketplace	F&B (T1)	⚠️ Merchant-side only	Merchant sudah bisa kelola, tapi pembeli belum bisa booking meja dari /toko/:slug
+6	–	Filter Pencarian Lanjut	Pembeli	⚠️ Dasar saja	Belum ada filter: harga min–max, rating minimum, lokasi, metode bayar
+7	SA-01	Merchant Onboarding Automation (email sequence H1/H3/H7)	Super Admin	❌ Belum	Merchant baru tidak mendapat onboarding email — churn tinggi
+8	SA-11	Tax Management (laporan PPh/PPN per periode, format SPT)	Super Admin	❌ Belum	Saat ini hanya laporan PPN 11% — belum format SPT yang bisa dikirim
+🟠 TINGGI — Dampak Besar pada Konversi & Retensi
+#	Kode	Fitur	Area / Tipe Usaha	Status	Catatan
+9	–	Manajemen Kategori Admin Dinamis (CRUD)	Super Admin	⚠️ Tidak dinamis	Kategori global ada tapi add/edit/delete/reorder dari UI admin belum ada — perlu halaman /admin/categories
+10	–	Paket Layanan + Add-on saat Booking	Booking T3 (Barber, Salon, Fotografer)	⚠️ Konflik PRD	Diklaim ✅ di backlog tabel (M-17) & sidebar POS, tapi masih ❌ di Bagian 4, 6, dan Bagian 9. Perlu verifikasi apakah benar sudah bisa dipilih saat booking publik
+11	JU-05	Deliver Hasil Kerja via Platform (upload file ke klien)	Jasa Digital & Freelancer (T5)	❌ Belum	Klien tidak bisa terima file hasil karya langsung dari platform — harus lewat WA/email
+12	RT-05	Perpanjangan Sewa Mandiri	Rental T4	❌ Belum	Penyewa tidak bisa extend sendiri — harus hubungi merchant manual
+13	–	Catatan Pelanggan per Kunjungan (riwayat layanan)	Booking T3 (Barber, Salon, Klinik)	❌ Belum	Merchant tidak bisa simpan catatan layanan apa yang dipakai per kunjungan pelanggan
+14	RT-07	Billing Denda Keterlambatan (per jam/hari)	Rental T4	❌ Belum	Tidak ada mekanisme tagih denda keterlambatan pengembalian
+15	RT-08	Syarat & Ketentuan per Kategori (T&C digital)	Rental T4	❌ Belum	Penyewa tidak melihat/menyetujui S&K saat booking
+16	PD-06	Update Versi Produk Digital + Notif Pembeli Lama	Produk Digital (T2)	❌ Belum	Merchant tidak bisa update file & pembeli lama tidak dapat notifikasi versi baru
+17	SB-06	Pengingat Potong Rambut otomatis (4 minggu setelah kunjungan)	Barbershop / Salon (T3)	❌ Belum	Retensi pelanggan sangat tinggi — trigger otomatis dari booking selesai
+18	FA-07	Notif "Ukuran kamu tersedia lagi" saat restok	Fashion (T1)	❌ Belum	Mirip restock notify tapi spesifik per varian ukuran/warna
+19	SF-05	Upload File Hasil Foto ke Klien via platform	Studio Foto / Fotografer (T3+T2)	❌ Belum	Fotografer tidak bisa deliver file foto langsung ke klien dari platform
+20	SF-07	Brief Form sebelum Sesi Foto	Studio Foto (T3)	❌ Belum	Klien tidak bisa kirim konsep/referensi sebelum sesi
+21	KR-02	Estimasi Waktu Produksi per produk	Kerajinan & Seni (T5)	❌ Belum	Pembeli tidak tahu berapa lama produk dibuat
+22	–	Web Push Notification (service worker)	Pembeli	❌ Belum	Notif in-app ada, tapi tidak ada push ke browser saat tab tertutup
+23	–	Upload Foto/Video saat Menulis Ulasan	Pembeli	⚠️ Belum	Form ulasan tidak punya fitur upload foto — mengurangi social proof
+24	–	Price Alert lintas device (simpan di DB, bukan localStorage)	Pembeli	⚠️ localStorage only	Alert harga hilang kalau ganti browser/device
+25	–	Broadcast Notifikasi ke Pembeli	Super Admin	⚠️ Merchant only	Admin hanya bisa broadcast ke merchant, belum ke pembeli
+26	–	Manajemen Buyer oleh Admin (suspend, kredit manual, reset PW)	Super Admin	⚠️ Read-only	Admin hanya lihat data, tidak bisa ambil tindakan
+🟡 SEDANG — Meningkatkan UX, Effort Sedang
+#	Kode	Fitur	Area / Tipe Usaha	Status	Catatan
+27	–	Dashboard POS — Date Range Picker Kustom	Merchant	⚠️ Hanya 7/30 hari	Merchant tidak bisa lihat laporan periode bebas (mis. 15 hari, 1 bulan custom)
+28	–	Bulk Action Pesanan (update status sekaligus)	Merchant	❌ Belum	Harus update status 1 per 1 — menyusahkan saat ramai
+29	–	Crop/Resize Foto Produk di browser	Merchant	❌ Belum	Foto harus dipreparasi sebelum upload — UX buruk
+30	–	Keranjang — Checkbox per Item (checkout sebagian)	Pembeli	⚠️ Semua atau tidak	Tidak bisa pilih item mana yang mau di-checkout sekarang
+31	–	Checkout — Auto-pilih Alamat Default	Pembeli	⚠️ Manual	Alamat tersimpan ada tapi tidak otomatis terpilih
+32	–	Order Tracking — Integrasi Resi Kurir (cek resi langsung)	Pembeli	⚠️ Status internal saja	Tombol "Cek Resi" langsung ke tracking page kurir belum ada
+33	–	Churn Analysis — Tindakan Otomatis (re-engagement email 14 hari)	Super Admin	⚠️ Dashboard saja	Dashboard ada tapi tidak ada trigger otomatis untuk toko tidak aktif
+34	–	Laporan Keuangan Format Akuntansi (Jurnal/Accurate/MYOB)	Super Admin & Merchant	⚠️ Format biasa	Export CSV ada tapi belum kompatibel software akuntansi
+35	R-09	Menu Paket / Combo Builder	F&B (T1)	❌ Belum	Restoran tidak bisa buat paket "Nasi + Lauk + Minum" dengan satu harga
+36	R-10	Informasi Nutrisi (kalori, protein, lemak) per menu	F&B (T1)	❌ Belum	Penting untuk F&B sehat, kafe modern, atau food allergen-aware
+37	R-11	Kitchen Load Monitor (estimasi waktu tunggu per KDS)	F&B (T1)	❌ Belum	Pembeli tidak tahu estimasi tunggu berdasarkan beban dapur saat ini
+38	PD-07	Kode Aktivasi / Serial Key untuk Software	Produk Digital (T2)	❌ Belum	Seller software/plugin tidak bisa distribusi lisensi via kode unik
+39	PD-09	Kursus Online dengan Progress Tracking	Produk Digital / Edukasi (T2)	❌ Belum	Modul video + progress bar per pembeli — beda dengan download biasa
+40	SB-03	Durasi Layanan Berbeda per Jenis	Barbershop / Salon (T3)	⚠️ Dasar ada	Slot waktu tidak otomatis menyesuaikan durasi layanan yang dipilih
+41	SB-09	Konfirmasi Booking via WA Otomatis	Booking T3	⚠️ Tombol manual	Ada tombol "kirim WA", tapi belum otomatis terkirim saat booking confirmed
+42	RT-04	Hitung Deposit Otomatis (nilai × durasi sewa)	Rental T4	❌ Belum	Deposit harus dihitung/diisi manual oleh merchant
+43	RT-10	Notifikasi "Unit Siap Diambil"	Rental T4	❌ Belum	Penyewa tidak dapat notif otomatis saat kendaraan/unit siap
+44	SF-08	Add-on saat Booking Foto (editing ekstra, album, dll.)	Studio Foto (T3)	❌ Belum	Terkait M-17 — perlu konfirmasi apakah add-on berlaku untuk studio foto
+45	SF-09	Review dengan Foto Hasil Karya (klien upload)	Studio Foto (T3)	❌ Belum	Klien tidak bisa sertakan foto hasil karya saat review booking
+46	FA-03	Panduan Ukuran Interaktif ("Tinggi 165cm → pilih M")	Fashion (T1)	❌ Belum	Size chart statis ada, tapi belum ada kalkulator rekomendasi
+47	FA-04	Label "Pre-loved / Second" untuk produk bekas	Fashion Pre-loved (T1)	❌ Belum	Tidak ada tanda kondisi (A/B/C) spesifik untuk fashion second
+48	FA-05	Lookbook / Foto Model yang pakai produk	Fashion (T1)	❌ Belum	Product listing hanya foto produk — belum ada lookbook/lifestyle shot terpisah
+49	KL-02	Anamnesis Digital sebelum konsultasi	Klinik / Dokter (T3)	❌ Belum	Pasien mengisi keluhan & riwayat sebelum datang — dokter lebih siap
+50	KL-03	Rekam Medis Sederhana per pasien	Klinik (T3)	❌ Belum	Dokter tidak bisa simpan catatan medis per pasien di platform
+51	KL-05	Tagihan & Resep Digital	Klinik (T3)	❌ Belum	Setelah konsultasi, dokter tidak bisa buat tagihan/resep dari platform
+52	JU-06	Milestone Tracking untuk project jangka panjang	Jasa Digital (T5)	❌ Belum	Freelancer tidak bisa set milestone (DP → review → final)
+53	JU-07	Escrow per Milestone	Jasa Digital (T5)	❌ Belum	Tidak ada escrow bertahap sesuai progress pekerjaan
+54	JU-08	Kontrak Freelance Digital	Jasa Digital (T5)	❌ Belum	Tidak ada agreement/kontrak digital antara klien dan freelancer
+55	KR-03	Certificate of Authenticity (COA) Digital	Kerajinan & Seni (T5)	❌ Belum	Seniman tidak bisa terbitkan COA digital untuk karya yang terjual
+56	KR-04	Edisi Terbatas (Limited Edition) dengan counter stok	Kerajinan (T1+T5)	❌ Belum	Tidak ada label "X tersisa dari 100 edisi"
+57	SA-06	Multi-Admin dengan Role (Finance/Support/Content)	Super Admin	❌ Belum	Hanya 1 super admin — tidak bisa delegasi per departemen
+58	SA-07	Cohort & LTV Analytics	Super Admin	❌ Belum	Tidak ada analisis merchant aktif per 3/6/12 bulan
+59	SA-08	Data Export / GDPR Tools	Super Admin	❌ Belum	Tidak ada mekanisme right-to-erasure atau export data user
+60	SA-12	SLA & Response Time Monitor	Super Admin	❌ Belum	Tidak ada monitoring uptime/latency API per 30 hari
+61	F-07	Google Analytics & Meta Pixel Integration	Merchant	❌ Belum	Merchant tidak bisa pasang tracking pixel sendiri
+62	F-02	Subscription / Langganan Produk Rutin	Semua (T1)	❌ Belum	Tidak ada fitur berlangganan otomatis (mis. kopi tiap minggu, sayur tiap hari)
+🟢 RENDAH / MASA DEPAN — Effort Besar, Dampak Jangka Panjang
+#	Kode	Fitur	Estimasi	Catatan
+63	F-01	Group Buy / Patungan	3 hari	Beli bersama dengan batas minimal peserta
+64	F-06	Affiliate Program per Toko	3 hari	Merchant kelola afiliator & track komisi
+65	SA-09	Sandbox / Demo Mode	2 hari	Calon merchant coba POS & dashboard dengan data dummy
+66	SA-10	A/B Testing Manager	3 hari	Admin buat eksperimen versi A vs B, track konversi
+67	SA-13	Affiliate & Partner Management (platform-level)	3 hari	Kelola afiliator, track klik & konversi, hitung komisi
+68	BE-04	Quiz Rekomendasi Produk (jenis kulit)	2 hari	Quiz → rekomendasi produk skincare yang cocok
+69	BE-05	Klaim Verifikasi ("Dermatologically Tested")	1 hari	Badge verified claim untuk produk kecantikan
+70	KL-07	Reminder Jadwal Kontrol Ulang	1 hari	Dokter set jadwal follow-up → pasien dapat notif
+71	KL-06	Telemedicine / Konsultasi Video	7+ hari	Video call in-platform — sangat kompleks
+72	KR-05	Galeri Proses Pembuatan (work-in-progress)	1 hari	Pengrajin update foto progress ke klien
+73	F-09	Live Streaming Commerce	7+ hari	Jual produk sambil live streaming
+74	F-10	BNPL / Cicilan (Kredivo, Akulaku)	5 hari	Integrasi cicilan paylater
+75	F-11	Mobile App (React Native / Expo)	3+ minggu	Versi native iOS & Android
+76	F-14	Automated Payout Scheduler (versi merchant)	2 hari	Merchant pilih jadwal payout — saat ini manual
+77	F-21	Kursus Online dengan Progress Tracking	5 hari	Modul video + progress bar per siswa
+Ringkasan Hitungan
+Prioritas	Jumlah Item	Keterangan
+🔴 Kritis	8	Memblokir alur bisnis inti atau monetisasi
+🟠 Tinggi	18	Dampak besar pada konversi & retensi, effort < 3 hari
+🟡 Sedang	35	UX & fitur per industri, effort 1-2 hari masing-masing
+🟢 Rendah/Masa Depan	15	Kompleks atau nice-to-have
+Total	76 item	
+⚠️ Item Perlu Verifikasi Kode:
+M-17 (Paket Layanan + Add-on saat Booking) — PRD kontradiktif. Backlog tabel (Bagian 5) dan sidebar POS (Bagian 15.4) klaim ✅, tapi Bagian 4 status table, Bagian 6, dan Bagian 9 masih ❌. Perlu cek apakah pembeli bisa pilih paket/add-on saat booking di halaman publik /toko/:slug/booking.
+
+Next, I can mulai mengerjakan item paling kritis — Deposit via Payment Gateway (Midtrans/Xendit) untuk Booking (F-16) yang saat ini masih manual WA, dengan menghubungkan flow booking ke payment gateway yang sudah terkonfigurasi. Mau saya kerjakan itu?

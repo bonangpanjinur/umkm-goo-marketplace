@@ -1369,12 +1369,20 @@ function BookingPage() {
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                           bk.deposit_status === "submitted"
                             ? "bg-amber-100 text-amber-700"
-                            : bk.deposit_status === "verified"
+                            : bk.deposit_status === "paid"
                               ? "bg-emerald-100 text-emerald-700"
-                              : "bg-red-100 text-red-700"
+                              : bk.deposit_status === "verified"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-red-100 text-red-700"
                         }`}>
                           DP {bk.deposit_amount ? `Rp ${Number(bk.deposit_amount).toLocaleString("id-ID")}` : ""} ·{" "}
-                          {bk.deposit_status === "submitted" ? "Menunggu Verifikasi" : bk.deposit_status === "verified" ? "Terverifikasi" : "Belum Bayar"}
+                          {bk.deposit_status === "submitted"
+                            ? "Menunggu Verifikasi"
+                            : bk.deposit_status === "paid"
+                              ? "Lunas (Gateway)"
+                              : bk.deposit_status === "verified"
+                                ? "Terverifikasi"
+                                : "Belum Bayar"}
                         </span>
                         {bk.deposit_status === "submitted" && (
                           <button
