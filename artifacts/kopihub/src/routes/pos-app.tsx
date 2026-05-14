@@ -146,7 +146,6 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Katalog & Stok",
     items: [
       { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed },
-      { to: "/pos-app/menu/import",    label: "Import Menu CSV", icon: Upload },
       { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal },
       { to: "/pos-app/categories",     label: "Kategori",        icon: Tags },
       { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC },
