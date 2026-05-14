@@ -75,7 +75,7 @@
 | 37 | ADM-2 | ✅ **Kredit Manual & Suspend Pembeli** | Super Admin | Kontrol | Diimplementasi — halaman `/admin/buyer-actions` dengan kredit manual, suspend akun, catatan alasan, audit trail tindakan admin. |
 | 38 | ADM-3 | ✅ **Churn Auto Re-engagement** — email otomatis jika tidak login 14 hari | Super Admin | Retensi | Diimplementasi — halaman `/admin/churn-reengagement` dengan daftar merchant tidak aktif 14+ hari, template email re-engagement, kirim manual + schedule otomatis. |
 | 39 | ADM-4 | ✅ **Fraud ML Scoring** 0–100 per transaksi | Super Admin | Keamanan | Diimplementasi — halaman `/admin/fraud-scoring` dengan skor risiko 0–100 per transaksi berdasarkan sinyal (kecepatan, geo, pattern), filter threshold, tindakan blokir/review. |
-| 39b | FA-04 | ❌ **Label "Pre-loved / Second"** kondisi A/B/C untuk produk bekas | Fashion | Trust | Catatan PRD sebelumnya bilang ✅ tapi tidak ditemukan field `condition_grade` di kode menu editor saat audit ulang. Perlu verifikasi: tambahkan kolom `menu_items.condition_grade text CHECK IN ('A','B','C')` + selector di menu form + badge ♻️ di product card jika belum benar-benar ada. |
+| 39b | FA-04 | ⚠️ **Label "Pre-loved / Second"** kondisi A/B/C untuk produk bekas | Fashion | Trust | UI sudah lengkap di `pos-app.menu.tsx` (selector kondisi A/B/C baris 806–835, badge ♻️ di product list baris 1033–1036, query SELECT & UPDATE sudah include `condition_grade`). **Yang kurang:** kolom DB belum ada — perlu jalankan `ALTER TABLE public.menu_items ADD COLUMN IF NOT EXISTS condition_grade text CHECK (condition_grade IN ('A','B','C'));`. SQL hint sudah ditampilkan di UI bagi user. |
 
 ### 🟢 PRIORITAS 3 — Masa Depan (Kompleks, 3+ Hari, atau Butuh Infrastruktur Eksternal)
 
