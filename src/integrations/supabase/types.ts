@@ -561,6 +561,7 @@ export type Database = {
           is_active: boolean
           kds_station: string | null
           name: string
+          printer_id: string | null
           shop_id: string
           sort_order: number
           updated_at: string
@@ -571,6 +572,7 @@ export type Database = {
           is_active?: boolean
           kds_station?: string | null
           name: string
+          printer_id?: string | null
           shop_id: string
           sort_order?: number
           updated_at?: string
@@ -581,11 +583,19 @@ export type Database = {
           is_active?: boolean
           kds_station?: string | null
           name?: string
+          printer_id?: string | null
           shop_id?: string
           sort_order?: number
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "categories_printer_id_fkey"
+            columns: ["printer_id"]
+            isOneToOne: false
+            referencedRelation: "printers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "categories_shop_id_fkey"
             columns: ["shop_id"]
