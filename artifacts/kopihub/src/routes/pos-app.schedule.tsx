@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Plus, Trash2, CalendarDays, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth";
+
 
 export const Route = createFileRoute("/pos-app/schedule")({
   component: SchedulePage,
@@ -43,12 +43,14 @@ type Member = {
   role: string;
   display_name: string | null;
   avatar_url: string | null;
+  source: "account" | "manual";
+  manual_id?: string;
 };
 type Outlet = { id: string; name: string };
 
 function SchedulePage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const { user } = useAuth();
+  
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
@@ -64,51 +66,55 @@ function SchedulePage() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Invite employee dialog
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [invEmail, setInvEmail] = useState("");
-  const [invRole, setInvRole] = useState("cashier");
-  const [invOutletId, setInvOutletId] = useState("");
-  const [inviting, setInviting] = useState(false);
-  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+  // Add staff (manual, no login) dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newRole, setNewRole] = useState("cashier");
+  const [newOutletId, setNewOutletId] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [adding, setAdding] = useState(false);
 
-  async function inviteEmployee() {
-    if (!shop || !user || !invEmail.trim()) return;
-    setInviting(true);
-    const { data, error } = await supabase
-      .from("staff_invitations")
-      .insert({
-        shop_id: shop.id,
-        outlet_id: invOutletId || null,
-        email: invEmail.trim().toLowerCase(),
-        role: invRole as "manager" | "cashier" | "barista",
-        invited_by: user.id,
-      })
-      .select("token")
-      .single();
-    setInviting(false);
+  async function addStaff() {
+    if (!shop || !newName.trim()) return;
+    setAdding(true);
+    const { error } = await supabase.from("staff_members").insert({
+      shop_id: shop.id,
+      outlet_id: newOutletId || null,
+      name: newName.trim(),
+      role: newRole as "manager" | "cashier" | "barista",
+      phone: newPhone.trim() || null,
+    });
+    setAdding(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    const url = `${window.location.origin}/invite/${data!.token}`;
-    setLastInviteUrl(url);
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Undangan dibuat — tautan disalin");
-    } catch {
-      toast.success("Undangan dibuat");
+    toast.success("Pegawai ditambahkan");
+    setNewName("");
+    setNewPhone("");
+    setAddOpen(false);
+    load();
+  }
+
+  async function removeManualStaff(manualId: string, name: string) {
+    if (!confirm(`Hapus pegawai "${name}"? Semua jadwalnya juga akan dihapus.`)) return;
+    await supabase.from("shifts").delete().eq("user_id", manualId);
+    const { error } = await supabase.from("staff_members").delete().eq("id", manualId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Pegawai dihapus");
+      load();
     }
-    setInvEmail("");
   }
 
   async function load() {
     if (!shop) return;
     setLoading(true);
-    const [s, r, o] = await Promise.all([
+    const [s, r, o, sm] = await Promise.all([
       supabase.from("shifts").select("*").eq("shop_id", shop.id).order("day_of_week"),
       supabase.from("user_roles").select("user_id, role").eq("shop_id", shop.id),
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
+      supabase.from("staff_members").select("id, name, role, avatar_url").eq("shop_id", shop.id).order("created_at"),
     ]);
     const roles = (r.data ?? []) as { user_id: string; role: string }[];
     const ids = [...new Set(roles.map((x) => x.user_id))];
@@ -124,13 +130,22 @@ function SchedulePage() {
         role: rr.role,
         display_name: byId.get(rr.user_id)?.display_name ?? null,
         avatar_url: byId.get(rr.user_id)?.avatar_url ?? null,
+        source: "account" as const,
       }));
     }
+    const manualMems: Member[] = ((sm.data ?? []) as Array<{ id: string; name: string; role: string; avatar_url: string | null }>).map((m) => ({
+      user_id: m.id,
+      manual_id: m.id,
+      role: m.role,
+      display_name: m.name,
+      avatar_url: m.avatar_url,
+      source: "manual" as const,
+    }));
     setShifts((s.data ?? []) as Shift[]);
-    setMembers(mems);
+    setMembers([...mems, ...manualMems]);
     setOutlets((o.data ?? []) as Outlet[]);
     if (!outletId && o.data && o.data.length > 0) setOutletId(o.data[0].id);
-    if (!invOutletId && o.data && o.data.length > 0) setInvOutletId(o.data[0].id);
+    if (!newOutletId && o.data && o.data.length > 0) setNewOutletId(o.data[0].id);
     setLoading(false);
   }
 
@@ -222,13 +237,8 @@ function SchedulePage() {
             Atur shift mingguan untuk setiap pegawai.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setLastInviteUrl(null);
-            setInviteOpen(true);
-          }}
-        >
-          <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+        <Button onClick={() => setAddOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
         </Button>
       </div>
 
@@ -243,16 +253,10 @@ function SchedulePage() {
           </div>
           <h2 className="text-lg font-semibold">Belum ada pegawai</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Tambahkan pegawai dulu untuk mulai membuat jadwal shift.
+            Tambahkan pegawai untuk mulai membuat jadwal shift.
           </p>
-          <Button
-            className="mt-4"
-            onClick={() => {
-              setLastInviteUrl(null);
-              setInviteOpen(true);
-            }}
-          >
-            <UserPlus className="mr-2 h-4 w-4" /> Undang pegawai
+          <Button className="mt-4" onClick={() => setAddOpen(true)}>
+            <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
           </Button>
         </div>
       ) : (
@@ -280,12 +284,26 @@ function SchedulePage() {
                           (m.display_name ?? "?").charAt(0)
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">{m.display_name ?? "—"}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-sm font-medium">{m.display_name ?? "—"}</span>
+                          {m.source === "manual" && (
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-muted-foreground">manual</span>
+                          )}
+                        </div>
                         <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                           {m.role}
                         </div>
                       </div>
+                      {m.source === "manual" && m.manual_id && (
+                        <button
+                          onClick={() => removeManualStaff(m.manual_id!, m.display_name ?? "")}
+                          className="text-muted-foreground hover:text-destructive"
+                          title="Hapus pegawai"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                   {DAYS.map((_, dow) => {
@@ -400,29 +418,25 @@ function SchedulePage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={inviteOpen} onOpenChange={(o) => { if (!o) { setInviteOpen(false); setLastInviteUrl(null); } }}>
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Undang pegawai</DialogTitle>
+            <DialogTitle>Tambah pegawai</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
-              <Label>Email</Label>
+              <Label>Nama pegawai *</Label>
               <Input
-                type="email"
-                value={invEmail}
-                onChange={(e) => setInvEmail(e.target.value)}
-                placeholder="pegawai@toko.com"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Mis. Budi Santoso"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground">
-                Pegawai mendaftar dengan email yang sama untuk menerima undangan.
-              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Peran</Label>
-                <Select value={invRole} onValueChange={setInvRole}>
+                <Select value={newRole} onValueChange={setNewRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="manager">Manager</SelectItem>
@@ -433,7 +447,7 @@ function SchedulePage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Outlet</Label>
-                <Select value={invOutletId} onValueChange={setInvOutletId}>
+                <Select value={newOutletId} onValueChange={setNewOutletId}>
                   <SelectTrigger><SelectValue placeholder="Pilih outlet" /></SelectTrigger>
                   <SelectContent>
                     {outlets.map((o) => (
@@ -443,31 +457,24 @@ function SchedulePage() {
                 </Select>
               </div>
             </div>
-            {lastInviteUrl && (
-              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
-                <div className="mb-1 font-medium text-foreground">Tautan undangan:</div>
-                <div className="break-all font-mono text-muted-foreground">{lastInviteUrl}</div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-2"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(lastInviteUrl);
-                    toast.success("Tersalin");
-                  }}
-                >
-                  Salin lagi
-                </Button>
-              </div>
-            )}
+            <div className="space-y-1.5">
+              <Label>No. HP / WhatsApp (opsional)</Label>
+              <Input
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                placeholder="08xxxxxxxxxx"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pegawai ini ditambahkan tanpa akun login — hanya untuk dijadwalkan.
+              Untuk akses POS, undang lewat halaman Pegawai.
+            </p>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => { setInviteOpen(false); setLastInviteUrl(null); }}>
-              Tutup
-            </Button>
-            <Button onClick={inviteEmployee} disabled={inviting || !invEmail.trim()}>
-              {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <UserPlus className="mr-2 h-4 w-4" /> Buat undangan
+            <Button variant="ghost" onClick={() => setAddOpen(false)}>Batal</Button>
+            <Button onClick={addStaff} disabled={adding || !newName.trim()}>
+              {adding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <UserPlus className="mr-2 h-4 w-4" /> Simpan
             </Button>
           </DialogFooter>
         </DialogContent>

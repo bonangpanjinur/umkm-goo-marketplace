@@ -4323,6 +4323,64 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_members: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          name: string
+          outlet_id: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          outlet_id?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          outlet_id?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_members_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "outlets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_members_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_members_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       staff_permissions: {
         Row: {
           allowed_modules: string[] | null
