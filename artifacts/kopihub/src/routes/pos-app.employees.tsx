@@ -1237,6 +1237,34 @@ function EmployeesPage() {
             </span>
           </div>
 
+          {/* Bulk toolbar */}
+          {totalSelected > 0 && (
+            <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
+              <span className="font-medium">{totalSelected} dipilih</span>
+              <div className="ml-auto flex flex-wrap gap-2">
+                {(selLogin.size + selManual.size) > 0 && (
+                  <>
+                    <Button size="sm" variant="outline" disabled={bulkRunning}
+                      onClick={() => setConfirmBulk({ kind: "activate", count: selLogin.size + selManual.size })}>
+                      Aktifkan
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={bulkRunning}
+                      onClick={() => setConfirmBulk({ kind: "deactivate", count: selLogin.size + selManual.size })}>
+                      Nonaktifkan
+                    </Button>
+                  </>
+                )}
+                {selInv.size > 0 && (
+                  <Button size="sm" variant="outline" disabled={bulkRunning}
+                    onClick={() => setConfirmBulk({ kind: "resend", count: selInv.size })}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Kirim ulang ({selInv.size})
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={clearSelection}>Batal</Button>
+              </div>
+            </div>
+          )}
+
           {/* Unified list */}
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
