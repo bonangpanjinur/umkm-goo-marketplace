@@ -478,9 +478,67 @@ function EmployeesPage() {
                     maxLength={20}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Pegawai ini bisa langsung dijadwalkan di halaman Jadwal — tidak perlu akun login.
-                </p>
+                {!editingId && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={manualWithLogin}
+                        onChange={(e) => setManualWithLogin(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">Beri akses login ke POS</div>
+                        <div className="text-xs text-muted-foreground">
+                          Kirim tautan undangan supaya pegawai bisa masuk dan pakai POS sesuai perannya.
+                        </div>
+                      </div>
+                    </label>
+                    {manualWithLogin && (
+                      <div className="mt-3 space-y-2">
+                        <Label className="text-xs">Email pegawai</Label>
+                        <Input
+                          type="email"
+                          value={manualEmail}
+                          onChange={(e) => setManualEmail(e.target.value)}
+                          placeholder="pegawai@toko.com"
+                          maxLength={255}
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Pegawai harus daftar/masuk dengan email yang sama untuk menerima akses.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {lastInviteUrl && (
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                      <CheckCircle2Icon /> Tautan login siap dibagikan
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <Input value={lastInviteUrl} readOnly className="text-xs" />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(lastInviteUrl);
+                          toast.success("Tersalin");
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {!manualWithLogin && !lastInviteUrl && (
+                  <p className="text-xs text-muted-foreground">
+                    Tanpa akses login, pegawai hanya muncul di Jadwal & catatan internal.
+                  </p>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setManualOpen(false)}>
