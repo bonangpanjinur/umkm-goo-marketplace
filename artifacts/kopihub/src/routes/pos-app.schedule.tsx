@@ -284,12 +284,26 @@ function SchedulePage() {
                           (m.display_name ?? "?").charAt(0)
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">{m.display_name ?? "—"}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-sm font-medium">{m.display_name ?? "—"}</span>
+                          {m.source === "manual" && (
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-muted-foreground">manual</span>
+                          )}
+                        </div>
                         <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                           {m.role}
                         </div>
                       </div>
+                      {m.source === "manual" && m.manual_id && (
+                        <button
+                          onClick={() => removeManualStaff(m.manual_id!, m.display_name ?? "")}
+                          className="text-muted-foreground hover:text-destructive"
+                          title="Hapus pegawai"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                   {DAYS.map((_, dow) => {
