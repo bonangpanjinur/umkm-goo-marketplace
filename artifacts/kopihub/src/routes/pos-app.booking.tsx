@@ -52,10 +52,18 @@ import {
   ArrowRightLeft,
   CalendarClock,
   History,
+  FileText,
+  Download,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/booking")({ component: BookingPage });
+
+/*
+-- SB-07: Catatan pelanggan per kunjungan (jalankan di Supabase SQL Editor):
+alter table public.bookings
+  add column if not exists merchant_notes text;
+*/
 
 type Slot = {
   id: string;
@@ -87,6 +95,7 @@ type Booking = {
   party_size: number;
   status: "pending" | "confirmed" | "cancelled" | "done";
   notes: string | null;
+  merchant_notes: string | null;
   created_at: string;
   slot?: Slot;
   deposit_required?: boolean;
@@ -288,6 +297,36 @@ function BookingPage() {
   const [historyOpen, setHistoryOpen]         = useState(false);
   const [historyBookingId, setHistoryBookingId] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory]   = useState(false);
+
+  // ── SB-07: Catatan kunjungan merchant ──────────────────────────────
+  const [editingMerchantNotesId, setEditingMerchantNotesId] = useState<string | null>(null);
+  const [merchantNotesDraft, setMerchantNotesDraft] = useState("");
+  const [savingMerchantNotes, setSavingMerchantNotes] = useState(false);
+
+  const saveMerchantNotes = async (bookingId: string) => {
+    setSavingMerchantNotes(true);
+    try {
+      const { error } = await (supabase as any)
+        .from("bookings")
+        .update({ merchant_notes: merchantNotesDraft.trim() || null })
+        .eq("id", bookingId);
+      if (error) {
+        if (error.code === "42703") {
+          toast.error("Kolom merchant_notes belum ada. Jalankan migrasi SQL dulu.");
+        } else {
+          throw error;
+        }
+      } else {
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, merchant_notes: merchantNotesDraft.trim() || null } : b));
+        toast.success("Catatan kunjungan tersimpan");
+        setEditingMerchantNotesId(null);
+      }
+    } catch (e: any) {
+      toast.error(e.message ?? "Gagal menyimpan catatan");
+    } finally {
+      setSavingMerchantNotes(false);
+    }
+  };
 
   // ── Packages & Add-ons management (M-17) ───────────────────────────
   const [pkgList, setPkgList]             = useState<ServicePackage[]>([]);
@@ -1455,6 +1494,53 @@ function BookingPage() {
                       {bk.slot && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{bk.slot.slot_time} — {bk.slot.service_name}</span>}
                     </div>
                     {bk.notes && <p className="text-xs text-muted-foreground mt-1 italic">"{bk.notes}"</p>}
+
+                    {/* SB-07: Catatan kunjungan merchant */}
+                    <div className="mt-1.5">
+                      {editingMerchantNotesId === bk.id ? (
+                        <div className="flex items-start gap-1.5">
+                          <Textarea
+                            className="text-xs min-h-[60px] py-1.5"
+                            placeholder="Catatan kunjungan (hanya terlihat oleh merchant)…"
+                            value={merchantNotesDraft}
+                            onChange={e => setMerchantNotesDraft(e.target.value)}
+                            autoFocus
+                          />
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              disabled={savingMerchantNotes}
+                              onClick={() => saveMerchantNotes(bk.id)}
+                            >
+                              {savingMerchantNotes ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={() => setEditingMerchantNotesId(null)}
+                            >
+                              <XCircle className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => {
+                            setEditingMerchantNotesId(bk.id);
+                            setMerchantNotesDraft(bk.merchant_notes ?? "");
+                          }}
+                        >
+                          <FileText className="h-3 w-3" />
+                          {bk.merchant_notes
+                            ? <span className="italic truncate max-w-[200px]">{bk.merchant_notes}</span>
+                            : "Tambah catatan kunjungan"}
+                        </button>
+                      )}
+                    </div>
+
                     {bk.deposit_required && (
                       <div className="mt-1.5 space-y-1.5">
                         <div className="flex items-center gap-1.5">

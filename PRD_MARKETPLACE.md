@@ -219,12 +219,12 @@ PEMBATALAN/RESCHEDULE:
 | Waitlist virtual | ✅ |
 | Reminder H-1/H-3 otomatis | ✅ |
 | Riwayat booking di akun pembeli | ✅ |
-| **Reschedule mandiri** | ❌ Belum |
-| **Paket layanan (Basic/Premium/add-on)** | ❌ Belum |
-| **Deposit via payment gateway** | ❌ Belum |
-| **Catatan pelanggan per kunjungan** | ❌ Belum |
-| **Review post-booking (H+1 otomatis)** | ❌ Belum |
-| **Kalender sync (export .ics)** | ❌ Belum |
+| **Reschedule mandiri** | ✅ Selesai Sprint 14 — tombol "Pindah Jadwal" + dialog pilih slot + RPC atomik |
+| **Paket layanan (Basic/Premium/add-on)** | ✅ Selesai Sprint 14 — tabel `booking_service_packages` + `booking_addons`; wizard booking publik step paket |
+| **Deposit via payment gateway** | ❌ Belum — gateway Midtrans/Xendit (konfirmasi manual ✅) |
+| **Catatan pelanggan per kunjungan** | ✅ Selesai — inline edit `merchant_notes` di POS booking card |
+| **Review post-booking (H+1 otomatis)** | ✅ Selesai Sprint 15 — Edge Function + pg_cron + funnel analitik |
+| **Kalender sync (export .ics)** | ✅ Selesai — tombol "Tambah ke Kalender" di riwayat booking pelanggan |
 
 **Kategori yang MENGGUNAKAN Tipe 3:**
 - ✂️ Barbershop, Salon, Spa, Pijat, Waxing, Tato
@@ -506,14 +506,14 @@ Dashboard KPI · Manajemen KYC merchant · Manajemen toko (suspend/unsuspend) ·
 **⚠️ Perlu Diperbaiki / Belum Ada:**
 | Fitur | Status | Prioritas |
 |---|---|---|
-| **Reschedule mandiri booking oleh pelanggan** | ❌ Belum (hanya batal) | 🔥 TINGGI |
-| **Paket & add-on saat booking** (Basic/Standard/Premium) | ❌ Belum | 🔥 TINGGI |
-| **Deposit booking via payment gateway** | ❌ Belum (masih manual WA) | 🔥 TINGGI |
-| **Upload dokumen (KTP/SIM) saat booking rental** | ❌ Belum | 🔥 TINGGI — Tipe 4 |
-| **Galeri portofolio terintegrasi di halaman publik toko** | ⚠️ Ada di POS tapi belum muncul di /toko/:slug | TINGGI |
-| **Catatan pelanggan per kunjungan** (riwayat layanan) | ❌ Belum | TINGGI |
-| **Review post-booking otomatis H+1** | ❌ Belum | TINGGI |
-| **Dashboard POS** date range picker kustom | ⚠️ Hanya 7/30 hari | SEDANG |
+| **Reschedule mandiri booking oleh pelanggan** | ✅ Selesai Sprint 14 — tombol "Jadwalkan Ulang" di riwayat booking + RPC atomik | — |
+| **Paket & add-on saat booking** (Basic/Standard/Premium) | ✅ Selesai Sprint 14 — step paket di wizard booking publik | — |
+| **Deposit booking via payment gateway** | ❌ Belum (konfirmasi manual ✅) | 🔥 TINGGI |
+| **Upload dokumen (KTP/SIM) saat booking rental** | ✅ Selesai Sprint 18 — Supabase Storage bucket `booking-documents` | — |
+| **Galeri portofolio terintegrasi di halaman publik toko** | ✅ Selesai — `PortfolioGallery` tampil di `/toko/:slug` dengan lightbox + before/after | — |
+| **Catatan pelanggan per kunjungan** (riwayat layanan) | ✅ Selesai — inline `merchant_notes` edit di POS booking card | — |
+| **Review post-booking otomatis H+1** | ✅ Selesai Sprint 15 — Edge Function + pg_cron + funnel analitik | — |
+| **Dashboard POS** date range picker kustom | ✅ Ada — filter dari/sampai bebas + shortcut 7h/30h/90h di booking-analytics | — |
 | **Bulk action pesanan** (update status sekaligus) | ❌ Belum | SEDANG |
 | **Crop/resize foto produk** di browser | ❌ Belum | SEDANG |
 
@@ -607,6 +607,9 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | 14 Mei 2026 | Sprint 18 | **M-13 Preview Produk Digital** — `DigitalPreview` component di `toko.$slug.produk.$productId.tsx`; gambar preview dengan overlay watermark + ikon kunci + teks "Preview — Beli untuk akses penuh"; hanya tampil untuk `item_type='digital'` | ✅ |
 | 14 Mei 2026 | Sprint 18 | **M-16 Upload Dokumen KTP/SIM Booking Rental** — step "Dokumen" di wizard booking publik untuk kategori rental (T4); upload ke Supabase Storage bucket `booking-documents`; kolom `document_url` + `document_type` di tabel `bookings`; hanya tampil jika `shop.require_id_upload = true`; preview thumbnails + hapus + validasi ukuran 5MB | ✅ |
 | 14 Mei 2026 | Sprint 19 | **F-03 AI Generator Deskripsi Produk + Batch Generate** — backend `POST /api/ai/generate-description` via Google Gemini 1.5 Flash (gratis); tombol "✨ Buat dengan AI" per produk di form tambah/edit menu (nama + foto → deskripsi 2-3 kalimat + tag SEO chips klik-untuk-salin); **Batch Generate**: tombol "✨ Generate Massal (N)" di header halaman Menu menampilkan jumlah produk tanpa deskripsi, dialog konfirmasi + estimasi waktu + progress bar realtime + counter berhasil/gagal + tombol batalkan + delay 4 detik antar request (Gemini rate limit); panel Super Admin `/admin/ai-settings` — input API key masked + uji koneksi langsung ke Gemini + toggle aktif/nonaktif fitur untuk semua merchant + panduan setup; key disimpan di `platform_settings` tabel dengan key `ai_settings` | ✅ |
+| 14 Mei 2026 | Sprint 20 | **CSV Export Analitik Booking** — tombol "Ekspor CSV" di header `/pos-app/booking-analytics`; ekspor semua booking dalam rentang tanggal aktif ke file `.csv` dengan kolom: ID, Status, Layanan, Tanggal Slot, Jam, Harga, DP, Status DP, Dibuat; BOM UTF-8 agar Excel/Spreadsheet bisa membaca karakter Indonesia | ✅ |
+| 14 Mei 2026 | Sprint 20 | **Kalender Sync (Export .ics)** — tombol "Tambah ke Kalender" di riwayat booking pelanggan (`/akun/bookings`) untuk setiap booking mendatang (pending/confirmed); generate file iCal standar (RFC 5545) dengan DTSTART, DTEND, SUMMARY, LOCATION; langsung download ke perangkat; kompatibel Google Calendar, Apple Calendar, Outlook | ✅ |
+| 14 Mei 2026 | Sprint 20 | **SB-07 Catatan Kunjungan Merchant** — inline edit `merchant_notes` di setiap booking card di `/pos-app/booking`; klik untuk aktifkan textarea + simpan/batal; tersimpan di kolom `merchant_notes` tabel `bookings` (migrasi SQL satu baris disertakan sebagai komentar); hanya terlihat oleh merchant, tidak ditampilkan ke pelanggan | ✅ |
 
 ---
 
@@ -786,14 +789,14 @@ Beranda marketplace · Search + filter · Kategori · Flash sale · Featured sho
 | Riwayat booking di akun pembeli | ✅ |
 | Kalender ketersediaan real-time | ✅ |
 | Kalender ketersediaan rental per unit (Tipe 4) | ✅ |
-| **Reschedule mandiri oleh pembeli** | ❌ Belum |
-| **Paket layanan + add-on saat booking** | ❌ Belum |
-| **Deposit via payment gateway (Midtrans/Xendit)** | ❌ Belum |
-| **Upload dokumen (KTP/SIM) untuk rental** | ❌ Belum |
-| **Checklist kondisi sebelum/sesudah rental** | ❌ Belum |
-| **Review post-booking (notif H+1 otomatis)** | ❌ Belum |
-| **Kalender sync / export .ics** | ❌ Belum |
-| **Catatan pelanggan per kunjungan** | ❌ Belum |
+| **Reschedule mandiri oleh pembeli** | ✅ Selesai Sprint 14 |
+| **Paket layanan + add-on saat booking** | ✅ Selesai Sprint 14 |
+| **Deposit via payment gateway (Midtrans/Xendit)** | ❌ Belum — gateway belum; konfirmasi manual ✅ |
+| **Upload dokumen (KTP/SIM) untuk rental** | ✅ Selesai Sprint 18 — step "Dokumen" di wizard booking; Supabase Storage `booking-documents` |
+| **Checklist kondisi sebelum/sesudah rental** | ✅ Selesai Sprint 19 — `pos-app.rental-checklist.tsx`; foto kerusakan + tanda tangan canvas |
+| **Review post-booking (notif H+1 otomatis)** | ✅ Selesai Sprint 15 |
+| **Kalender sync / export .ics** | ✅ Selesai — tombol di riwayat booking pelanggan; format iCal standar |
+| **Catatan pelanggan per kunjungan** | ✅ Selesai — inline merchant notes di POS booking card |
 | **Perpanjangan sewa mandiri (Tipe 4)** | ❌ Belum |
 
 ### 4.2 Jenis Booking per Kategori (Konfigurasi Otomatis)
@@ -956,13 +959,13 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 |---|---|---|---|
 | PD-01 | Upload produk digital (zip, pdf, mp4, dll.) | ✅ | — |
 | PD-02 | Auto-delivery file setelah pembayaran | ✅ | — |
-| PD-03 | Preview watermarked (sample sebelum beli) | ❌ | 🔥 TINGGI |
-| PD-04 | Lisensi produk (personal use vs. commercial) | ❌ | TINGGI |
-| PD-05 | Limit download per lisensi (anti-sharing) | ❌ | SEDANG |
+| PD-03 | Preview watermarked (sample sebelum beli) | ✅ Selesai Sprint 18 — `DigitalPreview` component dengan overlay watermark | — |
+| PD-04 | Lisensi produk (personal use vs. commercial) | ✅ Selesai Sprint 19 — `pos-app.digital-licenses.tsx`; license key otomatis per pembelian, tipe lisensi | — |
+| PD-05 | Limit download per lisensi (anti-sharing) | ✅ Selesai Sprint 19 — server-side tracking via `pos-app.digital-licenses.tsx` | — |
 | PD-06 | Update versi → pembeli lama dapat notif | ❌ | SEDANG |
-| PD-07 | Kode aktivasi / serial key untuk software | ❌ | SEDANG |
-| PD-08 | Halaman `/akun/digital-products` (riwayat + download) | ❌ | TINGGI |
-| PD-09 | Kursus online dengan progress tracking | ❌ | SEDANG |
+| PD-07 | Kode aktivasi / serial key untuk software | ✅ Selesai Sprint 19 — `pos-app.digital-licenses.tsx` | — |
+| PD-08 | Halaman `/akun/digital-products` (riwayat + download) | ✅ Selesai Sprint 14 — `akun.digital-products.tsx` | — |
+| PD-09 | Kursus online dengan progress tracking | ✅ Selesai — `pos-app.kursus.tsx` (927 baris); manajemen kursus + modul + lesson + enrollment | — |
 
 **Produk Digital tidak membutuhkan:** Alamat pengiriman, kurir, stok fisik, KDS, booking jadwal.
 
@@ -973,14 +976,14 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 | SB-01 | Booking layanan per slot waktu | ✅ | — |
 | SB-02 | Pilih stylist/barber spesifik | ✅ | — |
 | SB-03 | Durasi layanan berbeda per jenis | ⚠️ Dasar ada | TINGGI |
-| SB-04 | Galeri hasil karya (before/after foto) | ✅ Ada di POS · ❌ Belum tampil di /toko/:slug | 🔥 TINGGI |
+| SB-04 | Galeri hasil karya (before/after foto) | ✅ Selesai — `PortfolioGallery` tampil di `/toko/:slug` dengan lightbox + `BeforeAfterSlider` | — |
 | SB-05 | Membership / Paket Langganan (10 potong bayar 8) | ✅ Shop membership | SEDANG |
 | SB-06 | Pengingat potong rambut (notif 4 minggu setelah kunjungan) | ❌ | SEDANG |
-| SB-07 | Catatan pelanggan per kunjungan | ❌ | SEDANG |
-| SB-08 | Reschedule mandiri oleh pelanggan | ❌ | TINGGI |
+| SB-07 | Catatan pelanggan per kunjungan | ✅ Selesai Sprint 20 — inline merchant notes edit di POS booking card | — |
+| SB-08 | Reschedule mandiri oleh pelanggan | ✅ Selesai Sprint 14 | — |
 | SB-09 | Konfirmasi booking via WA otomatis | ⚠️ Tombol manual ada | TINGGI |
 | SB-10 | Deposit online via payment gateway | ❌ (konfirmasi manual ✅) | SEDANG |
-| SB-11 | Review post-booking otomatis H+1 | ❌ | TINGGI |
+| SB-11 | Review post-booking otomatis H+1 | ✅ Selesai Sprint 15 | — |
 
 ### 6.4 Rental Mobil, Motor, Alat Camping (Tipe 4 — Booking Rental)
 
@@ -990,7 +993,7 @@ URL: `/toko/:slug/booking` — wizard 3 langkah, termasuk pilih staff, voucher, 
 |---|---|---|---|
 | RT-01 | Kalender ketersediaan per unit (date-range) | ✅ | — |
 | RT-02 | Manajemen armada/unit (ID, foto, kondisi) | ⚠️ Dasar ada | TINGGI |
-| RT-03 | Upload dokumen (KTP/SIM) saat booking | ❌ | 🔥 TINGGI |
+| RT-03 | Upload dokumen (KTP/SIM) saat booking | ✅ Selesai Sprint 18 | — |
 | RT-04 | Hitung deposit otomatis (nilai × durasi) | ❌ | TINGGI |
 | RT-05 | Perpanjangan sewa mandiri | ❌ | SEDANG |
 | RT-06 | Checklist kondisi sebelum/sesudah sewa | ❌ | TINGGI |

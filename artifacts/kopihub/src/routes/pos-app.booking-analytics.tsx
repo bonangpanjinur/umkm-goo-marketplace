@@ -10,7 +10,7 @@ import { formatIDR } from "@/lib/format";
 import { toast } from "sonner";
 import {
   Loader2, BarChart2, TrendingDown, TrendingUp,
-  CalendarCheck, Banknote, XCircle, CheckCircle2, RefreshCw,
+  CalendarCheck, Banknote, XCircle, CheckCircle2, RefreshCw, Download,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -116,6 +116,45 @@ function renderActiveShape(props: any) {
       <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius + 6} startAngle={startAngle} endAngle={endAngle} fill={fill} />
     </g>
   );
+}
+
+// ── CSV Export ───────────────────────────────────────────────────────────────
+
+function exportBookingsCSV(bookings: RawBooking[], from: string, to: string) {
+  const headers = [
+    "ID",
+    "Status",
+    "Nama Layanan",
+    "Tanggal Slot",
+    "Jam Slot",
+    "Harga",
+    "DP Wajib",
+    "Jumlah DP",
+    "Status DP",
+    "Dibuat",
+  ];
+  const rows = bookings.map(b => [
+    b.id,
+    b.status,
+    b.booking_slots?.service_name ?? "",
+    b.booking_slots?.slot_date ?? "",
+    b.booking_slots?.slot_time ?? "",
+    b.booking_slots?.price ?? 0,
+    b.deposit_required ? "Ya" : "Tidak",
+    b.deposit_amount ?? 0,
+    b.deposit_status ?? "",
+    b.created_at.slice(0, 19).replace("T", " "),
+  ]);
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `analitik-booking_${from}_${to}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── Main page ────────────────────────────────────────────────────────────────
@@ -293,10 +332,21 @@ function BookingAnalyticsPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportBookingsCSV(bookings, from, to)}
+            disabled={bookings.length === 0}
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Ekspor CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* ── Date filter ─────────────────────────────────────────── */}

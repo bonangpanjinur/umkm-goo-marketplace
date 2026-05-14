@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
   CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone,
-  ChevronDown, ChevronUp, CalendarDays, Star, Loader2, MessageSquare,
+  ChevronDown, ChevronUp, CalendarDays, Star, Loader2, MessageSquare, Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -479,6 +479,44 @@ function BookingsPage() {
   );
 }
 
+// ── ICS calendar export ───────────────────────────────────────────────────────
+
+function downloadICS(b: Booking) {
+  if (!b.slot) return;
+  const dateStr = b.slot.slot_date.replace(/-/g, "");
+  const [h, m] = b.slot.slot_time.split(":").map(Number);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const dtStart = `${dateStr}T${pad(h)}${pad(m)}00`;
+  const dtEnd   = `${dateStr}T${pad(h + 1)}${pad(m)}00`;
+  const shopName = b.slot.shop?.name ?? "";
+  const summary  = `${b.slot.service_name}${shopName ? ` — ${shopName}` : ""}`;
+  const uid      = `${b.id}@kopihub`;
+  const now      = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//KopiHub//Booking//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${now}`,
+    `DTSTART;TZID=Asia/Jakarta:${dtStart}`,
+    `DTEND;TZID=Asia/Jakarta:${dtEnd}`,
+    `SUMMARY:${summary}`,
+    ...(shopName ? [`LOCATION:${shopName}`] : []),
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `booking-${b.slot.service_name.replace(/\s+/g, "-").toLowerCase()}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function BookingCard({
   booking: b,
   expanded,
@@ -604,6 +642,18 @@ function BookingCard({
                 </div>
               )}
             </div>
+          )}
+
+          {/* Tambah ke Kalender (untuk booking mendatang) */}
+          {["pending", "confirmed"].includes(b.status) && b.slot && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 w-full"
+              onClick={() => downloadICS(b)}
+            >
+              <Calendar className="h-3.5 w-3.5" /> Tambah ke Kalender (.ics)
+            </Button>
           )}
 
           {canCancel && (
