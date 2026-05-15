@@ -190,6 +190,11 @@ export default function PublicBookingPage() {
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
   const [packagesLoaded, setPackagesLoaded] = useState(false);
 
+  // Studio locations (SF-03)
+  const [locations, setLocations] = useState<StudioLocation[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<StudioLocation | null>(null);
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
+
   // Document upload state (M-16)
   const [docUrl, setDocUrl] = useState<string | null>(null);
   const [docType, setDocType] = useState<"ktp" | "sim">("ktp");
