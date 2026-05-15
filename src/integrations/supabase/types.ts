@@ -389,6 +389,8 @@ export type Database = {
           deposit_paid: boolean
           deposit_paid_at: string | null
           id: string
+          location_address: string | null
+          location_id: string | null
           notes: string | null
           party_size: number
           reminded_h1_at: string | null
@@ -411,6 +413,8 @@ export type Database = {
           deposit_paid?: boolean
           deposit_paid_at?: string | null
           id?: string
+          location_address?: string | null
+          location_id?: string | null
           notes?: string | null
           party_size?: number
           reminded_h1_at?: string | null
@@ -433,6 +437,8 @@ export type Database = {
           deposit_paid?: boolean
           deposit_paid_at?: string | null
           id?: string
+          location_address?: string | null
+          location_id?: string | null
           notes?: string | null
           party_size?: number
           reminded_h1_at?: string | null
@@ -443,6 +449,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "studio_locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_shop_id_fkey"
             columns: ["shop_id"]
@@ -641,6 +654,9 @@ export type Database = {
       business_categories: {
         Row: {
           banner_url: string | null
+          booking_config: Json
+          booking_enabled: boolean
+          booking_type: string | null
           commission_override: number | null
           created_at: string
           description: string | null
@@ -656,6 +672,9 @@ export type Database = {
         }
         Insert: {
           banner_url?: string | null
+          booking_config?: Json
+          booking_enabled?: boolean
+          booking_type?: string | null
           commission_override?: number | null
           created_at?: string
           description?: string | null
@@ -671,6 +690,9 @@ export type Database = {
         }
         Update: {
           banner_url?: string | null
+          booking_config?: Json
+          booking_enabled?: boolean
+          booking_type?: string | null
           commission_override?: number | null
           created_at?: string
           description?: string | null
@@ -1148,6 +1170,73 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      custom_order_quotes: {
+        Row: {
+          breakdown: Json
+          created_at: string
+          id: string
+          notes: string | null
+          request_id: string
+          responded_at: string | null
+          sent_at: string | null
+          shop_id: string
+          status: string
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          breakdown?: Json
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_id: string
+          responded_at?: string | null
+          sent_at?: string | null
+          shop_id: string
+          status?: string
+          total: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          breakdown?: Json
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_id?: string
+          responded_at?: string | null
+          sent_at?: string | null
+          shop_id?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_order_quotes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "custom_order_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_order_quotes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_order_quotes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       custom_order_requests: {
         Row: {
@@ -1993,6 +2082,88 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_deliverables: {
+        Row: {
+          created_at: string
+          custom_order_id: string | null
+          customer_contact: string
+          customer_name: string
+          delivery_token: string
+          description: string | null
+          external_url: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          file_url: string | null
+          id: string
+          received_at: string | null
+          sent_at: string | null
+          shop_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_order_id?: string | null
+          customer_contact: string
+          customer_name: string
+          delivery_token?: string
+          description?: string | null
+          external_url?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          received_at?: string | null
+          sent_at?: string | null
+          shop_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_order_id?: string | null
+          customer_contact?: string
+          customer_name?: string
+          delivery_token?: string
+          description?: string | null
+          external_url?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          received_at?: string | null
+          sent_at?: string | null
+          shop_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_deliverables_custom_order_id_fkey"
+            columns: ["custom_order_id"]
+            isOneToOne: false
+            referencedRelation: "custom_order_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_deliverables_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_deliverables_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
           },
         ]
       }
@@ -3429,6 +3600,127 @@ export type Database = {
           },
           {
             foreignKeyName: "parked_carts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      patient_records: {
+        Row: {
+          allergies: string | null
+          birth_date: string | null
+          blood_type: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          medical_history: string | null
+          notes: string | null
+          patient_contact: string | null
+          patient_name: string
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          allergies?: string | null
+          birth_date?: string | null
+          blood_type?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          medical_history?: string | null
+          notes?: string | null
+          patient_contact?: string | null
+          patient_name: string
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          allergies?: string | null
+          birth_date?: string | null
+          blood_type?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          medical_history?: string | null
+          notes?: string | null
+          patient_contact?: string | null
+          patient_name?: string
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_records_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_records_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      patient_visits: {
+        Row: {
+          complaint: string | null
+          created_at: string
+          diagnosis: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          prescription: string | null
+          shop_id: string
+          treatment: string | null
+          visit_date: string
+        }
+        Insert: {
+          complaint?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          prescription?: string | null
+          shop_id: string
+          treatment?: string | null
+          visit_date?: string
+        }
+        Update: {
+          complaint?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          prescription?: string | null
+          shop_id?: string
+          treatment?: string | null
+          visit_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_visits_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_visits_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_visits_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shop_health_score"
@@ -5462,6 +5754,66 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      studio_locations: {
+        Row: {
+          address: string | null
+          created_at: string
+          description: string | null
+          extra_fee: number
+          id: string
+          is_active: boolean
+          location_type: string
+          name: string
+          shop_id: string
+          sort_order: number
+          travel_radius_km: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          extra_fee?: number
+          id?: string
+          is_active?: boolean
+          location_type: string
+          name: string
+          shop_id: string
+          sort_order?: number
+          travel_radius_km?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          extra_fee?: number
+          id?: string
+          is_active?: boolean
+          location_type?: string
+          name?: string
+          shop_id?: string
+          sort_order?: number
+          travel_radius_km?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_locations_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_locations_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
