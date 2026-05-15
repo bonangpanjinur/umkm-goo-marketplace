@@ -594,6 +594,7 @@ function AppLayoutInner() {
               services: "Jasa",
               craft: "Kerajinan",
               electronics: "Elektronik",
+              "sales-pro": shopSubtype === "umroh" ? "Umroh" : "Sales",
             }[shopCategoryType] ?? shopCategoryType}
           </span>
         )}
