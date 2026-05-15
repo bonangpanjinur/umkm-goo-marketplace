@@ -65,6 +65,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { StaffPermissionsDialog, type StaffPermissionsTarget } from "@/components/staff-permissions-dialog";
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
 
@@ -266,6 +267,9 @@ function EmployeesPage() {
   const [promoteShowPw, setPromoteShowPw] = useState(false);
   const [promoteSaving, setPromoteSaving] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
+
+  // Permissions dialog
+  const [permTarget, setPermTarget] = useState<StaffPermissionsTarget | null>(null);
 
   // Password / reset dialogs
   const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
@@ -1355,6 +1359,16 @@ function EmployeesPage() {
                               onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
                               onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
                               onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                              onPermissions={() => {
+                                if (u.kind === "login" && shop) {
+                                  setPermTarget({
+                                    user_id: u.raw.user_id,
+                                    shop_id: shop.id,
+                                    name: u.name,
+                                    role: u.role,
+                                  });
+                                }
+                              }}
                               onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
                               onRemove={() => {
                                 if (u.kind === "login") setConfirmRemoveLogin(u.raw);
@@ -1398,6 +1412,16 @@ function EmployeesPage() {
                             onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
                             onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
                             onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                            onPermissions={() => {
+                              if (u.kind === "login" && shop) {
+                                setPermTarget({
+                                  user_id: u.raw.user_id,
+                                  shop_id: shop.id,
+                                  name: u.name,
+                                  role: u.role,
+                                });
+                              }
+                            }}
                             onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
                             onRemove={() => {
                               if (u.kind === "login") setConfirmRemoveLogin(u.raw);
@@ -1776,6 +1800,12 @@ function EmployeesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Permissions dialog */}
+      <StaffPermissionsDialog
+        target={permTarget}
+        onClose={() => setPermTarget(null)}
+      />
     </div>
   );
 }
@@ -1786,6 +1816,7 @@ function RowActions({
   onChangePw,
   onResetPw,
   onPromote,
+  onPermissions,
   onToggleActive,
   onRemove,
   resetting,
@@ -1795,6 +1826,7 @@ function RowActions({
   onChangePw: () => void;
   onResetPw: () => void;
   onPromote: () => void;
+  onPermissions: () => void;
   onToggleActive: () => void;
   onRemove: () => void;
   resetting: boolean;
@@ -1807,7 +1839,7 @@ function RowActions({
           <span className="sr-only">Aksi</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           Aksi pegawai {!row.is_active && <span className="ml-1 text-[10px] text-amber-600">(Nonaktif)</span>}
         </DropdownMenuLabel>
@@ -1817,6 +1849,9 @@ function RowActions({
         </DropdownMenuItem>
         {row.kind === "login" && (
           <>
+            <DropdownMenuItem onClick={onPermissions}>
+              <ShieldCheck className="mr-2 h-3.5 w-3.5" /> Atur hak akses
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onChangePw}>
               <KeyRound className="mr-2 h-3.5 w-3.5" /> Ubah kata sandi
             </DropdownMenuItem>
