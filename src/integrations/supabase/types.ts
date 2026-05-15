@@ -683,6 +683,8 @@ export type Database = {
         Row: {
           active_theme_key: string
           address: string | null
+          auto_reply_enabled: boolean
+          auto_reply_message: string | null
           average_rating: number | null
           business_category_id: string | null
           commission_rate_override: number | null
@@ -742,6 +744,8 @@ export type Database = {
         Insert: {
           active_theme_key?: string
           address?: string | null
+          auto_reply_enabled?: boolean
+          auto_reply_message?: string | null
           average_rating?: number | null
           business_category_id?: string | null
           commission_rate_override?: number | null
@@ -801,6 +805,8 @@ export type Database = {
         Update: {
           active_theme_key?: string
           address?: string | null
+          auto_reply_enabled?: boolean
+          auto_reply_message?: string | null
           average_rating?: number | null
           business_category_id?: string | null
           commission_rate_override?: number | null
