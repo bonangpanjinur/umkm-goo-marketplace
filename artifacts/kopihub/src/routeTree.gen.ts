@@ -253,6 +253,7 @@ import { Route as PesananOrderIdChatRouteImport } from './routes/pesanan.$orderI
 import { Route as OrderSlugCheckoutRouteImport } from './routes/order.$slug.checkout'
 import { Route as OrderSlugCartRouteImport } from './routes/order.$slug.cart'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
+import { Route as BookingRescheduleTokenRouteImport } from './routes/booking.reschedule.$token'
 import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AkunKursusCourseIdRouteImport } from './routes/akun.kursus.$courseId'
@@ -1492,6 +1493,11 @@ const CheckoutSuksesOrderIdRoute = CheckoutSuksesOrderIdRouteImport.update({
   path: '/sukses/$orderId',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const BookingRescheduleTokenRoute = BookingRescheduleTokenRouteImport.update({
+  id: '/booking/reschedule/$token',
+  path: '/booking/reschedule/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingCancelTokenRoute = BookingCancelTokenRouteImport.update({
   id: '/booking/cancel/$token',
   path: '/booking/cancel/$token',
@@ -1769,6 +1775,7 @@ export interface FileRoutesByFullPath {
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
+  '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -2020,6 +2027,7 @@ export interface FileRoutesByTo {
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
+  '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -2277,6 +2285,7 @@ export interface FileRoutesById {
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
+  '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -2535,6 +2544,7 @@ export interface FileRouteTypes {
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
+    | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -2786,6 +2796,7 @@ export interface FileRouteTypes {
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
+    | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -3042,6 +3053,7 @@ export interface FileRouteTypes {
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
+    | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -3103,6 +3115,7 @@ export interface RootRouteChildren {
   TrackOrderIdRoute: typeof TrackOrderIdRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
   BookingCancelTokenRoute: typeof BookingCancelTokenRoute
+  BookingRescheduleTokenRoute: typeof BookingRescheduleTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -4815,6 +4828,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutSuksesOrderIdRouteImport
       parentRoute: typeof CheckoutRoute
     }
+    '/booking/reschedule/$token': {
+      id: '/booking/reschedule/$token'
+      path: '/booking/reschedule/$token'
+      fullPath: '/booking/reschedule/$token'
+      preLoaderRoute: typeof BookingRescheduleTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/booking/cancel/$token': {
       id: '/booking/cancel/$token'
       path: '/booking/cancel/$token'
@@ -5538,6 +5558,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrackOrderIdRoute: TrackOrderIdRoute,
   KategoriIndexRoute: KategoriIndexRoute,
   BookingCancelTokenRoute: BookingCancelTokenRoute,
+  BookingRescheduleTokenRoute: BookingRescheduleTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
