@@ -1,90 +1,71 @@
-## Cakupan
+## Ringkasan Bug Ditemukan
 
-Empat fitur untuk halaman **Jadwal** dan **Tim**. Saya pertahankan stack yang sudah ada (Supabase langsung dari client + RLS owner) dan menambah trigger DB untuk audit & validasi konflik agar konsisten meski jadwal diubah lewat realtime.
+### 1. Redirect 404 mengarah ke route yang TIDAK ADA
+File `artifacts/kopihub/src/routes/__root.tsx` punya `REDIRECT_RULES` yang menunjuk ke path tidak terdaftar:
 
-### 1. Validasi konflik jadwal (real-time)
+| Aturan saat ini | Status | Seharusnya |
+|---|---|---|
+| `/admin*` → `/admin` | ✅ ada (`admin.tsx`) | tetap |
+| `/app*` → `/app` | ❌ tidak ada | `/pos-app` |
+| `/cart*`, `/checkout*` → `/cart` | ❌ tidak ada | `/keranjang` |
+| `/order*` → `/orders` | ❌ tidak ada | `/akun/pesanan` |
+| `/s/*` → `/` | ✅ | tetap |
+| `/signup`, `/login` | ✅ | tetap |
 
-**Masalah:** Saat ini `shifts` bisa di-insert/update tanpa cek apakah pegawai sudah punya shift yang overlap di hari yang sama.
+Akibat: pengguna yang salah ketik URL di-redirect ke route yang juga 404 → loop.
 
-**Solusi:**
-- **DB trigger** `validate_shift_no_overlap` di tabel `shifts` (BEFORE INSERT/UPDATE):
-  - Reject jika ada shift lain untuk `(shop_id, user_id, day_of_week)` yang range jamnya tumpang tindih (`tstzrange`/`OVERLAPS`).
-  - Reject jika `end_time <= start_time` (kecuali overnight — untuk sekarang larang dulu, kasih pesan jelas).
-- **Frontend** `pos-app.schedule.tsx`:
-  - Cek overlap di sisi client sebelum submit (pakai data `shifts` yang sudah dimuat) → tampilkan inline error di dialog dengan daftar shift yang bentrok.
-  - Tangkap error dari trigger dan tampilkan toast yang ramah.
+### 2. Tabel `banners` tidak ada di database
+- `src/routes/index.tsx:286` query `from("banners")` → **404 PGRST205** ("Could not find the table 'public.banners'")
+- `src/routes/admin.banners.tsx` (CRUD admin) juga gagal — fallback ke DEMO_BANNERS, jadi admin tidak bisa benar-benar menyimpan banner.
 
-**Catatan:** "sudah check-in / selesai" butuh tabel attendance (mis. clock_in/clock_out) yang belum ada di skema. Saya tidak akan membuat tabel baru di luar konteks; saya tinggalkan TODO singkat di kode dan fokus ke overlap. Kalau Anda ingin attendance, kita garap di siklus berikutnya.
+### 3. Data master kosong (bukan bug, tapi UX rusak)
+- `business_categories` mengembalikan `[]` → kategori homepage kosong.
+- `coffee_shops.business_category_id = null` → tidak terhitung di kategori.
+- Tidak diperbaiki via migrasi (ini data, bukan skema), tapi perlu seed minimal supaya homepage tidak kosong saat fresh deploy.
 
-### 2. Aksi massal di halaman Tim
+### 4. Hal yang sudah benar (tidak perlu disentuh)
+- `delivery_zones` sudah punya `min_eta_minutes` / `max_eta_minutes`
+- `product_qa`, `restock_subscribers`, `ad_requests`, `couriers.email` sudah ada
+- `notifications.functions.ts` & `.server.ts` sudah ada (404 di network log lama, sudah resolved)
+- SPA routing (`_redirects`) sudah benar
 
-Di `pos-app.employees.tsx`:
-- Tambah kolom checkbox di setiap row daftar pegawai (login + manual) dan kartu undangan pending.
-- Sticky toolbar saat ≥1 dipilih: **Aktifkan**, **Nonaktifkan**, **Kirim ulang undangan** (hanya muncul kalau seleksi mengandung undangan pending).
-- Implementasi:
-  - Aktifkan/nonaktifkan: panggil `staff/update-role` (sudah ada) berturut-turut dengan `Promise.allSettled`, tampilkan ringkasan toast (`X berhasil, Y gagal`).
-  - Resend invitations: panggil `staff/resend-invitation` per id, sama polanya.
-  - Konfirmasi pakai `AlertDialog` sebelum eksekusi.
+---
 
-### 3. Audit log perubahan jadwal
+## Rencana Perbaikan
 
-- **DB trigger** `log_shift_change` di `shifts` (AFTER INSERT/UPDATE/DELETE) → insert ke `staff_audit_logs`:
-  - `action = 'shift_create' | 'shift_update' | 'shift_delete'`
-  - `actor_id = auth.uid()`, `target_user_id = NEW.user_id` (atau OLD jika delete)
-  - `meta = { day_of_week, start_time, end_time, outlet_id, before, after }`
-- **UI** baru di `pos-app.schedule.tsx`: tombol **Riwayat** di header → `Sheet` slide-in yang menampilkan 50 entri terakhir dari `staff_audit_logs` di `shop_id` ini, di-scope ke `action LIKE 'shift_%'`. Format: ikon, "Budi memperbarui shift Andi (Sen 08:00–16:00 → 09:00–17:00) · 5 menit lalu".
-  - Resolve nama actor lewat `profiles.display_name`, target lewat `profiles` atau `staff_members`.
+### Langkah 1 — Migrasi DB: tambah tabel `banners`
+Buat tabel `public.banners` dengan kolom: `title`, `subtitle`, `cta_text`, `cta_link`, `image_url`, `bg_color`, `sort_order`, `is_active`, plus `id/created_at/updated_at` standar.
 
-### 4. Buat jadwal otomatis dari template
+RLS:
+- **SELECT publik** untuk semua (banner ditampilkan di homepage tanpa login).
+- **INSERT/UPDATE/DELETE** hanya untuk Super Admin (cek via `has_role(auth.uid(), 'super_admin')` mengikuti pola yang sudah dipakai di project).
 
-Dialog baru di `pos-app.schedule.tsx` — tombol header **Buat dari template**:
-1. **Step 1 — pilih template:**
-   - Pilihan default cepat: *Pagi 07–15*, *Siang 11–19*, *Malam 15–23*, atau *Custom* (masukkan jam sendiri).
-   - Pilih hari (multi-select Sen–Min, default Sen–Jum).
-   - Pilih outlet.
-   - Filter pegawai: by peran (manager/cashier/barista/all) atau pilih manual.
-2. **Step 2 — preview:**
-   - Tampilkan tabel kandidat shift yang akan dibuat (pegawai × hari).
-   - Setiap baris bisa diubah jam/outlet, atau di-toggle skip.
-   - Tampilkan badge merah untuk baris yang bentrok dengan shift existing (pakai logic yang sama dengan validasi).
-3. **Step 3 — simpan:**
-   - Insert batch lewat `supabase.from('shifts').insert(rows)`.
-   - Yang ditolak trigger akan di-skip dengan toast ringkas (`X dibuat, Y dilewati karena bentrok`).
+Trigger `update_updated_at_column` untuk `updated_at`.
 
-## Detail teknis
+### Langkah 2 — (Opsional) Seed `business_categories`
+Insert 5–8 kategori default (Makanan & Minuman, Fashion, Elektronik, Kecantikan, Rumah Tangga, dll.) supaya homepage tidak tampak kosong di project baru. Dilakukan via tool insert (data, bukan skema).
 
-### Migrasi SQL
-
-```sql
--- Trigger: tolak overlap
-CREATE OR REPLACE FUNCTION validate_shift_no_overlap() RETURNS trigger ...
-  -- cek end_time > start_time
-  -- cek tidak ada shift lain untuk (shop_id,user_id,day_of_week) yang overlap
-CREATE TRIGGER trg_validate_shift_no_overlap BEFORE INSERT OR UPDATE ON shifts ...
-
--- Trigger: audit
-CREATE OR REPLACE FUNCTION log_shift_change() RETURNS trigger ...
-CREATE TRIGGER trg_log_shift_change AFTER INSERT OR UPDATE OR DELETE ON shifts ...
-
--- Tambah RLS SELECT untuk staff_audit_logs (owner only) — cek apakah sudah ada
+### Langkah 3 — Perbaiki `REDIRECT_RULES` di `__root.tsx`
+Update mapping menjadi:
+```ts
+{ test: p => p.startsWith("/admin"), to: "/admin", label: "Dashboard Super Admin" }
+{ test: p => p.startsWith("/pos-app") || p.startsWith("/app"), to: "/pos-app", label: "Dashboard Toko" }
+{ test: p => p.startsWith("/s/"), to: "/", label: "Beranda Marketplace" }
+{ test: /^\/(signup|register|daftar)/, to: "/signup", label: "Daftar" }
+{ test: /^\/(login|signin|masuk)/, to: "/login", label: "Masuk" }
+{ test: p => p.startsWith("/keranjang") || p.startsWith("/cart") || p.startsWith("/checkout"), to: "/keranjang", label: "Keranjang" }
+{ test: p => p.startsWith("/akun/pesanan") || p.startsWith("/order") || p.startsWith("/pesanan"), to: "/akun/pesanan", label: "Pesanan Saya" }
+{ test: p => p.startsWith("/akun"), to: "/akun", label: "Akun Saya" }
 ```
 
-### Frontend
+### Langkah 4 — Verifikasi
+- Reload `/` → tidak ada lagi error 404 `banners`.
+- Buka `/admin/banners` → bisa create/edit/save (tidak fallback ke demo).
+- Buka URL acak `/foobar` → countdown redirect ke `/` (bukan ke route yang juga 404).
+- Buka `/app/anything` → diarahkan ke `/pos-app` dengan benar.
 
-- `pos-app.schedule.tsx`: tambah state untuk template dialog, audit sheet, helper `findOverlap()`. Refactor `save()` untuk surface error trigger.
-- `pos-app.employees.tsx`: tambah `Set<string>` selection state, toolbar, helper `bulkAction()`.
-- Re-use komponen shadcn yang sudah ada (`Sheet`, `Checkbox`, `AlertDialog`).
+---
 
-### Yang tidak saya kerjakan
-- Tabel attendance / clock-in (skema baru besar — tunggu sinyal Anda).
-- Audit log untuk perubahan profil pegawai (sudah ada lewat `staff/update-role` yang menulis manual). Saya hanya perlu menampilkannya — bisa saya gabungkan ke sheet yang sama dengan filter tab "Semua / Jadwal / Pegawai".
-
-## Urutan eksekusi
-
-1. Migrasi DB (overlap + audit shift + RLS check).
-2. Schedule: validasi overlap + tangkap error.
-3. Schedule: dialog template + preview.
-4. Schedule: sheet riwayat audit.
-5. Employees: bulk action toolbar.
-
-Lanjut implementasi?
+## Catatan teknis
+- Tidak ada perubahan pada server functions, hanya satu migrasi SQL + satu edit file route + satu insert data opsional.
+- Migrasi dijalankan terpisah (tool migration) lalu dilanjutkan edit code setelah approved.
