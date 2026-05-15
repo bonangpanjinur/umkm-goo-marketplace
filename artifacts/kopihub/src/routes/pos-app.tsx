@@ -75,6 +75,11 @@ import {
   ClipboardList,
   FolderOpen,
   Sparkles,
+  Plane,
+  Quote,
+  Inbox,
+  Briefcase,
+  Info,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
