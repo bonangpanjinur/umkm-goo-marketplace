@@ -63,6 +63,7 @@ import { Route as PosAppSizeGuideRouteImport } from './routes/pos-app.size-guide
 import { Route as PosAppShippingLabelsRouteImport } from './routes/pos-app.shipping-labels'
 import { Route as PosAppShiftsRouteImport } from './routes/pos-app.shifts'
 import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
+import { Route as PosAppServiceBundlesRouteImport } from './routes/pos-app.service-bundles'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppSalesOfferingsRouteImport } from './routes/pos-app.sales-offerings'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
@@ -532,6 +533,11 @@ const PosAppShiftsRoute = PosAppShiftsRouteImport.update({
 const PosAppSettingsRoute = PosAppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppServiceBundlesRoute = PosAppServiceBundlesRouteImport.update({
+  id: '/service-bundles',
+  path: '/service-bundles',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppScheduleRoute = PosAppScheduleRouteImport.update({
@@ -1718,6 +1724,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
@@ -1969,6 +1976,7 @@ export interface FileRoutesByTo {
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
@@ -2224,6 +2232,7 @@ export interface FileRoutesById {
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
@@ -2481,6 +2490,7 @@ export interface FileRouteTypes {
     | '/pos-app/reviews'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
+    | '/pos-app/service-bundles'
     | '/pos-app/settings'
     | '/pos-app/shifts'
     | '/pos-app/shipping-labels'
@@ -2732,6 +2742,7 @@ export interface FileRouteTypes {
     | '/pos-app/reviews'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
+    | '/pos-app/service-bundles'
     | '/pos-app/settings'
     | '/pos-app/shifts'
     | '/pos-app/shipping-labels'
@@ -2986,6 +2997,7 @@ export interface FileRouteTypes {
     | '/pos-app/reviews'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
+    | '/pos-app/service-bundles'
     | '/pos-app/settings'
     | '/pos-app/shifts'
     | '/pos-app/shipping-labels'
@@ -3471,6 +3483,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/pos-app/settings'
       preLoaderRoute: typeof PosAppSettingsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/service-bundles': {
+      id: '/pos-app/service-bundles'
+      path: '/service-bundles'
+      fullPath: '/pos-app/service-bundles'
+      preLoaderRoute: typeof PosAppServiceBundlesRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/schedule': {
@@ -5235,6 +5254,7 @@ interface PosAppRouteChildren {
   PosAppReviewsRoute: typeof PosAppReviewsRoute
   PosAppSalesOfferingsRoute: typeof PosAppSalesOfferingsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
+  PosAppServiceBundlesRoute: typeof PosAppServiceBundlesRoute
   PosAppSettingsRoute: typeof PosAppSettingsRoute
   PosAppShiftsRoute: typeof PosAppShiftsRoute
   PosAppShippingLabelsRoute: typeof PosAppShippingLabelsRoute
@@ -5360,6 +5380,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppReviewsRoute: PosAppReviewsRoute,
   PosAppSalesOfferingsRoute: PosAppSalesOfferingsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
+  PosAppServiceBundlesRoute: PosAppServiceBundlesRoute,
   PosAppSettingsRoute: PosAppSettingsRoute,
   PosAppShiftsRoute: PosAppShiftsRoute,
   PosAppShippingLabelsRoute: PosAppShippingLabelsRoute,
