@@ -179,6 +179,7 @@ router.post("/staff/create-user", async (req, res) => {
         role,
         phone,
         avatar_url,
+        user_id: userId,
       }),
     });
   }
