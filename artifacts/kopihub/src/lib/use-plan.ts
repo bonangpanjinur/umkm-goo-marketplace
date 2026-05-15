@@ -24,13 +24,24 @@ export function usePlan(): PlanInfo {
     (async () => {
       const { data } = await supabase
         .from("coffee_shops")
-        .select("plan, plan_expires_at")
+        .select("plan, plan_expires_at, owner_id")
         .eq("id", shop.id)
         .maybeSingle();
+      // Super admin & toko miliknya selalu Pro tanpa kadaluarsa
+      let ownerIsSuperAdmin = false;
+      if (data?.owner_id) {
+        const { data: roleRow } = await supabase
+          .from("user_roles")
+          .select("id")
+          .eq("user_id", data.owner_id)
+          .eq("role", "super_admin")
+          .maybeSingle();
+        ownerIsSuperAdmin = !!roleRow;
+      }
       const exp = data?.plan_expires_at ? new Date(data.plan_expires_at) : null;
       const active = data?.plan === "pro" && (!exp || exp.getTime() > Date.now());
-      setPlan(active ? "pro" : "free");
-      setExpiresAt(exp);
+      setPlan(ownerIsSuperAdmin || active ? "pro" : "free");
+      setExpiresAt(ownerIsSuperAdmin ? null : exp);
       setLoading(false);
     })();
   }, [shop, shopLoading]);
