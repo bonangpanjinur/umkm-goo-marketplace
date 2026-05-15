@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 
 /**
  * Webhook endpoint untuk pembayaran paket platform.
@@ -19,12 +19,9 @@ function getAdminClient() {
 }
 
 function verifyMidtrans(orderId: string, statusCode: string, grossAmount: string, signatureKey: string, serverKey: string) {
-  const expected = createHmac("sha512", "")
-    .update("") // Midtrans uses sha512(order_id+status_code+gross_amount+server_key)
-    .digest("hex");
-  // Standard formula:
+  // Midtrans formula: sha512(order_id + status_code + gross_amount + server_key)
   const concat = `${orderId}${statusCode}${grossAmount}${serverKey}`;
-  const exp = require("crypto").createHash("sha512").update(concat).digest("hex");
+  const exp = createHash("sha512").update(concat).digest("hex");
   try {
     return timingSafeEqual(Buffer.from(signatureKey), Buffer.from(exp));
   } catch { return false; }
