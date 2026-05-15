@@ -289,6 +289,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/keuangan/tarik",        label: "Tarik Saldo",           icon: ArrowDownToLine },
       { to: "/pos-app/rekening-bank",         label: "Rekening Bank",         icon: Building2 },
       { to: "/pos-app/billing",               label: "Plan & Tagihan",        icon: CreditCard },
+      { to: "/pos-app/subscriptions",         label: "Auto-Renewal",          icon: CreditCard, hint: "Aktifkan perpanjangan otomatis paket platform" },
       { to: "/pos-app/reports",               label: "Laporan Penjualan",     icon: BarChart3 },
       { to: "/pos-app/reports/profit",        label: "Profit & Margin",       icon: BarChart3 },
       { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace",  icon: BarChart3 },
