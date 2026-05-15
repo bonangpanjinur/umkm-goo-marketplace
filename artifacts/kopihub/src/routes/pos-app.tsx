@@ -188,8 +188,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/limited-editions", label: "Edisi Terbatas",       icon: Zap, hint: "Produk limited dengan counter stok visible — ciptakan urgensi pembelian", onlyFor: [...FASHION, ...CRAFT] },
       { to: "/pos-app/wip-gallery",      label: "Galeri Proses Buat",   icon: Layers, hint: "Tampilkan proses pembuatan karya — bangun kepercayaan pembeli", onlyFor: CRAFT },
       { to: "/pos-app/certificates",     label: "Sertifikat Keaslian",  icon: Award, hint: "Certificate of Authenticity digital — dikirim otomatis ke pembeli", onlyFor: CRAFT },
-      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2 },
-      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText },
+      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2, onlyFor: HAS_POS },
+      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText, onlyFor: HAS_POS },
     ],
   },
   {
