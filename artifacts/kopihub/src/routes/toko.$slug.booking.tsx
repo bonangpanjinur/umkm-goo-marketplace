@@ -63,7 +63,23 @@ type Staff = {
   is_available: boolean;
 };
 
-type Step = "date" | "slot" | "staff" | "packages" | "document" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+type Step = "date" | "slot" | "staff" | "location" | "packages" | "document" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+
+type StudioLocation = {
+  id: string;
+  name: string;
+  location_type: "studio" | "outdoor" | "client";
+  address: string | null;
+  description: string | null;
+  extra_fee: number;
+  travel_radius_km: number | null;
+};
+
+const LOCATION_META: Record<StudioLocation["location_type"], { label: string; icon: typeof Building2; color: string }> = {
+  studio:  { label: "Di studio",    icon: Building2, color: "text-blue-600 bg-blue-50" },
+  outdoor: { label: "Outdoor",      icon: Trees,     color: "text-emerald-600 bg-emerald-50" },
+  client:  { label: "Lokasi klien", icon: Home,      color: "text-amber-600 bg-amber-50" },
+};
 
 type ServicePackage = {
   id: string;
