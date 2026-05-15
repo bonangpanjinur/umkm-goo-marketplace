@@ -481,11 +481,11 @@ function FlashDialog({ item, shopId, onClose, onSaved }: { item: FlashItem; shop
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Mulai (opsional)</Label>
-              <Input className="mt-1" type="datetime-local" value={starts} onChange={e => setStarts(e.target.value)} />
+              <div className="mt-1"><DateTimePicker value={starts} onChange={setStarts} placeholder="Pilih mulai" /></div>
             </div>
             <div>
               <Label className="text-xs">Berakhir (opsional)</Label>
-              <Input className="mt-1" type="datetime-local" value={ends} onChange={e => setEnds(e.target.value)} />
+              <div className="mt-1"><DateTimePicker value={ends} onChange={setEnds} placeholder="Pilih berakhir" /></div>
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Jika tidak diisi, flash sale aktif tanpa batas waktu.</p>
