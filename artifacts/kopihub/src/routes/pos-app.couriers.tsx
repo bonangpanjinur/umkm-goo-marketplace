@@ -31,6 +31,7 @@ type Courier = {
   user_id: string | null;
   name: string;
   phone: string;
+  email: string | null;
   plate_number: string | null;
   is_active: boolean;
   note: string | null;
@@ -44,6 +45,13 @@ const courierSchema = z.object({
     .min(8, "Nomor HP minimal 8 digit")
     .max(20, "Nomor HP maksimal 20 karakter")
     .regex(/^[0-9+\-\s]+$/, "Hanya angka, +, -, dan spasi"),
+  email: z
+    .string()
+    .trim()
+    .email("Format email tidak valid")
+    .max(120)
+    .optional()
+    .or(z.literal("")),
   plate_number: z
     .string()
     .trim()
@@ -56,12 +64,13 @@ const courierSchema = z.object({
 type FormState = {
   name: string;
   phone: string;
+  email: string;
   plate_number: string;
   note: string;
   is_active: boolean;
 };
 
-const EMPTY: FormState = { name: "", phone: "", plate_number: "", note: "", is_active: true };
+const EMPTY: FormState = { name: "", phone: "", email: "", plate_number: "", note: "", is_active: true };
 
 function CouriersPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
@@ -123,6 +132,7 @@ function CouriersPage() {
     setForm({
       name: c.name,
       phone: c.phone,
+      email: c.email ?? "",
       plate_number: c.plate_number ?? "",
       note: c.note ?? "",
       is_active: c.is_active,
@@ -149,6 +159,7 @@ function CouriersPage() {
       shop_id: shop.id,
       name: parsed.data.name,
       phone: parsed.data.phone,
+      email: parsed.data.email ? parsed.data.email.toLowerCase() : null,
       plate_number: parsed.data.plate_number || null,
       note: parsed.data.note || null,
       is_active: form.is_active,
@@ -160,7 +171,7 @@ function CouriersPage() {
 
     setSaving(false);
     if (error) {
-      toast.error("Gagal menyimpan");
+      toast.error("Gagal menyimpan: " + error.message);
       return;
     }
     toast.success(editing ? "Kurir diperbarui" : "Kurir ditambahkan");
@@ -244,6 +255,23 @@ function CouriersPage() {
                   placeholder="08xxxxxxxxxx"
                 />
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Email login (opsional)</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  maxLength={120}
+                  placeholder="kurir@email.com"
+                  disabled={!!editing && !!editing.user_id}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {editing?.user_id
+                    ? "✓ Akun sudah terhubung — email tidak bisa diubah."
+                    : "Isi email agar kurir bisa login. Kurir mendaftar sendiri di halaman Daftar dengan email ini, lalu otomatis terhubung saat login pertama."}
+                </p>
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Plat motor</Label>

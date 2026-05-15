@@ -42,6 +42,9 @@ function CourierView() {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
+      // Auto-link courier account by email (no-op if already linked or no match)
+      await supabase.rpc("link_courier_account").catch(() => undefined);
+
       const { data: cs } = await supabase
         .from("couriers")
         .select("id")
@@ -167,7 +170,8 @@ function CourierView() {
       <div className="mx-auto max-w-md p-6 text-center">
         <Bike className="mx-auto mb-2 h-10 w-10 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          Akun Anda belum terdaftar sebagai kurir aktif. Hubungi pemilik toko.
+          Akun email <span className="font-medium">{user.email}</span> belum terhubung sebagai kurir aktif.
+          Minta pemilik toko untuk menambahkan email ini di halaman <span className="font-medium">Kurir Toko</span>, lalu refresh halaman.
         </p>
       </div>
     );

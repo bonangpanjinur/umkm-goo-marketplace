@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_requests: {
+        Row: {
+          ad_type: string | null
+          budget_idr: number | null
+          clicks: number | null
+          created_at: string
+          duration_days: number | null
+          ends_at: string | null
+          id: string
+          impressions: number | null
+          payment_method: string | null
+          payment_tx_id: string | null
+          position: string | null
+          reject_reason: string | null
+          shop_id: string | null
+          starts_at: string | null
+          status: string | null
+          target_id: string | null
+          target_image: string | null
+          target_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          ad_type?: string | null
+          budget_idr?: number | null
+          clicks?: number | null
+          created_at?: string
+          duration_days?: number | null
+          ends_at?: string | null
+          id?: string
+          impressions?: number | null
+          payment_method?: string | null
+          payment_tx_id?: string | null
+          position?: string | null
+          reject_reason?: string | null
+          shop_id?: string | null
+          starts_at?: string | null
+          status?: string | null
+          target_id?: string | null
+          target_image?: string | null
+          target_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ad_type?: string | null
+          budget_idr?: number | null
+          clicks?: number | null
+          created_at?: string
+          duration_days?: number | null
+          ends_at?: string | null
+          id?: string
+          impressions?: number | null
+          payment_method?: string | null
+          payment_tx_id?: string | null
+          position?: string | null
+          reject_reason?: string | null
+          shop_id?: string | null
+          starts_at?: string | null
+          status?: string | null
+          target_id?: string | null
+          target_image?: string | null
+          target_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       attendances: {
         Row: {
           business_date: string
@@ -876,6 +957,7 @@ export type Database = {
       couriers: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           is_active: boolean
           name: string
@@ -888,6 +970,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -900,6 +983,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -1386,6 +1470,8 @@ export type Database = {
           created_at: string
           delivery_enabled: boolean
           free_above: number | null
+          max_eta_minutes: number
+          min_eta_minutes: number
           min_order: number
           mode: Database["public"]["Enums"]["delivery_mode"]
           notes: string | null
@@ -1400,6 +1486,8 @@ export type Database = {
           created_at?: string
           delivery_enabled?: boolean
           free_above?: number | null
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           min_order?: number
           mode?: Database["public"]["Enums"]["delivery_mode"]
           notes?: string | null
@@ -1414,6 +1502,8 @@ export type Database = {
           created_at?: string
           delivery_enabled?: boolean
           free_above?: number | null
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           min_order?: number
           mode?: Database["public"]["Enums"]["delivery_mode"]
           notes?: string | null
@@ -1431,6 +1521,8 @@ export type Database = {
           fee: number
           id: string
           is_active: boolean
+          max_eta_minutes: number
+          min_eta_minutes: number
           name: string
           shop_id: string
           sort_order: number
@@ -1442,6 +1534,8 @@ export type Database = {
           fee?: number
           id?: string
           is_active?: boolean
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           name: string
           shop_id: string
           sort_order?: number
@@ -1453,6 +1547,8 @@ export type Database = {
           fee?: number
           id?: string
           is_active?: boolean
+          max_eta_minutes?: number
+          min_eta_minutes?: number
           name?: string
           shop_id?: string
           sort_order?: number
@@ -3414,6 +3510,87 @@ export type Database = {
           },
         ]
       }
+      product_qa: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          created_at: string
+          id: string
+          is_hidden: boolean
+          is_pinned: boolean
+          product_id: string
+          question: string
+          shop_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          is_pinned?: boolean
+          product_id: string
+          question: string
+          shop_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          is_pinned?: boolean
+          product_id?: string
+          question?: string
+          shop_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_qa_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "product_qa_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_qa_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_qa_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_qa_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       product_reviews: {
         Row: {
           comment: string | null
@@ -3917,6 +4094,75 @@ export type Database = {
           shop_id?: string
         }
         Relationships: []
+      }
+      restock_subscribers: {
+        Row: {
+          customer_name: string | null
+          customer_wa: string
+          id: string
+          notified_at: string | null
+          product_id: string
+          product_name: string
+          shop_id: string
+          subscribed_at: string
+        }
+        Insert: {
+          customer_name?: string | null
+          customer_wa: string
+          id?: string
+          notified_at?: string | null
+          product_id: string
+          product_name: string
+          shop_id: string
+          subscribed_at?: string
+        }
+        Update: {
+          customer_name?: string | null
+          customer_wa?: string
+          id?: string
+          notified_at?: string | null
+          product_id?: string
+          product_name?: string
+          shop_id?: string
+          subscribed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restock_subscribers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "restock_subscribers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restock_subscribers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restock_subscribers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restock_subscribers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       shifts: {
         Row: {
@@ -5594,6 +5840,7 @@ export type Database = {
         Returns: boolean
       }
       increment_promo_usage: { Args: { _promo_id: string }; Returns: undefined }
+      link_courier_account: { Args: never; Returns: number }
       list_available_delivery_orders: {
         Args: { _courier_id: string }
         Returns: {
