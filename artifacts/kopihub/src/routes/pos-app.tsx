@@ -264,6 +264,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/studio-locations",      label: "Lokasi Sesi Foto",     icon: Navigation, hint: "Kelola opsi lokasi sesi: studio, outdoor, atau lokasi klien — dengan biaya tambahan — SF-03", onlyFor: SVC },
       { to: "/pos-app/patient-records",       label: "Rekam Medis Pasien",   icon: Stethoscope, hint: "Riwayat kunjungan, diagnosis, dan tindakan per pasien — KL-03", onlyFor: SVC },
       { to: "/pos-app/job-deliverables",      label: "Kirim Hasil Kerja",    icon: FolderOpen, hint: "Kirim file hasil pekerjaan ke klien lewat link aman — JU-05", onlyFor: DIGITAL_SVC },
+      { to: "/pos-app/service-bundles",       label: "Paket Layanan",        icon: Package, hint: "Bundle beberapa layanan jasa dalam 1 paket dengan harga lebih murah", onlyFor: SVC },
     ],
   },
   {
@@ -288,6 +289,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/keuangan/tarik",        label: "Tarik Saldo",           icon: ArrowDownToLine },
       { to: "/pos-app/rekening-bank",         label: "Rekening Bank",         icon: Building2 },
       { to: "/pos-app/billing",               label: "Plan & Tagihan",        icon: CreditCard },
+      { to: "/pos-app/subscriptions",         label: "Auto-Renewal",          icon: CreditCard, hint: "Aktifkan perpanjangan otomatis paket platform" },
       { to: "/pos-app/reports",               label: "Laporan Penjualan",     icon: BarChart3 },
       { to: "/pos-app/reports/profit",        label: "Profit & Margin",       icon: BarChart3 },
       { to: "/pos-app/marketplace-analytics", label: "Analitik Marketplace",  icon: BarChart3 },

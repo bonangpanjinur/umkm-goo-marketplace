@@ -242,6 +242,33 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_reschedule_tokens: {
+        Row: {
+          booking_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       booking_slots: {
         Row: {
           capacity: number
@@ -3989,6 +4016,7 @@ export type Database = {
       plan_invoices: {
         Row: {
           amount_idr: number
+          checkout_url: string | null
           created_at: string
           id: string
           invoice_no: string
@@ -3997,14 +4025,17 @@ export type Database = {
           payment_method: string | null
           payment_proof_url: string | null
           plan_id: string
+          provider_ref: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           shop_id: string
           status: string
+          subscription_id: string | null
           updated_at: string
         }
         Insert: {
           amount_idr: number
+          checkout_url?: string | null
           created_at?: string
           id?: string
           invoice_no: string
@@ -4013,14 +4044,17 @@ export type Database = {
           payment_method?: string | null
           payment_proof_url?: string | null
           plan_id: string
+          provider_ref?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           shop_id: string
           status?: string
+          subscription_id?: string | null
           updated_at?: string
         }
         Update: {
           amount_idr?: number
+          checkout_url?: string | null
           created_at?: string
           id?: string
           invoice_no?: string
@@ -4029,10 +4063,12 @@ export type Database = {
           payment_method?: string | null
           payment_proof_url?: string | null
           plan_id?: string
+          provider_ref?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           shop_id?: string
           status?: string
+          subscription_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4054,6 +4090,88 @@ export type Database = {
             foreignKeyName: "plan_invoices_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      plan_subscriptions: {
+        Row: {
+          amount_idr: number
+          billing_interval: string
+          cancelled_at: string | null
+          created_at: string
+          failure_count: number
+          id: string
+          last_charge_at: string | null
+          last_invoice_id: string | null
+          next_billing_at: string
+          payment_provider: string | null
+          plan_code: string
+          plan_id: string | null
+          provider_subscription_id: string | null
+          provider_token: string | null
+          shop_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_idr?: number
+          billing_interval?: string
+          cancelled_at?: string | null
+          created_at?: string
+          failure_count?: number
+          id?: string
+          last_charge_at?: string | null
+          last_invoice_id?: string | null
+          next_billing_at: string
+          payment_provider?: string | null
+          plan_code: string
+          plan_id?: string | null
+          provider_subscription_id?: string | null
+          provider_token?: string | null
+          shop_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_idr?: number
+          billing_interval?: string
+          cancelled_at?: string | null
+          created_at?: string
+          failure_count?: number
+          id?: string
+          last_charge_at?: string | null
+          last_invoice_id?: string | null
+          next_billing_at?: string
+          payment_provider?: string | null
+          plan_code?: string
+          plan_id?: string | null
+          provider_subscription_id?: string | null
+          provider_token?: string | null
+          shop_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_subscriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_subscriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5150,6 +5268,107 @@ export type Database = {
           },
           {
             foreignKeyName: "sales_offerings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      service_bundle_items: {
+        Row: {
+          bundle_id: string
+          id: string
+          qty: number
+          service_name: string
+          sort_order: number
+          unit_price_idr: number
+        }
+        Insert: {
+          bundle_id: string
+          id?: string
+          qty?: number
+          service_name: string
+          sort_order?: number
+          unit_price_idr?: number
+        }
+        Update: {
+          bundle_id?: string
+          id?: string
+          qty?: number
+          service_name?: string
+          sort_order?: number
+          unit_price_idr?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "service_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_bundles: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          duration_min: number
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          name: string
+          original_price_idr: number
+          shop_id: string
+          sort_order: number
+          total_price_idr: number
+          updated_at: string
+          validity_days: number | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          name: string
+          original_price_idr?: number
+          shop_id: string
+          sort_order?: number
+          total_price_idr?: number
+          updated_at?: string
+          validity_days?: number | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          name?: string
+          original_price_idr?: number
+          shop_id?: string
+          sort_order?: number
+          total_price_idr?: number
+          updated_at?: string
+          validity_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bundles_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bundles_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shop_health_score"
@@ -7247,6 +7466,7 @@ export type Database = {
         Args: { _opening_cash: number; _outlet_id: string }
         Returns: string
       }
+      process_subscription_renewals: { Args: never; Returns: Json }
       receive_purchase_order: { Args: { _po_id: string }; Returns: undefined }
       refund_order: {
         Args: {
@@ -7289,6 +7509,7 @@ export type Database = {
         }
         Returns: Json
       }
+      run_expiry_reminders_v2: { Args: never; Returns: Json }
       run_scheduled_publishes: { Args: never; Returns: Json }
       send_booking_reminders: { Args: never; Returns: Json }
       send_membership_expiry_reminders: { Args: never; Returns: number }

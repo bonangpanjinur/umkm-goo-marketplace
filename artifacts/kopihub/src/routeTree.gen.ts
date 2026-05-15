@@ -50,6 +50,7 @@ import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
 import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
+import { Route as PosAppSubscriptionsRouteImport } from './routes/pos-app.subscriptions'
 import { Route as PosAppStudioPhotoReviewsRouteImport } from './routes/pos-app.studio-photo-reviews'
 import { Route as PosAppStudioPackagesRouteImport } from './routes/pos-app.studio-packages'
 import { Route as PosAppStudioLocationsRouteImport } from './routes/pos-app.studio-locations'
@@ -63,6 +64,7 @@ import { Route as PosAppSizeGuideRouteImport } from './routes/pos-app.size-guide
 import { Route as PosAppShippingLabelsRouteImport } from './routes/pos-app.shipping-labels'
 import { Route as PosAppShiftsRouteImport } from './routes/pos-app.shifts'
 import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
+import { Route as PosAppServiceBundlesRouteImport } from './routes/pos-app.service-bundles'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppSalesOfferingsRouteImport } from './routes/pos-app.sales-offerings'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
@@ -252,6 +254,7 @@ import { Route as PesananOrderIdChatRouteImport } from './routes/pesanan.$orderI
 import { Route as OrderSlugCheckoutRouteImport } from './routes/order.$slug.checkout'
 import { Route as OrderSlugCartRouteImport } from './routes/order.$slug.cart'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
+import { Route as BookingRescheduleTokenRouteImport } from './routes/booking.reschedule.$token'
 import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AkunKursusCourseIdRouteImport } from './routes/akun.kursus.$courseId'
@@ -262,6 +265,7 @@ import { Route as TokoSlugCustomOrderStatusRouteImport } from './routes/toko.$sl
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
+import { Route as ApiPublicWebhooksPlanBillingProviderRouteImport } from './routes/api/public/webhooks/plan-billing.$provider'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -468,6 +472,11 @@ const PosAppSuppliersRoute = PosAppSuppliersRouteImport.update({
   path: '/suppliers',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppSubscriptionsRoute = PosAppSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppStudioPhotoReviewsRoute =
   PosAppStudioPhotoReviewsRouteImport.update({
     id: '/studio-photo-reviews',
@@ -532,6 +541,11 @@ const PosAppShiftsRoute = PosAppShiftsRouteImport.update({
 const PosAppSettingsRoute = PosAppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppServiceBundlesRoute = PosAppServiceBundlesRouteImport.update({
+  id: '/service-bundles',
+  path: '/service-bundles',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppScheduleRoute = PosAppScheduleRouteImport.update({
@@ -1486,6 +1500,11 @@ const CheckoutSuksesOrderIdRoute = CheckoutSuksesOrderIdRouteImport.update({
   path: '/sukses/$orderId',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const BookingRescheduleTokenRoute = BookingRescheduleTokenRouteImport.update({
+  id: '/booking/reschedule/$token',
+  path: '/booking/reschedule/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingCancelTokenRoute = BookingCancelTokenRouteImport.update({
   id: '/booking/cancel/$token',
   path: '/booking/cancel/$token',
@@ -1537,6 +1556,12 @@ const AdminPlansIdMatrixRoute = AdminPlansIdMatrixRouteImport.update({
   path: '/$id/matrix',
   getParentRoute: () => AdminPlansRoute,
 } as any)
+const ApiPublicWebhooksPlanBillingProviderRoute =
+  ApiPublicWebhooksPlanBillingProviderRouteImport.update({
+    id: '/api/public/webhooks/plan-billing/$provider',
+    path: '/api/public/webhooks/plan-billing/$provider',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -1718,6 +1743,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
@@ -1731,6 +1757,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -1762,6 +1789,7 @@ export interface FileRoutesByFullPath {
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
+  '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -1792,6 +1820,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
+  '/api/public/webhooks/plan-billing/$provider': typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1969,6 +1998,7 @@ export interface FileRoutesByTo {
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
@@ -1982,6 +2012,7 @@ export interface FileRoutesByTo {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -2012,6 +2043,7 @@ export interface FileRoutesByTo {
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
+  '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -2042,6 +2074,7 @@ export interface FileRoutesByTo {
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
+  '/api/public/webhooks/plan-billing/$provider': typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -2224,6 +2257,7 @@ export interface FileRoutesById {
   '/pos-app/reviews': typeof PosAppReviewsRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
+  '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
@@ -2237,6 +2271,7 @@ export interface FileRoutesById {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -2268,6 +2303,7 @@ export interface FileRoutesById {
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
+  '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
@@ -2298,6 +2334,7 @@ export interface FileRoutesById {
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
+  '/api/public/webhooks/plan-billing/$provider': typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -2481,6 +2518,7 @@ export interface FileRouteTypes {
     | '/pos-app/reviews'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
+    | '/pos-app/service-bundles'
     | '/pos-app/settings'
     | '/pos-app/shifts'
     | '/pos-app/shipping-labels'
@@ -2494,6 +2532,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -2525,6 +2564,7 @@ export interface FileRouteTypes {
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
+    | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -2555,6 +2595,7 @@ export interface FileRouteTypes {
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
+    | '/api/public/webhooks/plan-billing/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2732,6 +2773,7 @@ export interface FileRouteTypes {
     | '/pos-app/reviews'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
+    | '/pos-app/service-bundles'
     | '/pos-app/settings'
     | '/pos-app/shifts'
     | '/pos-app/shipping-labels'
@@ -2745,6 +2787,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -2775,6 +2818,7 @@ export interface FileRouteTypes {
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
+    | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -2805,6 +2849,7 @@ export interface FileRouteTypes {
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
+    | '/api/public/webhooks/plan-billing/$provider'
   id:
     | '__root__'
     | '/'
@@ -2986,6 +3031,7 @@ export interface FileRouteTypes {
     | '/pos-app/reviews'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
+    | '/pos-app/service-bundles'
     | '/pos-app/settings'
     | '/pos-app/shifts'
     | '/pos-app/shipping-labels'
@@ -2999,6 +3045,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -3030,6 +3077,7 @@ export interface FileRouteTypes {
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
     | '/booking/cancel/$token'
+    | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
@@ -3060,6 +3108,7 @@ export interface FileRouteTypes {
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
+    | '/api/public/webhooks/plan-billing/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -3091,6 +3140,8 @@ export interface RootRouteChildren {
   TrackOrderIdRoute: typeof TrackOrderIdRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
   BookingCancelTokenRoute: typeof BookingCancelTokenRoute
+  BookingRescheduleTokenRoute: typeof BookingRescheduleTokenRoute
+  ApiPublicWebhooksPlanBillingProviderRoute: typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -3382,6 +3433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppSuppliersRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/subscriptions': {
+      id: '/pos-app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/pos-app/subscriptions'
+      preLoaderRoute: typeof PosAppSubscriptionsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/studio-photo-reviews': {
       id: '/pos-app/studio-photo-reviews'
       path: '/studio-photo-reviews'
@@ -3471,6 +3529,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/pos-app/settings'
       preLoaderRoute: typeof PosAppSettingsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/service-bundles': {
+      id: '/pos-app/service-bundles'
+      path: '/service-bundles'
+      fullPath: '/pos-app/service-bundles'
+      preLoaderRoute: typeof PosAppServiceBundlesRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/schedule': {
@@ -4796,6 +4861,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutSuksesOrderIdRouteImport
       parentRoute: typeof CheckoutRoute
     }
+    '/booking/reschedule/$token': {
+      id: '/booking/reschedule/$token'
+      path: '/booking/reschedule/$token'
+      fullPath: '/booking/reschedule/$token'
+      preLoaderRoute: typeof BookingRescheduleTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/booking/cancel/$token': {
       id: '/booking/cancel/$token'
       path: '/booking/cancel/$token'
@@ -4865,6 +4937,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/plans/$id/matrix'
       preLoaderRoute: typeof AdminPlansIdMatrixRouteImport
       parentRoute: typeof AdminPlansRoute
+    }
+    '/api/public/webhooks/plan-billing/$provider': {
+      id: '/api/public/webhooks/plan-billing/$provider'
+      path: '/api/public/webhooks/plan-billing/$provider'
+      fullPath: '/api/public/webhooks/plan-billing/$provider'
+      preLoaderRoute: typeof ApiPublicWebhooksPlanBillingProviderRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -5235,6 +5314,7 @@ interface PosAppRouteChildren {
   PosAppReviewsRoute: typeof PosAppReviewsRoute
   PosAppSalesOfferingsRoute: typeof PosAppSalesOfferingsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
+  PosAppServiceBundlesRoute: typeof PosAppServiceBundlesRoute
   PosAppSettingsRoute: typeof PosAppSettingsRoute
   PosAppShiftsRoute: typeof PosAppShiftsRoute
   PosAppShippingLabelsRoute: typeof PosAppShippingLabelsRoute
@@ -5248,6 +5328,7 @@ interface PosAppRouteChildren {
   PosAppStudioLocationsRoute: typeof PosAppStudioLocationsRoute
   PosAppStudioPackagesRoute: typeof PosAppStudioPackagesRoute
   PosAppStudioPhotoReviewsRoute: typeof PosAppStudioPhotoReviewsRoute
+  PosAppSubscriptionsRoute: typeof PosAppSubscriptionsRoute
   PosAppSuppliersRoute: typeof PosAppSuppliersRoute
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTableQrRoute: typeof PosAppTableQrRoute
@@ -5360,6 +5441,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppReviewsRoute: PosAppReviewsRoute,
   PosAppSalesOfferingsRoute: PosAppSalesOfferingsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
+  PosAppServiceBundlesRoute: PosAppServiceBundlesRoute,
   PosAppSettingsRoute: PosAppSettingsRoute,
   PosAppShiftsRoute: PosAppShiftsRoute,
   PosAppShippingLabelsRoute: PosAppShippingLabelsRoute,
@@ -5373,6 +5455,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppStudioLocationsRoute: PosAppStudioLocationsRoute,
   PosAppStudioPackagesRoute: PosAppStudioPackagesRoute,
   PosAppStudioPhotoReviewsRoute: PosAppStudioPhotoReviewsRoute,
+  PosAppSubscriptionsRoute: PosAppSubscriptionsRoute,
   PosAppSuppliersRoute: PosAppSuppliersRoute,
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTableQrRoute: PosAppTableQrRoute,
@@ -5517,6 +5600,9 @@ const rootRouteChildren: RootRouteChildren = {
   TrackOrderIdRoute: TrackOrderIdRoute,
   KategoriIndexRoute: KategoriIndexRoute,
   BookingCancelTokenRoute: BookingCancelTokenRoute,
+  BookingRescheduleTokenRoute: BookingRescheduleTokenRoute,
+  ApiPublicWebhooksPlanBillingProviderRoute:
+    ApiPublicWebhooksPlanBillingProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { Loader2, Upload, CheckCircle2, Clock, XCircle, Copy, Eye } from "lucide-react";
-// import { createPlanInvoice, submitPaymentProof, cancelPlanInvoice, getProofSignedUrl } from "@/server/billing.functions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/pos-app/billing")({
   component: BillingPage,
@@ -35,6 +36,7 @@ function BillingPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [settings, setSettings] = useState<BillingSettings | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [methodFor, setMethodFor] = useState<Record<string, "manual" | "midtrans" | "xendit" | "qris">>({});
 
   const reload = async () => {
     if (!shop) return;
@@ -54,9 +56,19 @@ function BillingPage() {
   const onUpgrade = async (planCode: string) => {
     setBusy(planCode);
     try {
-      const { createPlanInvoice } = await import("@/server/billing.functions");
-      await createPlanInvoice({ data: { planCode } });
-      toast.success("Tagihan dibuat. Lakukan pembayaran lalu upload bukti.");
+      const method = methodFor[planCode] ?? "manual";
+      const { createPlanCheckout } = await import("@/server/plan-checkout.functions");
+      const res = await createPlanCheckout({ data: { planCode, provider: method } });
+      if (res.checkoutUrl) {
+        toast.success("Mengarahkan ke halaman pembayaran...");
+        window.location.href = res.checkoutUrl;
+        return;
+      }
+      if (method === "manual" || method === "qris") {
+        toast.success("Tagihan dibuat. Silakan transfer & upload bukti di bawah.");
+      } else {
+        toast.message("Tagihan dibuat. Gateway belum siap — bisa upload bukti manual.");
+      }
       await reload();
     } catch (e) {
       toast.error((e as Error).message);
@@ -160,9 +172,23 @@ function BillingPage() {
             <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
               {Object.entries(p.features).map(([k, v]) => v ? <li key={k}>✓ {k.replace(/_/g, " ")}</li> : null)}
             </ul>
-            <Button className="mt-4 w-full" onClick={() => onUpgrade(p.code)} disabled={busy === p.code}>
-              {busy === p.code ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade ke " + p.name}
-            </Button>
+            <div className="mt-4 space-y-2">
+              <div>
+                <Label className="text-xs">Metode Pembayaran</Label>
+                <Select value={methodFor[p.code] ?? "manual"} onValueChange={(v) => setMethodFor({ ...methodFor, [p.code]: v as any })}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Transfer Bank Manual</SelectItem>
+                    <SelectItem value="qris">QRIS Statis</SelectItem>
+                    <SelectItem value="midtrans">Midtrans (Kartu/VA)</SelectItem>
+                    <SelectItem value="xendit">Xendit (Kartu/VA)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button className="w-full" onClick={() => onUpgrade(p.code)} disabled={busy === p.code}>
+                {busy === p.code ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade ke " + p.name}
+              </Button>
+            </div>
           </Card>
         ))}
       </div>
