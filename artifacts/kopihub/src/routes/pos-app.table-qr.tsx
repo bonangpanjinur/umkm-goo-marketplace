@@ -29,11 +29,9 @@ import {
 import {
   QrCode,
   Printer,
-  Download,
   Copy,
   Check,
   Search,
-  Grid3X3,
   TableIcon,
   FileDown,
   FolderArchive,
