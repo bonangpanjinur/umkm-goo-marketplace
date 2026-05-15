@@ -17,6 +17,7 @@ import {
   AlertTriangle, Ticket, Tag, X, XCircle, Package, Plus,
   FileText, Upload, Trash2, CreditCard, Car,
   QrCode, Smartphone, Wallet, ExternalLink, Zap, ListOrdered,
+  MapPin, Building2, Trees, Home,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payment-gateway";
