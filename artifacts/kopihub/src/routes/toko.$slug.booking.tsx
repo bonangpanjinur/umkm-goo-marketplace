@@ -486,11 +486,12 @@ export default function PublicBookingPage() {
     setVoucherInput("");
   };
 
-  // Computed effective price = slot (after voucher) + package + add-ons
-  const addonTotal    = selectedAddons.reduce((s, a) => s + a.price, 0);
-  const packageExtra  = selectedPackage?.price ?? 0;
-  const basePrice     = appliedVoucher ? appliedVoucher.finalPrice : (selectedSlot?.price ?? 0);
-  const effectivePrice = basePrice + packageExtra + addonTotal;
+  // Computed effective price = slot (after voucher) + package + add-ons + location fee
+  const addonTotal     = selectedAddons.reduce((s, a) => s + a.price, 0);
+  const packageExtra   = selectedPackage?.price ?? 0;
+  const locationFee    = selectedLocation?.extra_fee ?? 0;
+  const basePrice      = appliedVoucher ? appliedVoucher.finalPrice : (selectedSlot?.price ?? 0);
+  const effectivePrice = basePrice + packageExtra + addonTotal + locationFee;
 
   // Computed deposit amount (based on full effective price)
   const depositAmount = (() => {
