@@ -370,28 +370,41 @@ function EmployeesPage() {
   }, [shop?.id]);
 
   const unified = useMemo<UnifiedRow[]>(() => {
-    const a: UnifiedRow[] = members.map((m) => ({
-      kind: "login",
-      key: `l-${m.id}`,
-      name: m.profile?.display_name ?? "—",
-      role: m.role,
-      outlet_id: m.outlet_id,
-      avatarUrl: m.profile?.avatar_url ?? null,
-      phone: null,
-      is_active: m.is_active !== false,
-      raw: m,
-    }));
-    const b: UnifiedRow[] = staffMembers.map((s) => ({
-      kind: "manual",
-      key: `m-${s.id}`,
-      name: s.name,
-      role: s.role,
-      outlet_id: s.outlet_id,
-      avatarUrl: s.avatar_url,
-      phone: s.phone,
-      is_active: s.is_active !== false,
-      raw: s,
-    }));
+    // Build a quick lookup of staff_members by user_id so we can enrich login rows
+    // with extra info (phone, avatar) and avoid emitting them twice.
+    const linkedByUser = new Map<string, StaffMember>();
+    for (const s of staffMembers) {
+      if (s.user_id) linkedByUser.set(s.user_id, s);
+    }
+    const a: UnifiedRow[] = members.map((m) => {
+      const linked = linkedByUser.get(m.user_id);
+      return {
+        kind: "login",
+        key: `l-${m.id}`,
+        name: m.profile?.display_name ?? linked?.name ?? "—",
+        role: m.role,
+        outlet_id: m.outlet_id ?? linked?.outlet_id ?? null,
+        avatarUrl: m.profile?.avatar_url ?? linked?.avatar_url ?? null,
+        phone: linked?.phone ?? null,
+        is_active: m.is_active !== false,
+        raw: m,
+      };
+    });
+    // Only show manual rows that are NOT already linked to a login user
+    const linkedUserIds = new Set(members.map((m) => m.user_id));
+    const b: UnifiedRow[] = staffMembers
+      .filter((s) => !s.user_id || !linkedUserIds.has(s.user_id))
+      .map((s) => ({
+        kind: "manual",
+        key: `m-${s.id}`,
+        name: s.name,
+        role: s.role,
+        outlet_id: s.outlet_id,
+        avatarUrl: s.avatar_url,
+        phone: s.phone,
+        is_active: s.is_active !== false,
+        raw: s,
+      }));
     return [...a, ...b];
   }, [members, staffMembers]);
 
