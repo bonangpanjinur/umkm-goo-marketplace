@@ -46,7 +46,31 @@ export function useStaffRole(): StaffInfo {
         return;
       }
 
-      // Check staff permissions
+      // Check user_roles (where promote-to-login & create-user write)
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("shop_id, role")
+        .eq("user_id", user.id)
+        .not("shop_id", "is", null)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (roleRow?.shop_id) {
+        // Optional per-user override from staff_permissions
+        const { data: perm } = await supabase
+          .from("staff_permissions")
+          .select("allowed_modules, role")
+          .eq("user_id", user.id)
+          .eq("shop_id", roleRow.shop_id)
+          .maybeSingle();
+        const role = perm?.role ?? roleRow.role;
+        const modules = perm?.allowed_modules ?? MODULE_MAP[role] ?? null;
+        setInfo({ isOwner: false, isStaff: true, role, shopId: roleRow.shop_id, allowedModules: modules, loading: false });
+        return;
+      }
+
+      // Legacy fallback: staff_permissions only
       const { data: perm } = await supabase
         .from("staff_permissions")
         .select("shop_id, role, allowed_modules")
