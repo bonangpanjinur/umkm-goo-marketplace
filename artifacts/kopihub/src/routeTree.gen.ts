@@ -50,6 +50,7 @@ import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
 import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
+import { Route as PosAppSubscriptionsRouteImport } from './routes/pos-app.subscriptions'
 import { Route as PosAppStudioPhotoReviewsRouteImport } from './routes/pos-app.studio-photo-reviews'
 import { Route as PosAppStudioPackagesRouteImport } from './routes/pos-app.studio-packages'
 import { Route as PosAppStudioLocationsRouteImport } from './routes/pos-app.studio-locations'
@@ -468,6 +469,11 @@ const PosAppTableMapsRoute = PosAppTableMapsRouteImport.update({
 const PosAppSuppliersRoute = PosAppSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppSubscriptionsRoute = PosAppSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppStudioPhotoReviewsRoute =
@@ -1744,6 +1750,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -1997,6 +2004,7 @@ export interface FileRoutesByTo {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -2254,6 +2262,7 @@ export interface FileRoutesById {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
@@ -2513,6 +2522,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -2766,6 +2776,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -3022,6 +3033,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
@@ -3405,6 +3417,13 @@ declare module '@tanstack/react-router' {
       path: '/suppliers'
       fullPath: '/pos-app/suppliers'
       preLoaderRoute: typeof PosAppSuppliersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/subscriptions': {
+      id: '/pos-app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/pos-app/subscriptions'
+      preLoaderRoute: typeof PosAppSubscriptionsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/studio-photo-reviews': {
@@ -5288,6 +5307,7 @@ interface PosAppRouteChildren {
   PosAppStudioLocationsRoute: typeof PosAppStudioLocationsRoute
   PosAppStudioPackagesRoute: typeof PosAppStudioPackagesRoute
   PosAppStudioPhotoReviewsRoute: typeof PosAppStudioPhotoReviewsRoute
+  PosAppSubscriptionsRoute: typeof PosAppSubscriptionsRoute
   PosAppSuppliersRoute: typeof PosAppSuppliersRoute
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTableQrRoute: typeof PosAppTableQrRoute
@@ -5414,6 +5434,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppStudioLocationsRoute: PosAppStudioLocationsRoute,
   PosAppStudioPackagesRoute: PosAppStudioPackagesRoute,
   PosAppStudioPhotoReviewsRoute: PosAppStudioPhotoReviewsRoute,
+  PosAppSubscriptionsRoute: PosAppSubscriptionsRoute,
   PosAppSuppliersRoute: PosAppSuppliersRoute,
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTableQrRoute: PosAppTableQrRoute,
