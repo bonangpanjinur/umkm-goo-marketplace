@@ -2959,9 +2959,20 @@ Catatan: list ini fokus pada item yang punya keyword spesifik di PRD tapi tidak 
 
 | Item | Modul | Estimasi |
 |------|-------|----------|
-| Eksekusi checkout paket via Midtrans/Xendit (server fn + webhook) | Billing | 3 hari |
-| Reschedule mandiri booking via token | Booking | 2 hari |
-| Paket layanan (bundle) untuk booking jasa | Booking | 2 hari |
-| Recurring billing & auto-debit subscription produk (F-02) | Marketplace | 5 hari |
-| Refactor cron auto-renewal membaca rule dari `expiry_reminder_rules` | Platform | 1 hari |
-| Halaman checkout paket di `/pos-app/billing` (multi-method) | Owner UI | 2 hari |
+
+### Sprint 15 Mei 2026 — Selesai ✅
+
+| Item | Modul | File |
+|------|-------|------|
+| Eksekusi checkout paket via Midtrans/Xendit (server fn + webhook) | Billing | `src/server/plan-checkout.functions.ts` + `src/routes/api/public/webhooks/plan-billing.$provider.ts` |
+| Reschedule mandiri booking via token | Booking | `src/routes/booking.reschedule.$token.tsx` + tabel `booking_reschedule_tokens` |
+| Paket layanan (bundle) untuk booking jasa | Booking | `src/routes/pos-app.service-bundles.tsx` + tabel `service_bundles`/`service_bundle_items` |
+| Recurring billing & auto-debit subscription paket (F-02) | Marketplace | `src/routes/pos-app.subscriptions.tsx` + tabel `plan_subscriptions` + RPC `process_subscription_renewals` (cron harian) |
+| Refactor cron auto-renewal membaca rule dari `expiry_reminder_rules` | Platform | RPC `run_expiry_reminders_v2` (cron harian) |
+| Halaman checkout paket di `/pos-app/billing` (multi-method) | Owner UI | `src/routes/pos-app.billing.tsx` (selector Midtrans/Xendit/Manual/QRIS) |
+
+**Catatan implementasi:**
+- Webhook `/api/public/webhooks/plan-billing/{provider}` memverifikasi signature Midtrans (sha512) atau callback token Xendit sebelum memproses.
+- `createPlanCheckout` membuat invoice via RPC `create_plan_invoice` lalu (untuk gateway non-manual) memanggil edge function opsional `create-plan-checkout-session`. Bila gateway belum dikonfigurasi, owner tetap bisa upload bukti manual.
+- Cron `run_expiry_reminders_v2` membaca `expiry_reminder_rules` dinamis (tidak lagi hard-coded window 1/3/7/14 hari).
+- Cron `process_subscription_renewals` berjalan harian, membuat invoice baru otomatis untuk langganan jatuh tempo dan menandai `past_due` setelah 3× gagal.
