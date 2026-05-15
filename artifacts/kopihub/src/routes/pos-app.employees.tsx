@@ -1790,6 +1790,7 @@ function RowActions({
   onChangePw,
   onResetPw,
   onPromote,
+  onPermissions,
   onToggleActive,
   onRemove,
   resetting,
@@ -1799,6 +1800,7 @@ function RowActions({
   onChangePw: () => void;
   onResetPw: () => void;
   onPromote: () => void;
+  onPermissions: () => void;
   onToggleActive: () => void;
   onRemove: () => void;
   resetting: boolean;
@@ -1811,7 +1813,7 @@ function RowActions({
           <span className="sr-only">Aksi</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           Aksi pegawai {!row.is_active && <span className="ml-1 text-[10px] text-amber-600">(Nonaktif)</span>}
         </DropdownMenuLabel>
@@ -1821,6 +1823,9 @@ function RowActions({
         </DropdownMenuItem>
         {row.kind === "login" && (
           <>
+            <DropdownMenuItem onClick={onPermissions}>
+              <ShieldCheck className="mr-2 h-3.5 w-3.5" /> Atur hak akses
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onChangePw}>
               <KeyRound className="mr-2 h-3.5 w-3.5" /> Ubah kata sandi
             </DropdownMenuItem>
