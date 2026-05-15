@@ -1412,6 +1412,16 @@ function EmployeesPage() {
                             onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
                             onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
                             onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                            onPermissions={() => {
+                              if (u.kind === "login" && shop) {
+                                setPermTarget({
+                                  user_id: u.raw.user_id,
+                                  shop_id: shop.id,
+                                  name: u.name,
+                                  role: u.role,
+                                });
+                              }
+                            }}
                             onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
                             onRemove={() => {
                               if (u.kind === "login") setConfirmRemoveLogin(u.raw);
