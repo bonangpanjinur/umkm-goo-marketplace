@@ -3277,6 +3277,50 @@ export type Database = {
         }
         Relationships: []
       }
+      page_layout_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published_snapshot: boolean
+          layout_id: string
+          puck_data: Json
+          reason: string | null
+          shop_id: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published_snapshot?: boolean
+          layout_id: string
+          puck_data: Json
+          reason?: string | null
+          shop_id: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published_snapshot?: boolean
+          layout_id?: string
+          puck_data?: Json
+          reason?: string | null
+          shop_id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_layout_versions_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "page_layouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_layouts: {
         Row: {
           created_at: string
