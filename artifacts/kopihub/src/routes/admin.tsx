@@ -51,6 +51,7 @@ const NAV = [
   { to: "/admin/fraud", label: "Deteksi Fraud", icon: ShieldX },
   { to: "/admin/auto-renewal", label: "Notif Renewal Otomatis", icon: Bell },
   { to: "/admin/expiry-reminders", label: "Reminder Paket Habis", icon: Bell },
+  { to: "/admin/shop-reminder-overrides", label: "Override Reminder per Toko", icon: Bell },
   { to: "/admin/push-config", label: "Push Notification (VAPID)", icon: Bell },
   { to: "/admin/revenue-leakage", label: "Revenue Leakage", icon: SearchX },
   { to: "/admin/health-score", label: "Health Score Toko", icon: Activity },
