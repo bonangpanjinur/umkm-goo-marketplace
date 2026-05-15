@@ -311,6 +311,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/printers",          label: "Printer",          icon: Printer },
       { to: "/pos-app/appearance",        label: "Tampilan Toko",    icon: Palette },
       { to: "/pos-app/storefront-builder",label: "Storefront Builder",icon: LayoutDashboard },
+      { to: "/pos-app/website-builder",   label: "Website Builder",   icon: Sparkles, proOnly: true },
       { to: "/pos-app/custom-css",        label: "Custom CSS",       icon: Lock, proOnly: true },
       { to: "/pos-app/outlets",           label: "Multi-Outlet",     icon: Building2 },
       { to: "/pos-app/domain",            label: "Domain Kustom",    icon: Globe, proOnly: true },
