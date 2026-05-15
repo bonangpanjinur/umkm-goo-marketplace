@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -481,11 +482,11 @@ function FlashDialog({ item, shopId, onClose, onSaved }: { item: FlashItem; shop
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Mulai (opsional)</Label>
-              <Input className="mt-1" type="datetime-local" value={starts} onChange={e => setStarts(e.target.value)} />
+              <div className="mt-1"><DateTimePicker value={starts} onChange={setStarts} placeholder="Pilih mulai" /></div>
             </div>
             <div>
               <Label className="text-xs">Berakhir (opsional)</Label>
-              <Input className="mt-1" type="datetime-local" value={ends} onChange={e => setEnds(e.target.value)} />
+              <div className="mt-1"><DateTimePicker value={ends} onChange={setEnds} placeholder="Pilih berakhir" /></div>
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Jika tidak diisi, flash sale aktif tanpa batas waktu.</p>
@@ -635,11 +636,11 @@ function PromoDialog({ shopId, editing, onClose, onSaved }: { shopId: string; ed
             </div>
             <div>
               <Label className="text-xs">Mulai</Label>
-              <Input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} />
+              <DateTimePicker value={form.starts_at} onChange={(v) => setForm({ ...form, starts_at: v })} placeholder="Pilih mulai" />
             </div>
             <div>
               <Label className="text-xs">Berakhir</Label>
-              <Input type="datetime-local" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} />
+              <DateTimePicker value={form.expires_at} onChange={(v) => setForm({ ...form, expires_at: v })} placeholder="Pilih berakhir" />
             </div>
           </div>
           <div className="flex items-center gap-2 pt-1">
