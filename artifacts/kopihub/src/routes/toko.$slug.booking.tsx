@@ -17,6 +17,7 @@ import {
   AlertTriangle, Ticket, Tag, X, XCircle, Package, Plus,
   FileText, Upload, Trash2, CreditCard, Car,
   QrCode, Smartphone, Wallet, ExternalLink, Zap, ListOrdered,
+  MapPin, Building2, Trees, Home,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payment-gateway";
@@ -62,7 +63,23 @@ type Staff = {
   is_available: boolean;
 };
 
-type Step = "date" | "slot" | "staff" | "packages" | "document" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+type Step = "date" | "slot" | "staff" | "location" | "packages" | "document" | "form" | "deposit" | "success" | "waitlist" | "waitlist_success";
+
+type StudioLocation = {
+  id: string;
+  name: string;
+  location_type: "studio" | "outdoor" | "client";
+  address: string | null;
+  description: string | null;
+  extra_fee: number;
+  travel_radius_km: number | null;
+};
+
+const LOCATION_META: Record<StudioLocation["location_type"], { label: string; icon: typeof Building2; color: string }> = {
+  studio:  { label: "Di studio",    icon: Building2, color: "text-blue-600 bg-blue-50" },
+  outdoor: { label: "Outdoor",      icon: Trees,     color: "text-emerald-600 bg-emerald-50" },
+  client:  { label: "Lokasi klien", icon: Home,      color: "text-amber-600 bg-amber-50" },
+};
 
 type ServicePackage = {
   id: string;
@@ -173,6 +190,11 @@ export default function PublicBookingPage() {
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
   const [packagesLoaded, setPackagesLoaded] = useState(false);
 
+  // Studio locations (SF-03)
+  const [locations, setLocations] = useState<StudioLocation[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<StudioLocation | null>(null);
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
+
   // Document upload state (M-16)
   const [docUrl, setDocUrl] = useState<string | null>(null);
   const [docType, setDocType] = useState<"ktp" | "sim">("ktp");
@@ -254,13 +276,31 @@ export default function PublicBookingPage() {
     }
   }, []);
 
+  // Load studio locations (SF-03) — graceful: skip if table empty
+  const loadLocations = useCallback(async (shopId: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from("studio_locations")
+        .select("id, name, location_type, address, description, extra_fee, travel_radius_km")
+        .eq("shop_id", shopId)
+        .eq("is_active", true)
+        .order("sort_order");
+      setLocations((data ?? []) as StudioLocation[]);
+    } catch {
+      setLocations([]);
+    } finally {
+      setLocationsLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (shop?.id) {
       loadSlots(shop.id);
       loadStaff(shop.id);
       loadPackages(shop.id);
+      loadLocations(shop.id);
     }
-  }, [shop?.id, loadSlots, loadStaff, loadPackages]);
+  }, [shop?.id, loadSlots, loadStaff, loadPackages, loadLocations]);
 
   // Load gateway config + Midtrans Snap.js
   useEffect(() => {
@@ -342,9 +382,10 @@ export default function PublicBookingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, bookingId, xenditPaymentUrl]);
 
-  const hasStaff    = staffList.length > 0;
-  const hasPackages = packagesLoaded && (packages.length > 0 || addons.length > 0);
-  const needsDoc    = !!(shop?.require_id_upload);
+  const hasStaff     = staffList.length > 0;
+  const hasPackages  = packagesLoaded && (packages.length > 0 || addons.length > 0);
+  const hasLocations = locationsLoaded && locations.length > 0;
+  const needsDoc     = !!(shop?.require_id_upload);
 
   // Document upload helper (M-16)
   const uploadDoc = async (file: File) => {
@@ -390,21 +431,24 @@ export default function PublicBookingPage() {
   // Step labels — dynamic based on staff + packages + id-upload availability
   const stepKeys: Step[] = [
     "date", "slot",
-    ...(hasStaff    ? ["staff"    as Step] : []),
-    ...(hasPackages ? ["packages" as Step] : []),
-    ...(needsDoc    ? ["document" as Step] : []),
+    ...(hasStaff     ? ["staff"     as Step] : []),
+    ...(hasLocations ? ["location"  as Step] : []),
+    ...(hasPackages  ? ["packages"  as Step] : []),
+    ...(needsDoc     ? ["document"  as Step] : []),
     "form",
   ];
   const stepLabels = [
     "Pilih Tanggal", "Pilih Waktu",
-    ...(hasStaff    ? ["Pilih Staff"]    : []),
-    ...(hasPackages ? ["Paket & Add-on"] : []),
-    ...(needsDoc    ? ["Upload Dokumen"] : []),
+    ...(hasStaff     ? ["Pilih Staff"]      : []),
+    ...(hasLocations ? ["Pilih Lokasi"]     : []),
+    ...(hasPackages  ? ["Paket & Add-on"]   : []),
+    ...(needsDoc     ? ["Upload Dokumen"]   : []),
     "Isi Data",
   ];
 
-  const afterSlot     = hasStaff ? "staff" : (hasPackages ? "packages" : (needsDoc ? "document" : "form"));
-  const afterStaff    = hasPackages ? "packages" : (needsDoc ? "document" : "form");
+  const afterSlot     = hasStaff ? "staff" : (hasLocations ? "location" : (hasPackages ? "packages" : (needsDoc ? "document" : "form")));
+  const afterStaff    = hasLocations ? "location" : (hasPackages ? "packages" : (needsDoc ? "document" : "form"));
+  const afterLocation = hasPackages ? "packages" : (needsDoc ? "document" : "form");
   const afterPackages = needsDoc ? "document" : "form";
   const afterDoc      = "form" as Step;
 
@@ -442,11 +486,12 @@ export default function PublicBookingPage() {
     setVoucherInput("");
   };
 
-  // Computed effective price = slot (after voucher) + package + add-ons
-  const addonTotal    = selectedAddons.reduce((s, a) => s + a.price, 0);
-  const packageExtra  = selectedPackage?.price ?? 0;
-  const basePrice     = appliedVoucher ? appliedVoucher.finalPrice : (selectedSlot?.price ?? 0);
-  const effectivePrice = basePrice + packageExtra + addonTotal;
+  // Computed effective price = slot (after voucher) + package + add-ons + location fee
+  const addonTotal     = selectedAddons.reduce((s, a) => s + a.price, 0);
+  const packageExtra   = selectedPackage?.price ?? 0;
+  const locationFee    = selectedLocation?.extra_fee ?? 0;
+  const basePrice      = appliedVoucher ? appliedVoucher.finalPrice : (selectedSlot?.price ?? 0);
+  const effectivePrice = basePrice + packageExtra + addonTotal + locationFee;
 
   // Computed deposit amount (based on full effective price)
   const depositAmount = (() => {
@@ -508,6 +553,12 @@ export default function PublicBookingPage() {
             addon_names_snapshot: selectedAddons.map(a => a.name).join(", "),
             addon_total_price: addonTotal,
           } : {}),
+          ...(selectedLocation ? {
+            location_id: selectedLocation.id,
+            location_name: selectedLocation.name,
+            location_type: selectedLocation.location_type,
+            location_fee: selectedLocation.extra_fee,
+          } : {}),
           ...(docUrl ? {
             document_url: docUrl,
             document_type: docType,
@@ -532,7 +583,7 @@ export default function PublicBookingPage() {
           shop_id: shop.id,
           type: needsDeposit ? "new_booking_deposit" : "new_booking",
           title: `📅 Booking baru dari ${name.trim()}`,
-          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""}${selectedPackage ? ` · Paket: ${selectedPackage.name}` : ""}${selectedAddons.length > 0 ? ` · Add-on: ${selectedAddons.map(a => a.name).join(", ")}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
+          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""}${selectedLocation ? ` · 📍 ${selectedLocation.name}${selectedLocation.extra_fee > 0 ? ` (+${formatIDR(selectedLocation.extra_fee)})` : ""}` : ""}${selectedPackage ? ` · Paket: ${selectedPackage.name}` : ""}${selectedAddons.length > 0 ? ` · Add-on: ${selectedAddons.map(a => a.name).join(", ")}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
           severity: "info",
           link: "/pos-app/booking",
           dedupe_key: `booking_${bk?.id ?? Date.now()}`,
@@ -1290,12 +1341,89 @@ export default function PublicBookingPage() {
           </div>
         )}
 
+        {/* ─── Step: Studio Location (SF-03) ─── */}
+        {step === "location" && selectedSlot && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStep(hasStaff ? "staff" : "slot")}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" /> Pilih Lokasi Sesi
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Studio, outdoor, atau di lokasi kamu — biaya tambahan otomatis dihitung.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {locations.map((loc) => {
+                const meta = LOCATION_META[loc.location_type];
+                const Icon = meta.icon;
+                const active = selectedLocation?.id === loc.id;
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => setSelectedLocation(active ? null : loc)}
+                    className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all hover:shadow-sm ${
+                      active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`rounded-lg p-2 shrink-0 ${meta.color}`}><Icon className="h-4 w-4" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm">{loc.name}</span>
+                          <Badge variant="secondary" className="text-[10px]">{meta.label}</Badge>
+                          {active && <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-0">✓ Dipilih</Badge>}
+                        </div>
+                        {loc.address && <p className="text-xs text-muted-foreground mt-0.5">{loc.address}</p>}
+                        {loc.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{loc.description}</p>}
+                        {loc.travel_radius_km && (
+                          <p className="text-[11px] text-muted-foreground mt-1">Maks. radius {loc.travel_radius_km} km dari studio</p>
+                        )}
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {loc.extra_fee > 0 ? (
+                          <p className="text-sm font-bold text-primary">+{formatIDR(loc.extra_fee)}</p>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">Gratis</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedLocation && selectedLocation.extra_fee > 0 && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm flex justify-between items-center">
+                <span className="text-muted-foreground">Biaya lokasi <strong className="text-foreground">{selectedLocation.name}</strong></span>
+                <span className="font-bold text-primary">+{formatIDR(selectedLocation.extra_fee)}</span>
+              </div>
+            )}
+
+            <Button
+              className="w-full h-12 text-base gap-2"
+              onClick={() => setStep(afterLocation)}
+              disabled={!selectedLocation}
+            >
+              Lanjutkan <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {/* ─── Step: Packages & Add-ons (M-17) ─── */}
         {step === "packages" && selectedSlot && (
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setStep(hasStaff ? "staff" : "slot")}
+                onClick={() => setStep(hasLocations ? "location" : (hasStaff ? "staff" : "slot"))}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -1439,9 +1567,15 @@ export default function PublicBookingPage() {
                     <span>+{formatIDR(a.price)}</span>
                   </div>
                 ))}
+                {selectedLocation && selectedLocation.extra_fee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Lokasi: {selectedLocation.name}</span>
+                    <span>+{formatIDR(selectedLocation.extra_fee)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold pt-1.5 border-t border-primary/10">
                   <span>Total estimasi</span>
-                  <span className="text-primary">{formatIDR(selectedSlot.price + packageExtra + addonTotal)}</span>
+                  <span className="text-primary">{formatIDR(selectedSlot.price + packageExtra + addonTotal + locationFee)}</span>
                 </div>
               </div>
             )}
@@ -1470,7 +1604,7 @@ export default function PublicBookingPage() {
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setStep(hasPackages ? "packages" : (hasStaff ? "staff" : "slot"))}
+                onClick={() => setStep(hasPackages ? "packages" : (hasLocations ? "location" : (hasStaff ? "staff" : "slot")))}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -1594,7 +1728,7 @@ export default function PublicBookingPage() {
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setStep(needsDoc ? "document" : (hasPackages ? "packages" : (hasStaff ? "staff" : "slot")))}
+                onClick={() => setStep(needsDoc ? "document" : (hasPackages ? "packages" : (hasLocations ? "location" : (hasStaff ? "staff" : "slot"))))}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -1650,6 +1784,14 @@ export default function PublicBookingPage() {
                   {selectedPackage.price > 0 && <span className="text-primary font-semibold ml-auto">+{formatIDR(selectedPackage.price)}</span>}
                 </p>
               )}
+              {selectedLocation && (
+                <p className="text-sm flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="text-muted-foreground">Lokasi:</span>
+                  <span className="font-medium">{selectedLocation.name}</span>
+                  {selectedLocation.extra_fee > 0 && <span className="text-primary font-semibold ml-auto">+{formatIDR(selectedLocation.extra_fee)}</span>}
+                </p>
+              )}
               {selectedAddons.length > 0 && (
                 <div className="space-y-0.5">
                   {selectedAddons.map(a => (
@@ -1662,7 +1804,7 @@ export default function PublicBookingPage() {
                   ))}
                 </div>
               )}
-              {(selectedPackage || selectedAddons.length > 0) && effectivePrice > 0 && (
+              {(selectedPackage || selectedAddons.length > 0 || (selectedLocation && selectedLocation.extra_fee > 0)) && effectivePrice > 0 && (
                 <p className="text-sm font-bold text-primary border-t border-primary/10 pt-1.5 flex justify-between">
                   <span>Total</span>
                   <span>{formatIDR(effectivePrice)}</span>

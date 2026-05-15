@@ -390,7 +390,10 @@ export type Database = {
           deposit_paid_at: string | null
           id: string
           location_address: string | null
+          location_fee: number
           location_id: string | null
+          location_name: string | null
+          location_type: string | null
           notes: string | null
           party_size: number
           reminded_h1_at: string | null
@@ -414,7 +417,10 @@ export type Database = {
           deposit_paid_at?: string | null
           id?: string
           location_address?: string | null
+          location_fee?: number
           location_id?: string | null
+          location_name?: string | null
+          location_type?: string | null
           notes?: string | null
           party_size?: number
           reminded_h1_at?: string | null
@@ -438,7 +444,10 @@ export type Database = {
           deposit_paid_at?: string | null
           id?: string
           location_address?: string | null
+          location_fee?: number
           location_id?: string | null
+          location_name?: string | null
+          location_type?: string | null
           notes?: string | null
           party_size?: number
           reminded_h1_at?: string | null
