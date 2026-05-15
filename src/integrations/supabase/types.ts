@@ -885,6 +885,7 @@ export type Database = {
           auto_reply_message: string | null
           average_rating: number | null
           business_category_id: string | null
+          business_subtype: string | null
           commission_rate_override: number | null
           created_at: string
           currency: string
@@ -946,6 +947,7 @@ export type Database = {
           auto_reply_message?: string | null
           average_rating?: number | null
           business_category_id?: string | null
+          business_subtype?: string | null
           commission_rate_override?: number | null
           created_at?: string
           currency?: string
@@ -1007,6 +1009,7 @@ export type Database = {
           auto_reply_message?: string | null
           average_rating?: number | null
           business_category_id?: string | null
+          business_subtype?: string | null
           commission_rate_override?: number | null
           created_at?: string
           currency?: string
@@ -1880,6 +1883,66 @@ export type Database = {
           },
         ]
       }
+      flyers: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_url: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          linked_id: string | null
+          linked_type: string | null
+          shop_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          linked_id?: string | null
+          linked_type?: string | null
+          shop_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          linked_id?: string | null
+          linked_type?: string | null
+          shop_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flyers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flyers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           category: string | null
@@ -1930,6 +1993,69 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          linked_id: string | null
+          linked_type: string | null
+          message: string | null
+          notes: string | null
+          phone: string
+          shop_id: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          message?: string | null
+          notes?: string | null
+          phone: string
+          shop_id: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          message?: string | null
+          notes?: string | null
+          phone?: string
+          shop_id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
           },
         ]
       }
@@ -4362,6 +4488,66 @@ export type Database = {
           },
         ]
       }
+      sales_offerings: {
+        Row: {
+          category: string | null
+          cover_image_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          long_desc: string | null
+          price_label: string | null
+          shop_id: string
+          short_desc: string | null
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          long_desc?: string | null
+          price_label?: string | null
+          shop_id: string
+          short_desc?: string | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          long_desc?: string | null
+          price_label?: string | null
+          shop_id?: string
+          short_desc?: string | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_offerings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_offerings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       shifts: {
         Row: {
           created_at: string
@@ -4400,6 +4586,54 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      shop_about: {
+        Row: {
+          certifications: Json
+          created_at: string
+          credentials: Json
+          shop_id: string
+          story: string | null
+          team: Json
+          updated_at: string
+          vision: string | null
+        }
+        Insert: {
+          certifications?: Json
+          created_at?: string
+          credentials?: Json
+          shop_id: string
+          story?: string | null
+          team?: Json
+          updated_at?: string
+          vision?: string | null
+        }
+        Update: {
+          certifications?: Json
+          created_at?: string
+          credentials?: Json
+          shop_id?: string
+          story?: string | null
+          team?: Json
+          updated_at?: string
+          vision?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_about_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_about_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       shop_backups: {
         Row: {
@@ -5206,6 +5440,63 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          quote: string
+          rating: number | null
+          role_or_trip: string | null
+          shop_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          quote: string
+          rating?: number | null
+          role_or_trip?: string | null
+          shop_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          quote?: string
+          rating?: number | null
+          role_or_trip?: string | null
+          shop_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "testimonials_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       themes: {
         Row: {
           component_id: string
@@ -5244,6 +5535,201 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      umroh_facilities: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          shop_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          shop_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          shop_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "umroh_facilities_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_facilities_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      umroh_faqs: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          id: string
+          question: string
+          shop_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          id?: string
+          question: string
+          shop_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          id?: string
+          question?: string
+          shop_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "umroh_faqs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_faqs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      umroh_packages: {
+        Row: {
+          airline: string | null
+          brochure_pdf_url: string | null
+          cover_image_url: string | null
+          created_at: string
+          currency: string
+          departure_date: string | null
+          description: string | null
+          duration_days: number | null
+          excludes: string[] | null
+          hotel_madinah: string | null
+          hotel_makkah: string | null
+          id: string
+          includes: string[] | null
+          is_active: boolean
+          name: string
+          price_double: number | null
+          price_quad: number | null
+          price_triple: number | null
+          quota_filled: number
+          quota_total: number | null
+          return_date: string | null
+          room_type: string | null
+          shop_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          airline?: string | null
+          brochure_pdf_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          currency?: string
+          departure_date?: string | null
+          description?: string | null
+          duration_days?: number | null
+          excludes?: string[] | null
+          hotel_madinah?: string | null
+          hotel_makkah?: string | null
+          id?: string
+          includes?: string[] | null
+          is_active?: boolean
+          name: string
+          price_double?: number | null
+          price_quad?: number | null
+          price_triple?: number | null
+          quota_filled?: number
+          quota_total?: number | null
+          return_date?: string | null
+          room_type?: string | null
+          shop_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          airline?: string | null
+          brochure_pdf_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          currency?: string
+          departure_date?: string | null
+          description?: string | null
+          duration_days?: number | null
+          excludes?: string[] | null
+          hotel_madinah?: string | null
+          hotel_makkah?: string | null
+          id?: string
+          includes?: string[] | null
+          is_active?: boolean
+          name?: string
+          price_double?: number | null
+          price_quad?: number | null
+          price_triple?: number | null
+          quota_filled?: number
+          quota_total?: number | null
+          return_date?: string | null
+          room_type?: string | null
+          shop_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "umroh_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
