@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, ShieldCheck, Search, RotateCcw } from "lucide-react";
+import {
+  Loader2,
+  ShieldCheck,
+  Search,
+  RotateCcw,
+  CheckCheck,
+  ChefHat,
+  Truck,
+  Users,
+  BarChart3,
+  Package,
+  CalendarDays,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -10,30 +23,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
-/**
- * Module catalog grouped for owner-friendly permission management.
- * Each `slug` matches the first path segment after `/pos-app/`
- * — this is what `isModuleAllowed()` in use-staff.ts reads.
- *
- * Curated to only include modules that make sense for staff to access.
- * Owner-only items (billing, backup, kyc, domain, custom-css, outlets,
- * settings, appearance, plan-matrix, etc.) are intentionally omitted.
- */
 type ModuleItem = { slug: string; label: string; hint?: string };
-type ModuleGroup = { id: string; label: string; description: string; items: ModuleItem[] };
+type ModuleGroup = {
+  id: string;
+  label: string;
+  short: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: ModuleItem[];
+};
 
 const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: "operations",
     label: "Operasional Harian",
+    short: "Operasi",
     description: "Akses kasir & pesanan – inti pekerjaan harian pegawai",
+    icon: ChefHat,
     items: [
       { slug: "pos", label: "POS Kasir", hint: "Membuat transaksi, terima pembayaran" },
       { slug: "orders", label: "Semua Pesanan", hint: "Lihat & kelola semua pesanan masuk" },
@@ -49,7 +63,9 @@ const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: "catalog",
     label: "Katalog & Stok",
+    short: "Katalog",
     description: "Kelola menu/produk, varian, stok dan inventori",
+    icon: Package,
     items: [
       { slug: "menu", label: "Menu / Produk" },
       { slug: "variants", label: "Varian Produk" },
@@ -66,7 +82,9 @@ const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: "team",
     label: "Tim & Jadwal",
+    short: "Jadwal",
     description: "Lihat jadwal kerja & informasi tim (tanpa edit pegawai)",
+    icon: CalendarDays,
     items: [
       { slug: "schedule", label: "Jadwal Kerja" },
       { slug: "booking", label: "Booking Jadwal" },
@@ -75,7 +93,9 @@ const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: "delivery",
     label: "Pengiriman",
+    short: "Kirim",
     description: "Operasional kurir & antar pesanan",
+    icon: Truck,
     items: [
       { slug: "delivery", label: "Delivery" },
       { slug: "couriers", label: "Kurir" },
@@ -87,7 +107,9 @@ const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: "customers",
     label: "Pelanggan & Marketing",
+    short: "Pelanggan",
     description: "Pelanggan, promo, voucher, chat & ulasan",
+    icon: Users,
     items: [
       { slug: "customers", label: "Pelanggan" },
       { slug: "inbox", label: "Inbox Chat" },
@@ -104,7 +126,9 @@ const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: "reports",
     label: "Laporan",
+    short: "Laporan",
     description: "Lihat laporan penjualan & analitik (sensitif)",
+    icon: BarChart3,
     items: [
       { slug: "reports", label: "Laporan Penjualan" },
       { slug: "laporan-harian", label: "Laporan Harian" },
@@ -117,12 +141,17 @@ const MODULE_GROUPS: ModuleGroup[] = [
 
 const ALL_SLUGS = MODULE_GROUPS.flatMap((g) => g.items.map((i) => i.slug));
 
-// Defaults per role — used as a sensible starting point.
 const ROLE_DEFAULTS: Record<string, string[]> = {
-  manager: ALL_SLUGS, // managers get everything in the catalog
+  manager: ALL_SLUGS,
   cashier: ["pos", "orders", "online-orders", "shifts", "attendance", "antrian", "customers"],
   barista: ["orders", "online-orders", "kds", "kitchen-load", "attendance"],
 };
+
+const PRESETS: { id: keyof typeof ROLE_DEFAULTS; label: string; desc: string }[] = [
+  { id: "manager", label: "Manager", desc: "Akses penuh" },
+  { id: "cashier", label: "Kasir", desc: "POS & shift" },
+  { id: "barista", label: "Barista", desc: "Dapur & order" },
+];
 
 export type StaffPermissionsTarget = {
   user_id: string;
@@ -142,10 +171,12 @@ export function StaffPermissionsDialog({
   const [saving, setSaving] = useState(false);
   const [allowed, setAllowed] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<string>(MODULE_GROUPS[0].id);
 
   useEffect(() => {
     if (!target) return;
     setSearch("");
+    setTab(MODULE_GROUPS[0].id);
     (async () => {
       setLoading(true);
       const { data } = await supabase
@@ -154,25 +185,24 @@ export function StaffPermissionsDialog({
         .eq("shop_id", target.shop_id)
         .eq("user_id", target.user_id)
         .maybeSingle();
-      const initial =
-        data?.allowed_modules ??
-        ROLE_DEFAULTS[target.role] ??
-        ALL_SLUGS;
+      const initial = data?.allowed_modules ?? ROLE_DEFAULTS[target.role] ?? ALL_SLUGS;
       setAllowed(new Set(initial));
       setLoading(false);
     })();
   }, [target]);
 
+  const q = search.trim().toLowerCase();
+  const isSearching = q.length > 0;
+
   const filteredGroups = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return MODULE_GROUPS;
+    if (!isSearching) return MODULE_GROUPS;
     return MODULE_GROUPS.map((g) => ({
       ...g,
       items: g.items.filter((i) =>
         `${i.label} ${i.hint ?? ""}`.toLowerCase().includes(q),
       ),
     })).filter((g) => g.items.length > 0);
-  }, [search]);
+  }, [q, isSearching]);
 
   function toggle(slug: string) {
     setAllowed((prev) => {
@@ -194,8 +224,9 @@ export function StaffPermissionsDialog({
     });
   }
 
-  function applyPreset(role: "manager" | "cashier" | "barista") {
+  function applyPreset(role: keyof typeof ROLE_DEFAULTS) {
     setAllowed(new Set(ROLE_DEFAULTS[role]));
+    toast.success(`Preset "${role}" diterapkan`);
   }
 
   async function save() {
@@ -222,130 +253,266 @@ export function StaffPermissionsDialog({
     onClose();
   }
 
+  // Detect which preset matches current selection
+  const activePreset = useMemo(() => {
+    for (const p of PRESETS) {
+      const def = ROLE_DEFAULTS[p.id];
+      if (def.length === allowed.size && def.every((s) => allowed.has(s))) return p.id;
+    }
+    return null;
+  }, [allowed]);
+
   const totalSelected = allowed.size;
   const totalAvailable = ALL_SLUGS.length;
+  const pct = Math.round((totalSelected / totalAvailable) * 100);
 
   return (
     <Dialog open={!!target} onOpenChange={(o) => !o && !saving && onClose()}>
-      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0">
-        <DialogHeader className="border-b px-6 py-4">
-          <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            Hak akses · {target?.name}
+      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+        {/* Header */}
+        <DialogHeader className="space-y-1 border-b bg-muted/30 px-5 py-4">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <span className="grid h-8 w-8 place-content-center rounded-full bg-primary/10 text-primary">
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+            <span className="truncate">Hak akses · {target?.name}</span>
           </DialogTitle>
-          <DialogDescription>
-            Centang menu yang boleh diakses pegawai ini. Modul sensitif (keuangan, KYC,
-            backup, pengaturan toko) tetap eksklusif untuk pemilik.
+          <DialogDescription className="text-xs">
+            Pilih menu yang boleh diakses. Pengaturan toko, billing, dan KYC tetap
+            eksklusif untuk pemilik.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3 border-b px-6 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground">Preset cepat:</span>
-            <Button size="sm" variant="outline" onClick={() => applyPreset("manager")}>
-              Manager (semua)
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => applyPreset("cashier")}>
-              Kasir
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => applyPreset("barista")}>
-              Barista
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
+        {/* Toolbar: presets + search */}
+        <div className="space-y-3 border-b px-5 py-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="mr-1 text-xs text-muted-foreground">Preset:</span>
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p.id)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  activePreset === p.id
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background hover:bg-accent",
+                )}
+                title={p.desc}
+              >
+                {p.label}
+              </button>
+            ))}
+            <button
+              type="button"
               onClick={() => setAllowed(new Set())}
-              className="text-muted-foreground"
+              className="ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
             >
-              <RotateCcw className="mr-1 h-3 w-3" /> Kosongkan
-            </Button>
-            <Badge variant="secondary" className="ml-auto">
-              {totalSelected} / {totalAvailable} modul
-            </Badge>
+              <RotateCcw className="h-3 w-3" />
+              Kosongkan
+            </button>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Cari modul…"
-              className="pl-9"
+              className="h-9 pl-9 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
 
-        <ScrollArea className="flex-1 px-6">
-          {loading ? (
-            <div className="flex h-32 items-center justify-center text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat hak akses…
+        {/* Body */}
+        {loading ? (
+          <div className="flex h-64 items-center justify-center text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat hak akses…
+          </div>
+        ) : isSearching ? (
+          <ScrollArea className="flex-1">
+            <div className="space-y-4 px-5 py-4">
+              {filteredGroups.length === 0 ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">
+                  Tidak ada modul yang cocok dengan "{search}".
+                </div>
+              ) : (
+                filteredGroups.map((g) => (
+                  <GroupSection
+                    key={g.id}
+                    group={g}
+                    allowed={allowed}
+                    onToggle={toggle}
+                    onSetAll={setGroup}
+                  />
+                ))
+              )}
             </div>
-          ) : filteredGroups.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              Tidak ada modul yang cocok.
-            </div>
-          ) : (
-            <div className="space-y-5 py-4">
-              {filteredGroups.map((g) => {
-                const groupSlugs = g.items.map((i) => i.slug);
-                const selectedInGroup = groupSlugs.filter((s) => allowed.has(s)).length;
-                const allOn = selectedInGroup === groupSlugs.length;
-                const someOn = selectedInGroup > 0 && !allOn;
-                return (
-                  <div key={g.id} className="rounded-xl border border-border bg-card/50 p-3">
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={allOn ? true : someOn ? "indeterminate" : false}
-                        onCheckedChange={(v) => setGroup(g, !!v && v !== "indeterminate")}
-                        className="mt-1"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="font-medium">{g.label}</div>
-                          <span className="text-xs text-muted-foreground">
-                            {selectedInGroup}/{groupSlugs.length}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{g.description}</p>
-                      </div>
-                    </div>
-                    <Separator className="my-3" />
-                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-                      {g.items.map((it) => (
-                        <label
-                          key={it.slug}
-                          className="flex cursor-pointer items-start gap-2 rounded-lg p-2 hover:bg-accent/40"
-                        >
-                          <Checkbox
-                            checked={allowed.has(it.slug)}
-                            onCheckedChange={() => toggle(it.slug)}
-                            className="mt-0.5"
-                          />
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium leading-tight">{it.label}</div>
-                            {it.hint && (
-                              <div className="text-[11px] text-muted-foreground">{it.hint}</div>
-                            )}
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </ScrollArea>
+          </ScrollArea>
+        ) : (
+          <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
+            <ScrollArea className="border-b">
+              <TabsList className="h-auto w-full justify-start gap-1 rounded-none bg-transparent px-3 py-2">
+                {MODULE_GROUPS.map((g) => {
+                  const sel = g.items.filter((i) => allowed.has(i.slug)).length;
+                  const Icon = g.icon;
+                  return (
+                    <TabsTrigger
+                      key={g.id}
+                      value={g.id}
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-1.5 rounded-full px-3 py-1.5 text-xs"
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      <span>{g.short}</span>
+                      <span
+                        className={cn(
+                          "rounded-full px-1.5 py-0 text-[10px] font-semibold",
+                          sel === 0
+                            ? "bg-muted text-muted-foreground"
+                            : sel === g.items.length
+                              ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                              : "bg-amber-500/20 text-amber-700 dark:text-amber-300",
+                        )}
+                      >
+                        {sel}/{g.items.length}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </ScrollArea>
 
-        <DialogFooter className="border-t px-6 py-3">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Batal
-          </Button>
-          <Button onClick={save} disabled={saving || loading}>
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Simpan hak akses
-          </Button>
-        </DialogFooter>
+            {MODULE_GROUPS.map((g) => (
+              <TabsContent
+                key={g.id}
+                value={g.id}
+                className="m-0 min-h-0 flex-1 data-[state=inactive]:hidden"
+              >
+                <ScrollArea className="h-full">
+                  <div className="px-5 py-4">
+                    <GroupSection
+                      group={g}
+                      allowed={allowed}
+                      onToggle={toggle}
+                      onSetAll={setGroup}
+                      flat
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            ))}
+          </Tabs>
+        )}
+
+        {/* Footer */}
+        <div className="border-t bg-muted/30">
+          <div className="flex items-center gap-3 px-5 pt-3 text-xs text-muted-foreground">
+            <span>
+              <strong className="text-foreground">{totalSelected}</strong> dari{" "}
+              {totalAvailable} modul aktif
+            </span>
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="tabular-nums">{pct}%</span>
+          </div>
+          <DialogFooter className="px-5 py-3">
+            <Button variant="outline" onClick={onClose} disabled={saving} size="sm">
+              Batal
+            </Button>
+            <Button onClick={save} disabled={saving || loading} size="sm">
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCheck className="mr-2 h-4 w-4" />
+              )}
+              Simpan
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function GroupSection({
+  group,
+  allowed,
+  onToggle,
+  onSetAll,
+  flat = false,
+}: {
+  group: ModuleGroup;
+  allowed: Set<string>;
+  onToggle: (slug: string) => void;
+  onSetAll: (g: ModuleGroup, on: boolean) => void;
+  flat?: boolean;
+}) {
+  const sel = group.items.filter((i) => allowed.has(i.slug)).length;
+  const allOn = sel === group.items.length;
+  const Icon = group.icon;
+
+  return (
+    <div
+      className={cn(
+        !flat && "rounded-xl border border-border bg-card/40 p-3",
+      )}
+    >
+      <div className="mb-3 flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-content-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-semibold">{group.label}</div>
+            <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+              {sel}/{group.items.length}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">{group.description}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onSetAll(group, !allOn)}
+          className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent"
+        >
+          {allOn ? "Matikan semua" : "Pilih semua"}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+        {group.items.map((it) => {
+          const on = allowed.has(it.slug);
+          return (
+            <label
+              key={it.slug}
+              className={cn(
+                "flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2 transition-colors",
+                on
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border hover:bg-accent/40",
+              )}
+            >
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium">{it.label}</div>
+                {it.hint && (
+                  <div className="truncate text-[11px] text-muted-foreground">
+                    {it.hint}
+                  </div>
+                )}
+              </div>
+              <Switch
+                checked={on}
+                onCheckedChange={() => onToggle(it.slug)}
+                aria-label={it.label}
+              />
+            </label>
+          );
+        })}
+      </div>
+    </div>
   );
 }
