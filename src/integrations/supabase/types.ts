@@ -496,6 +496,81 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_pricing_rules: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          max_qty: number | null
+          menu_item_id: string
+          min_qty: number
+          price: number
+          shop_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          max_qty?: number | null
+          menu_item_id: string
+          min_qty: number
+          price: number
+          shop_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          max_qty?: number | null
+          menu_item_id?: string
+          min_qty?: number
+          price?: number
+          shop_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_pricing_rules_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "bulk_pricing_rules_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_pricing_rules_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_pricing_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_pricing_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       bundle_items: {
         Row: {
           bundle_id: string
@@ -1723,6 +1798,87 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      flash_sales: {
+        Row: {
+          created_at: string
+          ends_at: string
+          flash_price: number
+          id: string
+          is_active: boolean
+          menu_item_id: string
+          original_price: number
+          shop_id: string
+          starts_at: string
+          stock_limit: number | null
+          stock_sold: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          flash_price: number
+          id?: string
+          is_active?: boolean
+          menu_item_id: string
+          original_price: number
+          shop_id: string
+          starts_at: string
+          stock_limit?: number | null
+          stock_sold?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          flash_price?: number
+          id?: string
+          is_active?: boolean
+          menu_item_id?: string
+          original_price?: number
+          shop_id?: string
+          starts_at?: string
+          stock_limit?: number | null
+          stock_sold?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flash_sales_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "flash_sales_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sales_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sales_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sales_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       ingredients: {
         Row: {
