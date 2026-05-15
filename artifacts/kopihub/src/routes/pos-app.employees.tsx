@@ -268,6 +268,9 @@ function EmployeesPage() {
   const [promoteSaving, setPromoteSaving] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
 
+  // Permissions dialog
+  const [permTarget, setPermTarget] = useState<StaffPermissionsTarget | null>(null);
+
   // Password / reset dialogs
   const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
   const [pwValue, setPwValue] = useState("");
