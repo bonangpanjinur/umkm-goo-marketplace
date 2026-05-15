@@ -257,6 +257,23 @@ function CouriersPage() {
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
               </div>
               <div className="space-y-1">
+                <Label className="text-xs">Email login (opsional)</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  maxLength={120}
+                  placeholder="kurir@email.com"
+                  disabled={!!editing && !!editing.user_id}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {editing?.user_id
+                    ? "✓ Akun sudah terhubung — email tidak bisa diubah."
+                    : "Isi email agar kurir bisa login. Kurir mendaftar sendiri di halaman Daftar dengan email ini, lalu otomatis terhubung saat login pertama."}
+                </p>
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              </div>
+              <div className="space-y-1">
                 <Label className="text-xs">Plat motor</Label>
                 <Input
                   value={form.plate_number}
