@@ -522,12 +522,16 @@ function AppLayoutInner() {
       if (!staff.isOwner && staff.isStaff && !isModuleAllowed(it.to, staff.allowedModules)) return false;
       // Category type check — only filter if onlyFor is specified
       if (it.onlyFor && it.onlyFor.length > 0 && !it.onlyFor.includes(shopCategoryType)) return false;
+      // Sub-type check (only matters for sales-pro)
+      if (it.subtypeOnly && it.subtypeOnly.length > 0) {
+        if (!shopSubtype || !it.subtypeOnly.includes(shopSubtype as "umroh" | "sales")) return false;
+      }
       return true;
     };
     return NAV_GROUPS
       .map((g) => ({ ...g, items: g.items.filter(allowed) }))
       .filter((g) => g.items.length > 0);
-  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType]);
+  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype]);
 
   // Track which group is open; auto-open the group that contains the active route
   const matchItem = (it: NavItem, path: string) => {
