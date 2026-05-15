@@ -561,11 +561,11 @@ export default function FlashSalePage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Mulai</Label>
-                <Input type="datetime-local" className="mt-1" value={form.starts_at} onChange={e => setForm(f => ({ ...f, starts_at: e.target.value }))} />
+                <div className="mt-1"><DateTimePicker value={form.starts_at} onChange={(v) => setForm(f => ({ ...f, starts_at: v }))} placeholder="Pilih mulai" /></div>
               </div>
               <div>
                 <Label>Selesai</Label>
-                <Input type="datetime-local" className="mt-1" value={form.ends_at} onChange={e => setForm(f => ({ ...f, ends_at: e.target.value }))} />
+                <div className="mt-1"><DateTimePicker value={form.ends_at} onChange={(v) => setForm(f => ({ ...f, ends_at: v }))} placeholder="Pilih selesai" /></div>
               </div>
             </div>
 
