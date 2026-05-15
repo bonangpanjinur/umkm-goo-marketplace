@@ -170,6 +170,7 @@ type StaffMember = {
   hourly_rate: number | null;
   notes: string | null;
   created_at: string;
+  user_id?: string | null;
 };
 
 type UnifiedRow =
