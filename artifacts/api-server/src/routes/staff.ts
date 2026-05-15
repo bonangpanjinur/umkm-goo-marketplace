@@ -492,6 +492,16 @@ router.post("/staff/promote-to-login", async (req, res) => {
     body: JSON.stringify({ user_id: userId, shop_id, role: member.role, outlet_id: member.outlet_id }),
   });
 
+  // Link the manual staff_members row to the new auth user so the UI can dedupe
+  await fetch(
+    `${SUPABASE_URL()}/rest/v1/staff_members?id=eq.${staff_member_id}&shop_id=eq.${shop_id}`,
+    {
+      method: "PATCH",
+      headers: { ...adminHeaders(), Prefer: "return=minimal" },
+      body: JSON.stringify({ user_id: userId }),
+    },
+  );
+
   await audit(shop_id, callerId, {
     target_user_id: userId, target_email: email, target_name: member.name,
     action: "promote_to_login", meta: { staff_member_id },
