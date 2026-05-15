@@ -200,7 +200,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
       { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
       { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
-      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet },
+      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet, onlyFor: HAS_POS },
     ],
   },
   {
