@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { createHash, timingSafeEqual } from "node:crypto";
+// NOTE: crypto helpers live in a `.server.ts` module so Vite's
+// `block-server-only-imports` plugin (vite.config.ts) prevents any client
+// bundle from pulling in `node:crypto`. Imported dynamically + lazily so
+// the static analyzer never traverses into the server-only graph from a
+// client entry.
 
 /**
  * Webhook endpoint untuk pembayaran paket platform.
@@ -18,28 +22,17 @@ function getAdminClient() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-function verifyMidtrans(orderId: string, statusCode: string, grossAmount: string, signatureKey: string, serverKey: string) {
-  // Midtrans formula: sha512(order_id + status_code + gross_amount + server_key)
-  const concat = `${orderId}${statusCode}${grossAmount}${serverKey}`;
-  const exp = createHash("sha512").update(concat).digest("hex");
-  try {
-    return timingSafeEqual(Buffer.from(signatureKey), Buffer.from(exp));
-  } catch { return false; }
-}
-
-function verifyXendit(rawToken: string | null, callbackToken: string) {
-  if (!rawToken) return false;
-  try {
-    return timingSafeEqual(Buffer.from(rawToken), Buffer.from(callbackToken));
-  } catch { return false; }
-}
-
 export const Route = createFileRoute("/api/public/webhooks/plan-billing/$provider")({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
         const provider = params.provider;
         const body = await request.text();
+
+        // Dynamic import keeps `node:crypto` out of any client traversal.
+        const { verifyMidtrans, verifyXendit } = await import(
+          /* @vite-ignore */ "@/lib/webhook-crypto.server"
+        );
 
         let invoiceRef: string | null = null;
         let paid = false;
