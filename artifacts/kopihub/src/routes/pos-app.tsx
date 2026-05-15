@@ -101,6 +101,8 @@ type NavItem = {
   exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[];
   /** If set, only show this item when shop's category type is in this list */
   onlyFor?: string[];
+  /** If set, only show for these business sub-types (sales-pro: 'umroh' | 'sales') */
+  subtypeOnly?: ("umroh" | "sales")[];
 };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
@@ -108,6 +110,7 @@ type NavGroup = { id: string; label: string; items: NavItem[] };
 function deriveCategoryType(slug: string | null | undefined): string {
   if (!slug) return "general";
   const s = slug.toLowerCase();
+  if (s === "sales-jasa-profesional") return "sales-pro";
   if (/fnb|kuliner|makanan|minuman|cafe|kafe|restoran|bakery|food|kopi|warung|catering|beverage/.test(s)) return "fnb";
   if (/fashion|pakaian|clothing|busana|sepatu|aksesoris/.test(s)) return "fashion";
   if (/digital|software|konten|content|saas|aplikasi|pendidikan/.test(s)) return "digital";
@@ -116,6 +119,9 @@ function deriveCategoryType(slug: string | null | undefined): string {
   if (/elektronik|gadget|komputer|tech/.test(s)) return "electronics";
   return "general";
 }
+
+// Categories that have POS / KDS / Stok / Inventori / Resep / Shift Kasir
+const HAS_POS = ["fnb", "fashion", "craft", "electronics", "general"];
 
 // Category type groups for onlyFor references
 const FNB         = ["fnb"];
