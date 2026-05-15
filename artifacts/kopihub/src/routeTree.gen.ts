@@ -181,6 +181,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaxReportRouteImport } from './routes/admin.tax-report'
 import { Route as AdminSlaMonitorRouteImport } from './routes/admin.sla-monitor'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
+import { Route as AdminShopReminderOverridesRouteImport } from './routes/admin.shop-reminder-overrides'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSandboxRouteImport } from './routes/admin.sandbox'
 import { Route as AdminRevenueLeakageRouteImport } from './routes/admin.revenue-leakage'
@@ -1131,6 +1132,12 @@ const AdminShopsRoute = AdminShopsRouteImport.update({
   path: '/shops',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminShopReminderOverridesRoute =
+  AdminShopReminderOverridesRouteImport.update({
+    id: '/shop-reminder-overrides',
+    path: '/shop-reminder-overrides',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -1627,6 +1634,7 @@ export interface FileRoutesByFullPath {
   '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
   '/admin/sandbox': typeof AdminSandboxRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shop-reminder-overrides': typeof AdminShopReminderOverridesRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/sla-monitor': typeof AdminSlaMonitorRoute
   '/admin/tax-report': typeof AdminTaxReportRoute
@@ -1883,6 +1891,7 @@ export interface FileRoutesByTo {
   '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
   '/admin/sandbox': typeof AdminSandboxRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shop-reminder-overrides': typeof AdminShopReminderOverridesRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/sla-monitor': typeof AdminSlaMonitorRoute
   '/admin/tax-report': typeof AdminTaxReportRoute
@@ -2141,6 +2150,7 @@ export interface FileRoutesById {
   '/admin/revenue-leakage': typeof AdminRevenueLeakageRoute
   '/admin/sandbox': typeof AdminSandboxRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shop-reminder-overrides': typeof AdminShopReminderOverridesRoute
   '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/sla-monitor': typeof AdminSlaMonitorRoute
   '/admin/tax-report': typeof AdminTaxReportRoute
@@ -2402,6 +2412,7 @@ export interface FileRouteTypes {
     | '/admin/revenue-leakage'
     | '/admin/sandbox'
     | '/admin/settings'
+    | '/admin/shop-reminder-overrides'
     | '/admin/shops'
     | '/admin/sla-monitor'
     | '/admin/tax-report'
@@ -2658,6 +2669,7 @@ export interface FileRouteTypes {
     | '/admin/revenue-leakage'
     | '/admin/sandbox'
     | '/admin/settings'
+    | '/admin/shop-reminder-overrides'
     | '/admin/shops'
     | '/admin/sla-monitor'
     | '/admin/tax-report'
@@ -2915,6 +2927,7 @@ export interface FileRouteTypes {
     | '/admin/revenue-leakage'
     | '/admin/sandbox'
     | '/admin/settings'
+    | '/admin/shop-reminder-overrides'
     | '/admin/shops'
     | '/admin/sla-monitor'
     | '/admin/tax-report'
@@ -4350,6 +4363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminShopsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/shop-reminder-overrides': {
+      id: '/admin/shop-reminder-overrides'
+      path: '/shop-reminder-overrides'
+      fullPath: '/admin/shop-reminder-overrides'
+      preLoaderRoute: typeof AdminShopReminderOverridesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/settings'
@@ -5032,6 +5052,7 @@ interface AdminRouteChildren {
   AdminRevenueLeakageRoute: typeof AdminRevenueLeakageRoute
   AdminSandboxRoute: typeof AdminSandboxRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminShopReminderOverridesRoute: typeof AdminShopReminderOverridesRoute
   AdminShopsRoute: typeof AdminShopsRouteWithChildren
   AdminSlaMonitorRoute: typeof AdminSlaMonitorRoute
   AdminTaxReportRoute: typeof AdminTaxReportRoute
@@ -5090,6 +5111,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRevenueLeakageRoute: AdminRevenueLeakageRoute,
   AdminSandboxRoute: AdminSandboxRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminShopReminderOverridesRoute: AdminShopReminderOverridesRoute,
   AdminShopsRoute: AdminShopsRouteWithChildren,
   AdminSlaMonitorRoute: AdminSlaMonitorRoute,
   AdminTaxReportRoute: AdminTaxReportRoute,
