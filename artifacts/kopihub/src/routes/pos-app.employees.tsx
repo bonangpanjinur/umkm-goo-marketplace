@@ -1800,6 +1800,12 @@ function EmployeesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Permissions dialog */}
+      <StaffPermissionsDialog
+        target={permTarget}
+        onClose={() => setPermTarget(null)}
+      />
     </div>
   );
 }
