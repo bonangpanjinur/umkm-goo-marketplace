@@ -132,6 +132,7 @@ function CouriersPage() {
     setForm({
       name: c.name,
       phone: c.phone,
+      email: c.email ?? "",
       plate_number: c.plate_number ?? "",
       note: c.note ?? "",
       is_active: c.is_active,
@@ -158,6 +159,7 @@ function CouriersPage() {
       shop_id: shop.id,
       name: parsed.data.name,
       phone: parsed.data.phone,
+      email: parsed.data.email ? parsed.data.email.toLowerCase() : null,
       plate_number: parsed.data.plate_number || null,
       note: parsed.data.note || null,
       is_active: form.is_active,
@@ -169,7 +171,7 @@ function CouriersPage() {
 
     setSaving(false);
     if (error) {
-      toast.error("Gagal menyimpan");
+      toast.error("Gagal menyimpan: " + error.message);
       return;
     }
     toast.success(editing ? "Kurir diperbarui" : "Kurir ditambahkan");
