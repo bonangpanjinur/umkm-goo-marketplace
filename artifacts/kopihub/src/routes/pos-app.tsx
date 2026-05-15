@@ -367,12 +367,13 @@ function AppLayoutInner() {
       // Owner flow
       const { data } = await supabase
         .from("coffee_shops")
-        .select("id, name, logo_url, suspended_at, suspended_reason, business_category:business_categories(slug)")
+        .select("id, name, logo_url, suspended_at, suspended_reason, business_subtype, business_category:business_categories(slug)")
         .eq("owner_id", user.id)
         .maybeSingle();
       if (data) {
         setShop(data as any);
         setShopCategoryType(deriveCategoryType((data as any).business_category?.slug));
+        setShopSubtype((data as any).business_subtype ?? null);
         setChecking(false);
         if (data.suspended_at && location.pathname !== "/pos-app/billing") {
           toast.error("Toko Anda dinonaktifkan oleh admin. Hubungi admin.");
@@ -385,12 +386,13 @@ function AppLayoutInner() {
       if (staff.isStaff && staff.shopId) {
         const { data: s } = await supabase
           .from("coffee_shops")
-          .select("name, logo_url, suspended_at, suspended_reason, business_category:business_categories(slug)")
+          .select("id, name, logo_url, suspended_at, suspended_reason, business_subtype, business_category:business_categories(slug)")
           .eq("id", staff.shopId)
           .maybeSingle();
         if (s) {
           setShop(s as any);
           setShopCategoryType(deriveCategoryType((s as any).business_category?.slug));
+          setShopSubtype((s as any).business_subtype ?? null);
           setChecking(false);
           return;
         }
