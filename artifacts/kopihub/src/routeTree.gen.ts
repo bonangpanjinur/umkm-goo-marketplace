@@ -89,6 +89,7 @@ import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
 import { Route as PosAppPortfolioRouteImport } from './routes/pos-app.portfolio'
 import { Route as PosAppPatientRecordsRouteImport } from './routes/pos-app.patient-records'
 import { Route as PosAppOutletsRouteImport } from './routes/pos-app.outlets'
+import { Route as PosAppOutletShippingRouteImport } from './routes/pos-app.outlet-shipping'
 import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
 import { Route as PosAppOrderAuditRouteImport } from './routes/pos-app.order-audit'
 import { Route as PosAppOpenBillsRouteImport } from './routes/pos-app.open-bills'
@@ -661,6 +662,11 @@ const PosAppPatientRecordsRoute = PosAppPatientRecordsRouteImport.update({
 const PosAppOutletsRoute = PosAppOutletsRouteImport.update({
   id: '/outlets',
   path: '/outlets',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppOutletShippingRoute = PosAppOutletShippingRouteImport.update({
+  id: '/outlet-shipping',
+  path: '/outlet-shipping',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppOrdersRoute = PosAppOrdersRouteImport.update({
@@ -1671,6 +1677,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/open-bills': typeof PosAppOpenBillsRoute
   '/pos-app/order-audit': typeof PosAppOrderAuditRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
+  '/pos-app/outlet-shipping': typeof PosAppOutletShippingRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
@@ -1919,6 +1926,7 @@ export interface FileRoutesByTo {
   '/pos-app/open-bills': typeof PosAppOpenBillsRoute
   '/pos-app/order-audit': typeof PosAppOrderAuditRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
+  '/pos-app/outlet-shipping': typeof PosAppOutletShippingRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
@@ -2171,6 +2179,7 @@ export interface FileRoutesById {
   '/pos-app/open-bills': typeof PosAppOpenBillsRoute
   '/pos-app/order-audit': typeof PosAppOrderAuditRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
+  '/pos-app/outlet-shipping': typeof PosAppOutletShippingRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
@@ -2425,6 +2434,7 @@ export interface FileRouteTypes {
     | '/pos-app/open-bills'
     | '/pos-app/order-audit'
     | '/pos-app/orders'
+    | '/pos-app/outlet-shipping'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
     | '/pos-app/portfolio'
@@ -2673,6 +2683,7 @@ export interface FileRouteTypes {
     | '/pos-app/open-bills'
     | '/pos-app/order-audit'
     | '/pos-app/orders'
+    | '/pos-app/outlet-shipping'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
     | '/pos-app/portfolio'
@@ -2924,6 +2935,7 @@ export interface FileRouteTypes {
     | '/pos-app/open-bills'
     | '/pos-app/order-audit'
     | '/pos-app/orders'
+    | '/pos-app/outlet-shipping'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
     | '/pos-app/portfolio'
@@ -3617,6 +3629,13 @@ declare module '@tanstack/react-router' {
       path: '/outlets'
       fullPath: '/pos-app/outlets'
       preLoaderRoute: typeof PosAppOutletsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/outlet-shipping': {
+      id: '/pos-app/outlet-shipping'
+      path: '/outlet-shipping'
+      fullPath: '/pos-app/outlet-shipping'
+      preLoaderRoute: typeof PosAppOutletShippingRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/orders': {
@@ -5147,6 +5166,7 @@ interface PosAppRouteChildren {
   PosAppOpenBillsRoute: typeof PosAppOpenBillsRoute
   PosAppOrderAuditRoute: typeof PosAppOrderAuditRoute
   PosAppOrdersRoute: typeof PosAppOrdersRoute
+  PosAppOutletShippingRoute: typeof PosAppOutletShippingRoute
   PosAppOutletsRoute: typeof PosAppOutletsRoute
   PosAppPatientRecordsRoute: typeof PosAppPatientRecordsRoute
   PosAppPortfolioRoute: typeof PosAppPortfolioRoute
@@ -5271,6 +5291,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppOpenBillsRoute: PosAppOpenBillsRoute,
   PosAppOrderAuditRoute: PosAppOrderAuditRoute,
   PosAppOrdersRoute: PosAppOrdersRoute,
+  PosAppOutletShippingRoute: PosAppOutletShippingRoute,
   PosAppOutletsRoute: PosAppOutletsRoute,
   PosAppPatientRecordsRoute: PosAppPatientRecordsRoute,
   PosAppPortfolioRoute: PosAppPortfolioRoute,
