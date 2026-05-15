@@ -140,9 +140,21 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Utama",
     items: [
       { to: "/pos-app",     label: "Dashboard",  icon: LayoutDashboard, exact: true },
-      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag },
+      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag, onlyFor: HAS_POS },
     ],
   },
+  {
+    id: "sales_pro",
+    label: "Sales / Umroh",
+    items: [
+      { to: "/pos-app/umroh-packages",   label: "Paket Umroh",       icon: Plane,     onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/sales-offerings",  label: "Katalog Layanan",   icon: Briefcase, onlyFor: ["sales-pro"], subtypeOnly: ["sales"] },
+      { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"] },
+      { to: "/pos-app/testimonials",     label: "Testimoni",         icon: Quote,     onlyFor: ["sales-pro"] },
+      { to: "/pos-app/leads",            label: "Lead / CRM",        icon: Inbox,     onlyFor: ["sales-pro"] },
+      { to: "/pos-app/about-page",       label: "Halaman Tentang",   icon: Info,      onlyFor: ["sales-pro"] },
   {
     id: "orders",
     label: "Pesanan",
