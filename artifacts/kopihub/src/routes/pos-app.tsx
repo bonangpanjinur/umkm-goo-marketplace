@@ -273,6 +273,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/upsell",        label: "Sering Dibeli Bersama",  icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
       { to: "/pos-app/pre-orders",    label: "Pre-Order Mode",         icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch", onlyFor: [...FNB, "craft"] },
       { to: "/pos-app/custom-orders", label: "Permintaan Custom",      icon: FileText, hint: "Kelola permintaan custom order dari pembeli", onlyFor: [...SVC_CRAFT, "fnb"] },
+      { to: "/pos-app/custom-order-quotes", label: "Estimasi Biaya Custom", icon: Calculator, hint: "Kirim estimasi biaya ke pembeli untuk custom order — pembeli setujui/tolak via WhatsApp", onlyFor: [...SVC_CRAFT, "fnb"] },
     ],
   },
   {
