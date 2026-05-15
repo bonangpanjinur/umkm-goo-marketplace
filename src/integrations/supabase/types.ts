@@ -2982,6 +2982,86 @@ export type Database = {
           },
         ]
       }
+      order_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          new_status: string | null
+          order_id: string | null
+          order_no: string | null
+          outlet_id: string | null
+          previous_status: string | null
+          reason: string | null
+          shop_id: string
+          total: number | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_status?: string | null
+          order_id?: string | null
+          order_no?: string | null
+          outlet_id?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          shop_id: string
+          total?: number | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_status?: string | null
+          order_id?: string | null
+          order_no?: string | null
+          outlet_id?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          shop_id?: string
+          total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_audit_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_audit_log_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "outlets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       order_disputes: {
         Row: {
           created_at: string
@@ -3357,6 +3437,91 @@ export type Database = {
           },
           {
             foreignKeyName: "orders_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      outlet_couriers: {
+        Row: {
+          base_fee: number
+          courier_name: string
+          created_at: string
+          eta_max_minutes: number
+          eta_min_minutes: number
+          free_above: number | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          max_distance_km: number | null
+          min_order: number
+          note: string | null
+          outlet_id: string
+          per_km_fee: number
+          service_type: string
+          shop_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          base_fee?: number
+          courier_name: string
+          created_at?: string
+          eta_max_minutes?: number
+          eta_min_minutes?: number
+          free_above?: number | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          max_distance_km?: number | null
+          min_order?: number
+          note?: string | null
+          outlet_id: string
+          per_km_fee?: number
+          service_type?: string
+          shop_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          base_fee?: number
+          courier_name?: string
+          created_at?: string
+          eta_max_minutes?: number
+          eta_min_minutes?: number
+          free_above?: number | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          max_distance_km?: number | null
+          min_order?: number
+          note?: string | null
+          outlet_id?: string
+          per_km_fee?: number
+          service_type?: string
+          shop_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outlet_couriers_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "outlets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outlet_couriers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outlet_couriers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shop_health_score"

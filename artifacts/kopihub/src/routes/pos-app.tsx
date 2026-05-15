@@ -165,6 +165,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
       { to: "/pos-app/kds",          label: "Kitchen (KDS)",       icon: ChefHat, onlyFor: FNB },
       { to: "/pos-app/kitchen-load", label: "Beban Dapur (KLM)",  icon: Stethoscope, hint: "Pantau estimasi waktu tunggu & beban per slot waktu secara realtime", onlyFor: FNB },
+      { to: "/pos-app/open-bills",   label: "Open Bills",          icon: ShoppingBag, hint: "Tagihan terbuka real-time, sinkron antar perangkat kasir" },
+      { to: "/pos-app/order-audit",  label: "Audit Pesanan",       icon: ScrollText, hint: "Riwayat VOID/CANCEL/REFUND lengkap dengan alasan & user pelaku" },
     ],
   },
   {
@@ -213,6 +215,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/delivery", label: "Delivery",     icon: Truck },
       { to: "/pos-app/couriers", label: "Kurir",        icon: Bike },
       { to: "/pos-app/courier",  label: "Pengantaran",  icon: Navigation },
+      { to: "/pos-app/outlet-shipping", label: "Tarif Ongkir Outlet", icon: Calculator, hint: "Atur kurir & rumus ongkir per outlet — auto-hitung di POS & checkout" },
     ],
   },
   {
