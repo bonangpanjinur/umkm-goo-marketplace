@@ -3277,6 +3277,60 @@ export type Database = {
         }
         Relationships: []
       }
+      page_layouts: {
+        Row: {
+          created_at: string
+          id: string
+          is_published: boolean
+          page_type: string
+          published_at: string | null
+          puck_data: Json
+          shop_id: string
+          slug: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          page_type: string
+          published_at?: string | null
+          puck_data?: Json
+          shop_id: string
+          slug?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          page_type?: string
+          published_at?: string | null
+          puck_data?: Json
+          shop_id?: string
+          slug?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_layouts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_layouts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       parked_carts: {
         Row: {
           created_at: string
