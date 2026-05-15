@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
@@ -14,9 +14,72 @@ if (Number.isNaN(port) || port <= 0) {
 
 const basePath = process.env.BASE_PATH ?? "/";
 
+/**
+ * block-server-only-imports
+ *
+ * Failsafe agar modul server-only (Node built-ins seperti `node:crypto`,
+ * `node:fs`, atau file `*.server.ts(x)`) TIDAK pernah ikut ke bundle
+ * client. Aktif hanya saat build client (bukan SSR).
+ *
+ * Aturan:
+ *  - `node:*` & built-in Node (`crypto`, `fs`, `child_process`, dst.)
+ *    hanya boleh diimport dari file `*.server.ts(x)`.
+ *  - File `*.server.ts(x)` tidak boleh diimport dari modul client
+ *    (dideteksi via importer yang BUKAN `*.server.*`). Pakai
+ *    `await import("...")` dengan `/* @vite-ignore */` untuk lazy-load
+ *    di handler server route.
+ */
+const NODE_BUILTINS = new Set([
+  "crypto","fs","fs/promises","path","os","child_process","worker_threads",
+  "net","tls","dgram","dns","stream","zlib","http","https","http2","cluster",
+  "readline","perf_hooks","v8","vm","module",
+]);
+
+function isServerOnlyFile(id: string) {
+  return /\.server\.(ts|tsx|js|mjs|cjs)(\?.*)?$/.test(id);
+}
+
+function blockServerOnlyImports(): Plugin {
+  return {
+    name: "lovable:block-server-only-imports",
+    enforce: "pre",
+    apply: "build",
+    resolveId(source, importer, opts) {
+      // Only police the CLIENT build graph.
+      if ((opts as any)?.ssr) return null;
+      if (!importer) return null;
+
+      const isNodeBuiltin =
+        source.startsWith("node:") ||
+        NODE_BUILTINS.has(source.replace(/^node:/, ""));
+
+      if (isNodeBuiltin && !isServerOnlyFile(importer)) {
+        this.error(
+          `[block-server-only-imports] "${source}" diimport oleh "${importer}".\n` +
+          `Modul Node built-in hanya boleh dipakai dari file *.server.ts(x).\n` +
+          `Pindahkan logikanya ke "*.server.ts" lalu lazy-load via:\n` +
+          `  const m = await import(/* @vite-ignore */ "@/lib/your-helper.server");`
+        );
+      }
+
+      if (isServerOnlyFile(source) && !isServerOnlyFile(importer)) {
+        this.error(
+          `[block-server-only-imports] "${source}" (server-only) diimport ` +
+          `secara statis oleh "${importer}".\n` +
+          `Gunakan dynamic import dengan /* @vite-ignore */ agar tidak ikut ` +
+          `bundle client, atau pindahkan importer ke file *.server.ts(x).`
+        );
+      }
+
+      return null;
+    },
+  };
+}
+
 export default defineConfig({
   base: basePath,
   plugins: [
+    blockServerOnlyImports(),
     TanStackRouterVite({ routesDirectory: "./src/routes", generatedRouteTree: "./src/routeTree.gen.ts" }),
     react(),
     tailwindcss(),
