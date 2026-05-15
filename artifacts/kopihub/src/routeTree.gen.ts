@@ -185,6 +185,7 @@ import { Route as AdminRevenueLeakageRouteImport } from './routes/admin.revenue-
 import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPushConfigRouteImport } from './routes/admin.push-config'
+import { Route as AdminPlatformBillingRouteImport } from './routes/admin.platform-billing'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPayoutSchedulerRouteImport } from './routes/admin.payout-scheduler'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
@@ -1145,6 +1146,11 @@ const AdminPushConfigRoute = AdminPushConfigRouteImport.update({
   path: '/push-config',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPlatformBillingRoute = AdminPlatformBillingRouteImport.update({
+  id: '/platform-billing',
+  path: '/platform-billing',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -1582,6 +1588,7 @@ export interface FileRoutesByFullPath {
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/payout-scheduler': typeof AdminPayoutSchedulerRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/platform-billing': typeof AdminPlatformBillingRoute
   '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -1832,6 +1839,7 @@ export interface FileRoutesByTo {
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/payout-scheduler': typeof AdminPayoutSchedulerRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/platform-billing': typeof AdminPlatformBillingRoute
   '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -2084,6 +2092,7 @@ export interface FileRoutesById {
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/payout-scheduler': typeof AdminPayoutSchedulerRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/platform-billing': typeof AdminPlatformBillingRoute
   '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -2339,6 +2348,7 @@ export interface FileRouteTypes {
     | '/admin/payment-config'
     | '/admin/payout-scheduler'
     | '/admin/plans'
+    | '/admin/platform-billing'
     | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
@@ -2589,6 +2599,7 @@ export interface FileRouteTypes {
     | '/admin/payment-config'
     | '/admin/payout-scheduler'
     | '/admin/plans'
+    | '/admin/platform-billing'
     | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
@@ -2840,6 +2851,7 @@ export interface FileRouteTypes {
     | '/admin/payment-config'
     | '/admin/payout-scheduler'
     | '/admin/plans'
+    | '/admin/platform-billing'
     | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
@@ -4303,6 +4315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPushConfigRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/platform-billing': {
+      id: '/admin/platform-billing'
+      path: '/platform-billing'
+      fullPath: '/admin/platform-billing'
+      preLoaderRoute: typeof AdminPlatformBillingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/plans': {
       id: '/admin/plans'
       path: '/plans'
@@ -4907,6 +4926,7 @@ interface AdminRouteChildren {
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
   AdminPayoutSchedulerRoute: typeof AdminPayoutSchedulerRoute
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
+  AdminPlatformBillingRoute: typeof AdminPlatformBillingRoute
   AdminPushConfigRoute: typeof AdminPushConfigRoute
   AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
@@ -4963,6 +4983,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,
   AdminPayoutSchedulerRoute: AdminPayoutSchedulerRoute,
   AdminPlansRoute: AdminPlansRouteWithChildren,
+  AdminPlatformBillingRoute: AdminPlatformBillingRoute,
   AdminPushConfigRoute: AdminPushConfigRoute,
   AdminReconciliationRoute: AdminReconciliationRoute,
   AdminRevenueRoute: AdminRevenueRoute,
