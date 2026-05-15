@@ -31,6 +31,7 @@ type Courier = {
   user_id: string | null;
   name: string;
   phone: string;
+  email: string | null;
   plate_number: string | null;
   is_active: boolean;
   note: string | null;
@@ -44,6 +45,13 @@ const courierSchema = z.object({
     .min(8, "Nomor HP minimal 8 digit")
     .max(20, "Nomor HP maksimal 20 karakter")
     .regex(/^[0-9+\-\s]+$/, "Hanya angka, +, -, dan spasi"),
+  email: z
+    .string()
+    .trim()
+    .email("Format email tidak valid")
+    .max(120)
+    .optional()
+    .or(z.literal("")),
   plate_number: z
     .string()
     .trim()
@@ -56,12 +64,13 @@ const courierSchema = z.object({
 type FormState = {
   name: string;
   phone: string;
+  email: string;
   plate_number: string;
   note: string;
   is_active: boolean;
 };
 
-const EMPTY: FormState = { name: "", phone: "", plate_number: "", note: "", is_active: true };
+const EMPTY: FormState = { name: "", phone: "", email: "", plate_number: "", note: "", is_active: true };
 
 function CouriersPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
