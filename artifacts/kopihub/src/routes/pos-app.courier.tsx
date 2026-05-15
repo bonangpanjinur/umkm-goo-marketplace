@@ -42,6 +42,9 @@ function CourierView() {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
+      // Auto-link courier account by email (no-op if already linked or no match)
+      await supabase.rpc("link_courier_account").catch(() => undefined);
+
       const { data: cs } = await supabase
         .from("couriers")
         .select("id")
