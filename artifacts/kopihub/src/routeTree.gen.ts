@@ -90,6 +90,7 @@ import { Route as PosAppPortfolioRouteImport } from './routes/pos-app.portfolio'
 import { Route as PosAppPatientRecordsRouteImport } from './routes/pos-app.patient-records'
 import { Route as PosAppOutletsRouteImport } from './routes/pos-app.outlets'
 import { Route as PosAppOrdersRouteImport } from './routes/pos-app.orders'
+import { Route as PosAppOrderAuditRouteImport } from './routes/pos-app.order-audit'
 import { Route as PosAppOpenBillsRouteImport } from './routes/pos-app.open-bills'
 import { Route as PosAppOnlineOrdersRouteImport } from './routes/pos-app.online-orders'
 import { Route as PosAppNotifikasiRouteImport } from './routes/pos-app.notifikasi'
@@ -665,6 +666,11 @@ const PosAppOutletsRoute = PosAppOutletsRouteImport.update({
 const PosAppOrdersRoute = PosAppOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppOrderAuditRoute = PosAppOrderAuditRouteImport.update({
+  id: '/order-audit',
+  path: '/order-audit',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppOpenBillsRoute = PosAppOpenBillsRouteImport.update({
@@ -1663,6 +1669,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
   '/pos-app/open-bills': typeof PosAppOpenBillsRoute
+  '/pos-app/order-audit': typeof PosAppOrderAuditRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
@@ -1910,6 +1917,7 @@ export interface FileRoutesByTo {
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
   '/pos-app/open-bills': typeof PosAppOpenBillsRoute
+  '/pos-app/order-audit': typeof PosAppOrderAuditRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
@@ -2161,6 +2169,7 @@ export interface FileRoutesById {
   '/pos-app/notifikasi': typeof PosAppNotifikasiRoute
   '/pos-app/online-orders': typeof PosAppOnlineOrdersRoute
   '/pos-app/open-bills': typeof PosAppOpenBillsRoute
+  '/pos-app/order-audit': typeof PosAppOrderAuditRoute
   '/pos-app/orders': typeof PosAppOrdersRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
@@ -2414,6 +2423,7 @@ export interface FileRouteTypes {
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
     | '/pos-app/open-bills'
+    | '/pos-app/order-audit'
     | '/pos-app/orders'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
@@ -2661,6 +2671,7 @@ export interface FileRouteTypes {
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
     | '/pos-app/open-bills'
+    | '/pos-app/order-audit'
     | '/pos-app/orders'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
@@ -2911,6 +2922,7 @@ export interface FileRouteTypes {
     | '/pos-app/notifikasi'
     | '/pos-app/online-orders'
     | '/pos-app/open-bills'
+    | '/pos-app/order-audit'
     | '/pos-app/orders'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
@@ -3612,6 +3624,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/pos-app/orders'
       preLoaderRoute: typeof PosAppOrdersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/order-audit': {
+      id: '/pos-app/order-audit'
+      path: '/order-audit'
+      fullPath: '/pos-app/order-audit'
+      preLoaderRoute: typeof PosAppOrderAuditRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/open-bills': {
@@ -5126,6 +5145,7 @@ interface PosAppRouteChildren {
   PosAppNotifikasiRoute: typeof PosAppNotifikasiRoute
   PosAppOnlineOrdersRoute: typeof PosAppOnlineOrdersRoute
   PosAppOpenBillsRoute: typeof PosAppOpenBillsRoute
+  PosAppOrderAuditRoute: typeof PosAppOrderAuditRoute
   PosAppOrdersRoute: typeof PosAppOrdersRoute
   PosAppOutletsRoute: typeof PosAppOutletsRoute
   PosAppPatientRecordsRoute: typeof PosAppPatientRecordsRoute
@@ -5249,6 +5269,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppNotifikasiRoute: PosAppNotifikasiRoute,
   PosAppOnlineOrdersRoute: PosAppOnlineOrdersRoute,
   PosAppOpenBillsRoute: PosAppOpenBillsRoute,
+  PosAppOrderAuditRoute: PosAppOrderAuditRoute,
   PosAppOrdersRoute: PosAppOrdersRoute,
   PosAppOutletsRoute: PosAppOutletsRoute,
   PosAppPatientRecordsRoute: PosAppPatientRecordsRoute,
