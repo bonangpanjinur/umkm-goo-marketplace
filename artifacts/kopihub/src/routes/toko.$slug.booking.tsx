@@ -431,21 +431,24 @@ export default function PublicBookingPage() {
   // Step labels — dynamic based on staff + packages + id-upload availability
   const stepKeys: Step[] = [
     "date", "slot",
-    ...(hasStaff    ? ["staff"    as Step] : []),
-    ...(hasPackages ? ["packages" as Step] : []),
-    ...(needsDoc    ? ["document" as Step] : []),
+    ...(hasStaff     ? ["staff"     as Step] : []),
+    ...(hasLocations ? ["location"  as Step] : []),
+    ...(hasPackages  ? ["packages"  as Step] : []),
+    ...(needsDoc     ? ["document"  as Step] : []),
     "form",
   ];
   const stepLabels = [
     "Pilih Tanggal", "Pilih Waktu",
-    ...(hasStaff    ? ["Pilih Staff"]    : []),
-    ...(hasPackages ? ["Paket & Add-on"] : []),
-    ...(needsDoc    ? ["Upload Dokumen"] : []),
+    ...(hasStaff     ? ["Pilih Staff"]      : []),
+    ...(hasLocations ? ["Pilih Lokasi"]     : []),
+    ...(hasPackages  ? ["Paket & Add-on"]   : []),
+    ...(needsDoc     ? ["Upload Dokumen"]   : []),
     "Isi Data",
   ];
 
-  const afterSlot     = hasStaff ? "staff" : (hasPackages ? "packages" : (needsDoc ? "document" : "form"));
-  const afterStaff    = hasPackages ? "packages" : (needsDoc ? "document" : "form");
+  const afterSlot     = hasStaff ? "staff" : (hasLocations ? "location" : (hasPackages ? "packages" : (needsDoc ? "document" : "form")));
+  const afterStaff    = hasLocations ? "location" : (hasPackages ? "packages" : (needsDoc ? "document" : "form"));
+  const afterLocation = hasPackages ? "packages" : (needsDoc ? "document" : "form");
   const afterPackages = needsDoc ? "document" : "form";
   const afterDoc      = "form" as Step;
 
