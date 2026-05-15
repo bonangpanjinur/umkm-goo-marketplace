@@ -155,6 +155,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/testimonials",     label: "Testimoni",         icon: Quote,     onlyFor: ["sales-pro"] },
       { to: "/pos-app/leads",            label: "Lead / CRM",        icon: Inbox,     onlyFor: ["sales-pro"] },
       { to: "/pos-app/about-page",       label: "Halaman Tentang",   icon: Info,      onlyFor: ["sales-pro"] },
+    ],
+  },
   {
     id: "orders",
     label: "Pesanan",
