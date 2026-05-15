@@ -922,31 +922,29 @@ export default function PublicBookingPage() {
                   const isFull = remaining <= 0;
                   const isSelected = selectedSlot?.id === slot.id;
                   return (
-                    <div key={slot.id} className={`relative rounded-xl border p-4 transition-all ${
-                      isFull
-                        ? "border-border bg-muted/40 opacity-80"
-                        : isSelected
-                          ? "border-primary bg-primary/5 ring-2 ring-primary"
-                          : "border-border hover:border-primary/50 hover:shadow-md cursor-pointer"
-                    }`}
+                    <div
+                      key={slot.id}
                       onClick={() => {
-                        if (isFull) return;
+                        if (isFull) {
+                          setSelectedSlot(slot);
+                          setSelectedStaffId(NO_PREF_STAFF_ID);
+                          setAppliedVoucher(null);
+                          setVoucherInput("");
+                          setStep("waitlist");
+                          return;
+                        }
                         setSelectedSlot(slot);
                         setSelectedStaffId(NO_PREF_STAFF_ID);
                         setAppliedVoucher(null);
                         setVoucherInput("");
-                        if (isFull) {
-                          setStep("waitlist");
-                        } else {
-                          setStep(afterSlot);
-                        }
+                        setStep(afterSlot);
                       }}
-                      className={`text-left rounded-xl border p-4 transition-all hover:shadow-md ${
+                      className={`relative text-left rounded-xl border p-4 transition-all cursor-pointer ${
                         isFull
-                          ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 hover:border-amber-400"
+                          ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 opacity-80 hover:border-amber-400"
                           : isSelected
                             ? "border-primary bg-primary/5 ring-2 ring-primary"
-                            : "border-border hover:border-primary/50"
+                            : "border-border hover:border-primary/50 hover:shadow-md"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
