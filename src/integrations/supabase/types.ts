@@ -7466,6 +7466,7 @@ export type Database = {
         Args: { _opening_cash: number; _outlet_id: string }
         Returns: string
       }
+      process_subscription_renewals: { Args: never; Returns: Json }
       receive_purchase_order: { Args: { _po_id: string }; Returns: undefined }
       refund_order: {
         Args: {
@@ -7508,6 +7509,7 @@ export type Database = {
         }
         Returns: Json
       }
+      run_expiry_reminders_v2: { Args: never; Returns: Json }
       run_scheduled_publishes: { Args: never; Returns: Json }
       send_booking_reminders: { Args: never; Returns: Json }
       send_membership_expiry_reminders: { Args: never; Returns: number }
