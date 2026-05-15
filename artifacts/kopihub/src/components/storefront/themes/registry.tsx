@@ -3,10 +3,14 @@ import type { ThemeHomeProps } from "./types";
 
 const ClassicHome = lazy(() => import("./classic/Home"));
 const MinimalHome = lazy(() => import("./minimal/Home"));
+const UmrohHome = lazy(() => import("./umroh/Home"));
+const SalesProHome = lazy(() => import("./sales-pro/Home"));
 
 const HOMES: Record<string, ComponentType<ThemeHomeProps>> = {
   classic: ClassicHome,
   minimal: MinimalHome,
+  umroh: UmrohHome,
+  "sales-pro": SalesProHome,
   // dark-luxe & vibrant fallback ke classic untuk batch ini
   "dark-luxe": ClassicHome,
   vibrant: ClassicHome,
