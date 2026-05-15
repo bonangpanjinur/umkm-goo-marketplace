@@ -80,6 +80,7 @@ import {
   Inbox,
   Briefcase,
   Info,
+  Calculator,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -257,6 +258,9 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/studio-brief",         label: "Brief Form Klien",     icon: ClipboardList, hint: "Kirim link form brief ke klien sebelum sesi — mood, lokasi, outfit, referensi", onlyFor: SVC },
       { to: "/pos-app/studio-delivery",      label: "Kirim Hasil Foto",     icon: FolderOpen, hint: "Kirim link Google Drive/WeTransfer ke klien via WhatsApp setelah sesi selesai", onlyFor: SVC },
       { to: "/pos-app/studio-photo-reviews", label: "Ulasan Foto Klien",    icon: Star, hint: "Minta klien upload foto hasil sesi & tulis ulasan — tampil sebagai social proof di toko", onlyFor: SVC },
+      { to: "/pos-app/studio-locations",      label: "Lokasi Sesi Foto",     icon: Navigation, hint: "Kelola opsi lokasi sesi: studio, outdoor, atau lokasi klien — dengan biaya tambahan — SF-03", onlyFor: SVC },
+      { to: "/pos-app/patient-records",       label: "Rekam Medis Pasien",   icon: Stethoscope, hint: "Riwayat kunjungan, diagnosis, dan tindakan per pasien — KL-03", onlyFor: SVC },
+      { to: "/pos-app/job-deliverables",      label: "Kirim Hasil Kerja",    icon: FolderOpen, hint: "Kirim file hasil pekerjaan ke klien lewat link aman — JU-05", onlyFor: DIGITAL_SVC },
     ],
   },
   {
@@ -270,6 +274,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/upsell",        label: "Sering Dibeli Bersama",  icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
       { to: "/pos-app/pre-orders",    label: "Pre-Order Mode",         icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch", onlyFor: [...FNB, "craft"] },
       { to: "/pos-app/custom-orders", label: "Permintaan Custom",      icon: FileText, hint: "Kelola permintaan custom order dari pembeli", onlyFor: [...SVC_CRAFT, "fnb"] },
+      { to: "/pos-app/custom-order-quotes", label: "Estimasi Biaya Custom", icon: Calculator, hint: "Kirim estimasi biaya ke pembeli untuk custom order — pembeli setujui/tolak via WhatsApp", onlyFor: [...SVC_CRAFT, "fnb"] },
     ],
   },
   {

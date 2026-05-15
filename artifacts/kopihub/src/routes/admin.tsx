@@ -24,6 +24,7 @@ const NAV = [
   { to: "/admin/plans", label: "Paket", icon: Package },
   { to: "/admin/catalog", label: "Katalog", icon: Blocks },
   { to: "/admin/categories", label: "Kategori Usaha", icon: Tags },
+  { to: "/admin/booking-config", label: "Konfigurasi Booking", icon: Clock },
   { to: "/admin/commission", label: "Konfigurasi Komisi", icon: Percent },
   { to: "/admin/payment-config", label: "Payment Gateway", icon: CreditCard },
   { to: "/admin/ai-settings", label: "Pengaturan AI", icon: Sparkles },
