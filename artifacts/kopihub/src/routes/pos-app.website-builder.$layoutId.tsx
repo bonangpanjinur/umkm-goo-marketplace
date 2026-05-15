@@ -18,7 +18,7 @@ import { builderConfig } from "@/builder/config";
 import { diffPuckData } from "@/builder/diff";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Save, Eye, EyeOff, ExternalLink, Loader2, Lock,
+  ArrowLeft, Eye, EyeOff, ExternalLink, Loader2, Lock,
   Monitor, Tablet, Smartphone, History, RotateCcw, X, CalendarClock,
   Plus, Minus, Edit3, Move, GitCompare,
 } from "lucide-react";
