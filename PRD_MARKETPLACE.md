@@ -2945,3 +2945,23 @@ WHERE s.shop_id = :shop_id
 | Booking Rental | Reservasi barang/kendaraan/tempat dengan rentang tanggal sewa |
 | Booking Tempat | Reservasi meja/venue berdasarkan tanggal + kapasitas |
 | Shop Count | Jumlah toko aktif per kategori — menentukan apakah kategori tampil di homepage |
+
+
+## 📋 Backlog Aktual (Audit 15 Mei 2026)
+
+Daftar item yang teridentifikasi belum diimplementasi pada audit otomatis 15 Mei 2026.
+
+### Sudah ditandai ✅ pada audit ini
+
+### Belum diimplementasi (kandidat sprint berikutnya)
+
+Catatan: list ini fokus pada item yang punya keyword spesifik di PRD tapi tidak ada file route padanannya. Item lain yang masih ❌ tapi belum punya keyword kandidat (mis. recurring billing F-02) tetap di tabel asalnya.
+
+| Item | Modul | Estimasi |
+|------|-------|----------|
+| Eksekusi checkout paket via Midtrans/Xendit (server fn + webhook) | Billing | 3 hari |
+| Reschedule mandiri booking via token | Booking | 2 hari |
+| Paket layanan (bundle) untuk booking jasa | Booking | 2 hari |
+| Recurring billing & auto-debit subscription produk (F-02) | Marketplace | 5 hari |
+| Refactor cron auto-renewal membaca rule dari `expiry_reminder_rules` | Platform | 1 hari |
+| Halaman checkout paket di `/pos-app/billing` (multi-method) | Owner UI | 2 hari |

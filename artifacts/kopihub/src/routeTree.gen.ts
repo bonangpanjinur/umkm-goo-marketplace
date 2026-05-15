@@ -185,6 +185,7 @@ import { Route as AdminRevenueLeakageRouteImport } from './routes/admin.revenue-
 import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPushConfigRouteImport } from './routes/admin.push-config'
+import { Route as AdminPlatformBillingRouteImport } from './routes/admin.platform-billing'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminPayoutSchedulerRouteImport } from './routes/admin.payout-scheduler'
 import { Route as AdminPaymentConfigRouteImport } from './routes/admin.payment-config'
@@ -203,6 +204,7 @@ import { Route as AdminFraudRouteImport } from './routes/admin.fraud'
 import { Route as AdminFinancialReportRouteImport } from './routes/admin.financial-report'
 import { Route as AdminFeeSimulatorRouteImport } from './routes/admin.fee-simulator'
 import { Route as AdminFeatureFlagsRouteImport } from './routes/admin.feature-flags'
+import { Route as AdminExpiryRemindersRouteImport } from './routes/admin.expiry-reminders'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
@@ -1145,6 +1147,11 @@ const AdminPushConfigRoute = AdminPushConfigRouteImport.update({
   path: '/push-config',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPlatformBillingRoute = AdminPlatformBillingRouteImport.update({
+  id: '/platform-billing',
+  path: '/platform-billing',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -1235,6 +1242,11 @@ const AdminFeeSimulatorRoute = AdminFeeSimulatorRouteImport.update({
 const AdminFeatureFlagsRoute = AdminFeatureFlagsRouteImport.update({
   id: '/feature-flags',
   path: '/feature-flags',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminExpiryRemindersRoute = AdminExpiryRemindersRouteImport.update({
+  id: '/expiry-reminders',
+  path: '/expiry-reminders',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDomainsRoute = AdminDomainsRouteImport.update({
@@ -1564,6 +1576,7 @@ export interface FileRoutesByFullPath {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
@@ -1582,6 +1595,7 @@ export interface FileRoutesByFullPath {
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/payout-scheduler': typeof AdminPayoutSchedulerRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/platform-billing': typeof AdminPlatformBillingRoute
   '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -1814,6 +1828,7 @@ export interface FileRoutesByTo {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
@@ -1832,6 +1847,7 @@ export interface FileRoutesByTo {
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/payout-scheduler': typeof AdminPayoutSchedulerRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/platform-billing': typeof AdminPlatformBillingRoute
   '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -2066,6 +2082,7 @@ export interface FileRoutesById {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
@@ -2084,6 +2101,7 @@ export interface FileRoutesById {
   '/admin/payment-config': typeof AdminPaymentConfigRoute
   '/admin/payout-scheduler': typeof AdminPayoutSchedulerRoute
   '/admin/plans': typeof AdminPlansRouteWithChildren
+  '/admin/platform-billing': typeof AdminPlatformBillingRoute
   '/admin/push-config': typeof AdminPushConfigRoute
   '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -2321,6 +2339,7 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/expiry-reminders'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
     | '/admin/financial-report'
@@ -2339,6 +2358,7 @@ export interface FileRouteTypes {
     | '/admin/payment-config'
     | '/admin/payout-scheduler'
     | '/admin/plans'
+    | '/admin/platform-billing'
     | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
@@ -2571,6 +2591,7 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/expiry-reminders'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
     | '/admin/financial-report'
@@ -2589,6 +2610,7 @@ export interface FileRouteTypes {
     | '/admin/payment-config'
     | '/admin/payout-scheduler'
     | '/admin/plans'
+    | '/admin/platform-billing'
     | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
@@ -2822,6 +2844,7 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/expiry-reminders'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
     | '/admin/financial-report'
@@ -2840,6 +2863,7 @@ export interface FileRouteTypes {
     | '/admin/payment-config'
     | '/admin/payout-scheduler'
     | '/admin/plans'
+    | '/admin/platform-billing'
     | '/admin/push-config'
     | '/admin/reconciliation'
     | '/admin/revenue'
@@ -4303,6 +4327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPushConfigRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/platform-billing': {
+      id: '/admin/platform-billing'
+      path: '/platform-billing'
+      fullPath: '/admin/platform-billing'
+      preLoaderRoute: typeof AdminPlatformBillingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/plans': {
       id: '/admin/plans'
       path: '/plans'
@@ -4427,6 +4458,13 @@ declare module '@tanstack/react-router' {
       path: '/feature-flags'
       fullPath: '/admin/feature-flags'
       preLoaderRoute: typeof AdminFeatureFlagsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/expiry-reminders': {
+      id: '/admin/expiry-reminders'
+      path: '/expiry-reminders'
+      fullPath: '/admin/expiry-reminders'
+      preLoaderRoute: typeof AdminExpiryRemindersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/domains': {
@@ -4889,6 +4927,7 @@ interface AdminRouteChildren {
   AdminCommissionRoute: typeof AdminCommissionRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
+  AdminExpiryRemindersRoute: typeof AdminExpiryRemindersRoute
   AdminFeatureFlagsRoute: typeof AdminFeatureFlagsRoute
   AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
   AdminFinancialReportRoute: typeof AdminFinancialReportRoute
@@ -4907,6 +4946,7 @@ interface AdminRouteChildren {
   AdminPaymentConfigRoute: typeof AdminPaymentConfigRoute
   AdminPayoutSchedulerRoute: typeof AdminPayoutSchedulerRoute
   AdminPlansRoute: typeof AdminPlansRouteWithChildren
+  AdminPlatformBillingRoute: typeof AdminPlatformBillingRoute
   AdminPushConfigRoute: typeof AdminPushConfigRoute
   AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
@@ -4945,6 +4985,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCommissionRoute: AdminCommissionRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
+  AdminExpiryRemindersRoute: AdminExpiryRemindersRoute,
   AdminFeatureFlagsRoute: AdminFeatureFlagsRoute,
   AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
   AdminFinancialReportRoute: AdminFinancialReportRoute,
@@ -4963,6 +5004,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPaymentConfigRoute: AdminPaymentConfigRoute,
   AdminPayoutSchedulerRoute: AdminPayoutSchedulerRoute,
   AdminPlansRoute: AdminPlansRouteWithChildren,
+  AdminPlatformBillingRoute: AdminPlatformBillingRoute,
   AdminPushConfigRoute: AdminPushConfigRoute,
   AdminReconciliationRoute: AdminReconciliationRoute,
   AdminRevenueRoute: AdminRevenueRoute,

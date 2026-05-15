@@ -966,6 +966,7 @@ export type Database = {
           tax_percent: number
           total_gmv: number
           total_sales_count: number
+          trial_ends_at: string | null
           updated_at: string
           verification_status: string
           verified_at: string | null
@@ -1028,6 +1029,7 @@ export type Database = {
           tax_percent?: number
           total_gmv?: number
           total_sales_count?: number
+          trial_ends_at?: string | null
           updated_at?: string
           verification_status?: string
           verified_at?: string | null
@@ -1090,6 +1092,7 @@ export type Database = {
           tax_percent?: number
           total_gmv?: number
           total_sales_count?: number
+          trial_ends_at?: string | null
           updated_at?: string
           verification_status?: string
           verified_at?: string | null
@@ -1864,6 +1867,45 @@ export type Database = {
           id?: string
           result?: string | null
           shop_id?: string
+        }
+        Relationships: []
+      }
+      expiry_reminder_rules: {
+        Row: {
+          audience: string
+          channels: string[]
+          created_at: string
+          days_before: number
+          id: string
+          is_active: boolean
+          sort_order: number
+          template_body: string
+          template_subject: string
+          updated_at: string
+        }
+        Insert: {
+          audience: string
+          channels?: string[]
+          created_at?: string
+          days_before: number
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          template_body: string
+          template_subject: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          channels?: string[]
+          created_at?: string
+          days_before?: number
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          template_body?: string
+          template_subject?: string
+          updated_at?: string
         }
         Relationships: []
       }
