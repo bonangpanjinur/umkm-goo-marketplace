@@ -67,7 +67,13 @@ function ShopHome() {
 
   if (!shop) return <p className="text-muted-foreground text-sm">Memuat menu…</p>;
 
-  const themeKey = (shop as unknown as { active_theme_key?: string }).active_theme_key ?? "classic";
+  const shopAny = shop as unknown as { active_theme_key?: string; business_subtype?: string | null; business_category?: { slug?: string | null } | null };
+  const catSlug = (shopAny.business_category?.slug ?? "").toLowerCase();
+  const subtype = shopAny.business_subtype ?? null;
+  let themeKey = shopAny.active_theme_key ?? "classic";
+  if (catSlug === "sales-jasa-profesional") {
+    themeKey = subtype === "umroh" ? "umroh" : "sales-pro";
+  }
   const onAdd = (i: StorefrontItem) => {
     addToCart(slug, { menu_item_id: i.id, name: i.name, price: Number(i.price), image_url: i.image_url });
     toast.success(`${i.name} ditambahkan`);
