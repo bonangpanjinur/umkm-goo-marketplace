@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@measured/puck": "^0.20.2",
     "@supabase/supabase-js": "^2.105.1",
     "@tanstack/react-router": "^1.169.1",
     "jspdf": "^4.2.1",

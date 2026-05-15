@@ -33,6 +33,7 @@ import { Route as TokoSlugRouteImport } from './routes/toko.$slug'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wishlist-analytics'
 import { Route as PosAppWipGalleryRouteImport } from './routes/pos-app.wip-gallery'
+import { Route as PosAppWebsiteBuilderRouteImport } from './routes/pos-app.website-builder'
 import { Route as PosAppWalletConfigRouteImport } from './routes/pos-app.wallet-config'
 import { Route as PosAppWalletApprovalsRouteImport } from './routes/pos-app.wallet-approvals'
 import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
@@ -230,6 +231,7 @@ import { Route as SSlugMeRouteImport } from './routes/s.$slug.me'
 import { Route as SSlugLoginRouteImport } from './routes/s.$slug.login'
 import { Route as SSlugCheckoutRouteImport } from './routes/s.$slug.checkout'
 import { Route as SSlugCartRouteImport } from './routes/s.$slug.cart'
+import { Route as PosAppWebsiteBuilderLayoutIdRouteImport } from './routes/pos-app.website-builder.$layoutId'
 import { Route as PosAppReportsProfitRouteImport } from './routes/pos-app.reports.profit'
 import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.purchase-orders.$poId'
 import { Route as PosAppMenuImportRouteImport } from './routes/pos-app.menu.import'
@@ -367,6 +369,11 @@ const PosAppWishlistAnalyticsRoute = PosAppWishlistAnalyticsRouteImport.update({
 const PosAppWipGalleryRoute = PosAppWipGalleryRouteImport.update({
   id: '/wip-gallery',
   path: '/wip-gallery',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppWebsiteBuilderRoute = PosAppWebsiteBuilderRouteImport.update({
+  id: '/website-builder',
+  path: '/website-builder',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppWalletConfigRoute = PosAppWalletConfigRouteImport.update({
@@ -1360,6 +1367,12 @@ const SSlugCartRoute = SSlugCartRouteImport.update({
   path: '/cart',
   getParentRoute: () => SSlugRoute,
 } as any)
+const PosAppWebsiteBuilderLayoutIdRoute =
+  PosAppWebsiteBuilderLayoutIdRouteImport.update({
+    id: '/$layoutId',
+    path: '/$layoutId',
+    getParentRoute: () => PosAppWebsiteBuilderRoute,
+  } as any)
 const PosAppReportsProfitRoute = PosAppReportsProfitRouteImport.update({
   id: '/profit',
   path: '/profit',
@@ -1650,6 +1663,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
   '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
+  '/pos-app/website-builder': typeof PosAppWebsiteBuilderRouteWithChildren
   '/pos-app/wip-gallery': typeof PosAppWipGalleryRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -1672,6 +1686,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
+  '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
@@ -1887,6 +1902,7 @@ export interface FileRoutesByTo {
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
   '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
+  '/pos-app/website-builder': typeof PosAppWebsiteBuilderRouteWithChildren
   '/pos-app/wip-gallery': typeof PosAppWipGalleryRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/toko/$slug': typeof TokoSlugRouteWithChildren
@@ -1908,6 +1924,7 @@ export interface FileRoutesByTo {
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
+  '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
@@ -2128,6 +2145,7 @@ export interface FileRoutesById {
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
   '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
+  '/pos-app/website-builder': typeof PosAppWebsiteBuilderRouteWithChildren
   '/pos-app/wip-gallery': typeof PosAppWipGalleryRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -2150,6 +2168,7 @@ export interface FileRoutesById {
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
+  '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
@@ -2371,6 +2390,7 @@ export interface FileRouteTypes {
     | '/pos-app/waitlist'
     | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
+    | '/pos-app/website-builder'
     | '/pos-app/wip-gallery'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
@@ -2393,6 +2413,7 @@ export interface FileRouteTypes {
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
+    | '/pos-app/website-builder/$layoutId'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
@@ -2608,6 +2629,7 @@ export interface FileRouteTypes {
     | '/pos-app/waitlist'
     | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
+    | '/pos-app/website-builder'
     | '/pos-app/wip-gallery'
     | '/pos-app/wishlist-analytics'
     | '/toko/$slug'
@@ -2629,6 +2651,7 @@ export interface FileRouteTypes {
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
+    | '/pos-app/website-builder/$layoutId'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
@@ -2848,6 +2871,7 @@ export interface FileRouteTypes {
     | '/pos-app/waitlist'
     | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
+    | '/pos-app/website-builder'
     | '/pos-app/wip-gallery'
     | '/pos-app/wishlist-analytics'
     | '/s/$slug'
@@ -2870,6 +2894,7 @@ export interface FileRouteTypes {
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
+    | '/pos-app/website-builder/$layoutId'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
@@ -3090,6 +3115,13 @@ declare module '@tanstack/react-router' {
       path: '/wip-gallery'
       fullPath: '/pos-app/wip-gallery'
       preLoaderRoute: typeof PosAppWipGalleryRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/website-builder': {
+      id: '/pos-app/website-builder'
+      path: '/website-builder'
+      fullPath: '/pos-app/website-builder'
+      preLoaderRoute: typeof PosAppWebsiteBuilderRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/wallet-config': {
@@ -4471,6 +4503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugCartRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/pos-app/website-builder/$layoutId': {
+      id: '/pos-app/website-builder/$layoutId'
+      path: '/$layoutId'
+      fullPath: '/pos-app/website-builder/$layoutId'
+      preLoaderRoute: typeof PosAppWebsiteBuilderLayoutIdRouteImport
+      parentRoute: typeof PosAppWebsiteBuilderRoute
+    }
     '/pos-app/reports/profit': {
       id: '/pos-app/reports/profit'
       path: '/profit'
@@ -4858,6 +4897,17 @@ const PosAppReportsRouteWithChildren = PosAppReportsRoute._addFileChildren(
   PosAppReportsRouteChildren,
 )
 
+interface PosAppWebsiteBuilderRouteChildren {
+  PosAppWebsiteBuilderLayoutIdRoute: typeof PosAppWebsiteBuilderLayoutIdRoute
+}
+
+const PosAppWebsiteBuilderRouteChildren: PosAppWebsiteBuilderRouteChildren = {
+  PosAppWebsiteBuilderLayoutIdRoute: PosAppWebsiteBuilderLayoutIdRoute,
+}
+
+const PosAppWebsiteBuilderRouteWithChildren =
+  PosAppWebsiteBuilderRoute._addFileChildren(PosAppWebsiteBuilderRouteChildren)
+
 interface PosAppRouteChildren {
   PosAppAboutPageRoute: typeof PosAppAboutPageRoute
   PosAppAnamnesisRoute: typeof PosAppAnamnesisRoute
@@ -4970,6 +5020,7 @@ interface PosAppRouteChildren {
   PosAppWaitlistRoute: typeof PosAppWaitlistRoute
   PosAppWalletApprovalsRoute: typeof PosAppWalletApprovalsRoute
   PosAppWalletConfigRoute: typeof PosAppWalletConfigRoute
+  PosAppWebsiteBuilderRoute: typeof PosAppWebsiteBuilderRouteWithChildren
   PosAppWipGalleryRoute: typeof PosAppWipGalleryRoute
   PosAppWishlistAnalyticsRoute: typeof PosAppWishlistAnalyticsRoute
   PosAppIndexRoute: typeof PosAppIndexRoute
@@ -5087,6 +5138,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppWaitlistRoute: PosAppWaitlistRoute,
   PosAppWalletApprovalsRoute: PosAppWalletApprovalsRoute,
   PosAppWalletConfigRoute: PosAppWalletConfigRoute,
+  PosAppWebsiteBuilderRoute: PosAppWebsiteBuilderRouteWithChildren,
   PosAppWipGalleryRoute: PosAppWipGalleryRoute,
   PosAppWishlistAnalyticsRoute: PosAppWishlistAnalyticsRoute,
   PosAppIndexRoute: PosAppIndexRoute,

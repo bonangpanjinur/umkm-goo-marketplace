@@ -1,11 +1,16 @@
 import { createFileRoute, Link, useParams, getRouteApi } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { addToCart } from "@/lib/customer-cart";
 import { toast } from "sonner";
 import { shopStatus } from "@/lib/shop-hours";
 import { ThemedHome } from "@/components/storefront/themes/registry";
 import type { StorefrontItem } from "@/components/storefront/themes/types";
+import { getPublishedLayoutForShop, type PageLayout } from "@/server/page-layouts.functions";
+import { BuilderProvider } from "@/builder/BuilderContext";
+import { builderConfig } from "@/builder/config";
+
+const PuckRender = lazy(() => import("@measured/puck").then((m) => ({ default: m.Render })));
 
 export const Route = createFileRoute("/s/$slug/")({
   component: ShopHome,
@@ -32,6 +37,16 @@ function ShopHome() {
   const [activeCat, setActiveCat] = useState<string>("all");
   const [q, setQ] = useState("");
   const [hideUnavailable] = useState(true);
+  const [customLayout, setCustomLayout] = useState<PageLayout | null>(null);
+  const [layoutChecked, setLayoutChecked] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    getPublishedLayoutForShop({ slug, page_type: "home" })
+      .then((l) => setCustomLayout(l))
+      .catch(() => setCustomLayout(null))
+      .finally(() => setLayoutChecked(true));
+  }, [slug]);
 
   useEffect(() => {
     if (!shop) return;
@@ -66,6 +81,17 @@ function ShopHome() {
   }, [items, activeCat, q, hideUnavailable]);
 
   if (!shop) return <p className="text-muted-foreground text-sm">Memuat menu…</p>;
+
+  // If a published custom layout exists, render it instead of the theme.
+  if (layoutChecked && customLayout) {
+    return (
+      <BuilderProvider value={{ slug, shopId: shop.id }}>
+        <Suspense fallback={<p className="text-muted-foreground text-sm">Memuat halaman…</p>}>
+          <PuckRender config={builderConfig as never} data={customLayout.puck_data as never} />
+        </Suspense>
+      </BuilderProvider>
+    );
+  }
 
   const shopAny = shop as unknown as { active_theme_key?: string; business_subtype?: string | null; business_category?: { slug?: string | null } | null };
   const catSlug = (shopAny.business_category?.slug ?? "").toLowerCase();
