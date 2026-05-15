@@ -40,6 +40,10 @@ import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVerifiedClaimsRouteImport } from './routes/pos-app.verified-claims'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
 import { Route as PosAppUpsellRouteImport } from './routes/pos-app.upsell'
+import { Route as PosAppUmrohPackagesRouteImport } from './routes/pos-app.umroh-packages'
+import { Route as PosAppUmrohFaqRouteImport } from './routes/pos-app.umroh-faq'
+import { Route as PosAppUmrohFacilitiesRouteImport } from './routes/pos-app.umroh-facilities'
+import { Route as PosAppTestimonialsRouteImport } from './routes/pos-app.testimonials'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
@@ -57,6 +61,7 @@ import { Route as PosAppShippingLabelsRouteImport } from './routes/pos-app.shipp
 import { Route as PosAppShiftsRouteImport } from './routes/pos-app.shifts'
 import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
+import { Route as PosAppSalesOfferingsRouteImport } from './routes/pos-app.sales-offerings'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
 import { Route as PosAppRestockNotifyRouteImport } from './routes/pos-app.restock-notify'
 import { Route as PosAppReservasiRouteImport } from './routes/pos-app.reservasi'
@@ -92,6 +97,7 @@ import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppLookbookRouteImport } from './routes/pos-app.lookbook'
 import { Route as PosAppLimitedEditionsRouteImport } from './routes/pos-app.limited-editions'
+import { Route as PosAppLeadsRouteImport } from './routes/pos-app.leads'
 import { Route as PosAppLaporanHarianRouteImport } from './routes/pos-app.laporan-harian'
 import { Route as PosAppKycRouteImport } from './routes/pos-app.kyc'
 import { Route as PosAppKursusRouteImport } from './routes/pos-app.kursus'
@@ -104,6 +110,7 @@ import { Route as PosAppInboxRouteImport } from './routes/pos-app.inbox'
 import { Route as PosAppIklanRouteImport } from './routes/pos-app.iklan'
 import { Route as PosAppHappyHourRouteImport } from './routes/pos-app.happy-hour'
 import { Route as PosAppFollowupRemindersRouteImport } from './routes/pos-app.followup-reminders'
+import { Route as PosAppFlyersRouteImport } from './routes/pos-app.flyers'
 import { Route as PosAppFlashSaleRouteImport } from './routes/pos-app.flash-sale'
 import { Route as PosAppEmployeesRouteImport } from './routes/pos-app.employees'
 import { Route as PosAppEmailMarketingRouteImport } from './routes/pos-app.email-marketing'
@@ -136,6 +143,7 @@ import { Route as PosAppAtributRouteImport } from './routes/pos-app.atribut'
 import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearance'
 import { Route as PosAppAntrianRouteImport } from './routes/pos-app.antrian'
 import { Route as PosAppAnamnesisRouteImport } from './routes/pos-app.anamnesis'
+import { Route as PosAppAboutPageRouteImport } from './routes/pos-app.about-page'
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as OrderSlugRouteImport } from './routes/order.$slug'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
@@ -396,6 +404,26 @@ const PosAppUpsellRoute = PosAppUpsellRouteImport.update({
   path: '/upsell',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppUmrohPackagesRoute = PosAppUmrohPackagesRouteImport.update({
+  id: '/umroh-packages',
+  path: '/umroh-packages',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppUmrohFaqRoute = PosAppUmrohFaqRouteImport.update({
+  id: '/umroh-faq',
+  path: '/umroh-faq',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppUmrohFacilitiesRoute = PosAppUmrohFacilitiesRouteImport.update({
+  id: '/umroh-facilities',
+  path: '/umroh-facilities',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppTestimonialsRoute = PosAppTestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppTablesRoute = PosAppTablesRouteImport.update({
   id: '/tables',
   path: '/tables',
@@ -480,6 +508,11 @@ const PosAppSettingsRoute = PosAppSettingsRouteImport.update({
 const PosAppScheduleRoute = PosAppScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppSalesOfferingsRoute = PosAppSalesOfferingsRouteImport.update({
+  id: '/sales-offerings',
+  path: '/sales-offerings',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppReviewsRoute = PosAppReviewsRouteImport.update({
@@ -660,6 +693,11 @@ const PosAppLimitedEditionsRoute = PosAppLimitedEditionsRouteImport.update({
   path: '/limited-editions',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppLeadsRoute = PosAppLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppLaporanHarianRoute = PosAppLaporanHarianRouteImport.update({
   id: '/laporan-harian',
   path: '/laporan-harian',
@@ -718,6 +756,11 @@ const PosAppHappyHourRoute = PosAppHappyHourRouteImport.update({
 const PosAppFollowupRemindersRoute = PosAppFollowupRemindersRouteImport.update({
   id: '/followup-reminders',
   path: '/followup-reminders',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppFlyersRoute = PosAppFlyersRouteImport.update({
+  id: '/flyers',
+  path: '/flyers',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppFlashSaleRoute = PosAppFlashSaleRouteImport.update({
@@ -878,6 +921,11 @@ const PosAppAntrianRoute = PosAppAntrianRouteImport.update({
 const PosAppAnamnesisRoute = PosAppAnamnesisRouteImport.update({
   id: '/anamnesis',
   path: '/anamnesis',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppAboutPageRoute = PosAppAboutPageRouteImport.update({
+  id: '/about-page',
+  path: '/about-page',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PesananOrderIdRoute = PesananOrderIdRouteImport.update({
@@ -1491,6 +1539,7 @@ export interface FileRoutesByFullPath {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
+  '/pos-app/about-page': typeof PosAppAboutPageRoute
   '/pos-app/anamnesis': typeof PosAppAnamnesisRoute
   '/pos-app/antrian': typeof PosAppAntrianRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
@@ -1523,6 +1572,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
+  '/pos-app/flyers': typeof PosAppFlyersRoute
   '/pos-app/followup-reminders': typeof PosAppFollowupRemindersRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
@@ -1535,6 +1585,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/kursus': typeof PosAppKursusRoute
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
+  '/pos-app/leads': typeof PosAppLeadsRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -1570,6 +1621,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
@@ -1587,6 +1639,10 @@ export interface FileRoutesByFullPath {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/testimonials': typeof PosAppTestimonialsRoute
+  '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
+  '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
+  '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
@@ -1720,6 +1776,7 @@ export interface FileRoutesByTo {
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
+  '/pos-app/about-page': typeof PosAppAboutPageRoute
   '/pos-app/anamnesis': typeof PosAppAnamnesisRoute
   '/pos-app/antrian': typeof PosAppAntrianRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
@@ -1752,6 +1809,7 @@ export interface FileRoutesByTo {
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
+  '/pos-app/flyers': typeof PosAppFlyersRoute
   '/pos-app/followup-reminders': typeof PosAppFollowupRemindersRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
@@ -1764,6 +1822,7 @@ export interface FileRoutesByTo {
   '/pos-app/kursus': typeof PosAppKursusRoute
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
+  '/pos-app/leads': typeof PosAppLeadsRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -1799,6 +1858,7 @@ export interface FileRoutesByTo {
   '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
@@ -1816,6 +1876,10 @@ export interface FileRoutesByTo {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/testimonials': typeof PosAppTestimonialsRoute
+  '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
+  '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
+  '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
@@ -1953,6 +2017,7 @@ export interface FileRoutesById {
   '/kategori/$slug': typeof KategoriSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
+  '/pos-app/about-page': typeof PosAppAboutPageRoute
   '/pos-app/anamnesis': typeof PosAppAnamnesisRoute
   '/pos-app/antrian': typeof PosAppAntrianRoute
   '/pos-app/appearance': typeof PosAppAppearanceRoute
@@ -1985,6 +2050,7 @@ export interface FileRoutesById {
   '/pos-app/email-marketing': typeof PosAppEmailMarketingRoute
   '/pos-app/employees': typeof PosAppEmployeesRoute
   '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
+  '/pos-app/flyers': typeof PosAppFlyersRoute
   '/pos-app/followup-reminders': typeof PosAppFollowupRemindersRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
@@ -1997,6 +2063,7 @@ export interface FileRoutesById {
   '/pos-app/kursus': typeof PosAppKursusRoute
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
+  '/pos-app/leads': typeof PosAppLeadsRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -2032,6 +2099,7 @@ export interface FileRoutesById {
   '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/settings': typeof PosAppSettingsRoute
   '/pos-app/shifts': typeof PosAppShiftsRoute
@@ -2049,6 +2117,10 @@ export interface FileRoutesById {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/testimonials': typeof PosAppTestimonialsRoute
+  '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
+  '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
+  '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
@@ -2188,6 +2260,7 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/order/$slug'
     | '/pesanan/$orderId'
+    | '/pos-app/about-page'
     | '/pos-app/anamnesis'
     | '/pos-app/antrian'
     | '/pos-app/appearance'
@@ -2220,6 +2293,7 @@ export interface FileRouteTypes {
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
     | '/pos-app/flash-sale'
+    | '/pos-app/flyers'
     | '/pos-app/followup-reminders'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
@@ -2232,6 +2306,7 @@ export interface FileRouteTypes {
     | '/pos-app/kursus'
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
+    | '/pos-app/leads'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -2267,6 +2342,7 @@ export interface FileRouteTypes {
     | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
+    | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
     | '/pos-app/settings'
     | '/pos-app/shifts'
@@ -2284,6 +2360,10 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/testimonials'
+    | '/pos-app/umroh-facilities'
+    | '/pos-app/umroh-faq'
+    | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
@@ -2417,6 +2497,7 @@ export interface FileRouteTypes {
     | '/katalog/$slug'
     | '/kategori/$slug'
     | '/pesanan/$orderId'
+    | '/pos-app/about-page'
     | '/pos-app/anamnesis'
     | '/pos-app/antrian'
     | '/pos-app/appearance'
@@ -2449,6 +2530,7 @@ export interface FileRouteTypes {
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
     | '/pos-app/flash-sale'
+    | '/pos-app/flyers'
     | '/pos-app/followup-reminders'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
@@ -2461,6 +2543,7 @@ export interface FileRouteTypes {
     | '/pos-app/kursus'
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
+    | '/pos-app/leads'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -2496,6 +2579,7 @@ export interface FileRouteTypes {
     | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
+    | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
     | '/pos-app/settings'
     | '/pos-app/shifts'
@@ -2513,6 +2597,10 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/testimonials'
+    | '/pos-app/umroh-facilities'
+    | '/pos-app/umroh-faq'
+    | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
@@ -2649,6 +2737,7 @@ export interface FileRouteTypes {
     | '/kategori/$slug'
     | '/order/$slug'
     | '/pesanan/$orderId'
+    | '/pos-app/about-page'
     | '/pos-app/anamnesis'
     | '/pos-app/antrian'
     | '/pos-app/appearance'
@@ -2681,6 +2770,7 @@ export interface FileRouteTypes {
     | '/pos-app/email-marketing'
     | '/pos-app/employees'
     | '/pos-app/flash-sale'
+    | '/pos-app/flyers'
     | '/pos-app/followup-reminders'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
@@ -2693,6 +2783,7 @@ export interface FileRouteTypes {
     | '/pos-app/kursus'
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
+    | '/pos-app/leads'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -2728,6 +2819,7 @@ export interface FileRouteTypes {
     | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
+    | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
     | '/pos-app/settings'
     | '/pos-app/shifts'
@@ -2745,6 +2837,10 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/testimonials'
+    | '/pos-app/umroh-facilities'
+    | '/pos-app/umroh-faq'
+    | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
@@ -3045,6 +3141,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppUpsellRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/umroh-packages': {
+      id: '/pos-app/umroh-packages'
+      path: '/umroh-packages'
+      fullPath: '/pos-app/umroh-packages'
+      preLoaderRoute: typeof PosAppUmrohPackagesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/umroh-faq': {
+      id: '/pos-app/umroh-faq'
+      path: '/umroh-faq'
+      fullPath: '/pos-app/umroh-faq'
+      preLoaderRoute: typeof PosAppUmrohFaqRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/umroh-facilities': {
+      id: '/pos-app/umroh-facilities'
+      path: '/umroh-facilities'
+      fullPath: '/pos-app/umroh-facilities'
+      preLoaderRoute: typeof PosAppUmrohFacilitiesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/testimonials': {
+      id: '/pos-app/testimonials'
+      path: '/testimonials'
+      fullPath: '/pos-app/testimonials'
+      preLoaderRoute: typeof PosAppTestimonialsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/tables': {
       id: '/pos-app/tables'
       path: '/tables'
@@ -3162,6 +3286,13 @@ declare module '@tanstack/react-router' {
       path: '/schedule'
       fullPath: '/pos-app/schedule'
       preLoaderRoute: typeof PosAppScheduleRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/sales-offerings': {
+      id: '/pos-app/sales-offerings'
+      path: '/sales-offerings'
+      fullPath: '/pos-app/sales-offerings'
+      preLoaderRoute: typeof PosAppSalesOfferingsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/reviews': {
@@ -3409,6 +3540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppLimitedEditionsRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/leads': {
+      id: '/pos-app/leads'
+      path: '/leads'
+      fullPath: '/pos-app/leads'
+      preLoaderRoute: typeof PosAppLeadsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/laporan-harian': {
       id: '/pos-app/laporan-harian'
       path: '/laporan-harian'
@@ -3491,6 +3629,13 @@ declare module '@tanstack/react-router' {
       path: '/followup-reminders'
       fullPath: '/pos-app/followup-reminders'
       preLoaderRoute: typeof PosAppFollowupRemindersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/flyers': {
+      id: '/pos-app/flyers'
+      path: '/flyers'
+      fullPath: '/pos-app/flyers'
+      preLoaderRoute: typeof PosAppFlyersRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/flash-sale': {
@@ -3715,6 +3860,13 @@ declare module '@tanstack/react-router' {
       path: '/anamnesis'
       fullPath: '/pos-app/anamnesis'
       preLoaderRoute: typeof PosAppAnamnesisRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/about-page': {
+      id: '/pos-app/about-page'
+      path: '/about-page'
+      fullPath: '/pos-app/about-page'
+      preLoaderRoute: typeof PosAppAboutPageRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pesanan/$orderId': {
@@ -4707,6 +4859,7 @@ const PosAppReportsRouteWithChildren = PosAppReportsRoute._addFileChildren(
 )
 
 interface PosAppRouteChildren {
+  PosAppAboutPageRoute: typeof PosAppAboutPageRoute
   PosAppAnamnesisRoute: typeof PosAppAnamnesisRoute
   PosAppAntrianRoute: typeof PosAppAntrianRoute
   PosAppAppearanceRoute: typeof PosAppAppearanceRoute
@@ -4739,6 +4892,7 @@ interface PosAppRouteChildren {
   PosAppEmailMarketingRoute: typeof PosAppEmailMarketingRoute
   PosAppEmployeesRoute: typeof PosAppEmployeesRoute
   PosAppFlashSaleRoute: typeof PosAppFlashSaleRoute
+  PosAppFlyersRoute: typeof PosAppFlyersRoute
   PosAppFollowupRemindersRoute: typeof PosAppFollowupRemindersRoute
   PosAppHappyHourRoute: typeof PosAppHappyHourRoute
   PosAppIklanRoute: typeof PosAppIklanRoute
@@ -4751,6 +4905,7 @@ interface PosAppRouteChildren {
   PosAppKursusRoute: typeof PosAppKursusRoute
   PosAppKycRoute: typeof PosAppKycRoute
   PosAppLaporanHarianRoute: typeof PosAppLaporanHarianRoute
+  PosAppLeadsRoute: typeof PosAppLeadsRoute
   PosAppLimitedEditionsRoute: typeof PosAppLimitedEditionsRoute
   PosAppLookbookRoute: typeof PosAppLookbookRoute
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
@@ -4786,6 +4941,7 @@ interface PosAppRouteChildren {
   PosAppReservasiRoute: typeof PosAppReservasiRoute
   PosAppRestockNotifyRoute: typeof PosAppRestockNotifyRoute
   PosAppReviewsRoute: typeof PosAppReviewsRoute
+  PosAppSalesOfferingsRoute: typeof PosAppSalesOfferingsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
   PosAppSettingsRoute: typeof PosAppSettingsRoute
   PosAppShiftsRoute: typeof PosAppShiftsRoute
@@ -4803,6 +4959,10 @@ interface PosAppRouteChildren {
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTableQrRoute: typeof PosAppTableQrRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
+  PosAppTestimonialsRoute: typeof PosAppTestimonialsRoute
+  PosAppUmrohFacilitiesRoute: typeof PosAppUmrohFacilitiesRoute
+  PosAppUmrohFaqRoute: typeof PosAppUmrohFaqRoute
+  PosAppUmrohPackagesRoute: typeof PosAppUmrohPackagesRoute
   PosAppUpsellRoute: typeof PosAppUpsellRoute
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppVerifiedClaimsRoute: typeof PosAppVerifiedClaimsRoute
@@ -4816,6 +4976,7 @@ interface PosAppRouteChildren {
 }
 
 const PosAppRouteChildren: PosAppRouteChildren = {
+  PosAppAboutPageRoute: PosAppAboutPageRoute,
   PosAppAnamnesisRoute: PosAppAnamnesisRoute,
   PosAppAntrianRoute: PosAppAntrianRoute,
   PosAppAppearanceRoute: PosAppAppearanceRoute,
@@ -4848,6 +5009,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppEmailMarketingRoute: PosAppEmailMarketingRoute,
   PosAppEmployeesRoute: PosAppEmployeesRoute,
   PosAppFlashSaleRoute: PosAppFlashSaleRoute,
+  PosAppFlyersRoute: PosAppFlyersRoute,
   PosAppFollowupRemindersRoute: PosAppFollowupRemindersRoute,
   PosAppHappyHourRoute: PosAppHappyHourRoute,
   PosAppIklanRoute: PosAppIklanRoute,
@@ -4860,6 +5022,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppKursusRoute: PosAppKursusRoute,
   PosAppKycRoute: PosAppKycRoute,
   PosAppLaporanHarianRoute: PosAppLaporanHarianRoute,
+  PosAppLeadsRoute: PosAppLeadsRoute,
   PosAppLimitedEditionsRoute: PosAppLimitedEditionsRoute,
   PosAppLookbookRoute: PosAppLookbookRoute,
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
@@ -4895,6 +5058,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppReservasiRoute: PosAppReservasiRoute,
   PosAppRestockNotifyRoute: PosAppRestockNotifyRoute,
   PosAppReviewsRoute: PosAppReviewsRoute,
+  PosAppSalesOfferingsRoute: PosAppSalesOfferingsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
   PosAppSettingsRoute: PosAppSettingsRoute,
   PosAppShiftsRoute: PosAppShiftsRoute,
@@ -4912,6 +5076,10 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTableQrRoute: PosAppTableQrRoute,
   PosAppTablesRoute: PosAppTablesRoute,
+  PosAppTestimonialsRoute: PosAppTestimonialsRoute,
+  PosAppUmrohFacilitiesRoute: PosAppUmrohFacilitiesRoute,
+  PosAppUmrohFaqRoute: PosAppUmrohFaqRoute,
+  PosAppUmrohPackagesRoute: PosAppUmrohPackagesRoute,
   PosAppUpsellRoute: PosAppUpsellRoute,
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppVerifiedClaimsRoute: PosAppVerifiedClaimsRoute,

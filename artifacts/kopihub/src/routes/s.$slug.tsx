@@ -24,6 +24,11 @@ async function fetchShopForStorefront(slug: string) {
 }
 
 export const Route = createFileRoute("/s/$slug")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    table: typeof search.table === "string" && search.table ? search.table : undefined,
+    tableName: typeof search.tableName === "string" && search.tableName ? search.tableName : undefined,
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   loader: async ({ params }) => {
     const res = await fetchShopForStorefront(params.slug);
     if (!res.shop) throw notFound();
@@ -55,8 +60,19 @@ function ShopNotFound() {
 function ShopLayout() {
   const { slug } = useParams({ from: "/s/$slug" });
   const { shop } = Route.useLoaderData();
+  const { table, tableName } = Route.useSearch();
   const [count, setCount] = useState(0);
   const { user, signOut } = useAuth();
+
+  // Persist table info from QR scan so cart/checkout can pick it up.
+  useEffect(() => {
+    if (!table) return;
+    const payload = { table, tableName: tableName || `Meja ${table}`, ts: Date.now() };
+    try {
+      localStorage.setItem(`umkmgo.dine.${slug}`, JSON.stringify(payload));
+      window.dispatchEvent(new CustomEvent("umkmgo-dine-change", { detail: { slug, ...payload } }));
+    } catch {}
+  }, [slug, table, tableName]);
 
   useEffect(() => {
     const update = () => setCount(cartCount(readCart(slug)));
@@ -135,6 +151,12 @@ function ShopLayout() {
           </div>
         </div>
       </header>
+
+      {table && (
+        <div className="bg-emerald-600 text-white text-center text-xs sm:text-sm py-2 px-4 font-medium">
+          📍 Anda memesan dari <span className="font-bold">{tableName || `Meja ${table}`}</span> · {shop.name}
+        </div>
+      )}
 
       <main className="mx-auto max-w-3xl px-4 py-4">
         <Outlet />
