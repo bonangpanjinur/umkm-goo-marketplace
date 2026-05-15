@@ -314,11 +314,7 @@ function TableQRPage() {
                 value={outlet?.id || ""}
                 onValueChange={(id) => {
                   const next = outlets.find((o) => o.id === id);
-                  if (next) {
-                    // Reuse context's setter through outlet-context
-                    const ev = new CustomEvent("umkmgo-outlet-set", { detail: { id } });
-                    window.dispatchEvent(ev);
-                  }
+                  if (next) setOutlet(next);
                 }}
               >
                 <SelectTrigger className="mt-1">
