@@ -204,6 +204,7 @@ import { Route as AdminFraudRouteImport } from './routes/admin.fraud'
 import { Route as AdminFinancialReportRouteImport } from './routes/admin.financial-report'
 import { Route as AdminFeeSimulatorRouteImport } from './routes/admin.fee-simulator'
 import { Route as AdminFeatureFlagsRouteImport } from './routes/admin.feature-flags'
+import { Route as AdminExpiryRemindersRouteImport } from './routes/admin.expiry-reminders'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
@@ -1243,6 +1244,11 @@ const AdminFeatureFlagsRoute = AdminFeatureFlagsRouteImport.update({
   path: '/feature-flags',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminExpiryRemindersRoute = AdminExpiryRemindersRouteImport.update({
+  id: '/expiry-reminders',
+  path: '/expiry-reminders',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDomainsRoute = AdminDomainsRouteImport.update({
   id: '/domains',
   path: '/domains',
@@ -1570,6 +1576,7 @@ export interface FileRoutesByFullPath {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
@@ -1821,6 +1828,7 @@ export interface FileRoutesByTo {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
@@ -2074,6 +2082,7 @@ export interface FileRoutesById {
   '/admin/commission': typeof AdminCommissionRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
+  '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
   '/admin/feature-flags': typeof AdminFeatureFlagsRoute
   '/admin/fee-simulator': typeof AdminFeeSimulatorRoute
   '/admin/financial-report': typeof AdminFinancialReportRoute
@@ -2330,6 +2339,7 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/expiry-reminders'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
     | '/admin/financial-report'
@@ -2581,6 +2591,7 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/expiry-reminders'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
     | '/admin/financial-report'
@@ -2833,6 +2844,7 @@ export interface FileRouteTypes {
     | '/admin/commission'
     | '/admin/disputes'
     | '/admin/domains'
+    | '/admin/expiry-reminders'
     | '/admin/feature-flags'
     | '/admin/fee-simulator'
     | '/admin/financial-report'
@@ -4448,6 +4460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFeatureFlagsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/expiry-reminders': {
+      id: '/admin/expiry-reminders'
+      path: '/expiry-reminders'
+      fullPath: '/admin/expiry-reminders'
+      preLoaderRoute: typeof AdminExpiryRemindersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/domains': {
       id: '/admin/domains'
       path: '/domains'
@@ -4908,6 +4927,7 @@ interface AdminRouteChildren {
   AdminCommissionRoute: typeof AdminCommissionRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
+  AdminExpiryRemindersRoute: typeof AdminExpiryRemindersRoute
   AdminFeatureFlagsRoute: typeof AdminFeatureFlagsRoute
   AdminFeeSimulatorRoute: typeof AdminFeeSimulatorRoute
   AdminFinancialReportRoute: typeof AdminFinancialReportRoute
@@ -4965,6 +4985,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCommissionRoute: AdminCommissionRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
+  AdminExpiryRemindersRoute: AdminExpiryRemindersRoute,
   AdminFeatureFlagsRoute: AdminFeatureFlagsRoute,
   AdminFeeSimulatorRoute: AdminFeeSimulatorRoute,
   AdminFinancialReportRoute: AdminFinancialReportRoute,
