@@ -10,6 +10,7 @@ export type PageLayout = {
   puck_data: unknown;
   is_published: boolean;
   published_at: string | null;
+  scheduled_publish_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -149,6 +150,21 @@ export async function restoreVersion(layoutId: string, versionId: string): Promi
     .from("page_layouts").update({ puck_data: v.puck_data }).eq("id", layoutId);
   if (e2) throw e2;
   return v.puck_data;
+}
+
+export async function getVersion(versionId: string): Promise<PageLayoutVersion | null> {
+  const { data, error } = await supabase
+    .from("page_layout_versions").select("*").eq("id", versionId).maybeSingle();
+  if (error) throw error;
+  return (data as PageLayoutVersion) ?? null;
+}
+
+export async function schedulePublish(id: string, when: string | null): Promise<void> {
+  const { error } = await supabase
+    .from("page_layouts")
+    .update({ scheduled_publish_at: when })
+    .eq("id", id);
+  if (error) throw error;
 }
 
 export function listStarterTemplates(): StarterTemplate[] {

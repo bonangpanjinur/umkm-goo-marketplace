@@ -3329,6 +3329,7 @@ export type Database = {
           page_type: string
           published_at: string | null
           puck_data: Json
+          scheduled_publish_at: string | null
           shop_id: string
           slug: string | null
           title: string
@@ -3341,6 +3342,7 @@ export type Database = {
           page_type: string
           published_at?: string | null
           puck_data?: Json
+          scheduled_publish_at?: string | null
           shop_id: string
           slug?: string | null
           title?: string
@@ -3353,6 +3355,7 @@ export type Database = {
           page_type?: string
           published_at?: string | null
           puck_data?: Json
+          scheduled_publish_at?: string | null
           shop_id?: string
           slug?: string | null
           title?: string
@@ -6718,6 +6721,7 @@ export type Database = {
         }
         Returns: Json
       }
+      run_scheduled_publishes: { Args: never; Returns: Json }
       send_booking_reminders: { Args: never; Returns: Json }
       send_membership_expiry_reminders: { Args: never; Returns: number }
       send_order_message: {
