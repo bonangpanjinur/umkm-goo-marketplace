@@ -1,11 +1,16 @@
 import { createFileRoute, Link, useParams, getRouteApi } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { addToCart } from "@/lib/customer-cart";
 import { toast } from "sonner";
 import { shopStatus } from "@/lib/shop-hours";
 import { ThemedHome } from "@/components/storefront/themes/registry";
 import type { StorefrontItem } from "@/components/storefront/themes/types";
+import { getPublishedLayoutForShop, type PageLayout } from "@/server/page-layouts.functions";
+import { BuilderProvider } from "@/builder/BuilderContext";
+import { builderConfig } from "@/builder/config";
+
+const PuckRender = lazy(() => import("@measured/puck").then((m) => ({ default: m.Render })));
 
 export const Route = createFileRoute("/s/$slug/")({
   component: ShopHome,
