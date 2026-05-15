@@ -25,13 +25,40 @@ export function useCurrentShop() {
     if (loading || !user) return;
     (async () => {
       setLoading(true);
-      const { data: s } = await supabase
+
+      // 1) Try as owner first
+      let { data: s } = await supabase
         .from("coffee_shops")
         .select("id, name, slug, logo_url, address, phone, tax_percent, service_charge_percent, tax_inclusive")
         .eq("owner_id", user.id)
         .order("created_at", { ascending: true })
         .limit(1)
         .maybeSingle();
+
+      // 2) If not an owner, find the shop where the user has a staff role.
+      //    Staff accounts are created under a specific shop and must land
+      //    directly inside that shop's POS app.
+      let staffOutletId: string | null = null;
+      if (!s) {
+        const { data: role } = await supabase
+          .from("user_roles")
+          .select("shop_id, outlet_id")
+          .eq("user_id", user.id)
+          .not("shop_id", "is", null)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (role?.shop_id) {
+          staffOutletId = role.outlet_id ?? null;
+          const { data: shopRow } = await supabase
+            .from("coffee_shops")
+            .select("id, name, slug, logo_url, address, phone, tax_percent, service_charge_percent, tax_inclusive")
+            .eq("id", role.shop_id)
+            .maybeSingle();
+          s = shopRow ?? null;
+        }
+      }
+
       setShop(
         s
           ? {
@@ -43,14 +70,24 @@ export function useCurrentShop() {
           : null,
       );
       if (s) {
-        const { data: o } = await supabase
-          .from("outlets")
-          .select("id, name")
-          .eq("shop_id", s.id)
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        setOutlet(o ?? null);
+        // For staff, prefer their assigned outlet if any; otherwise first outlet.
+        if (staffOutletId) {
+          const { data: o } = await supabase
+            .from("outlets")
+            .select("id, name")
+            .eq("id", staffOutletId)
+            .maybeSingle();
+          setOutlet(o ?? null);
+        } else {
+          const { data: o } = await supabase
+            .from("outlets")
+            .select("id, name")
+            .eq("shop_id", s.id)
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          setOutlet(o ?? null);
+        }
       }
       setLoading(false);
     })();
