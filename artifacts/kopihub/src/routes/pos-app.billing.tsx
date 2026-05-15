@@ -172,9 +172,23 @@ function BillingPage() {
             <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
               {Object.entries(p.features).map(([k, v]) => v ? <li key={k}>✓ {k.replace(/_/g, " ")}</li> : null)}
             </ul>
-            <Button className="mt-4 w-full" onClick={() => onUpgrade(p.code)} disabled={busy === p.code}>
-              {busy === p.code ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade ke " + p.name}
-            </Button>
+            <div className="mt-4 space-y-2">
+              <div>
+                <Label className="text-xs">Metode Pembayaran</Label>
+                <Select value={methodFor[p.code] ?? "manual"} onValueChange={(v) => setMethodFor({ ...methodFor, [p.code]: v as any })}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Transfer Bank Manual</SelectItem>
+                    <SelectItem value="qris">QRIS Statis</SelectItem>
+                    <SelectItem value="midtrans">Midtrans (Kartu/VA)</SelectItem>
+                    <SelectItem value="xendit">Xendit (Kartu/VA)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button className="w-full" onClick={() => onUpgrade(p.code)} disabled={busy === p.code}>
+                {busy === p.code ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade ke " + p.name}
+              </Button>
+            </div>
           </Card>
         ))}
       </div>
