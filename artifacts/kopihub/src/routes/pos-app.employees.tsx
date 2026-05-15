@@ -65,6 +65,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { StaffPermissionsDialog, type StaffPermissionsTarget } from "@/components/staff-permissions-dialog";
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
 
