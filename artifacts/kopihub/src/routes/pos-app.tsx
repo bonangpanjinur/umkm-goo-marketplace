@@ -355,6 +355,7 @@ function AppLayoutInner() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
   const [shopCategoryType, setShopCategoryType] = useState<string>("general");
+  const [shopSubtype, setShopSubtype] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;
