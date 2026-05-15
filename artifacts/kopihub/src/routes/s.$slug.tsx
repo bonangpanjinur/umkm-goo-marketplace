@@ -60,8 +60,19 @@ function ShopNotFound() {
 function ShopLayout() {
   const { slug } = useParams({ from: "/s/$slug" });
   const { shop } = Route.useLoaderData();
+  const { table, tableName } = Route.useSearch();
   const [count, setCount] = useState(0);
   const { user, signOut } = useAuth();
+
+  // Persist table info from QR scan so cart/checkout can pick it up.
+  useEffect(() => {
+    if (!table) return;
+    const payload = { table, tableName: tableName || `Meja ${table}`, ts: Date.now() };
+    try {
+      localStorage.setItem(`umkmgo.dine.${slug}`, JSON.stringify(payload));
+      window.dispatchEvent(new CustomEvent("umkmgo-dine-change", { detail: { slug, ...payload } }));
+    } catch {}
+  }, [slug, table, tableName]);
 
   useEffect(() => {
     const update = () => setCount(cartCount(readCart(slug)));
