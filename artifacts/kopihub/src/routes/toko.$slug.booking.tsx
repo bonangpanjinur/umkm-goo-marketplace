@@ -583,7 +583,7 @@ export default function PublicBookingPage() {
           shop_id: shop.id,
           type: needsDeposit ? "new_booking_deposit" : "new_booking",
           title: `📅 Booking baru dari ${name.trim()}`,
-          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""}${selectedPackage ? ` · Paket: ${selectedPackage.name}` : ""}${selectedAddons.length > 0 ? ` · Add-on: ${selectedAddons.map(a => a.name).join(", ")}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
+          body: `${selectedSlot.service_name}${staffName ? ` · ${staffName}` : ""}${selectedLocation ? ` · 📍 ${selectedLocation.name}${selectedLocation.extra_fee > 0 ? ` (+${formatIDR(selectedLocation.extra_fee)})` : ""}` : ""}${selectedPackage ? ` · Paket: ${selectedPackage.name}` : ""}${selectedAddons.length > 0 ? ` · Add-on: ${selectedAddons.map(a => a.name).join(", ")}` : ""} · ${fmtDate(selectedSlot.slot_date)} ${fmtTime(selectedSlot.slot_time)}${party > 1 ? ` · ${party} orang` : ""} · WA: ${phone.trim()}${needsDeposit ? ` · DP: ${formatIDR(depositAmount)}` : ""}${voucherNote}`,
           severity: "info",
           link: "/pos-app/booking",
           dedupe_key: `booking_${bk?.id ?? Date.now()}`,
