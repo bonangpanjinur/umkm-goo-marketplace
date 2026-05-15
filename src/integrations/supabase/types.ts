@@ -167,6 +167,48 @@ export type Database = {
         }
         Relationships: []
       }
+      banners: {
+        Row: {
+          bg_color: string | null
+          created_at: string
+          cta_link: string | null
+          cta_text: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          bg_color?: string | null
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          bg_color?: string | null
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       billing_settings: {
         Row: {
           account_name: string | null
