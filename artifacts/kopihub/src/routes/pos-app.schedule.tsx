@@ -575,10 +575,12 @@ function SchedulePage() {
           </div>
           <h2 className="text-lg font-semibold">Belum ada pegawai</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Tambahkan pegawai untuk mulai membuat jadwal shift.
+            Tambahkan pegawai di halaman Pegawai untuk mulai membuat jadwal shift.
           </p>
-          <Button className="mt-4" onClick={() => setAddOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
+          <Button asChild className="mt-4">
+            <Link to="/pos-app/employees">
+              <UserPlus className="mr-2 h-4 w-4" /> Buka halaman Pegawai
+            </Link>
           </Button>
         </div>
       ) : (
