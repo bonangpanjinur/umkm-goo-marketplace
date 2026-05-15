@@ -9,12 +9,13 @@ import { EnvBanner } from "@/components/EnvBanner";
 // Mapping prefix → tujuan paling masuk akal saat URL salah ketik / route hilang.
 const REDIRECT_RULES: Array<{ test: (p: string) => boolean; to: string; label: string }> = [
   { test: (p) => p.startsWith("/admin"), to: "/admin", label: "Dashboard Super Admin" },
-  { test: (p) => p.startsWith("/app"), to: "/app", label: "Dashboard Toko" },
+  { test: (p) => p.startsWith("/pos-app") || p.startsWith("/app"), to: "/pos-app", label: "Dashboard Toko" },
   { test: (p) => p.startsWith("/s/"), to: "/", label: "Beranda Marketplace" },
   { test: (p) => /^\/(signup|register|daftar)/.test(p), to: "/signup", label: "Halaman Daftar" },
   { test: (p) => /^\/(login|signin|masuk)/.test(p), to: "/login", label: "Halaman Masuk" },
-  { test: (p) => p.startsWith("/checkout") || p.startsWith("/cart"), to: "/cart", label: "Keranjang" },
-  { test: (p) => p.startsWith("/order"), to: "/orders", label: "Pesanan Saya" },
+  { test: (p) => p.startsWith("/keranjang") || p.startsWith("/cart") || p.startsWith("/checkout"), to: "/keranjang", label: "Keranjang" },
+  { test: (p) => p.startsWith("/akun/pesanan") || p.startsWith("/pesanan") || p.startsWith("/order"), to: "/akun/pesanan", label: "Pesanan Saya" },
+  { test: (p) => p.startsWith("/akun"), to: "/akun", label: "Akun Saya" },
 ];
 
 function resolveRedirect(pathname: string) {
