@@ -1598,7 +1598,7 @@ export default function PublicBookingPage() {
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setStep(hasPackages ? "packages" : (hasStaff ? "staff" : "slot"))}
+                onClick={() => setStep(hasPackages ? "packages" : (hasLocations ? "location" : (hasStaff ? "staff" : "slot")))}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
