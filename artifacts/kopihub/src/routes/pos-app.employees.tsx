@@ -338,7 +338,7 @@ function EmployeesPage() {
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
       supabase
         .from("staff_members")
-        .select("id, name, role, outlet_id, phone, avatar_url, is_active, hire_date, hourly_rate, notes, created_at")
+        .select("id, name, role, outlet_id, phone, avatar_url, is_active, hire_date, hourly_rate, notes, created_at, user_id")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
     ]);
