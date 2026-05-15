@@ -1,122 +1,76 @@
-## Tujuan
+# Rencana: Payment Gateway Paket + Reminder Dinamis + Audit PRD
 
-Owner toko (paket **Pro**) bisa menyusun tampilan storefront-nya sendiri secara drag-and-drop pakai **Puck editor** — mirip Elementor versi ringan. Berlaku untuk: homepage `/s/$slug`, landing page custom (multi-page), halaman menu detail, dan halaman storefront lain. Owner non-Pro tetap pakai tema preset (classic/minimal/umroh/sales-pro) seperti sekarang.
+Tiga pekerjaan terpisah, dieksekusi berurutan dalam satu sesi build.
 
-## Arsitektur
+## 1. Pengaturan Payment Gateway untuk Pembelian Paket Platform
 
-### 1. Database (1 migration)
+Status saat ini: `admin.payment-config.tsx` sudah menyimpan key Midtrans/Xendit di `platform_settings.payment_gateways` — namun konteksnya untuk pesanan marketplace, dan belum ada flow checkout paket berlangganan.
 
-```text
-page_layouts
-├── id (uuid)
-├── shop_id (fk shops)
-├── page_type (enum: 'home' | 'menu_detail' | 'cart' | 'checkout' | 'custom')
-├── slug (text, nullable)         -- untuk custom page: /s/$slug/p/$pageSlug
-├── title (text)
-├── puck_data (jsonb)             -- {content, root, zones} dari Puck
-├── is_published (boolean)
-├── published_at (timestamptz)
-├── created_at, updated_at
-└── unique (shop_id, page_type, slug)
-```
+Yang akan dibuat:
 
-RLS:
-- SELECT: public bila `is_published = true` (untuk render storefront)
-- ALL: owner shop + entitlement `builder_pro` aktif
+- **Halaman baru `admin.platform-billing.tsx`** (sidebar "Billing Paket Platform")
+  - Pilih gateway aktif untuk billing paket: Midtrans, Xendit, Manual Transfer, QRIS Statis.
+  - Re-use credential dari `payment_gateways` (tidak duplikasi key) + tambahan field khusus paket: `webhook_url_billing`, `success_redirect_url`, `failure_redirect_url`, `auto_activate_on_paid` (toggle), `invoice_prefix`, `tax_inclusive` (PPN 11%).
+  - Tombol "Test Koneksi" yang memanggil server function untuk ping endpoint Midtrans/Xendit dengan key tersimpan.
+  - Panel daftar metode pembayaran yang akan ditampilkan ke owner saat upgrade paket (drag-to-reorder).
+- **Tabel baru `platform_billing_config`** (key/value JSON di `platform_settings` dengan key `plan_billing`).
+- **Server function `createPlanCheckout`** (`src/lib/plan-billing.functions.ts`)
+  - Input: `plan_id`, `shop_id`. Output: `checkout_url` + `invoice_id`.
+  - Routing per gateway aktif (Midtrans Snap / Xendit Invoice).
+- **Server route webhook `/api/public/webhooks/plan-billing/{provider}.ts`**
+  - Verifikasi signature, update `shop_subscriptions.status = 'active'`, set `plan_expires_at`, kirim notifikasi.
+- **Tombol "Upgrade" di `pos-app` (owner)** mengarah ke flow checkout baru bila gateway aktif; fallback manual transfer bila tidak.
 
-### 2. Entitlement
+Catatan: kredensial Midtrans/Xendit (server key, secret) akan tetap disimpan di tabel `platform_settings` (terenkripsi via RLS — hanya super admin baca). Tidak menggunakan Lovable secret store karena nilai harus dapat di-rotate dari UI super admin (multi-tenant).
 
-Tambah feature flag `builder_pro` ke plan Pro+ (manfaatkan sistem entitlements yang sudah ada di `src/server/entitlements.functions.ts`). Builder UI di-gate via `useEntitlement('builder_pro')`.
+## 2. Pengaturan Reminder Paket Habis (Trial & Berbayar)
 
-### 3. Library
+Status saat ini: `admin.auto-renewal.tsx` sudah eksekusi cron, tapi window hari & template pesannya hardcoded.
 
-```bash
-bun add @measured/puck
-```
+Yang akan dibuat:
 
-Puck = drag-drop editor open-source untuk React. Output JSON yang bisa di-render via `<Render />`. Cocok untuk block builder menengah.
+- **Halaman baru `admin.expiry-reminders.tsx`** (sidebar grup "Notifikasi")
+  - Tab **Trial**, tab **Paket Berbayar**.
+  - Per tab: daftar "rule reminder" yang bisa di-CRUD:
+    - `days_before_expiry` (1, 3, 7, 14 …)
+    - `channels` (multi: in-app, email, WhatsApp, push)
+    - `template_subject` & `template_body` (mendukung variabel `{{shop_name}}`, `{{plan_name}}`, `{{days_left}}`, `{{expires_at}}`, `{{renewal_url}}`)
+    - `is_active` toggle, urutan prioritas
+  - Pengaturan global: jam kirim harian (default 09:00 WIB), zona waktu, batas maksimal reminder per hari per shop (anti-spam), aksi otomatis pada hari ekspiry (suspend / grace period N hari).
+  - Preview render template dengan data dummy.
+  - Tombol "Test kirim ke owner saya" (kirim ke akun super admin).
+- **Tabel baru `expiry_reminder_rules`** (`id`, `audience` enum trial/paid, `days_before`, `channels` text[], `template_subject`, `template_body`, `is_active`, `sort_order`, timestamps) + RLS super admin only.
+- **Tabel baru `expiry_reminder_settings`** (single-row JSON di `platform_settings.expiry_reminders`).
+- **Refactor cron job auto-renewal** untuk membaca rule dari tabel (tidak hardcode), dan mendukung audience `trial` (membaca `shops.trial_ends_at` jika ada — kalau kolom belum ada akan ditambahkan via migrasi).
+- Link cross-navigasi dari halaman `admin.auto-renewal.tsx` → "Atur rule reminder di sini".
 
-### 4. Block library (`src/builder/blocks/`)
+## 3. Audit PRD vs Codebase
 
-Block siap pakai untuk owner:
-- **Layout**: Section, Columns (2/3/4), Spacer, Divider
-- **Content**: Heading, Text, Image, Button, Video Embed
-- **Storefront**: MenuGrid (auto-fetch dari shop), CategoryTabs, FeaturedItem, ShopInfo, OpeningHours, ContactBox, WhatsAppCTA, Testimonials, FAQ, Gallery, Map
-- **Form**: ContactForm, NewsletterSignup
+Skrip otomatis (sekali jalan, tidak disimpan):
 
-Setiap block punya config Puck: fields (text, color picker, select, image upload via Supabase storage), default props, render component pakai design tokens dari `src/styles.css`.
+1. Parse `PRD_MARKETPLACE.md`, ekstrak baris berformat tabel dengan kolom status (✅ / ❌ / ⬜).
+2. Untuk setiap baris dengan referensi file route (mis. ``pos-app.followup-reminders.tsx``) atau nama fitur kunci (mis. "Open Bills", "Audit Pesanan", "Lokasi Sesi Foto", "Tarif Ongkir Outlet"), cek keberadaan file di `artifacts/kopihub/src/routes/`.
+3. Hasilkan laporan dua bagian:
+   - **A. Sudah ada di codebase tapi masih ❌/⬜ di PRD** → akan diubah menjadi ✅ dengan catatan path file.
+   - **B. Masih ❌ dan benar-benar belum ada** → ditambahkan ke section baru di PRD: `## 📋 Backlog Aktual (Audit 15 Mei 2026)` berisi list item + estimasi prioritas.
+4. Patch `PRD_MARKETPLACE.md` in-place dengan kedua perubahan.
 
-### 5. Routing
+Item kandidat update ✅ (berdasarkan eksplorasi cepat — akan diverifikasi di audit):
+- F-16/SB-10/RT-09 Deposit via Payment Gateway — sebagian terjawab oleh `admin.payment-config.tsx` (config sudah ada, eksekusi checkout belum) → tetap ❌ sampai item #1 di plan ini selesai.
+- Open Bills realtime, Audit Pesanan, Tarif Ongkir Outlet, Lokasi Sesi Foto — kemungkinan belum ditandai di PRD.
 
-```text
-/app/builder                        -> daftar page layouts (Pro only)
-/app/builder/$layoutId              -> Puck editor full-screen
-/s/$slug/                           -> render custom layout bila ada & published, fallback ke ThemedHome
-/s/$slug/menu/$menuId               -> idem untuk page_type='menu_detail'
-/s/$slug/p/$pageSlug                -> custom landing page
-```
+## Detail Teknis
 
-### 6. Render flow di storefront
+- Stack: TanStack Start + Supabase (Lovable Cloud). Server-side pakai `createServerFn` + `requireSupabaseAuth`; webhook publik di `src/routes/api/public/`.
+- Validasi input pakai Zod (panjang, format URL untuk redirect, regex template variabel).
+- RLS: tabel `platform_billing_config`, `expiry_reminder_rules` hanya bisa diakses role `super_admin` via `has_role()`.
+- Webhook gateway: verifikasi signature SHA512 (Midtrans) / x-callback-token (Xendit) sebelum mutasi data.
+- Audit script: Node + regex sederhana, output ke stdout dulu untuk review, baru patch file.
 
-`s.$slug.index.tsx`:
-1. Query `page_layouts` untuk shop ini, `page_type='home'`, `is_published=true`.
-2. Bila ada → render `<Puck.Render data={puck_data} config={blockConfig} />`.
-3. Bila tidak ada → fallback ke `<ThemedHome />` (perilaku saat ini).
+## Urutan Eksekusi
 
-### 7. Server functions baru
-
-`src/server/page-layouts.functions.ts`:
-- `listLayouts(shopId)` — Pro only
-- `getLayout(layoutId)` — Pro only
-- `saveLayout(layoutId, puckData, title)` — Pro only
-- `publishLayout(layoutId)` / `unpublishLayout(layoutId)`
-- `getPublishedLayout(shopSlug, pageType, slug?)` — public, dipakai storefront
-
-### 8. UI di /app
-
-Halaman baru `pos-app.builder.tsx`:
-- List page layouts dengan status (draft/published)
-- Tombol "Buat halaman baru" → pilih page_type + (optional slug)
-- Tombol "Edit" → buka editor Puck full-screen
-- Untuk owner non-Pro: tampilkan paywall card "Upgrade ke Pro untuk fitur Website Builder"
-
-Editor (`pos-app.builder.$layoutId.tsx`):
-- Full-screen `<Puck>` dengan toolbar simpan/publish/preview
-- Sidebar kiri: block palette
-- Sidebar kanan: properties panel (auto dari Puck fields)
-- Preview button → buka tab baru ke storefront
-
-### 9. Image upload di builder
-
-Block Image pakai Supabase storage bucket `shop-assets` (yang sudah ada). Custom field di Puck untuk uploader.
-
-## Skema bertahap (rekomendasi 3 fase)
-
-**Fase 1 — MVP builder (~2 milestone)**
-- Migration + entitlement gating
-- Install Puck, setup editor route
-- 8 block dasar: Section, Heading, Text, Image, Button, MenuGrid, ShopInfo, WhatsAppCTA
-- Edit homepage saja, save/publish, render di `/s/$slug`
-
-**Fase 2 — Block library lengkap**
-- Tambah Columns, Gallery, Testimonials, FAQ, ContactForm, dll
-- Custom landing page (multi-page dengan slug)
-- Image upload terintegrasi
-
-**Fase 3 — Polish**
-- Halaman menu detail
-- Template starter (import dari tema yang ada → jadi block tree)
-- Responsive preview (desktop/tablet/mobile)
-- Undo/redo, version history
-
-## Catatan teknis
-
-- Puck `Config` di-share antara editor dan render — taruh di `src/builder/config.ts`.
-- Render component MUST pakai semantic token (`bg-primary`, `text-foreground`, dsb), bukan hex langsung — agar konsisten dengan design system shop.
-- Data dinamis (menu items, shop info) di-fetch di dalam render component pakai `slug` dari context, jadi block-nya zero-config buat owner.
-- SSR-aman: Puck Render bisa SSR; editor (`<Puck>`) hanya dimuat client-side via dynamic import.
-- Saat `is_published=false`, tetap simpan draft tapi storefront tidak menampilkannya.
-
-## Konfirmasi sebelum mulai
-
-Saya akan **mulai dari Fase 1** (MVP: homepage saja, 8 block, gate Pro). Setuju lanjut, atau mau ubah scope?
+1. Migrasi DB (3 tabel + kolom `shops.trial_ends_at` jika perlu).
+2. Halaman `admin.platform-billing.tsx` + server function checkout + webhook.
+3. Halaman `admin.expiry-reminders.tsx` + refactor cron.
+4. Audit script + patch PRD.
+5. Tambah entri sidebar `admin.tsx` untuk dua halaman baru.
