@@ -503,14 +503,17 @@ function TestE2EPanel({
         const since = new Date(status.startedAt).toISOString();
         const { data } = await supabase
           .from("orders")
-          .select("order_number, table_name, table_id, created_at")
+          .select("order_no, note, created_at")
           .eq("shop_id", shopId)
-          .eq("table_id", status.tableId)
           .gte("created_at", since)
           .order("created_at", { ascending: false })
           .limit(1);
         if (data && data.length > 0) {
-          setStatus({ state: "ok", orderNo: data[0].order_number || "—", tableName: data[0].table_name || sampleTableName });
+          setStatus({
+            state: "ok",
+            orderNo: data[0].order_no || "—",
+            tableName: (data[0].note && /meja/i.test(data[0].note)) ? data[0].note : sampleTableName,
+          });
           clearInterval(poll);
           clearInterval(tick);
         }
