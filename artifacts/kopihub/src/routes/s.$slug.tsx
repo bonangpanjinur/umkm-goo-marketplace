@@ -25,8 +25,8 @@ async function fetchShopForStorefront(slug: string) {
 
 export const Route = createFileRoute("/s/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
-    table: typeof search.table === "string" ? search.table : "",
-    tableName: typeof search.tableName === "string" ? search.tableName : "",
+    table: typeof search.table === "string" && search.table ? search.table : undefined,
+    tableName: typeof search.tableName === "string" && search.tableName ? search.tableName : undefined,
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
   }),
   loader: async ({ params }) => {
