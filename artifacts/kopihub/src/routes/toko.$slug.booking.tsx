@@ -1567,9 +1567,15 @@ export default function PublicBookingPage() {
                     <span>+{formatIDR(a.price)}</span>
                   </div>
                 ))}
+                {selectedLocation && selectedLocation.extra_fee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Lokasi: {selectedLocation.name}</span>
+                    <span>+{formatIDR(selectedLocation.extra_fee)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold pt-1.5 border-t border-primary/10">
                   <span>Total estimasi</span>
-                  <span className="text-primary">{formatIDR(selectedSlot.price + packageExtra + addonTotal)}</span>
+                  <span className="text-primary">{formatIDR(selectedSlot.price + packageExtra + addonTotal + locationFee)}</span>
                 </div>
               </div>
             )}
