@@ -1341,6 +1341,83 @@ export default function PublicBookingPage() {
           </div>
         )}
 
+        {/* ─── Step: Studio Location (SF-03) ─── */}
+        {step === "location" && selectedSlot && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStep(hasStaff ? "staff" : "slot")}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" /> Pilih Lokasi Sesi
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Studio, outdoor, atau di lokasi kamu — biaya tambahan otomatis dihitung.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {locations.map((loc) => {
+                const meta = LOCATION_META[loc.location_type];
+                const Icon = meta.icon;
+                const active = selectedLocation?.id === loc.id;
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => setSelectedLocation(active ? null : loc)}
+                    className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all hover:shadow-sm ${
+                      active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`rounded-lg p-2 shrink-0 ${meta.color}`}><Icon className="h-4 w-4" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm">{loc.name}</span>
+                          <Badge variant="secondary" className="text-[10px]">{meta.label}</Badge>
+                          {active && <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-0">✓ Dipilih</Badge>}
+                        </div>
+                        {loc.address && <p className="text-xs text-muted-foreground mt-0.5">{loc.address}</p>}
+                        {loc.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{loc.description}</p>}
+                        {loc.travel_radius_km && (
+                          <p className="text-[11px] text-muted-foreground mt-1">Maks. radius {loc.travel_radius_km} km dari studio</p>
+                        )}
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {loc.extra_fee > 0 ? (
+                          <p className="text-sm font-bold text-primary">+{formatIDR(loc.extra_fee)}</p>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700">Gratis</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedLocation && selectedLocation.extra_fee > 0 && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm flex justify-between items-center">
+                <span className="text-muted-foreground">Biaya lokasi <strong className="text-foreground">{selectedLocation.name}</strong></span>
+                <span className="font-bold text-primary">+{formatIDR(selectedLocation.extra_fee)}</span>
+              </div>
+            )}
+
+            <Button
+              className="w-full h-12 text-base gap-2"
+              onClick={() => setStep(afterLocation)}
+              disabled={!selectedLocation}
+            >
+              Lanjutkan <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {/* ─── Step: Packages & Add-ons (M-17) ─── */}
         {step === "packages" && selectedSlot && (
           <div className="space-y-5">
