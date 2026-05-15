@@ -1,32 +1,42 @@
 import { useRef, useState } from "react";
 import { uploadBuilderImage } from "@/server/page-layouts.functions";
+import { validateAndCompressImage } from "./image-compress";
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
+
+const fmtKB = (b: number) => (b / 1024).toFixed(0) + " KB";
 
 export function ImageUploadField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<string>("");
 
   const handleFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("File harus berupa gambar");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ukuran maksimal 5 MB");
-      return;
-    }
     setBusy(true);
     try {
-      const url = await uploadBuilderImage(file);
+      setStage("Memvalidasi…");
+      const originalSize = file.size;
+      setStage("Mengompres…");
+      const compressed = await validateAndCompressImage(file);
+      setStage("Mengunggah…");
+      const url = await uploadBuilderImage(compressed);
       onChange(url);
-      toast.success("Gambar diunggah");
+      const saved = originalSize - compressed.size;
+      if (saved > 1024 * 50) {
+        toast.success(
+          `Gambar diunggah · ${fmtKB(originalSize)} → ${fmtKB(compressed.size)} (hemat ${fmtKB(saved)})`,
+        );
+      } else {
+        toast.success("Gambar diunggah");
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
+      setStage("");
     }
   };
+
 
   return (
     <div className="space-y-2">
