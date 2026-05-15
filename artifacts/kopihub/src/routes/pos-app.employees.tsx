@@ -119,6 +119,10 @@ function initialsOf(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function staffFingerprint(name: string, role: string, outletId: string | null) {
+  return `${name.trim().toLowerCase()}|${role}|${outletId ?? ""}`;
+}
+
 function Avatar({ name, url, size = "md" }: { name: string; url?: string | null; size?: "sm" | "md" | "lg" }) {
   const dim = size === "lg" ? "h-16 w-16 text-lg" : size === "sm" ? "h-7 w-7 text-[10px]" : "h-9 w-9 text-xs";
   if (url) {
@@ -378,11 +382,14 @@ function EmployeesPage() {
     // Build a quick lookup of staff_members by user_id so we can enrich login rows
     // with extra info (phone, avatar) and avoid emitting them twice.
     const linkedByUser = new Map<string, StaffMember>();
+    const manualByFingerprint = new Map<string, StaffMember>();
     for (const s of staffMembers) {
       if (s.user_id) linkedByUser.set(s.user_id, s);
+      else manualByFingerprint.set(staffFingerprint(s.name, s.role, s.outlet_id), s);
     }
     const a: UnifiedRow[] = members.map((m) => {
-      const linked = linkedByUser.get(m.user_id);
+      const baseName = m.profile?.display_name ?? "—";
+      const linked = linkedByUser.get(m.user_id) ?? manualByFingerprint.get(staffFingerprint(baseName, m.role, m.outlet_id));
       return {
         kind: "login",
         key: `l-${m.id}`,
@@ -397,8 +404,9 @@ function EmployeesPage() {
     });
     // Only show manual rows that are NOT already linked to a login user
     const linkedUserIds = new Set(members.map((m) => m.user_id));
+    const loginFingerprints = new Set(a.map((m) => staffFingerprint(m.name, m.role, m.outlet_id)));
     const b: UnifiedRow[] = staffMembers
-      .filter((s) => !s.user_id || !linkedUserIds.has(s.user_id))
+      .filter((s) => (!s.user_id || !linkedUserIds.has(s.user_id)) && !loginFingerprints.has(staffFingerprint(s.name, s.role, s.outlet_id)))
       .map((s) => ({
         kind: "manual",
         key: `m-${s.id}`,
@@ -699,7 +707,7 @@ function EmployeesPage() {
           outlet_id: manualOutletId || null,
           phone,
           avatar_url: manualAvatar.trim() || null,
-          create_staff_member: true,
+          create_staff_member: false,
         });
         setLastCredentials({ email: em, password: manualPassword });
         try {
