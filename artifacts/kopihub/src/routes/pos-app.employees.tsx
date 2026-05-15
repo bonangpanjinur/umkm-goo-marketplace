@@ -65,7 +65,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { StaffPermissionsDialog, type StaffPermissionsTarget } from "@/components/staff-permissions-dialog";
+import {
+  StaffPermissionsDialog,
+  type StaffPermissionsTarget,
+} from "@/components/staff-permissions-dialog";
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
 
@@ -119,8 +122,25 @@ function initialsOf(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function Avatar({ name, url, size = "md" }: { name: string; url?: string | null; size?: "sm" | "md" | "lg" }) {
-  const dim = size === "lg" ? "h-16 w-16 text-lg" : size === "sm" ? "h-7 w-7 text-[10px]" : "h-9 w-9 text-xs";
+function staffFingerprint(name: string, role: string, outletId: string | null) {
+  return `${name.trim().toLowerCase()}|${role}|${outletId ?? ""}`;
+}
+
+function Avatar({
+  name,
+  url,
+  size = "md",
+}: {
+  name: string;
+  url?: string | null;
+  size?: "sm" | "md" | "lg";
+}) {
+  const dim =
+    size === "lg"
+      ? "h-16 w-16 text-lg"
+      : size === "sm"
+        ? "h-7 w-7 text-[10px]"
+        : "h-9 w-9 text-xs";
   if (url) {
     return (
       <div className={`relative shrink-0 overflow-hidden rounded-full ${dim}`}>
@@ -245,7 +265,10 @@ function EmployeesPage() {
   const [manualPassword, setManualPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
-  const [lastCredentials, setLastCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [lastCredentials, setLastCredentials] = useState<{
+    email: string;
+    password: string;
+  } | null>(null);
   const [manualHireDate, setManualHireDate] = useState("");
   const [manualHourlyRate, setManualHourlyRate] = useState("");
   const [manualNotes, setManualNotes] = useState("");
@@ -269,19 +292,32 @@ function EmployeesPage() {
   const [resending, setResending] = useState<string | null>(null);
 
   // Permissions dialog
-  const [permTarget, setPermTarget] = useState<StaffPermissionsTarget | null>(null);
+  const [permTarget, setPermTarget] = useState<StaffPermissionsTarget | null>(
+    null,
+  );
 
   // Password / reset dialogs
-  const [pwDialog, setPwDialog] = useState<{ userId: string; name: string } | null>(null);
+  const [pwDialog, setPwDialog] = useState<{
+    userId: string;
+    name: string;
+  } | null>(null);
   const [pwValue, setPwValue] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
-  const [resetLink, setResetLink] = useState<{ name: string; link: string } | null>(null);
+  const [resetLink, setResetLink] = useState<{
+    name: string;
+    link: string;
+  } | null>(null);
   const [resetting, setResetting] = useState<string | null>(null);
 
   // Confirm dialogs
-  const [confirmRemoveLogin, setConfirmRemoveLogin] = useState<RoleRow | null>(null);
-  const [confirmRemoveManual, setConfirmRemoveManual] = useState<StaffMember | null>(null);
-  const [confirmRevokeInv, setConfirmRevokeInv] = useState<Invitation | null>(null);
+  const [confirmRemoveLogin, setConfirmRemoveLogin] = useState<RoleRow | null>(
+    null,
+  );
+  const [confirmRemoveManual, setConfirmRemoveManual] =
+    useState<StaffMember | null>(null);
+  const [confirmRevokeInv, setConfirmRevokeInv] = useState<Invitation | null>(
+    null,
+  );
   const [confirmCloseCreds, setConfirmCloseCreds] = useState(false);
 
   // Bulk selection
@@ -289,39 +325,76 @@ function EmployeesPage() {
   const [selManual, setSelManual] = useState<Set<string>>(new Set());
   const [selInv, setSelInv] = useState<Set<string>>(new Set());
   const [bulkRunning, setBulkRunning] = useState(false);
-  const [confirmBulk, setConfirmBulk] = useState<null | { kind: "activate" | "deactivate" | "resend"; count: number }>(null);
+  const [confirmBulk, setConfirmBulk] = useState<null | {
+    kind: "activate" | "deactivate" | "resend";
+    count: number;
+  }>(null);
   const totalSelected = selLogin.size + selManual.size + selInv.size;
 
-  function clearSelection() { setSelLogin(new Set()); setSelManual(new Set()); setSelInv(new Set()); }
-  function toggleSel(set: Set<string>, setter: (s: Set<string>) => void, id: string) {
+  function clearSelection() {
+    setSelLogin(new Set());
+    setSelManual(new Set());
+    setSelInv(new Set());
+  }
+  function toggleSel(
+    set: Set<string>,
+    setter: (s: Set<string>) => void,
+    id: string,
+  ) {
     const next = new Set(set);
-    if (next.has(id)) next.delete(id); else next.add(id);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
     setter(next);
   }
 
   async function runBulk(kind: "activate" | "deactivate" | "resend") {
     if (!shop) return;
     setBulkRunning(true);
-    let ok = 0, fail = 0;
+    let ok = 0,
+      fail = 0;
     if (kind === "resend") {
       for (const id of selInv) {
-        try { await callStaffApi("resend-invitation", { shop_id: shop.id, invitation_id: id }); ok++; }
-        catch { fail++; }
+        try {
+          await callStaffApi("resend-invitation", {
+            shop_id: shop.id,
+            invitation_id: id,
+          });
+          ok++;
+        } catch {
+          fail++;
+        }
       }
     } else {
       const isActive = kind === "activate";
       for (const uid of selLogin) {
-        try { await callStaffApi("update-role", { shop_id: shop.id, user_id: uid, is_active: isActive }); ok++; }
-        catch { fail++; }
+        try {
+          await callStaffApi("update-role", {
+            shop_id: shop.id,
+            user_id: uid,
+            is_active: isActive,
+          });
+          ok++;
+        } catch {
+          fail++;
+        }
       }
       for (const sid of selManual) {
-        try { await callStaffApi("set-manual-active", { shop_id: shop.id, staff_member_id: sid, is_active: isActive }); ok++; }
-        catch { fail++; }
+        try {
+          await callStaffApi("set-manual-active", {
+            shop_id: shop.id,
+            staff_member_id: sid,
+            is_active: isActive,
+          });
+          ok++;
+        } catch {
+          fail++;
+        }
       }
     }
     setBulkRunning(false);
     setConfirmBulk(null);
-    if (ok > 0) toast.success(`${ok} berhasil${fail > 0 ? `, ${fail} gagal` : ""}`);
+    if (ok > 0)
+      toast.success(`${ok} berhasil${fail > 0 ? `, ${fail} gagal` : ""}`);
     else toast.error(`Semua ${fail} gagal`);
     clearSelection();
     load();
@@ -333,7 +406,10 @@ function EmployeesPage() {
     if (!shop) return;
     setLoading(true);
     const [r, i, o, s] = await Promise.all([
-      supabase.from("user_roles").select("id, user_id, role, outlet_id, is_active").eq("shop_id", shop.id),
+      supabase
+        .from("user_roles")
+        .select("id, user_id, role, outlet_id, is_active")
+        .eq("shop_id", shop.id),
       supabase
         .from("staff_invitations")
         .select("id, email, role, token, expires_at, accepted_at, created_at")
@@ -342,7 +418,9 @@ function EmployeesPage() {
       supabase.from("outlets").select("id, name").eq("shop_id", shop.id),
       supabase
         .from("staff_members")
-        .select("id, name, role, outlet_id, phone, avatar_url, is_active, hire_date, hourly_rate, notes, created_at, user_id")
+        .select(
+          "id, name, role, outlet_id, phone, avatar_url, is_active, hire_date, hourly_rate, notes, created_at, user_id",
+        )
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
     ]);
@@ -378,11 +456,22 @@ function EmployeesPage() {
     // Build a quick lookup of staff_members by user_id so we can enrich login rows
     // with extra info (phone, avatar) and avoid emitting them twice.
     const linkedByUser = new Map<string, StaffMember>();
+    const manualByFingerprint = new Map<string, StaffMember>();
     for (const s of staffMembers) {
       if (s.user_id) linkedByUser.set(s.user_id, s);
+      else
+        manualByFingerprint.set(
+          staffFingerprint(s.name, s.role, s.outlet_id),
+          s,
+        );
     }
     const a: UnifiedRow[] = members.map((m) => {
-      const linked = linkedByUser.get(m.user_id);
+      const baseName = m.profile?.display_name ?? "—";
+      const linked =
+        linkedByUser.get(m.user_id) ??
+        manualByFingerprint.get(
+          staffFingerprint(baseName, m.role, m.outlet_id),
+        );
       return {
         kind: "login",
         key: `l-${m.id}`,
@@ -397,8 +486,15 @@ function EmployeesPage() {
     });
     // Only show manual rows that are NOT already linked to a login user
     const linkedUserIds = new Set(members.map((m) => m.user_id));
+    const loginFingerprints = new Set(
+      a.map((m) => staffFingerprint(m.name, m.role, m.outlet_id)),
+    );
     const b: UnifiedRow[] = staffMembers
-      .filter((s) => !s.user_id || !linkedUserIds.has(s.user_id))
+      .filter(
+        (s) =>
+          (!s.user_id || !linkedUserIds.has(s.user_id)) &&
+          !loginFingerprints.has(staffFingerprint(s.name, s.role, s.outlet_id)),
+      )
       .map((s) => ({
         kind: "manual",
         key: `m-${s.id}`,
@@ -421,7 +517,12 @@ function EmployeesPage() {
       if (filterStatus === "active" && !u.is_active) return false;
       if (filterStatus === "inactive" && u.is_active) return false;
       if (filterOutlet !== "all") {
-        if (filterOutlet === "none" ? u.outlet_id != null : u.outlet_id !== filterOutlet) return false;
+        if (
+          filterOutlet === "none"
+            ? u.outlet_id != null
+            : u.outlet_id !== filterOutlet
+        )
+          return false;
       }
       if (q) {
         const hay = `${u.name} ${u.phone ?? ""}`.toLowerCase();
@@ -452,7 +553,10 @@ function EmployeesPage() {
   }
 
   async function doRevokeInvitation(id: string) {
-    const { error } = await supabase.from("staff_invitations").delete().eq("id", id);
+    const { error } = await supabase
+      .from("staff_invitations")
+      .delete()
+      .eq("id", id);
     if (error) toast.error(error.message);
     else {
       toast.success("Undangan dibatalkan");
@@ -551,7 +655,9 @@ function EmployeesPage() {
         staff_member_id: sm.id,
         is_active: !(sm.is_active !== false),
       });
-      toast.success(sm.is_active !== false ? "Pegawai dinonaktifkan" : "Pegawai diaktifkan");
+      toast.success(
+        sm.is_active !== false ? "Pegawai dinonaktifkan" : "Pegawai diaktifkan",
+      );
       load();
     } catch (e: any) {
       toast.error(e.message || "Gagal mengubah status");
@@ -566,7 +672,9 @@ function EmployeesPage() {
         user_id: m.user_id,
         is_active: !(m.is_active !== false),
       });
-      toast.success(m.is_active !== false ? "Akses dinonaktifkan" : "Akses diaktifkan");
+      toast.success(
+        m.is_active !== false ? "Akses dinonaktifkan" : "Akses diaktifkan",
+      );
       load();
     } catch (e: any) {
       toast.error(e.message || "Gagal mengubah status");
@@ -583,7 +691,9 @@ function EmployeesPage() {
       });
       const newToken = res.token as string;
       try {
-        await navigator.clipboard.writeText(`${window.location.origin}/invite/${newToken}`);
+        await navigator.clipboard.writeText(
+          `${window.location.origin}/invite/${newToken}`,
+        );
       } catch {}
       toast.success("Tautan baru disalin & masa berlaku diperpanjang");
       load();
@@ -620,7 +730,9 @@ function EmployeesPage() {
         password: promotePassword,
       });
       try {
-        await navigator.clipboard.writeText(`Email: ${em}\nKata sandi: ${promotePassword}`);
+        await navigator.clipboard.writeText(
+          `Email: ${em}\nKata sandi: ${promotePassword}`,
+        );
       } catch {}
       toast.success("Akun login dibuat & kredensial disalin");
       setPromoteTarget(null);
@@ -644,10 +756,12 @@ function EmployeesPage() {
     setUploadingAvatar(true);
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${shop.id}/${crypto.randomUUID()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("staff-avatars").upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
+    const { error: upErr } = await supabase.storage
+      .from("staff-avatars")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
     if (upErr) {
       toast.error(upErr.message);
       setUploadingAvatar(false);
@@ -664,15 +778,18 @@ function EmployeesPage() {
     if (!name) return "Nama wajib diisi";
     if (name.length < 2) return "Nama terlalu pendek";
     const phone = manualPhone.trim();
-    if (phone && !/^[0-9+\-\s]{6,20}$/.test(phone)) return "No. HP hanya boleh angka (6-20 digit)";
+    if (phone && !/^[0-9+\-\s]{6,20}$/.test(phone))
+      return "No. HP hanya boleh angka (6-20 digit)";
     if (manualOutletId && !outlets.some((o) => o.id === manualOutletId)) {
       return "Outlet tidak valid untuk toko ini";
     }
     if (manualWithLogin && !editingId) {
       const em = manualEmail.trim();
       if (!em) return "Email wajib diisi untuk akses login";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return "Format email tidak valid";
-      if (!manualPassword || manualPassword.length < 6) return "Kata sandi minimal 6 karakter";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))
+        return "Format email tidak valid";
+      if (!manualPassword || manualPassword.length < 6)
+        return "Kata sandi minimal 6 karakter";
     }
     return null;
   }
@@ -699,11 +816,13 @@ function EmployeesPage() {
           outlet_id: manualOutletId || null,
           phone,
           avatar_url: manualAvatar.trim() || null,
-          create_staff_member: true,
+          create_staff_member: false,
         });
         setLastCredentials({ email: em, password: manualPassword });
         try {
-          await navigator.clipboard.writeText(`Email: ${em}\nKata sandi: ${manualPassword}`);
+          await navigator.clipboard.writeText(
+            `Email: ${em}\nKata sandi: ${manualPassword}`,
+          );
         } catch {}
         toast.success("Akun pegawai dibuat — kredensial siap dibagikan");
         load();
@@ -726,7 +845,9 @@ function EmployeesPage() {
     };
     const { error } = editingId
       ? await supabase.from("staff_members").update(payload).eq("id", editingId)
-      : await supabase.from("staff_members").insert({ ...payload, shop_id: shop.id });
+      : await supabase
+          .from("staff_members")
+          .insert({ ...payload, shop_id: shop.id });
     if (error) {
       toast.error(error.message);
       setManualSaving(false);
@@ -753,7 +874,9 @@ function EmployeesPage() {
         user_id: pwDialog.userId,
         password: pwValue,
       });
-      try { await navigator.clipboard.writeText(pwValue); } catch {}
+      try {
+        await navigator.clipboard.writeText(pwValue);
+      } catch {}
       toast.success("Kata sandi diperbarui & disalin");
       setPwDialog(null);
       setPwValue("");
@@ -774,7 +897,9 @@ function EmployeesPage() {
       });
       const link = res.action_link as string | null;
       if (link) {
-        try { await navigator.clipboard.writeText(link); } catch {}
+        try {
+          await navigator.clipboard.writeText(link);
+        } catch {}
         setResetLink({ name: m.profile?.display_name ?? "Pegawai", link });
         toast.success("Tautan reset siap dibagikan");
       } else {
@@ -788,7 +913,10 @@ function EmployeesPage() {
 
   async function doRemoveManual(id: string) {
     await supabase.from("shifts").delete().eq("user_id", id);
-    const { error } = await supabase.from("staff_members").delete().eq("id", id);
+    const { error } = await supabase
+      .from("staff_members")
+      .delete()
+      .eq("id", id);
     if (error) toast.error(error.message);
     else {
       toast.success("Pegawai dihapus");
@@ -808,11 +936,32 @@ function EmployeesPage() {
   const totalAll = members.length + staffMembers.length;
 
   function invExpiryBadge(inv: Invitation) {
-    const days = Math.ceil((new Date(inv.expires_at).getTime() - Date.now()) / 86400000);
-    if (days < 0) return <Badge variant="destructive" className="text-[10px]">Kadaluarsa</Badge>;
-    if (days <= 2) return <Badge variant="destructive" className="text-[10px]">{days}h lagi</Badge>;
-    if (days <= 5) return <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-[10px]">{days}h lagi</Badge>;
-    return <Badge variant="secondary" className="text-[10px]">{days}h lagi</Badge>;
+    const days = Math.ceil(
+      (new Date(inv.expires_at).getTime() - Date.now()) / 86400000,
+    );
+    if (days < 0)
+      return (
+        <Badge variant="destructive" className="text-[10px]">
+          Kadaluarsa
+        </Badge>
+      );
+    if (days <= 2)
+      return (
+        <Badge variant="destructive" className="text-[10px]">
+          {days}h lagi
+        </Badge>
+      );
+    if (days <= 5)
+      return (
+        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-[10px]">
+          {days}h lagi
+        </Badge>
+      );
+    return (
+      <Badge variant="secondary" className="text-[10px]">
+        {days}h lagi
+      </Badge>
+    );
   }
 
   return (
@@ -821,7 +970,8 @@ function EmployeesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pegawai</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Kelola tim, peran, dan akses ke POS{shop?.name ? ` · ${shop.name}` : ""}.
+            Kelola tim, peran, dan akses ke POS
+            {shop?.name ? ` · ${shop.name}` : ""}.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -843,15 +993,23 @@ function EmployeesPage() {
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingId ? "Edit pegawai" : "Tambah pegawai"}</DialogTitle>
+                <DialogTitle>
+                  {editingId ? "Edit pegawai" : "Tambah pegawai"}
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-2">
                 <div className="flex items-center gap-4">
                   <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
                     {manualAvatar ? (
-                      <img src={manualAvatar} alt="" className="h-full w-full object-cover rounded-full" />
+                      <img
+                        src={manualAvatar}
+                        alt=""
+                        className="h-full w-full object-cover rounded-full"
+                      />
                     ) : (
-                      <div className={`flex h-full w-full items-center justify-center text-lg font-semibold uppercase ${colorForName(manualName || "?")}`}>
+                      <div
+                        className={`flex h-full w-full items-center justify-center text-lg font-semibold uppercase ${colorForName(manualName || "?")}`}
+                      >
                         {initialsOf(manualName || "?")}
                       </div>
                     )}
@@ -884,12 +1042,19 @@ function EmployeesPage() {
                         {manualAvatar ? "Ganti foto" : "Upload foto"}
                       </Button>
                       {manualAvatar && (
-                        <Button type="button" variant="ghost" size="sm" onClick={() => setManualAvatar("")}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setManualAvatar("")}
+                        >
                           <X className="h-3.5 w-3.5" />
                         </Button>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground">JPG/PNG/WEBP, maks 2MB</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      JPG/PNG/WEBP, maks 2MB
+                    </p>
                   </div>
                 </div>
 
@@ -923,7 +1088,10 @@ function EmployeesPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Outlet</Label>
-                    <Select value={manualOutletId} onValueChange={setManualOutletId}>
+                    <Select
+                      value={manualOutletId}
+                      onValueChange={setManualOutletId}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih outlet" />
                       </SelectTrigger>
@@ -953,7 +1121,11 @@ function EmployeesPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label>Tanggal masuk</Label>
-                    <Input type="date" value={manualHireDate} onChange={(e) => setManualHireDate(e.target.value)} />
+                    <Input
+                      type="date"
+                      value={manualHireDate}
+                      onChange={(e) => setManualHireDate(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Upah / jam (Rp)</Label>
@@ -961,7 +1133,11 @@ function EmployeesPage() {
                       type="number"
                       inputMode="numeric"
                       value={manualHourlyRate}
-                      onChange={(e) => setManualHourlyRate(e.target.value.replace(/[^0-9]/g, ""))}
+                      onChange={(e) =>
+                        setManualHourlyRate(
+                          e.target.value.replace(/[^0-9]/g, ""),
+                        )
+                      }
                       placeholder="cth. 25000"
                     />
                   </div>
@@ -987,7 +1163,9 @@ function EmployeesPage() {
                         className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
                       />
                       <div className="flex-1">
-                        <div className="text-sm font-medium">Beri akses login ke POS</div>
+                        <div className="text-sm font-medium">
+                          Beri akses login ke POS
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           Buatkan akun langsung dengan email & kata sandi.
                         </div>
@@ -1012,7 +1190,9 @@ function EmployeesPage() {
                               <Input
                                 type={showPassword ? "text" : "password"}
                                 value={manualPassword}
-                                onChange={(e) => setManualPassword(e.target.value)}
+                                onChange={(e) =>
+                                  setManualPassword(e.target.value)
+                                }
                                 placeholder="Min. 6 karakter"
                                 maxLength={72}
                                 className="pr-9"
@@ -1022,7 +1202,11 @@ function EmployeesPage() {
                                 onClick={() => setShowPassword((s) => !s)}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                               >
-                                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                                {showPassword ? (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Eye className="h-3.5 w-3.5" />
+                                )}
                               </button>
                             </div>
                             <Button
@@ -1038,7 +1222,8 @@ function EmployeesPage() {
                             </Button>
                           </div>
                           <p className="text-[11px] text-muted-foreground">
-                            Bagikan ke pegawai. Mereka bisa ganti dari menu profil.
+                            Bagikan ke pegawai. Mereka bisa ganti dari menu
+                            profil.
                           </p>
                         </div>
                       </div>
@@ -1055,7 +1240,9 @@ function EmployeesPage() {
                       <span className="text-muted-foreground">Email</span>
                       <code className="font-mono">{lastCredentials.email}</code>
                       <span className="text-muted-foreground">Sandi</span>
-                      <code className="font-mono">{lastCredentials.password}</code>
+                      <code className="font-mono">
+                        {lastCredentials.password}
+                      </code>
                     </div>
                     <Button
                       type="button"
@@ -1075,7 +1262,8 @@ function EmployeesPage() {
 
                 {!manualWithLogin && !lastCredentials && !editingId && (
                   <p className="text-xs text-muted-foreground">
-                    Tanpa akses login, pegawai hanya muncul di Jadwal & catatan internal.
+                    Tanpa akses login, pegawai hanya muncul di Jadwal & catatan
+                    internal.
                   </p>
                 )}
               </div>
@@ -1090,8 +1278,15 @@ function EmployeesPage() {
                   {lastCredentials ? "Tutup" : "Batal"}
                 </Button>
                 {!lastCredentials && (
-                  <Button onClick={addManual} disabled={manualSaving || uploadingAvatar || !manualName.trim()}>
-                    {manualSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Button
+                    onClick={addManual}
+                    disabled={
+                      manualSaving || uploadingAvatar || !manualName.trim()
+                    }
+                  >
+                    {manualSaving && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     {editingId ? "Simpan perubahan" : "Simpan"}
                   </Button>
                 )}
@@ -1118,7 +1313,8 @@ function EmployeesPage() {
                     placeholder="pegawai@toko.com"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Pegawai harus daftar dengan email yang sama untuk menerima undangan.
+                    Pegawai harus daftar dengan email yang sama untuk menerima
+                    undangan.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -1171,7 +1367,10 @@ function EmployeesPage() {
       {loading ? (
         <div className="space-y-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+            >
               <Skeleton className="h-9 w-9 rounded-full" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-3.5 w-40" />
@@ -1183,16 +1382,23 @@ function EmployeesPage() {
         </div>
       ) : totalAll === 0 && pending.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
-          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${colorForName("tim")}`}>
+          <div
+            className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${colorForName("tim")}`}
+          >
             <Users className="h-8 w-8" />
           </div>
           <h3 className="text-lg font-semibold">Belum ada pegawai</h3>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
-            Tambahkan pegawai langsung agar bisa muncul di Jadwal, atau undang via email supaya
-            mereka bisa login ke POS.
+            Tambahkan pegawai langsung agar bisa muncul di Jadwal, atau undang
+            via email supaya mereka bisa login ke POS.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <Button onClick={() => { resetManualForm(); setManualOpen(true); }}>
+            <Button
+              onClick={() => {
+                resetManualForm();
+                setManualOpen(true);
+              }}
+            >
               <UserPlus className="mr-2 h-4 w-4" /> Tambah pegawai
             </Button>
             <Button variant="outline" onClick={() => setOpen(true)}>
@@ -1214,14 +1420,22 @@ function EmployeesPage() {
               />
             </div>
             <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua peran</SelectItem>
-                {ROLES.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
+                {ROLES.map((r) => (
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Aktif</SelectItem>
                 <SelectItem value="inactive">Nonaktif</SelectItem>
@@ -1236,7 +1450,9 @@ function EmployeesPage() {
                 <SelectItem value="all">Semua outlet</SelectItem>
                 <SelectItem value="none">Tanpa outlet</SelectItem>
                 {outlets.map((o) => (
-                  <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                  <SelectItem key={o.id} value={o.id}>
+                    {o.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -1260,25 +1476,52 @@ function EmployeesPage() {
             <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
               <span className="font-medium">{totalSelected} dipilih</span>
               <div className="ml-auto flex flex-wrap gap-2">
-                {(selLogin.size + selManual.size) > 0 && (
+                {selLogin.size + selManual.size > 0 && (
                   <>
-                    <Button size="sm" variant="outline" disabled={bulkRunning}
-                      onClick={() => setConfirmBulk({ kind: "activate", count: selLogin.size + selManual.size })}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={bulkRunning}
+                      onClick={() =>
+                        setConfirmBulk({
+                          kind: "activate",
+                          count: selLogin.size + selManual.size,
+                        })
+                      }
+                    >
                       Aktifkan
                     </Button>
-                    <Button size="sm" variant="outline" disabled={bulkRunning}
-                      onClick={() => setConfirmBulk({ kind: "deactivate", count: selLogin.size + selManual.size })}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={bulkRunning}
+                      onClick={() =>
+                        setConfirmBulk({
+                          kind: "deactivate",
+                          count: selLogin.size + selManual.size,
+                        })
+                      }
+                    >
                       Nonaktifkan
                     </Button>
                   </>
                 )}
                 {selInv.size > 0 && (
-                  <Button size="sm" variant="outline" disabled={bulkRunning}
-                    onClick={() => setConfirmBulk({ kind: "resend", count: selInv.size })}>
-                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Kirim ulang ({selInv.size})
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={bulkRunning}
+                    onClick={() =>
+                      setConfirmBulk({ kind: "resend", count: selInv.size })
+                    }
+                  >
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Kirim ulang (
+                    {selInv.size})
                   </Button>
                 )}
-                <Button size="sm" variant="ghost" onClick={clearSelection}>Batal</Button>
+                <Button size="sm" variant="ghost" onClick={clearSelection}>
+                  Batal
+                </Button>
               </div>
             </div>
           )}
@@ -1286,10 +1529,20 @@ function EmployeesPage() {
           {/* Unified list */}
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-              <p className="text-sm text-muted-foreground">Tidak ada pegawai cocok dengan filter.</p>
-              <Button variant="ghost" size="sm" className="mt-2" onClick={() => {
-                setSearch(""); setFilterRole("all"); setFilterOutlet("all"); setFilterKind("all");
-              }}>
+              <p className="text-sm text-muted-foreground">
+                Tidak ada pegawai cocok dengan filter.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  setSearch("");
+                  setFilterRole("all");
+                  setFilterOutlet("all");
+                  setFilterKind("all");
+                }}
+              >
                 Reset filter
               </Button>
             </div>
@@ -1313,12 +1566,19 @@ function EmployeesPage() {
                     {filtered.map((u) => {
                       const outlet = outlets.find((o) => o.id === u.outlet_id);
                       const selSet = u.kind === "login" ? selLogin : selManual;
-                      const selSetter = u.kind === "login" ? setSelLogin : setSelManual;
-                      const selId = u.kind === "login" ? u.raw.user_id : u.raw.id;
+                      const selSetter =
+                        u.kind === "login" ? setSelLogin : setSelManual;
+                      const selId =
+                        u.kind === "login" ? u.raw.user_id : u.raw.id;
                       return (
                         <tr key={u.key} className="hover:bg-muted/30">
                           <td className="px-3 py-3">
-                            <Checkbox checked={selSet.has(selId)} onCheckedChange={() => toggleSel(selSet, selSetter, selId)} />
+                            <Checkbox
+                              checked={selSet.has(selId)}
+                              onCheckedChange={() =>
+                                toggleSel(selSet, selSetter, selId)
+                              }
+                            />
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
@@ -1331,7 +1591,9 @@ function EmployeesPage() {
                               {roleLabel(u.role)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">{outlet?.name ?? "Semua"}</td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {outlet?.name ?? "Semua"}
+                          </td>
                           <td className="px-4 py-3">
                             {u.kind === "login" ? (
                               <Badge className="gap-1 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300">
@@ -1355,10 +1617,24 @@ function EmployeesPage() {
                           <td className="px-4 py-3 text-right">
                             <RowActions
                               row={u}
-                              onEdit={() => u.kind === "manual" ? openEditManual(u.raw) : openLoginEdit(u.raw)}
-                              onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
-                              onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
-                              onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                              onEdit={() =>
+                                u.kind === "manual"
+                                  ? openEditManual(u.raw)
+                                  : openLoginEdit(u.raw)
+                              }
+                              onChangePw={() =>
+                                u.kind === "login" &&
+                                setPwDialog({
+                                  userId: u.raw.user_id,
+                                  name: u.name,
+                                })
+                              }
+                              onResetPw={() =>
+                                u.kind === "login" && sendResetPassword(u.raw)
+                              }
+                              onPromote={() =>
+                                u.kind === "manual" && openPromote(u.raw)
+                              }
                               onPermissions={() => {
                                 if (u.kind === "login" && shop) {
                                   setPermTarget({
@@ -1369,12 +1645,19 @@ function EmployeesPage() {
                                   });
                                 }
                               }}
-                              onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
+                              onToggleActive={() =>
+                                u.kind === "login"
+                                  ? toggleLoginActive(u.raw)
+                                  : toggleManualActive(u.raw)
+                              }
                               onRemove={() => {
-                                if (u.kind === "login") setConfirmRemoveLogin(u.raw);
+                                if (u.kind === "login")
+                                  setConfirmRemoveLogin(u.raw);
                                 else setConfirmRemoveManual(u.raw);
                               }}
-                              resetting={u.kind === "login" && resetting === u.raw.id}
+                              resetting={
+                                u.kind === "login" && resetting === u.raw.id
+                              }
                             />
                           </td>
                         </tr>
@@ -1389,16 +1672,24 @@ function EmployeesPage() {
                 {filtered.map((u) => {
                   const outlet = outlets.find((o) => o.id === u.outlet_id);
                   return (
-                     <div key={u.key} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+                    <div
+                      key={u.key}
+                      className="flex items-start gap-3 rounded-xl border border-border bg-card p-3"
+                    >
                       {(() => {
-                        const selSet = u.kind === "login" ? selLogin : selManual;
-                        const setSelSet = u.kind === "login" ? setSelLogin : setSelManual;
-                        const id = u.kind === "login" ? u.raw.user_id : u.raw.id;
+                        const selSet =
+                          u.kind === "login" ? selLogin : selManual;
+                        const setSelSet =
+                          u.kind === "login" ? setSelLogin : setSelManual;
+                        const id =
+                          u.kind === "login" ? u.raw.user_id : u.raw.id;
                         return (
                           <Checkbox
                             className="mt-1"
                             checked={selSet.has(id)}
-                            onCheckedChange={() => toggleSel(selSet, setSelSet, id)}
+                            onCheckedChange={() =>
+                              toggleSel(selSet, setSelSet, id)
+                            }
                           />
                         );
                       })()}
@@ -1408,10 +1699,24 @@ function EmployeesPage() {
                           <div className="truncate font-medium">{u.name}</div>
                           <RowActions
                             row={u}
-                            onEdit={() => u.kind === "manual" ? openEditManual(u.raw) : openLoginEdit(u.raw)}
-                            onChangePw={() => u.kind === "login" && setPwDialog({ userId: u.raw.user_id, name: u.name })}
-                            onResetPw={() => u.kind === "login" && sendResetPassword(u.raw)}
-                            onPromote={() => u.kind === "manual" && openPromote(u.raw)}
+                            onEdit={() =>
+                              u.kind === "manual"
+                                ? openEditManual(u.raw)
+                                : openLoginEdit(u.raw)
+                            }
+                            onChangePw={() =>
+                              u.kind === "login" &&
+                              setPwDialog({
+                                userId: u.raw.user_id,
+                                name: u.name,
+                              })
+                            }
+                            onResetPw={() =>
+                              u.kind === "login" && sendResetPassword(u.raw)
+                            }
+                            onPromote={() =>
+                              u.kind === "manual" && openPromote(u.raw)
+                            }
                             onPermissions={() => {
                               if (u.kind === "login" && shop) {
                                 setPermTarget({
@@ -1422,12 +1727,19 @@ function EmployeesPage() {
                                 });
                               }
                             }}
-                            onToggleActive={() => u.kind === "login" ? toggleLoginActive(u.raw) : toggleManualActive(u.raw)}
+                            onToggleActive={() =>
+                              u.kind === "login"
+                                ? toggleLoginActive(u.raw)
+                                : toggleManualActive(u.raw)
+                            }
                             onRemove={() => {
-                              if (u.kind === "login") setConfirmRemoveLogin(u.raw);
+                              if (u.kind === "login")
+                                setConfirmRemoveLogin(u.raw);
                               else setConfirmRemoveManual(u.raw);
                             }}
-                            resetting={u.kind === "login" && resetting === u.raw.id}
+                            resetting={
+                              u.kind === "login" && resetting === u.raw.id
+                            }
                           />
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -1444,7 +1756,11 @@ function EmployeesPage() {
                             </Badge>
                           )}
                           <span>· {outlet?.name ?? "Semua outlet"}</span>
-                          {u.phone && <span className="inline-flex items-center gap-1">· <Phone className="h-3 w-3" /> {u.phone}</span>}
+                          {u.phone && (
+                            <span className="inline-flex items-center gap-1">
+                              · <Phone className="h-3 w-3" /> {u.phone}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1466,7 +1782,12 @@ function EmployeesPage() {
                     className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <Checkbox checked={selInv.has(inv.id)} onCheckedChange={() => toggleSel(selInv, setSelInv, inv.id)} />
+                      <Checkbox
+                        checked={selInv.has(inv.id)}
+                        onCheckedChange={() =>
+                          toggleSel(selInv, setSelInv, inv.id)
+                        }
+                      />
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <div className="text-sm font-medium">{inv.email}</div>
@@ -1478,7 +1799,11 @@ function EmployeesPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => copy(inv.token)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copy(inv.token)}
+                      >
                         {copied === inv.token ? (
                           <>
                             <Check className="mr-1.5 h-3.5 w-3.5" /> Tersalin
@@ -1495,7 +1820,9 @@ function EmployeesPage() {
                         onClick={() => resendInvitation(inv)}
                         disabled={resending === inv.id}
                       >
-                        <RotateCcw className={`mr-1.5 h-3.5 w-3.5 ${resending === inv.id ? "animate-spin" : ""}`} />
+                        <RotateCcw
+                          className={`mr-1.5 h-3.5 w-3.5 ${resending === inv.id ? "animate-spin" : ""}`}
+                        />
                         Kirim ulang
                       </Button>
                       <Button
@@ -1540,7 +1867,12 @@ function EmployeesPage() {
                 maxLength={72}
                 autoFocus
               />
-              <Button type="button" variant="outline" size="sm" onClick={() => setPwValue(genPassword(10))}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPwValue(genPassword(10))}
+              >
                 Generate
               </Button>
             </div>
@@ -1552,7 +1884,10 @@ function EmployeesPage() {
             <Button variant="ghost" onClick={() => setPwDialog(null)}>
               Batal
             </Button>
-            <Button onClick={setMemberPassword} disabled={pwSaving || pwValue.length < 6}>
+            <Button
+              onClick={setMemberPassword}
+              disabled={pwSaving || pwValue.length < 6}
+            >
               {pwSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Simpan sandi
             </Button>
@@ -1571,7 +1906,11 @@ function EmployeesPage() {
               Bagikan tautan ini ke pegawai. Tautan berlaku terbatas waktu.
             </p>
             <div className="flex gap-2">
-              <Input value={resetLink?.link ?? ""} readOnly className="text-xs font-mono" />
+              <Input
+                value={resetLink?.link ?? ""}
+                readOnly
+                className="text-xs font-mono"
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -1594,12 +1933,18 @@ function EmployeesPage() {
       </Dialog>
 
       {/* Confirm: remove login member */}
-      <AlertDialog open={!!confirmRemoveLogin} onOpenChange={(o) => !o && setConfirmRemoveLogin(null)}>
+      <AlertDialog
+        open={!!confirmRemoveLogin}
+        onOpenChange={(o) => !o && setConfirmRemoveLogin(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Keluarkan pegawai dari toko?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{confirmRemoveLogin?.profile?.display_name ?? "Pegawai ini"}</strong> akan kehilangan akses ke POS. Akun loginnya tetap ada.
+              <strong>
+                {confirmRemoveLogin?.profile?.display_name ?? "Pegawai ini"}
+              </strong>{" "}
+              akan kehilangan akses ke POS. Akun loginnya tetap ada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1618,13 +1963,17 @@ function EmployeesPage() {
       </AlertDialog>
 
       {/* Confirm: remove manual */}
-      <AlertDialog open={!!confirmRemoveManual} onOpenChange={(o) => !o && setConfirmRemoveManual(null)}>
+      <AlertDialog
+        open={!!confirmRemoveManual}
+        onOpenChange={(o) => !o && setConfirmRemoveManual(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus pegawai?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{confirmRemoveManual?.name}</strong> akan dihapus permanen beserta semua jadwal yang terkait.
-              Tindakan ini tidak bisa dibatalkan.
+              <strong>{confirmRemoveManual?.name}</strong> akan dihapus permanen
+              beserta semua jadwal yang terkait. Tindakan ini tidak bisa
+              dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1643,12 +1992,16 @@ function EmployeesPage() {
       </AlertDialog>
 
       {/* Confirm: revoke invitation */}
-      <AlertDialog open={!!confirmRevokeInv} onOpenChange={(o) => !o && setConfirmRevokeInv(null)}>
+      <AlertDialog
+        open={!!confirmRevokeInv}
+        onOpenChange={(o) => !o && setConfirmRevokeInv(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Batalkan undangan?</AlertDialogTitle>
             <AlertDialogDescription>
-              Undangan untuk <strong>{confirmRevokeInv?.email}</strong> akan dibatalkan dan tautan jadi tidak berlaku.
+              Undangan untuk <strong>{confirmRevokeInv?.email}</strong> akan
+              dibatalkan dan tautan jadi tidak berlaku.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1671,11 +2024,12 @@ function EmployeesPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" /> Sudah salin kredensial?
+              <AlertTriangle className="h-5 w-5 text-amber-500" /> Sudah salin
+              kredensial?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Kata sandi tidak akan ditampilkan lagi setelah dialog ini ditutup. Pastikan kamu sudah menyalin
-              dan membagikannya ke pegawai.
+              Kata sandi tidak akan ditampilkan lagi setelah dialog ini ditutup.
+              Pastikan kamu sudah menyalin dan membagikannya ke pegawai.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1694,27 +2048,36 @@ function EmployeesPage() {
       </AlertDialog>
 
       {/* Bulk action confirm */}
-      <AlertDialog open={!!confirmBulk} onOpenChange={(o) => !o && !bulkRunning && setConfirmBulk(null)}>
+      <AlertDialog
+        open={!!confirmBulk}
+        onOpenChange={(o) => !o && !bulkRunning && setConfirmBulk(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmBulk?.kind === "activate" && `Aktifkan ${confirmBulk.count} pegawai?`}
-              {confirmBulk?.kind === "deactivate" && `Nonaktifkan ${confirmBulk.count} pegawai?`}
-              {confirmBulk?.kind === "resend" && `Kirim ulang ${confirmBulk?.count} undangan?`}
+              {confirmBulk?.kind === "activate" &&
+                `Aktifkan ${confirmBulk.count} pegawai?`}
+              {confirmBulk?.kind === "deactivate" &&
+                `Nonaktifkan ${confirmBulk.count} pegawai?`}
+              {confirmBulk?.kind === "resend" &&
+                `Kirim ulang ${confirmBulk?.count} undangan?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmBulk?.kind === "deactivate"
                 ? "Pegawai tidak akan bisa login atau muncul di jadwal sampai diaktifkan kembali."
                 : confirmBulk?.kind === "activate"
-                ? "Pegawai akan kembali bisa login dan muncul di jadwal."
-                : "Email undangan baru akan dikirim ke setiap penerima."}
+                  ? "Pegawai akan kembali bisa login dan muncul di jadwal."
+                  : "Email undangan baru akan dikirim ke setiap penerima."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkRunning}>Batal</AlertDialogCancel>
             <AlertDialogAction
               disabled={bulkRunning}
-              onClick={(e) => { e.preventDefault(); if (confirmBulk) runBulk(confirmBulk.kind); }}
+              onClick={(e) => {
+                e.preventDefault();
+                if (confirmBulk) runBulk(confirmBulk.kind);
+              }}
             >
               {bulkRunning ? "Memproses..." : "Lanjutkan"}
             </AlertDialogAction>
@@ -1725,38 +2088,68 @@ function EmployeesPage() {
       {/* Edit login member */}
       <Dialog open={!!loginEdit} onOpenChange={(o) => !o && setLoginEdit(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Edit pegawai login · {loginEdit?.profile?.display_name ?? "—"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>
+              Edit pegawai login · {loginEdit?.profile?.display_name ?? "—"}
+            </DialogTitle>
+          </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Peran</Label>
                 <Select value={loginEditRole} onValueChange={setLoginEditRole}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {ROLES.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
+                    {ROLES.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label>Outlet</Label>
-                <Select value={loginEditOutlet || "_none"} onValueChange={(v) => setLoginEditOutlet(v === "_none" ? "" : v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={loginEditOutlet || "_none"}
+                  onValueChange={(v) =>
+                    setLoginEditOutlet(v === "_none" ? "" : v)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="_none">Semua outlet</SelectItem>
-                    {outlets.map((o) => (<SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>))}
+                    {outlets.map((o) => (
+                      <SelectItem key={o.id} value={o.id}>
+                        {o.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={loginEditActive} onChange={(e) => setLoginEditActive(e.target.checked)} className="h-4 w-4 accent-primary" />
+              <input
+                type="checkbox"
+                checked={loginEditActive}
+                onChange={(e) => setLoginEditActive(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
               Akses aktif (bisa login & muncul di Jadwal)
             </label>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setLoginEdit(null)}>Batal</Button>
+            <Button variant="ghost" onClick={() => setLoginEdit(null)}>
+              Batal
+            </Button>
             <Button onClick={saveLoginEdit} disabled={loginEditSaving}>
-              {loginEditSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loginEditSaving && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Simpan
             </Button>
           </DialogFooter>
@@ -1764,13 +2157,25 @@ function EmployeesPage() {
       </Dialog>
 
       {/* Promote manual → login */}
-      <Dialog open={!!promoteTarget} onOpenChange={(o) => !o && setPromoteTarget(null)}>
+      <Dialog
+        open={!!promoteTarget}
+        onOpenChange={(o) => !o && setPromoteTarget(null)}
+      >
         <DialogContent>
-          <DialogHeader><DialogTitle>Aktifkan akun login · {promoteTarget?.name}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>
+              Aktifkan akun login · {promoteTarget?.name}
+            </DialogTitle>
+          </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input type="email" value={promoteEmail} onChange={(e) => setPromoteEmail(e.target.value)} placeholder="pegawai@toko.com" />
+              <Input
+                type="email"
+                value={promoteEmail}
+                onChange={(e) => setPromoteEmail(e.target.value)}
+                placeholder="pegawai@toko.com"
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Kata sandi awal</Label>
@@ -1782,19 +2187,43 @@ function EmployeesPage() {
                     onChange={(e) => setPromotePassword(e.target.value)}
                     className="pr-9"
                   />
-                  <button type="button" onClick={() => setPromoteShowPw((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {promoteShowPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  <button
+                    type="button"
+                    onClick={() => setPromoteShowPw((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    {promoteShowPw ? (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
                   </button>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => { setPromotePassword(genPassword(10)); setPromoteShowPw(true); }}>Generate</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPromotePassword(genPassword(10));
+                    setPromoteShowPw(true);
+                  }}
+                >
+                  Generate
+                </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground">Kredensial otomatis disalin setelah dibuat.</p>
+              <p className="text-[11px] text-muted-foreground">
+                Kredensial otomatis disalin setelah dibuat.
+              </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setPromoteTarget(null)}>Batal</Button>
+            <Button variant="ghost" onClick={() => setPromoteTarget(null)}>
+              Batal
+            </Button>
             <Button onClick={doPromote} disabled={promoteSaving}>
-              {promoteSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {promoteSaving && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Buat akun login
             </Button>
           </DialogFooter>
@@ -1835,13 +2264,20 @@ function RowActions({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+          {resetting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MoreHorizontal className="h-4 w-4" />
+          )}
           <span className="sr-only">Aksi</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
-          Aksi pegawai {!row.is_active && <span className="ml-1 text-[10px] text-amber-600">(Nonaktif)</span>}
+          Aksi pegawai{" "}
+          {!row.is_active && (
+            <span className="ml-1 text-[10px] text-amber-600">(Nonaktif)</span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onEdit}>
@@ -1866,11 +2302,18 @@ function RowActions({
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={onToggleActive}>
-          {row.is_active ? <EyeOff className="mr-2 h-3.5 w-3.5" /> : <Eye className="mr-2 h-3.5 w-3.5" />}
+          {row.is_active ? (
+            <EyeOff className="mr-2 h-3.5 w-3.5" />
+          ) : (
+            <Eye className="mr-2 h-3.5 w-3.5" />
+          )}
           {row.is_active ? "Nonaktifkan" : "Aktifkan"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
+        <DropdownMenuItem
+          onClick={onRemove}
+          className="text-destructive focus:text-destructive"
+        >
           <Trash2 className="mr-2 h-3.5 w-3.5" />
           {row.kind === "login" ? "Keluarkan dari toko" : "Hapus pegawai"}
         </DropdownMenuItem>
