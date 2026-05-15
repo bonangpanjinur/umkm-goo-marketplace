@@ -61,7 +61,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
           className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-border text-xs hover:bg-muted disabled:opacity-50"
         >
           {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-          {value ? "Ganti" : "Upload"}
+          {busy ? (stage || "Memproses…") : value ? "Ganti" : "Upload"}
         </button>
       </div>
       <input
