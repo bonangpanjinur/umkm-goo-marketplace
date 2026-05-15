@@ -276,13 +276,31 @@ export default function PublicBookingPage() {
     }
   }, []);
 
+  // Load studio locations (SF-03) — graceful: skip if table empty
+  const loadLocations = useCallback(async (shopId: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from("studio_locations")
+        .select("id, name, location_type, address, description, extra_fee, travel_radius_km")
+        .eq("shop_id", shopId)
+        .eq("is_active", true)
+        .order("sort_order");
+      setLocations((data ?? []) as StudioLocation[]);
+    } catch {
+      setLocations([]);
+    } finally {
+      setLocationsLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (shop?.id) {
       loadSlots(shop.id);
       loadStaff(shop.id);
       loadPackages(shop.id);
+      loadLocations(shop.id);
     }
-  }, [shop?.id, loadSlots, loadStaff, loadPackages]);
+  }, [shop?.id, loadSlots, loadStaff, loadPackages, loadLocations]);
 
   // Load gateway config + Midtrans Snap.js
   useEffect(() => {
