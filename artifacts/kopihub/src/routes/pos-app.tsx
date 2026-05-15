@@ -101,6 +101,8 @@ type NavItem = {
   exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[];
   /** If set, only show this item when shop's category type is in this list */
   onlyFor?: string[];
+  /** If set, only show for these business sub-types (sales-pro: 'umroh' | 'sales') */
+  subtypeOnly?: ("umroh" | "sales")[];
 };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
@@ -108,6 +110,7 @@ type NavGroup = { id: string; label: string; items: NavItem[] };
 function deriveCategoryType(slug: string | null | undefined): string {
   if (!slug) return "general";
   const s = slug.toLowerCase();
+  if (s === "sales-jasa-profesional") return "sales-pro";
   if (/fnb|kuliner|makanan|minuman|cafe|kafe|restoran|bakery|food|kopi|warung|catering|beverage/.test(s)) return "fnb";
   if (/fashion|pakaian|clothing|busana|sepatu|aksesoris/.test(s)) return "fashion";
   if (/digital|software|konten|content|saas|aplikasi|pendidikan/.test(s)) return "digital";
@@ -116,6 +119,9 @@ function deriveCategoryType(slug: string | null | undefined): string {
   if (/elektronik|gadget|komputer|tech/.test(s)) return "electronics";
   return "general";
 }
+
+// Categories that have POS / KDS / Stok / Inventori / Resep / Shift Kasir
+const HAS_POS = ["fnb", "fashion", "craft", "electronics", "general"];
 
 // Category type groups for onlyFor references
 const FNB         = ["fnb"];
@@ -134,9 +140,21 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Utama",
     items: [
       { to: "/pos-app",     label: "Dashboard",  icon: LayoutDashboard, exact: true },
-      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag },
+      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag, onlyFor: HAS_POS },
     ],
   },
+  {
+    id: "sales_pro",
+    label: "Sales / Umroh",
+    items: [
+      { to: "/pos-app/umroh-packages",   label: "Paket Umroh",       icon: Plane,     onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/sales-offerings",  label: "Katalog Layanan",   icon: Briefcase, onlyFor: ["sales-pro"], subtypeOnly: ["sales"] },
+      { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"] },
+      { to: "/pos-app/testimonials",     label: "Testimoni",         icon: Quote,     onlyFor: ["sales-pro"] },
+      { to: "/pos-app/leads",            label: "Lead / CRM",        icon: Inbox,     onlyFor: ["sales-pro"] },
+      { to: "/pos-app/about-page",       label: "Halaman Tentang",   icon: Info,      onlyFor: ["sales-pro"] },
   {
     id: "orders",
     label: "Pesanan",
@@ -150,17 +168,17 @@ const NAV_GROUPS: NavGroup[] = [
     id: "catalog",
     label: "Katalog & Stok",
     items: [
-      { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed },
-      { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal },
-      { to: "/pos-app/categories",     label: "Kategori",        icon: Tags },
+      { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed, onlyFor: HAS_POS },
+      { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal, onlyFor: HAS_POS },
+      { to: "/pos-app/categories",     label: "Kategori",        icon: Tags, onlyFor: HAS_POS },
       { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC },
       { to: "/pos-app/digital-licenses", label: "Lisensi Digital", icon: ShieldCheck, hint: "Lacak unduhan pembeli & kelola lisensi per produk digital — anti-sharing", onlyFor: DIGITAL_SVC },
       { to: "/pos-app/digital-version",  label: "Update Versi",    icon: History, hint: "Rilis versi baru produk digital — pembeli lama dapat notifikasi otomatis", onlyFor: DIGITAL_SVC },
       { to: "/pos-app/kursus",           label: "Kursus Online",   icon: GraduationCap, hint: "Kelola kursus video online: modul, pelajaran, dan pantau progress pembeli", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag },
-      { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers },
-      { to: "/pos-app/inventory",      label: "Inventori",       icon: Package },
-      { to: "/pos-app/bundles",          label: "Bundle / Paket",       icon: Layers },
+      { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag, onlyFor: HAS_POS },
+      { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers, onlyFor: HAS_POS },
+      { to: "/pos-app/inventory",      label: "Inventori",       icon: Package, onlyFor: HAS_POS },
+      { to: "/pos-app/bundles",          label: "Bundle / Paket",       icon: Layers, onlyFor: HAS_POS },
       { to: "/pos-app/combo-builder",    label: "Paket & Combo F&B",    icon: UtensilsCrossed, hint: "Buat set hemat dari beberapa menu dengan harga bundel & diskon otomatis", onlyFor: FNB },
       { to: "/pos-app/recipes",          label: "Resep",                icon: ChefHat, onlyFor: FNB },
       { to: "/pos-app/size-guide",       label: "Panduan Ukuran",       icon: SlidersHorizontal, hint: "Kalkulator ukuran interaktif: Tinggi 165cm → pilih M — tampil di halaman produk", onlyFor: FASHION },
@@ -170,8 +188,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/limited-editions", label: "Edisi Terbatas",       icon: Zap, hint: "Produk limited dengan counter stok visible — ciptakan urgensi pembelian", onlyFor: [...FASHION, ...CRAFT] },
       { to: "/pos-app/wip-gallery",      label: "Galeri Proses Buat",   icon: Layers, hint: "Tampilkan proses pembuatan karya — bangun kepercayaan pembeli", onlyFor: CRAFT },
       { to: "/pos-app/certificates",     label: "Sertifikat Keaslian",  icon: Award, hint: "Certificate of Authenticity digital — dikirim otomatis ke pembeli", onlyFor: CRAFT },
-      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2 },
-      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText },
+      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2, onlyFor: HAS_POS },
+      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText, onlyFor: HAS_POS },
     ],
   },
   {
@@ -182,7 +200,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
       { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
       { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
-      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet },
+      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet, onlyFor: HAS_POS },
     ],
   },
   {
@@ -337,6 +355,7 @@ function AppLayoutInner() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
   const [shopCategoryType, setShopCategoryType] = useState<string>("general");
+  const [shopSubtype, setShopSubtype] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -348,12 +367,13 @@ function AppLayoutInner() {
       // Owner flow
       const { data } = await supabase
         .from("coffee_shops")
-        .select("id, name, logo_url, suspended_at, suspended_reason, business_category:business_categories(slug)")
+        .select("id, name, logo_url, suspended_at, suspended_reason, business_subtype, business_category:business_categories(slug)")
         .eq("owner_id", user.id)
         .maybeSingle();
       if (data) {
         setShop(data as any);
         setShopCategoryType(deriveCategoryType((data as any).business_category?.slug));
+        setShopSubtype((data as any).business_subtype ?? null);
         setChecking(false);
         if (data.suspended_at && location.pathname !== "/pos-app/billing") {
           toast.error("Toko Anda dinonaktifkan oleh admin. Hubungi admin.");
@@ -366,12 +386,13 @@ function AppLayoutInner() {
       if (staff.isStaff && staff.shopId) {
         const { data: s } = await supabase
           .from("coffee_shops")
-          .select("name, logo_url, suspended_at, suspended_reason, business_category:business_categories(slug)")
+          .select("id, name, logo_url, suspended_at, suspended_reason, business_subtype, business_category:business_categories(slug)")
           .eq("id", staff.shopId)
           .maybeSingle();
         if (s) {
           setShop(s as any);
           setShopCategoryType(deriveCategoryType((s as any).business_category?.slug));
+          setShopSubtype((s as any).business_subtype ?? null);
           setChecking(false);
           return;
         }
@@ -501,12 +522,16 @@ function AppLayoutInner() {
       if (!staff.isOwner && staff.isStaff && !isModuleAllowed(it.to, staff.allowedModules)) return false;
       // Category type check — only filter if onlyFor is specified
       if (it.onlyFor && it.onlyFor.length > 0 && !it.onlyFor.includes(shopCategoryType)) return false;
+      // Sub-type check (only matters for sales-pro)
+      if (it.subtypeOnly && it.subtypeOnly.length > 0) {
+        if (!shopSubtype || !it.subtypeOnly.includes(shopSubtype as "umroh" | "sales")) return false;
+      }
       return true;
     };
     return NAV_GROUPS
       .map((g) => ({ ...g, items: g.items.filter(allowed) }))
       .filter((g) => g.items.length > 0);
-  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType]);
+  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype]);
 
   // Track which group is open; auto-open the group that contains the active route
   const matchItem = (it: NavItem, path: string) => {
@@ -569,6 +594,7 @@ function AppLayoutInner() {
               services: "Jasa",
               craft: "Kerajinan",
               electronics: "Elektronik",
+              "sales-pro": shopSubtype === "umroh" ? "Umroh" : "Sales",
             }[shopCategoryType] ?? shopCategoryType}
           </span>
         )}

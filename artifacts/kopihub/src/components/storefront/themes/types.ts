@@ -5,6 +5,7 @@ export type StorefrontShop = {
   slug: string;
   name: string;
   description: string | null;
+  tagline?: string | null;
   address: string | null;
   phone: string | null;
   whatsapp: string | null;

@@ -7,25 +7,20 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { formatIDR } from "@/lib/format";
 import { toast } from "sonner";
-import { MessageCircle, Plane, Hotel, BookOpen, MapPin, Phone } from "lucide-react";
+import { MessageCircle, Plane, Hotel, MapPin, Phone, CalendarDays, Star } from "lucide-react";
 import type { ThemeHomeProps } from "../types";
 
 type UmrohPackage = {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  duration_days: number | null;
-  departure_date: string | null;
-  image_url: string | null;
-  hotel_makkah: string | null;
-  hotel_madinah: string | null;
-  airline: string | null;
+  id: string; name: string; description: string | null;
+  departure_date: string | null; return_date: string | null; duration_days: number | null;
+  hotel_makkah: string | null; hotel_madinah: string | null; airline: string | null;
+  price_quad: number | null; price_triple: number | null; price_double: number | null;
+  cover_image_url: string | null; quota_total: number | null; quota_filled: number;
 };
-type Facility = { id: string; title: string; icon: string | null };
-type FAQ = { id: string; question: string; answer: string };
-type Flyer = { id: string; title: string | null; image_url: string };
-type Testimonial = { id: string; name: string; message: string; rating: number | null; image_url: string | null };
+type Facility = { id: string; title: string; description: string | null; icon: string };
+type FAQ = { id: string; question: string; answer: string; category: string };
+type Flyer = { id: string; title: string; image_url: string };
+type Testimonial = { id: string; name: string; quote: string; rating: number | null; photo_url: string | null; role_or_trip: string | null };
 
 export default function UmrohHome({ shop }: ThemeHomeProps) {
   const [packages, setPackages] = useState<UmrohPackage[]>([]);
@@ -40,203 +35,218 @@ export default function UmrohHome({ shop }: ThemeHomeProps) {
   useEffect(() => {
     if (!shop) return;
     (async () => {
-      const [p, f, q, fl, t] = await Promise.all([
-        supabase.from("umroh_packages").select("*").eq("shop_id", shop.id).order("departure_date", { ascending: true }),
-        supabase.from("umroh_facilities").select("id,title,icon").eq("shop_id", shop.id),
-        supabase.from("umroh_faqs").select("id,question,answer").eq("shop_id", shop.id),
-        supabase.from("flyers").select("id,title,image_url").eq("shop_id", shop.id).order("created_at", { ascending: false }),
-        supabase.from("testimonials").select("id,name,message,rating,image_url").eq("shop_id", shop.id).order("created_at", { ascending: false }).limit(6),
+      const [p, fac, faq, fl, t] = await Promise.all([
+        supabase.from("umroh_packages").select("*").eq("shop_id", shop.id).eq("is_active", true).order("sort_order"),
+        supabase.from("umroh_facilities").select("*").eq("shop_id", shop.id).order("sort_order"),
+        supabase.from("umroh_faqs").select("*").eq("shop_id", shop.id).order("sort_order"),
+        supabase.from("flyers").select("id,title,image_url").eq("shop_id", shop.id).eq("is_active", true).order("sort_order"),
+        supabase.from("testimonials").select("id,name,quote,rating,photo_url,role_or_trip").eq("shop_id", shop.id).eq("is_active", true).order("sort_order").limit(8),
       ]);
       setPackages((p.data ?? []) as UmrohPackage[]);
-      setFacilities((f.data ?? []) as Facility[]);
-      setFaqs((q.data ?? []) as FAQ[]);
+      setFacilities((fac.data ?? []) as Facility[]);
+      setFaqs((faq.data ?? []) as FAQ[]);
       setFlyers((fl.data ?? []) as Flyer[]);
       setTestimonials((t.data ?? []) as Testimonial[]);
     })();
   }, [shop]);
 
-  const wa = (shop.whatsapp || shop.phone || "").replace(/\D/g, "");
-  const waLink = (text: string) => wa ? `https://wa.me/${wa}?text=${encodeURIComponent(text)}` : "#";
+  const wa = shop.whatsapp || shop.phone || "";
+  const waLink = (msg: string) => `https://wa.me/${wa.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
 
-  const submitLead = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name || !form.phone) {
-      toast.error("Nama dan WhatsApp wajib diisi");
+  async function submitLead() {
+    if (!selectedPkg) return;
+    if (form.name.length < 2 || form.phone.replace(/\D/g, "").length < 8) {
+      toast.error("Nama & nomor WA wajib diisi");
       return;
     }
     setSubmitting(true);
     const { error } = await supabase.from("leads").insert({
       shop_id: shop.id,
-      name: form.name,
+      source: "umroh_register",
+      linked_id: selectedPkg.id,
+      linked_type: "umroh_package",
+      full_name: form.name,
       phone: form.phone,
-      note: form.note,
-      source: selectedPkg ? `Umroh: ${selectedPkg.name}` : "Storefront Umroh",
+      message: form.note || null,
     });
     setSubmitting(false);
-    if (error) {
-      toast.error("Gagal mengirim pendaftaran");
-      return;
-    }
-    toast.success("Pendaftaran terkirim. Kami akan menghubungi via WhatsApp.");
-    if (wa) {
-      const msg = `Assalamualaikum, saya ${form.name} ingin daftar ${selectedPkg?.name ?? "umroh"}. ${form.note}`;
-      window.open(waLink(msg), "_blank");
-    }
-    setForm({ name: "", phone: "", note: "" });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pendaftaran terkirim. Kami akan menghubungi Anda.");
+    if (wa) window.open(waLink(`Halo, saya ${form.name} ingin daftar paket: ${selectedPkg.name}`), "_blank");
     setSelectedPkg(null);
-  };
+    setForm({ name: "", phone: "", note: "" });
+  }
+
+  const minPrice = (p: UmrohPackage) => Math.min(...[p.price_quad, p.price_triple, p.price_double].filter((x): x is number => typeof x === "number"));
 
   return (
-    <div className="space-y-12 pb-24">
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-8 text-emerald-50 sm:p-12">
-        <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-emerald-400/20 blur-3xl" />
-        <div className="relative space-y-4">
-          <Badge className="bg-amber-400 text-emerald-950 hover:bg-amber-400">Travel Umroh Terpercaya</Badge>
-          <h1 className="font-serif text-3xl font-bold leading-tight sm:text-5xl">{shop.name}</h1>
-          {shop.description && <p className="max-w-2xl text-emerald-100/90">{shop.description}</p>}
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button asChild size="lg" className="bg-amber-400 text-emerald-950 hover:bg-amber-300">
-              <a href="#paket"><Plane className="mr-2 h-4 w-4" /> Lihat Paket</a>
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-background">
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-700 to-emerald-900 text-white">
+        <div className="container mx-auto px-4 py-16 sm:py-24 text-center">
+          <Badge className="bg-emerald-600/40 border-emerald-400 text-emerald-50 mb-4">Travel & Umroh Resmi</Badge>
+          <h1 className="text-3xl sm:text-5xl font-bold mb-4">{shop.name}</h1>
+          {shop.description && <p className="max-w-2xl mx-auto text-emerald-100 text-lg">{shop.description}</p>}
+          {wa && (
+            <Button asChild size="lg" className="mt-8 bg-white text-emerald-800 hover:bg-emerald-50">
+              <a href={waLink(`Halo ${shop.name}, saya ingin info paket umroh`)} target="_blank" rel="noreferrer">
+                <MessageCircle className="mr-2 h-5 w-5" /> Konsultasi via WhatsApp
+              </a>
             </Button>
-            {wa && (
-              <Button asChild size="lg" variant="outline" className="border-emerald-100/40 bg-transparent text-emerald-50 hover:bg-emerald-50/10">
-                <a href={waLink(`Assalamualaikum, saya ingin tanya tentang paket umroh ${shop.name}`)} target="_blank" rel="noopener">
-                  <MessageCircle className="mr-2 h-4 w-4" /> Konsultasi WA
-                </a>
-              </Button>
-            )}
-          </div>
+          )}
         </div>
       </section>
 
-      {/* Paket */}
-      <section id="paket" className="space-y-6">
-        <header>
-          <h2 className="font-serif text-2xl font-bold">Paket Umroh</h2>
-          <p className="text-sm text-muted-foreground">Pilih paket yang sesuai kebutuhan jamaah</p>
-        </header>
-        {packages.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">Belum ada paket tersedia.</Card>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* PAKET */}
+      {packages.length > 0 && (
+        <section className="container mx-auto px-4 py-12">
+          <h2 className="text-2xl font-bold mb-6 text-center">Paket Perjalanan</h2>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {packages.map((p) => (
-              <Card key={p.id} className="overflow-hidden">
-                {p.image_url && <img src={p.image_url} alt={p.name} className="h-40 w-full object-cover" />}
-                <div className="space-y-3 p-5">
-                  <h3 className="font-serif text-lg font-bold">{p.name}</h3>
-                  {p.description && <p className="line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    {p.duration_days && <div>🗓 {p.duration_days} hari</div>}
-                    {p.departure_date && <div>✈️ Berangkat {new Date(p.departure_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>}
-                    {p.airline && <div>Maskapai: {p.airline}</div>}
-                    {p.hotel_makkah && <div><Hotel className="mr-1 inline h-3 w-3" />Makkah: {p.hotel_makkah}</div>}
-                    {p.hotel_madinah && <div><Hotel className="mr-1 inline h-3 w-3" />Madinah: {p.hotel_madinah}</div>}
+              <Card key={p.id} className="overflow-hidden flex flex-col">
+                {p.cover_image_url && <img src={p.cover_image_url} alt={p.name} className="h-48 w-full object-cover" />}
+                <div className="p-4 flex-1 flex flex-col">
+                  <h3 className="font-bold text-lg">{p.name}</h3>
+                  {p.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{p.description}</p>}
+                  <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                    {p.departure_date && <div className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{new Date(p.departure_date).toLocaleDateString("id-ID")}{p.duration_days && ` · ${p.duration_days} hari`}</div>}
+                    {p.airline && <div className="flex items-center gap-1"><Plane className="h-3.5 w-3.5" />{p.airline}</div>}
+                    {p.hotel_makkah && <div className="flex items-center gap-1"><Hotel className="h-3.5 w-3.5" />Mekkah: {p.hotel_makkah}</div>}
+                    {p.hotel_madinah && <div className="flex items-center gap-1"><Hotel className="h-3.5 w-3.5" />Madinah: {p.hotel_madinah}</div>}
                   </div>
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="font-serif text-xl font-bold text-emerald-700">{formatIDR(Number(p.price))}</span>
-                    <Button size="sm" onClick={() => { setSelectedPkg(p); document.getElementById("daftar")?.scrollIntoView({ behavior: "smooth" }); }} className="bg-emerald-700 hover:bg-emerald-800">Daftar</Button>
+                  <div className="mt-3">
+                    <p className="text-xs text-muted-foreground">Mulai dari</p>
+                    <p className="text-xl font-bold text-emerald-700">{Number.isFinite(minPrice(p)) ? formatIDR(minPrice(p)) : "Hubungi"}</p>
                   </div>
+                  {p.quota_total && (
+                    <p className="text-xs text-muted-foreground mt-1">Sisa kuota: {Math.max(0, p.quota_total - p.quota_filled)} / {p.quota_total}</p>
+                  )}
+                  <Button className="mt-4 bg-emerald-700 hover:bg-emerald-800" onClick={() => setSelectedPkg(p)}>Daftar Sekarang</Button>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Fasilitas */}
-      {facilities.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="font-serif text-2xl font-bold">Fasilitas</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {facilities.map((f) => (
-              <Card key={f.id} className="flex items-center gap-3 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">✓</div>
-                <span className="text-sm font-medium">{f.title}</span>
               </Card>
             ))}
           </div>
         </section>
       )}
 
-      {/* Galeri Flyer */}
+      {/* FASILITAS */}
+      {facilities.length > 0 && (
+        <section className="bg-emerald-50/50 py-12">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl font-bold mb-6 text-center">Fasilitas</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {facilities.map((f) => (
+                <Card key={f.id} className="p-4 text-center">
+                  <div className="text-2xl mb-2">{f.icon || "✓"}</div>
+                  <h3 className="font-semibold">{f.title}</h3>
+                  {f.description && <p className="text-xs text-muted-foreground mt-1">{f.description}</p>}
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FLYER */}
       {flyers.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="font-serif text-2xl font-bold">Galeri & Flyer</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {flyers.map((fl) => (
-              <a key={fl.id} href={fl.image_url} target="_blank" rel="noopener" className="group overflow-hidden rounded-lg">
-                <img src={fl.image_url} alt={fl.title ?? ""} className="aspect-square w-full object-cover transition group-hover:scale-105" />
+        <section className="container mx-auto px-4 py-12">
+          <h2 className="text-2xl font-bold mb-6 text-center">Galeri Brosur</h2>
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            {flyers.map((f) => (
+              <a key={f.id} href={f.image_url} target="_blank" rel="noreferrer" className="block group">
+                <img src={f.image_url} alt={f.title} className="w-full aspect-[3/4] object-cover rounded-lg group-hover:opacity-90 transition" />
+                {f.title && <p className="mt-1 text-xs text-center text-muted-foreground">{f.title}</p>}
               </a>
             ))}
           </div>
         </section>
       )}
 
-      {/* Testimoni */}
+      {/* TESTIMONI */}
       {testimonials.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="font-serif text-2xl font-bold">Testimoni Jamaah</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((t) => (
-              <Card key={t.id} className="space-y-2 p-5">
-                <div className="flex items-center gap-3">
-                  {t.image_url ? <img src={t.image_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <div className="h-10 w-10 rounded-full bg-emerald-100" />}
-                  <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    {t.rating && <p className="text-xs text-amber-500">{"★".repeat(t.rating)}</p>}
+        <section className="bg-emerald-50/50 py-12">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl font-bold mb-6 text-center">Testimoni Jamaah</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t) => (
+                <Card key={t.id} className="p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    {t.photo_url ? (
+                      <img src={t.photo_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">{t.name[0]}</div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-sm">{t.name}</p>
+                      {t.role_or_trip && <p className="text-xs text-muted-foreground">{t.role_or_trip}</p>}
+                    </div>
                   </div>
-                </div>
-                <p className="text-sm text-muted-foreground">"{t.message}"</p>
-              </Card>
-            ))}
+                  {t.rating && (
+                    <div className="flex gap-0.5 mb-1">
+                      {Array.from({ length: t.rating }).map((_, i) => <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />)}
+                    </div>
+                  )}
+                  <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
       {/* FAQ */}
       {faqs.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="font-serif text-2xl font-bold flex items-center gap-2"><BookOpen className="h-5 w-5" /> FAQ & Syarat Dokumen</h2>
-          <div className="space-y-2">
+        <section className="container mx-auto px-4 py-12 max-w-3xl">
+          <h2 className="text-2xl font-bold mb-6 text-center">FAQ & Syarat Dokumen</h2>
+          <div className="space-y-3">
             {faqs.map((f) => (
-              <details key={f.id} className="group rounded-lg border bg-card p-4">
-                <summary className="cursor-pointer text-sm font-semibold">{f.question}</summary>
-                <p className="mt-2 text-sm text-muted-foreground">{f.answer}</p>
+              <details key={f.id} className="rounded-lg border p-4 group">
+                <summary className="font-semibold cursor-pointer flex items-center justify-between">
+                  <span>{f.question}</span>
+                  <Badge variant="outline" className="text-xs ml-2">{f.category === "documents" ? "Dokumen" : "Umum"}</Badge>
+                </summary>
+                <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">{f.answer}</p>
               </details>
             ))}
           </div>
         </section>
       )}
 
-      {/* Form pendaftaran */}
-      <section id="daftar" className="rounded-2xl border bg-card p-6 sm:p-8">
-        <h2 className="font-serif text-2xl font-bold">Daftar Sekarang</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          {selectedPkg ? <>Paket terpilih: <span className="font-semibold text-foreground">{selectedPkg.name}</span></> : "Isi data jamaah, tim kami akan menghubungi via WhatsApp."}
-        </p>
-        <form onSubmit={submitLead} className="grid gap-3 sm:grid-cols-2">
-          <Input placeholder="Nama lengkap" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="No. WhatsApp" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <Textarea placeholder="Catatan (jumlah jamaah, request khusus, dll)" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="sm:col-span-2" />
-          <Button type="submit" disabled={submitting} className="bg-emerald-700 hover:bg-emerald-800 sm:col-span-2">
-            {submitting ? "Mengirim..." : "Kirim Pendaftaran"}
-          </Button>
-        </form>
-      </section>
-
-      {/* Kontak */}
-      <section className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-        {shop.address && <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {shop.address}</p>}
-        {shop.phone && <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> {shop.phone}</p>}
-      </section>
+      {/* CONTACT */}
+      <footer className="border-t bg-emerald-900 text-emerald-50 py-8">
+        <div className="container mx-auto px-4 text-sm space-y-2">
+          {shop.address && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{shop.address}</p>}
+          {shop.phone && <p className="flex items-center gap-2"><Phone className="h-4 w-4" />{shop.phone}</p>}
+        </div>
+      </footer>
 
       {/* WA FAB */}
       {wa && (
-        <a href={waLink(`Assalamualaikum, saya ingin tanya tentang ${shop.name}`)} target="_blank" rel="noopener"
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:scale-110 hover:bg-green-600">
-          <MessageCircle className="h-6 w-6" />
+        <a href={waLink(`Halo ${shop.name}, saya ingin tanya seputar umroh`)} target="_blank" rel="noreferrer"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg hover:scale-110 transition">
+          <MessageCircle className="h-7 w-7" />
         </a>
+      )}
+
+      {/* DAFTAR MODAL */}
+      {selectedPkg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSelectedPkg(null)}>
+          <Card className="w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-1">Pendaftaran: {selectedPkg.name}</h3>
+            <p className="text-sm text-muted-foreground mb-4">Isi data Anda, tim kami akan menghubungi via WhatsApp.</p>
+            <div className="space-y-3">
+              <Input placeholder="Nama lengkap" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input placeholder="Nomor WhatsApp" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Textarea placeholder="Catatan (opsional)" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setSelectedPkg(null)}>Batal</Button>
+              <Button className="flex-1 bg-emerald-700 hover:bg-emerald-800" disabled={submitting} onClick={submitLead}>
+                {submitting ? "Mengirim..." : "Kirim Pendaftaran"}
+              </Button>
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   );
