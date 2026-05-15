@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { createHash, timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 
 /**
  * Webhook endpoint untuk pembayaran paket platform.
