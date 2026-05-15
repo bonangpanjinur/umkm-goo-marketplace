@@ -1778,6 +1778,14 @@ export default function PublicBookingPage() {
                   {selectedPackage.price > 0 && <span className="text-primary font-semibold ml-auto">+{formatIDR(selectedPackage.price)}</span>}
                 </p>
               )}
+              {selectedLocation && (
+                <p className="text-sm flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="text-muted-foreground">Lokasi:</span>
+                  <span className="font-medium">{selectedLocation.name}</span>
+                  {selectedLocation.extra_fee > 0 && <span className="text-primary font-semibold ml-auto">+{formatIDR(selectedLocation.extra_fee)}</span>}
+                </p>
+              )}
               {selectedAddons.length > 0 && (
                 <div className="space-y-0.5">
                   {selectedAddons.map(a => (
@@ -1790,7 +1798,7 @@ export default function PublicBookingPage() {
                   ))}
                 </div>
               )}
-              {(selectedPackage || selectedAddons.length > 0) && effectivePrice > 0 && (
+              {(selectedPackage || selectedAddons.length > 0 || (selectedLocation && selectedLocation.extra_fee > 0)) && effectivePrice > 0 && (
                 <p className="text-sm font-bold text-primary border-t border-primary/10 pt-1.5 flex justify-between">
                   <span>Total</span>
                   <span>{formatIDR(effectivePrice)}</span>
