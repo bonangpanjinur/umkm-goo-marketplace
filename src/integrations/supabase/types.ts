@@ -1936,6 +1936,120 @@ export type Database = {
         }
         Relationships: []
       }
+      expiry_reminder_shop_rules: {
+        Row: {
+          audience: string
+          channels: string[]
+          created_at: string
+          days_before: number
+          id: string
+          is_active: boolean
+          shop_id: string
+          sort_order: number
+          template_body: string
+          template_subject: string
+          updated_at: string
+        }
+        Insert: {
+          audience: string
+          channels?: string[]
+          created_at?: string
+          days_before: number
+          id?: string
+          is_active?: boolean
+          shop_id: string
+          sort_order?: number
+          template_body: string
+          template_subject: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          channels?: string[]
+          created_at?: string
+          days_before?: number
+          id?: string
+          is_active?: boolean
+          shop_id?: string
+          sort_order?: number
+          template_body?: string
+          template_subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expiry_reminder_shop_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expiry_reminder_shop_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      expiry_reminder_shop_settings: {
+        Row: {
+          created_at: string
+          grace_days: number
+          max_per_shop_per_day: number
+          notes: string | null
+          on_expiry_action: string
+          override_rules: boolean
+          override_schedule: boolean
+          send_hour_local: number
+          shop_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grace_days?: number
+          max_per_shop_per_day?: number
+          notes?: string | null
+          on_expiry_action?: string
+          override_rules?: boolean
+          override_schedule?: boolean
+          send_hour_local?: number
+          shop_id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grace_days?: number
+          max_per_shop_per_day?: number
+          notes?: string | null
+          on_expiry_action?: string
+          override_rules?: boolean
+          override_schedule?: boolean
+          send_hour_local?: number
+          shop_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expiry_reminder_shop_settings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expiry_reminder_shop_settings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       features: {
         Row: {
           category: string
