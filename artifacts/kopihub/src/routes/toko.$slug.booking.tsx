@@ -382,9 +382,10 @@ export default function PublicBookingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, bookingId, xenditPaymentUrl]);
 
-  const hasStaff    = staffList.length > 0;
-  const hasPackages = packagesLoaded && (packages.length > 0 || addons.length > 0);
-  const needsDoc    = !!(shop?.require_id_upload);
+  const hasStaff     = staffList.length > 0;
+  const hasPackages  = packagesLoaded && (packages.length > 0 || addons.length > 0);
+  const hasLocations = locationsLoaded && locations.length > 0;
+  const needsDoc     = !!(shop?.require_id_upload);
 
   // Document upload helper (M-16)
   const uploadDoc = async (file: File) => {
