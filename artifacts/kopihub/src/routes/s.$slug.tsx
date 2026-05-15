@@ -152,6 +152,12 @@ function ShopLayout() {
         </div>
       </header>
 
+      {table && (
+        <div className="bg-emerald-600 text-white text-center text-xs sm:text-sm py-2 px-4 font-medium">
+          📍 Anda memesan dari <span className="font-bold">{tableName || `Meja ${table}`}</span> · {shop.name}
+        </div>
+      )}
+
       <main className="mx-auto max-w-3xl px-4 py-4">
         <Outlet />
       </main>
