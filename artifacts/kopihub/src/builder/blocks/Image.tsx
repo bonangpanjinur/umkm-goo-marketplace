@@ -1,11 +1,18 @@
 import type { ComponentConfig } from "@measured/puck";
+import { ImageUploadField } from "../ImageUploadField";
 
 export type ImageProps = { src: string; alt: string; rounded: boolean; aspect: "auto" | "square" | "video" | "wide" };
 const aspectMap = { auto: "", square: "aspect-square", video: "aspect-video", wide: "aspect-[21/9]" };
 
 export const Image: ComponentConfig<ImageProps> = {
   fields: {
-    src: { type: "text" },
+    src: {
+      type: "custom",
+      label: "Gambar",
+      render: ({ value, onChange }) => (
+        <ImageUploadField value={(value as string) ?? ""} onChange={(v) => onChange(v as never)} />
+      ),
+    },
     alt: { type: "text" },
     rounded: { type: "radio", options: [{ label: "Ya", value: true }, { label: "Tidak", value: false }] },
     aspect: {
@@ -29,7 +36,7 @@ export const Image: ComponentConfig<ImageProps> = {
       />
     ) : (
       <div className={`${aspectMap[aspect]} w-full bg-muted rounded-xl my-3 grid place-items-center text-muted-foreground text-sm`}>
-        Tambahkan URL gambar
+        Tambahkan gambar
       </div>
     ),
 };

@@ -9,8 +9,6 @@ export type StarterTemplate = {
   data: unknown;
 };
 
-const cls = (s: string) => s; // no-op tag for clarity
-
 export const STARTER_TEMPLATES: StarterTemplate[] = [
   {
     id: "blank",
@@ -27,26 +25,11 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     data: {
       root: { props: {} },
       content: [
-        {
-          type: "Section",
-          props: { id: "s1", padding: "lg", bg: "muted", maxWidth: "lg" },
-        },
-        {
-          type: "ShopInfo",
-          props: { id: "i1", showLogo: true, showAddress: true, showHours: true },
-        },
-        {
-          type: "Heading",
-          props: { id: "h1", text: "Menu Pilihan Kami", level: "h2", align: "center" },
-        },
-        {
-          type: "MenuGrid",
-          props: { id: "m1", columns: 3, limit: 9, categoryFilter: "" },
-        },
-        {
-          type: "WhatsAppCTA",
-          props: { id: "w1", label: cls("Pesan via WhatsApp"), message: "Halo, saya ingin pesan." },
-        },
+        { type: "Heading", props: { id: "h1", text: "Selamat Datang di Toko Kami", level: "h1", align: "center" } },
+        { type: "ShopInfo", props: { id: "i1", showAddress: true, showPhone: true, showHours: true } },
+        { type: "Heading", props: { id: "h2", text: "Menu Pilihan", level: "h2", align: "center" } },
+        { type: "MenuGrid", props: { id: "m1", title: "", columns: 3, limit: 9, showPrice: true } },
+        { type: "WhatsAppCTA", props: { id: "w1", label: "Pesan via WhatsApp", message: "Halo, saya ingin pesan.", align: "center" } },
       ],
     },
   },
@@ -58,35 +41,11 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     data: {
       root: { props: {} },
       content: [
-        {
-          type: "Section",
-          props: { id: "s1", padding: "xl", bg: "primary", maxWidth: "md" },
-        },
-        {
-          type: "Heading",
-          props: { id: "h1", text: "Promo Spesial Hari Ini!", level: "h1", align: "center" },
-        },
-        {
-          type: "Text",
-          props: {
-            id: "t1",
-            content: "Diskon menarik untuk semua menu favorit. Berlaku terbatas — pesan sekarang juga.",
-            align: "center",
-            size: "lg",
-          },
-        },
-        {
-          type: "Button",
-          props: { id: "b1", label: "Lihat Menu", href: "#menu", variant: "primary", size: "lg" },
-        },
-        {
-          type: "Heading",
-          props: { id: "h2", text: "Menu Unggulan", level: "h2", align: "center" },
-        },
-        {
-          type: "MenuGrid",
-          props: { id: "m1", columns: 2, limit: 6, categoryFilter: "" },
-        },
+        { type: "Heading", props: { id: "h1", text: "Promo Spesial Hari Ini!", level: "h1", align: "center" } },
+        { type: "Text", props: { id: "t1", text: "Diskon menarik untuk semua menu favorit. Berlaku terbatas — pesan sekarang juga.", align: "center" } },
+        { type: "Button", props: { id: "b1", label: "Lihat Menu", href: "#menu", variant: "primary", align: "center" } },
+        { type: "Heading", props: { id: "h2", text: "Menu Unggulan", level: "h2", align: "center" } },
+        { type: "MenuGrid", props: { id: "m1", title: "", columns: 2, limit: 6, showPrice: true } },
       ],
     },
   },
@@ -98,27 +57,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     data: {
       root: { props: {} },
       content: [
-        {
-          type: "Heading",
-          props: { id: "h1", text: "Selamat Datang", level: "h1", align: "left" },
-        },
-        {
-          type: "Text",
-          props: {
-            id: "t1",
-            content: "Kami menyajikan kopi terbaik dengan harga ramah. Silakan jelajahi menu kami.",
-            align: "left",
-            size: "md",
-          },
-        },
-        {
-          type: "MenuGrid",
-          props: { id: "m1", columns: 3, limit: 12, categoryFilter: "" },
-        },
-        {
-          type: "ShopInfo",
-          props: { id: "i1", showLogo: false, showAddress: true, showHours: true },
-        },
+        { type: "Heading", props: { id: "h1", text: "Selamat Datang", level: "h1", align: "left" } },
+        { type: "Text", props: { id: "t1", text: "Kami menyajikan kopi terbaik dengan harga ramah. Silakan jelajahi menu kami.", align: "left" } },
+        { type: "MenuGrid", props: { id: "m1", title: "", columns: 3, limit: 12, showPrice: true } },
+        { type: "ShopInfo", props: { id: "i1", showAddress: true, showPhone: true, showHours: true } },
       ],
     },
   },
