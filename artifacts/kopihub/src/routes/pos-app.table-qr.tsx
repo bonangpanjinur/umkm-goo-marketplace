@@ -60,7 +60,7 @@ type DomainOption = {
 
 function TableQRPage() {
   const { shop } = useCurrentShop();
-  const { current: outlet, outlets } = useOutletContext();
+  const { current: outlet, outlets, setCurrent: setOutlet } = useOutletContext();
   const { data: tables, isLoading } = useTables(outlet?.id || "");
   const [search, setSearch] = useState("");
   const [selectedTable, setSelectedTable] = useState<{ id: string; name: string } | null>(null);
