@@ -553,6 +553,12 @@ export default function PublicBookingPage() {
             addon_names_snapshot: selectedAddons.map(a => a.name).join(", "),
             addon_total_price: addonTotal,
           } : {}),
+          ...(selectedLocation ? {
+            location_id: selectedLocation.id,
+            location_name: selectedLocation.name,
+            location_type: selectedLocation.location_type,
+            location_fee: selectedLocation.extra_fee,
+          } : {}),
           ...(docUrl ? {
             document_url: docUrl,
             document_type: docType,
