@@ -635,11 +635,11 @@ function PromoDialog({ shopId, editing, onClose, onSaved }: { shopId: string; ed
             </div>
             <div>
               <Label className="text-xs">Mulai</Label>
-              <Input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} />
+              <DateTimePicker value={form.starts_at} onChange={(v) => setForm({ ...form, starts_at: v })} placeholder="Pilih mulai" />
             </div>
             <div>
               <Label className="text-xs">Berakhir</Label>
-              <Input type="datetime-local" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} />
+              <DateTimePicker value={form.expires_at} onChange={(v) => setForm({ ...form, expires_at: v })} placeholder="Pilih berakhir" />
             </div>
           </div>
           <div className="flex items-center gap-2 pt-1">
