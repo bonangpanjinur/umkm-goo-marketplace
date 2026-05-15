@@ -189,6 +189,11 @@ function AdminExpiryReminders() {
               Lihat Eksekusi <ExternalLink className="h-3.5 w-3.5" />
             </Button>
           </Link>
+          <Link to="/admin/shop-reminder-overrides">
+            <Button variant="outline" size="sm" className="gap-1">
+              Override per Toko <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
         </div>
       </div>
 
