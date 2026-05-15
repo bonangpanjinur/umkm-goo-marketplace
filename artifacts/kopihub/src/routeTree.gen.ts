@@ -265,6 +265,7 @@ import { Route as TokoSlugCustomOrderStatusRouteImport } from './routes/toko.$sl
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
+import { Route as ApiPublicWebhooksPlanBillingProviderRouteImport } from './routes/api/public/webhooks/plan-billing.$provider'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -1555,6 +1556,12 @@ const AdminPlansIdMatrixRoute = AdminPlansIdMatrixRouteImport.update({
   path: '/$id/matrix',
   getParentRoute: () => AdminPlansRoute,
 } as any)
+const ApiPublicWebhooksPlanBillingProviderRoute =
+  ApiPublicWebhooksPlanBillingProviderRouteImport.update({
+    id: '/api/public/webhooks/plan-billing/$provider',
+    path: '/api/public/webhooks/plan-billing/$provider',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -1813,6 +1820,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
+  '/api/public/webhooks/plan-billing/$provider': typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -2066,6 +2074,7 @@ export interface FileRoutesByTo {
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
+  '/api/public/webhooks/plan-billing/$provider': typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -2325,6 +2334,7 @@ export interface FileRoutesById {
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
   '/toko/$slug/produk/$productId': typeof TokoSlugProdukProductIdRoute
+  '/api/public/webhooks/plan-billing/$provider': typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -2585,6 +2595,7 @@ export interface FileRouteTypes {
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
+    | '/api/public/webhooks/plan-billing/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2838,6 +2849,7 @@ export interface FileRouteTypes {
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
+    | '/api/public/webhooks/plan-billing/$provider'
   id:
     | '__root__'
     | '/'
@@ -3096,6 +3108,7 @@ export interface FileRouteTypes {
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
     | '/toko/$slug/produk/$productId'
+    | '/api/public/webhooks/plan-billing/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -3128,6 +3141,7 @@ export interface RootRouteChildren {
   KategoriIndexRoute: typeof KategoriIndexRoute
   BookingCancelTokenRoute: typeof BookingCancelTokenRoute
   BookingRescheduleTokenRoute: typeof BookingRescheduleTokenRoute
+  ApiPublicWebhooksPlanBillingProviderRoute: typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -4924,6 +4938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlansIdMatrixRouteImport
       parentRoute: typeof AdminPlansRoute
     }
+    '/api/public/webhooks/plan-billing/$provider': {
+      id: '/api/public/webhooks/plan-billing/$provider'
+      path: '/api/public/webhooks/plan-billing/$provider'
+      fullPath: '/api/public/webhooks/plan-billing/$provider'
+      preLoaderRoute: typeof ApiPublicWebhooksPlanBillingProviderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -5580,6 +5601,8 @@ const rootRouteChildren: RootRouteChildren = {
   KategoriIndexRoute: KategoriIndexRoute,
   BookingCancelTokenRoute: BookingCancelTokenRoute,
   BookingRescheduleTokenRoute: BookingRescheduleTokenRoute,
+  ApiPublicWebhooksPlanBillingProviderRoute:
+    ApiPublicWebhooksPlanBillingProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
