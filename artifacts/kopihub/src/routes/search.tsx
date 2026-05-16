@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2 } from "lucide-react";
+import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2, Inbox, AlertTriangle, RefreshCw } from "lucide-react";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -96,6 +96,57 @@ function ActiveFilterPill({ label, onRemove }: { label: string; onRemove: () => 
   );
 }
 
+function SearchEmptyState({
+  type,
+  hasFilters,
+  onClear,
+  onRetry,
+  error,
+}: {
+  type: "produk" | "toko";
+  hasFilters: boolean;
+  onClear: () => void;
+  onRetry: () => void;
+  error?: string | null;
+}) {
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-8 text-center space-y-3">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-destructive">Terjadi kesalahan</p>
+          <p className="text-xs text-muted-foreground">{error}</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
+          <RefreshCw className="h-3.5 w-3.5" /> Coba lagi
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl border border-border bg-card p-8 text-center space-y-3">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Inbox className="h-6 w-6" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground">Tidak ada {type} yang cocok</p>
+        <p className="text-xs text-muted-foreground">
+          {hasFilters
+            ? "Coba hapus beberapa filter atau ubah kata kunci pencarian."
+            : "Belum ada {type} yang tersedia saat ini."}
+        </p>
+      </div>
+      {hasFilters && (
+        <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
+          <X className="h-3.5 w-3.5" /> Hapus filter
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function SearchPage() {
   const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
@@ -118,7 +169,9 @@ function SearchPage() {
 
   const [cats,       setCats]       = useState<Cat[]>([]);
   const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -126,93 +179,69 @@ function SearchPage() {
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
 
-  // Build a product query with current applied filters
-  const buildProductQuery = () => {
-    const term = q ? `%${q}%` : "%";
-    let prodQ = supabase
-      .from("menu_items")
-      .select(
-        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
-        { count: "exact" },
-      )
-      .ilike("name", term)
-      .eq("is_available", true);
-    if (typeof min       === "number") prodQ = prodQ.gte("price", min);
-    if (typeof max       === "number") prodQ = prodQ.lte("price", max);
-    if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
-    if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
-    if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
-    if (cat) {
-      const c = cats.find(x => x.slug === cat);
-      if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
-    }
-    if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
-    else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
-    else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
-    return prodQ;
-  };
-
-  const buildShopQuery = () => {
-    const term = q ? `%${q}%` : "%";
-    let shopQ = supabase
-      .from("coffee_shops")
-      .select(
-        "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
-        { count: "exact" },
-      )
-      .eq("is_active", true);
-    if (q) shopQ = shopQ.or(`name.ilike.${term},tagline.ilike.${term}`);
-    if (cat) {
-      const c = cats.find(x => x.slug === cat);
-      if (c) shopQ = shopQ.eq("business_category_id", c.id);
-    }
-    if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
-    if (city) shopQ = shopQ.ilike("address", `%${city}%`);
-    if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
-    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
-    return shopQ;
-  };
-
-  // Initial fetch / refetch on applied filter change
-  useEffect(() => {
-    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); return; }
-    (async () => {
-      setLoading(true);
-      setProductPage(0); setShopPage(0);
+  const fetchResults = useCallback(async () => {
+    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); setError(null); return; }
+    setLoading(true);
+    setError(null);
+    setProductPage(0); setShopPage(0);
+    try {
       const [prodRes, shopRes] = await Promise.all([
         buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1),
         buildShopQuery().range(0, SHOP_PAGE_SIZE - 1),
       ]);
+      if (prodRes.error) throw prodRes.error;
+      if (shopRes.error) throw shopRes.error;
       setProducts(((prodRes.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
       setShops((shopRes.data as any[]) ?? []);
       setProductTotal(prodRes.count ?? 0);
       setShopTotal(shopRes.count ?? 0);
+    } catch (e: any) {
+      setError(e.message || "Gagal memuat hasil pencarian.");
+    } finally {
       setLoading(false);
-    })();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
+  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
+
+  // Trigger fetch on filter change or retry
+  useEffect(() => {
+    fetchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
 
   const loadMoreProducts = async () => {
     const next = productPage + 1;
     setLoadingMoreP(true);
-    const from = next * PRODUCT_PAGE_SIZE;
-    const to = from + PRODUCT_PAGE_SIZE - 1;
-    const res = await buildProductQuery().range(from, to);
-    const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
-    setProducts(prev => [...prev, ...more]);
-    setProductPage(next);
-    setLoadingMoreP(false);
+    try {
+      const from = next * PRODUCT_PAGE_SIZE;
+      const to = from + PRODUCT_PAGE_SIZE - 1;
+      const res = await buildProductQuery().range(from, to);
+      if (res.error) throw res.error;
+      const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
+      setProducts(prev => [...prev, ...more]);
+      setProductPage(next);
+    } catch (e: any) {
+      setError(e.message || "Gagal memuat produk tambahan.");
+    } finally {
+      setLoadingMoreP(false);
+    }
   };
 
   const loadMoreShops = async () => {
     const next = shopPage + 1;
     setLoadingMoreS(true);
-    const from = next * SHOP_PAGE_SIZE;
-    const to = from + SHOP_PAGE_SIZE - 1;
-    const res = await buildShopQuery().range(from, to);
-    setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
-    setShopPage(next);
-    setLoadingMoreS(false);
+    try {
+      const from = next * SHOP_PAGE_SIZE;
+      const to = from + SHOP_PAGE_SIZE - 1;
+      const res = await buildShopQuery().range(from, to);
+      if (res.error) throw res.error;
+      setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
+      setShopPage(next);
+    } catch (e: any) {
+      setError(e.message || "Gagal memuat toko tambahan.");
+    } finally {
+      setLoadingMoreS(false);
+    }
   };
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
@@ -435,9 +464,22 @@ function SearchPage() {
                 </h2>
                 {loading
                   ? <SkeletonShopGrid />
-                  : shops.length === 0
-                    ? <p className="text-sm text-muted-foreground">Tidak ada toko yang cocok.</p>
-                    : (
+                  : error ? (
+                    <SearchEmptyState
+                      type="toko"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                      error={error}
+                    />
+                  ) : shops.length === 0 ? (
+                    <SearchEmptyState
+                      type="toko"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                    />
+                  ) : (
                       <>
                         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                           {visibleShops.map(s => (
@@ -491,14 +533,22 @@ function SearchPage() {
                 </h2>
                 {loading
                   ? <SkeletonProductGrid />
-                  : products.length === 0
-                    ? (
-                      <div className="rounded-xl border border-border bg-card p-8 text-center space-y-2">
-                        <p className="text-muted-foreground">Tidak ada produk yang cocok.</p>
-                        <p className="text-xs text-muted-foreground">Coba hapus beberapa filter atau ubah kata kunci.</p>
-                      </div>
-                    )
-                    : (
+                  : error ? (
+                    <SearchEmptyState
+                      type="produk"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                      error={error}
+                    />
+                  ) : products.length === 0 ? (
+                    <SearchEmptyState
+                      type="produk"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                    />
+                  ) : (
                       <>
                         <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                           {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
