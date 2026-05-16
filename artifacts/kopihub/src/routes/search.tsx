@@ -43,11 +43,11 @@ export const Route = createFileRoute("/search")({
 
 type Cat = { id: string; slug: string; name: string };
 
-function SkeletonProductGrid({ n = 10 }: { n?: number }) {
+function ProductSkeletonCards({ n = 10 }: { n?: number }) {
   return (
-    <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+    <>
       {Array.from({ length: n }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-border bg-muted/30 animate-pulse">
+        <div key={`ps-${i}`} className="rounded-xl border border-border bg-muted/30 animate-pulse">
           <div className="aspect-square w-full rounded-t-xl bg-muted/50" />
           <div className="p-3 space-y-1.5">
             <div className="h-3 bg-muted rounded w-4/5" />
@@ -55,6 +55,24 @@ function SkeletonProductGrid({ n = 10 }: { n?: number }) {
           </div>
         </div>
       ))}
+    </>
+  );
+}
+
+function ShopSkeletonCards({ n = 4 }: { n?: number }) {
+  return (
+    <>
+      {Array.from({ length: n }).map((_, i) => (
+        <div key={`ss-${i}`} className="rounded-xl border border-border bg-muted/30 animate-pulse p-4 h-20" />
+      ))}
+    </>
+  );
+}
+
+function SkeletonProductGrid({ n = 10 }: { n?: number }) {
+  return (
+    <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+      <ProductSkeletonCards n={n} />
     </div>
   );
 }
@@ -62,9 +80,7 @@ function SkeletonProductGrid({ n = 10 }: { n?: number }) {
 function SkeletonShopGrid() {
   return (
     <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-border bg-muted/30 animate-pulse p-4 h-20" />
-      ))}
+      <ShopSkeletonCards n={4} />
     </div>
   );
 }
@@ -452,12 +468,12 @@ function SearchPage() {
                               {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
                             </Link>
                           ))}
+                          {loadingMoreS && <ShopSkeletonCards n={4} />}
                         </div>
                         {canLoadMoreShops && tab !== "produk" && (
                           <div className="mt-4 flex justify-center">
-                            <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS}>
-                              {loadingMoreS && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                              Muat lebih banyak toko
+                            <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS} className="gap-1.5">
+                              {loadingMoreS ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak toko"}
                             </Button>
                           </div>
                         )}
@@ -486,12 +502,12 @@ function SearchPage() {
                       <>
                         <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                           {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                          {loadingMoreP && <ProductSkeletonCards n={10} />}
                         </div>
                         {canLoadMoreProducts && tab !== "toko" && (
                           <div className="mt-4 flex justify-center">
-                            <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP}>
-                              {loadingMoreP && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                              Muat lebih banyak produk
+                            <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP} className="gap-1.5">
+                              {loadingMoreP ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak produk"}
                             </Button>
                           </div>
                         )}
