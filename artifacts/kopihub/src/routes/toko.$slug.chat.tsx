@@ -34,6 +34,12 @@ type Message = {
   /** Client-only fields for optimistic UI */
   _tempId?: string;
   _status?: SendStatus;
+  /** Local blob URL preview while attachment is uploading. */
+  _localPreview?: string;
+  /** Upload progress 0..1 while attachment is being uploaded (sending state only). */
+  _uploadProgress?: number;
+  /** True when this bubble's attachment still needs to be uploaded. */
+  _pendingUpload?: boolean;
 };
 
 type RtStatus = "connecting" | "live" | "offline";
