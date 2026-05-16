@@ -189,7 +189,7 @@ export function OrdersTodayDialog({
       }
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
       if (q) {
-        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
+        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -378,6 +378,11 @@ export function OrdersTodayDialog({
                             {isDel && (
                               <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
                                 DELIVERY
+                              </span>
+                            )}
+                            {o.table_label && (
+                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                                Meja {o.table_label}
                               </span>
                             )}
                             {o.customer_name && (
