@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2, Inbox, AlertTriangle, RefreshCw } from "lucide-react";
+import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2, Inbox, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
