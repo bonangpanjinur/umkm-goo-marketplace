@@ -508,6 +508,8 @@ function SearchPage() {
     setShopError(null);
     setProductMoreError(null);
     setShopMoreError(null);
+    setLoadingProducts(true);
+    setLoadingShops(true);
     fetchProducts();
     fetchShops();
     toast.success("Hasil pencarian dimuat ulang");
