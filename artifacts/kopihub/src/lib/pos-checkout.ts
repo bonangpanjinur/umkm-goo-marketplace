@@ -13,6 +13,8 @@ export type CheckoutPayload = {
   amount_tendered?: number;
   change_due?: number;
   client_idempotency_key: string;
+  customer_name?: string | null;
+  table_label?: string | null;
   items: Array<{
     menu_item_id: string | null;
     name: string;
@@ -111,6 +113,8 @@ export async function submitCheckout(p: CheckoutPayload, maxAttempts = 3): Promi
           cashier_id: p.cashier_id,
           channel: "pos",
           client_idempotency_key: p.client_idempotency_key,
+          customer_name: p.customer_name ?? null,
+          table_label: p.table_label ?? null,
         })
         .select("id, order_no")
         .single();
