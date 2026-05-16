@@ -163,12 +163,38 @@ export function OrdersTodayDialog({
   const [cancelReason, setCancelReason] = useState("");
   const [savingTable, setSavingTable] = useState(false);
 
+  // Audit history for the currently-selected order (qr_unlock + others)
+  type AuditEntry = {
+    id: string;
+    action: string;
+    reason: string | null;
+    actor_name: string | null;
+    actor_id: string | null;
+    created_at: string;
+    metadata: Record<string, unknown> | null;
+  };
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  async function loadAudit(orderId: string) {
+    setAuditLoading(true);
+    const { data } = await supabase
+      .from("order_audit_log")
+      .select("id, action, reason, actor_name, actor_id, created_at, metadata")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: false });
+    setAuditEntries((data ?? []) as AuditEntry[]);
+    setAuditLoading(false);
+  }
+
   useEffect(() => {
     // Reset edit state when changing selected order
     setEditingTable(false);
     setTableDraft(selected?.table_label ?? "");
     setCancelOpen(false);
     setCancelReason("");
+    setAuditEntries([]);
+    if (selected?.id) loadAudit(selected.id);
   }, [selected?.id]);
 
   // Persist sort & page
