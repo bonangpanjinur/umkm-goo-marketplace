@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
@@ -143,11 +144,44 @@ function SearchEmptyState({
   );
 }
 
-type CacheEntry = {
-  products: any[]; shops: any[];
-  productTotal: number; shopTotal: number;
-  productPage: number; shopPage: number;
-};
+// ===== Cache persistence (per-tab, with TTL) =====
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 menit
+const PRODUCT_CACHE_KEY = "kopihub:search:productCache:v1";
+const SHOP_CACHE_KEY    = "kopihub:search:shopCache:v1";
+const FILTERS_KEY       = "kopihub:search:filters:v1";
+
+type ProductCacheEntry = { products: any[]; productTotal: number; productPage: number; ts: number };
+type ShopCacheEntry    = { shops: any[];    shopTotal: number;    shopPage: number;    ts: number };
+
+function loadCacheMap<T extends { ts: number }>(key: string): Map<string, T> {
+  if (typeof window === "undefined") return new Map();
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return new Map();
+    const obj = JSON.parse(raw) as Record<string, T>;
+    const now = Date.now();
+    const map = new Map<string, T>();
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v && typeof v.ts === "number" && now - v.ts < CACHE_TTL_MS) map.set(k, v);
+    });
+    return map;
+  } catch { return new Map(); }
+}
+
+function persistCacheMap<T>(key: string, map: Map<string, T>) {
+  if (typeof window === "undefined") return;
+  try {
+    const obj: Record<string, T> = {};
+    map.forEach((v, k) => { obj[k] = v; });
+    localStorage.setItem(key, JSON.stringify(obj));
+  } catch { /* quota / serialization errors diabaikan */ }
+}
+
+function isAbortError(e: any): boolean {
+  if (!e) return false;
+  const msg = String(e.message || e.name || "").toLowerCase();
+  return msg.includes("abort");
+}
 
 function SearchPage() {
   const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
@@ -179,85 +213,196 @@ function SearchPage() {
   const [showFilter, setShowFilter] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Cache per kombinasi filter (q+cat+sort+min+max+minRating+city+pay).
-  // Saat user kembali ke kombinasi sebelumnya, hasil dipulihkan tanpa refetch.
-  const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
+  // Cache terpisah: produk & toko (independent), dengan TTL & localStorage persistence.
+  const productCacheRef = useRef<Map<string, ProductCacheEntry>>(new Map());
+  const shopCacheRef    = useRef<Map<string, ShopCacheEntry>>(new Map());
+  const cacheHydratedRef = useRef(false);
   const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay });
+
+  // AbortController per-section untuk membatalkan request lama saat filter berubah cepat.
+  const productAbortRef = useRef<AbortController | null>(null);
+  const shopAbortRef    = useRef<AbortController | null>(null);
+
+  // Hidrasi cache + filter terakhir dari localStorage saat mount.
+  useEffect(() => {
+    productCacheRef.current = loadCacheMap<ProductCacheEntry>(PRODUCT_CACHE_KEY);
+    shopCacheRef.current    = loadCacheMap<ShopCacheEntry>(SHOP_CACHE_KEY);
+    cacheHydratedRef.current = true;
+
+    // Jika user mendarat di /search tanpa query, pulihkan filter terakhir.
+    if (!q && !cat) {
+      try {
+        const raw = localStorage.getItem(FILTERS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && (parsed.q || parsed.cat)) {
+            navigate({ search: () => parsed, replace: true });
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist filter aktif sebagai snapshot terakhir.
+  useEffect(() => {
+    if (!q && !cat) return;
+    try {
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, sort, min, max, minRating, city, pay, tab }));
+    } catch { /* ignore */ }
+  }, [q, cat, sort, min, max, minRating, city, pay, tab]);
 
   useEffect(() => {
     supabase.from("business_categories").select("id, slug, name").eq("is_active", true).order("sort_order")
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
 
-  const writeCache = () => {
-    cacheRef.current.set(cacheKey, { products, shops, productTotal, shopTotal, productPage, shopPage });
+  // ---- Query builders ----
+  const buildProductQuery = () => {
+    const term = q ? `%${q}%` : "%";
+    let prodQ = supabase
+      .from("menu_items")
+      .select(
+        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
+        { count: "exact" },
+      )
+      .ilike("name", term)
+      .eq("is_available", true);
+    if (typeof min       === "number") prodQ = prodQ.gte("price", min);
+    if (typeof max       === "number") prodQ = prodQ.lte("price", max);
+    if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
+    if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
+    if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
+    if (cat) {
+      const c = cats.find(x => x.slug === cat);
+      if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
+    }
+    if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
+    else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
+    else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    return prodQ;
   };
-  // Sync state -> cache setiap kali hasil berubah
-  useEffect(() => {
-    if (!q && !cat) return;
-    if (productError || shopError) return; // jangan cache state error
-    cacheRef.current.set(cacheKey, { products, shops, productTotal, shopTotal, productPage, shopPage });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, shops, productTotal, shopTotal, productPage, shopPage]);
 
-  const fetchProducts = async () => {
+  const buildShopQuery = () => {
+    const term = q ? `%${q}%` : "%";
+    let shopQ = supabase
+      .from("coffee_shops")
+      .select(
+        "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
+        { count: "exact" },
+      )
+      .eq("is_active", true);
+    if (q) shopQ = shopQ.or(`name.ilike.${term},tagline.ilike.${term}`);
+    if (cat) {
+      const c = cats.find(x => x.slug === cat);
+      if (c) shopQ = shopQ.eq("business_category_id", c.id);
+    }
+    if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
+    if (city) shopQ = shopQ.ilike("address", `%${city}%`);
+    if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
+    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    return shopQ;
+  };
+
+  const saveProductCache = (entry: Omit<ProductCacheEntry, "ts">) => {
+    productCacheRef.current.set(cacheKey, { ...entry, ts: Date.now() });
+    persistCacheMap(PRODUCT_CACHE_KEY, productCacheRef.current);
+  };
+  const saveShopCache = (entry: Omit<ShopCacheEntry, "ts">) => {
+    shopCacheRef.current.set(cacheKey, { ...entry, ts: Date.now() });
+    persistCacheMap(SHOP_CACHE_KEY, shopCacheRef.current);
+  };
+
+  const fetchProducts = async (opts?: { isRetry?: boolean }) => {
+    productAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    productAbortRef.current = ctrl;
     setLoadingProducts(true);
     setProductError(null);
     try {
-      const res = await buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1);
+      const res = await buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1).abortSignal(ctrl.signal);
+      if (ctrl.signal.aborted) return;
       if (res.error) throw res.error;
-      setProducts(((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
-      setProductTotal(res.count ?? 0);
+      const list = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
+      const total = res.count ?? 0;
+      setProducts(list);
+      setProductTotal(total);
       setProductPage(0);
+      saveProductCache({ products: list, productTotal: total, productPage: 0 });
+      if (opts?.isRetry) toast.success("Produk berhasil dimuat ulang");
     } catch (e: any) {
+      if (isAbortError(e) || ctrl.signal.aborted) return;
       setProductError(e.message || "Gagal memuat produk.");
     } finally {
+      if (productAbortRef.current === ctrl) productAbortRef.current = null;
       setLoadingProducts(false);
     }
   };
 
-  const fetchShops = async () => {
+  const fetchShops = async (opts?: { isRetry?: boolean }) => {
+    shopAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    shopAbortRef.current = ctrl;
     setLoadingShops(true);
     setShopError(null);
     try {
-      const res = await buildShopQuery().range(0, SHOP_PAGE_SIZE - 1);
+      const res = await buildShopQuery().range(0, SHOP_PAGE_SIZE - 1).abortSignal(ctrl.signal);
+      if (ctrl.signal.aborted) return;
       if (res.error) throw res.error;
-      setShops((res.data as any[]) ?? []);
-      setShopTotal(res.count ?? 0);
+      const list = (res.data as any[]) ?? [];
+      const total = res.count ?? 0;
+      setShops(list);
+      setShopTotal(total);
       setShopPage(0);
+      saveShopCache({ shops: list, shopTotal: total, shopPage: 0 });
+      if (opts?.isRetry) toast.success("Toko berhasil dimuat ulang");
     } catch (e: any) {
+      if (isAbortError(e) || ctrl.signal.aborted) return;
       setShopError(e.message || "Gagal memuat toko.");
     } finally {
+      if (shopAbortRef.current === ctrl) shopAbortRef.current = null;
       setLoadingShops(false);
     }
   };
 
-  // Initial / filter-change effect: pakai cache jika ada
+  // Initial / filter-change effect: pakai cache (jika belum kedaluwarsa), kalau tidak fetch.
   useEffect(() => {
     if (!q && !cat) {
+      productAbortRef.current?.abort();
+      shopAbortRef.current?.abort();
       setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0);
       setProductError(null); setShopError(null);
       setProductMoreError(null); setShopMoreError(null);
       return;
     }
     setProductMoreError(null); setShopMoreError(null);
-    const cached = cacheRef.current.get(cacheKey);
-    if (cached) {
-      setProducts(cached.products);
-      setShops(cached.shops);
-      setProductTotal(cached.productTotal);
-      setShopTotal(cached.shopTotal);
-      setProductPage(cached.productPage);
-      setShopPage(cached.shopPage);
-      setProductError(null); setShopError(null);
-      return;
+
+    const now = Date.now();
+    const pCached = productCacheRef.current.get(cacheKey);
+    const sCached = shopCacheRef.current.get(cacheKey);
+    const pFresh = pCached && now - pCached.ts < CACHE_TTL_MS;
+    const sFresh = sCached && now - sCached.ts < CACHE_TTL_MS;
+
+    if (pFresh && pCached) {
+      setProducts(pCached.products);
+      setProductTotal(pCached.productTotal);
+      setProductPage(pCached.productPage);
+      setProductError(null);
+    } else {
+      fetchProducts();
     }
-    fetchProducts();
-    fetchShops();
+    if (sFresh && sCached) {
+      setShops(sCached.shops);
+      setShopTotal(sCached.shopTotal);
+      setShopPage(sCached.shopPage);
+      setShopError(null);
+    } else {
+      fetchShops();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, cat, sort, min, max, minRating, city, pay, cats]);
 
-  const loadMoreProducts = async () => {
+  const loadMoreProducts = async (opts?: { isRetry?: boolean }) => {
     const next = productPage + 1;
     setLoadingMoreP(true);
     setProductMoreError(null);
@@ -267,9 +412,13 @@ function SearchPage() {
       const res = await buildProductQuery().range(from, to);
       if (res.error) throw res.error;
       const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
-      setProducts(prev => [...prev, ...more]);
+      const merged = [...products, ...more];
+      const total = res.count ?? productTotal;
+      setProducts(merged);
       setProductPage(next);
-      if (res.count != null) setProductTotal(res.count);
+      setProductTotal(total);
+      saveProductCache({ products: merged, productTotal: total, productPage: next });
+      if (opts?.isRetry) toast.success("Produk tambahan berhasil dimuat");
     } catch (e: any) {
       setProductMoreError(e.message || "Gagal memuat produk tambahan.");
     } finally {
@@ -277,7 +426,7 @@ function SearchPage() {
     }
   };
 
-  const loadMoreShops = async () => {
+  const loadMoreShops = async (opts?: { isRetry?: boolean }) => {
     const next = shopPage + 1;
     setLoadingMoreS(true);
     setShopMoreError(null);
@@ -286,9 +435,14 @@ function SearchPage() {
       const to = from + SHOP_PAGE_SIZE - 1;
       const res = await buildShopQuery().range(from, to);
       if (res.error) throw res.error;
-      setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
+      const more = (res.data as any[]) ?? [];
+      const merged = [...shops, ...more];
+      const total = res.count ?? shopTotal;
+      setShops(merged);
       setShopPage(next);
-      if (res.count != null) setShopTotal(res.count);
+      setShopTotal(total);
+      saveShopCache({ shops: merged, shopTotal: total, shopPage: next });
+      if (opts?.isRetry) toast.success("Toko tambahan berhasil dimuat");
     } catch (e: any) {
       setShopMoreError(e.message || "Gagal memuat toko tambahan.");
     } finally {
@@ -297,10 +451,16 @@ function SearchPage() {
   };
 
   // Invalidate cache + refetch (untuk tombol Coba lagi pada initial-fetch error)
-  const retryProducts = () => { cacheRef.current.delete(cacheKey); fetchProducts(); };
-  const retryShops    = () => { cacheRef.current.delete(cacheKey); fetchShops(); };
-  // suppress unused warning
-  void writeCache;
+  const retryProducts = () => {
+    productCacheRef.current.delete(cacheKey);
+    persistCacheMap(PRODUCT_CACHE_KEY, productCacheRef.current);
+    fetchProducts({ isRetry: true });
+  };
+  const retryShops = () => {
+    shopCacheRef.current.delete(cacheKey);
+    persistCacheMap(SHOP_CACHE_KEY, shopCacheRef.current);
+    fetchShops({ isRetry: true });
+  };
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
@@ -573,7 +733,7 @@ function SearchPage() {
                           <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             <span>{shopMoreError}</span>
-                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreShops} disabled={loadingMoreS}>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={() => loadMoreShops({ isRetry: true })} disabled={loadingMoreS}>
                               <RefreshCw className="h-3 w-3" /> Coba lagi
                             </Button>
                           </div>
@@ -626,7 +786,7 @@ function SearchPage() {
                           <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             <span>{productMoreError}</span>
-                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreProducts} disabled={loadingMoreP}>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={() => loadMoreProducts({ isRetry: true })} disabled={loadingMoreP}>
                               <RefreshCw className="h-3 w-3" /> Coba lagi
                             </Button>
                           </div>
