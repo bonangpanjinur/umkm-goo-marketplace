@@ -326,18 +326,36 @@ export function OrdersTodayDialog({
         {!selected && (
           <>
             {/* Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-              <div className="relative sm:col-span-5">
+            <div className="grid grid-cols-2 sm:grid-cols-12 gap-2">
+              <div className="relative col-span-2 sm:col-span-12">
                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari No. order / pelanggan…"
+                  placeholder="Cari No. order / nama / no. HP / meja…"
                   className="h-9 pl-8"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+              <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
                 <SelectTrigger className="h-9 sm:col-span-3"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua sumber</SelectItem>
+                  <SelectItem value="pos">POS / Kasir</SelectItem>
+                  <SelectItem value="online">Online / QR</SelectItem>
+                  <SelectItem value="marketplace">Marketplace</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={fulfillFilter} onValueChange={(v) => setFulfillFilter(v as FulfillmentFilter)}>
+                <SelectTrigger className="h-9 sm:col-span-3"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua jenis</SelectItem>
+                  <SelectItem value="dine_in">Dine-in</SelectItem>
+                  <SelectItem value="pickup">Pickup</SelectItem>
+                  <SelectItem value="delivery">Delivery</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className="h-9 sm:col-span-2"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua status</SelectItem>
                   <SelectItem value="active">Aktif</SelectItem>
