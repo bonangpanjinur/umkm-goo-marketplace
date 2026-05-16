@@ -339,16 +339,14 @@ function ProductDetailPage() {
   });
 
   if (notFound) {
+    // Redirect instan ke beranda marketplace
+    if (typeof window !== "undefined") {
+      toast.info("Produk sudah tidak tersedia");
+      navigate({ to: "/", replace: true });
+    }
     return (
-      <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
-        <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold">Produk tidak ditemukan</h1>
-          <Link to="/toko/$slug" params={{ slug }} className="mt-4 inline-block text-primary hover:underline">
-            ← Kembali ke toko
-          </Link>
-        </div>
-        <MarketplaceFooter />
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm text-muted-foreground">Mengalihkan ke beranda…</p>
       </div>
     );
   }
