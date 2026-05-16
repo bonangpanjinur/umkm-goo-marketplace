@@ -154,6 +154,7 @@ function ShopChatPage() {
   // Realtime: pesan baru + typing indicator
   useEffect(() => {
     if (!chatId || !user) return;
+    setRtStatus("connecting");
     const ch = supabase
       .channel(`shop-chat-${chatId}`, { config: { presence: { key: user.id } } })
       .on(
@@ -161,7 +162,7 @@ function ShopChatPage() {
         { event: "INSERT", schema: "public", table: "shop_chat_messages", filter: `chat_id=eq.${chatId}` },
         (payload) => setMessages((m) => {
           const n = payload.new as Message;
-          return m.some((x) => x.id === n.id) ? m : [...m, n];
+          return m.some((x) => x.id === n.id) ? m : [...m, { ...n, _status: "sent" }];
         }),
       )
       .on("broadcast", { event: "typing" }, (payload) => {
@@ -172,11 +173,16 @@ function ShopChatPage() {
           typingTimeoutRef.current = setTimeout(() => setSellerTyping(false), 3000);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setRtStatus("live");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") setRtStatus("offline");
+        else setRtStatus("connecting");
+      });
     channelRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
       channelRef.current = null;
+      setRtStatus("offline");
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [chatId, user]);
@@ -190,8 +196,32 @@ function ShopChatPage() {
     channelRef.current.send({ type: "broadcast", event: "typing", payload: { from: "buyer" } });
   }
 
+  /**
+   * Optimistic send:
+   * 1. Push temp bubble (status "sending") immediately.
+   * 2. INSERT into DB.
+   * 3. On success: replace temp with real row (status "sent").
+   * 4. On failure: keep temp bubble, mark status "failed", expose retry.
+   */
   async function insertMessage(payload: Partial<Message>) {
     if (!user || !chatId || !shopId) return null;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic: Message = {
+      id: tempId,
+      chat_id: chatId,
+      sender_id: user.id,
+      sender_role: "buyer",
+      body: payload.body ?? "",
+      attachment_url: payload.attachment_url ?? null,
+      attachment_type: payload.attachment_type ?? null,
+      product_id: payload.product_id ?? null,
+      read_at: null,
+      created_at: new Date().toISOString(),
+      _tempId: tempId,
+      _status: "sending",
+    };
+    setMessages((m) => [...m, optimistic]);
+
     const { data, error } = await (supabase as any)
       .from("shop_chat_messages")
       .insert({
@@ -206,13 +236,32 @@ function ShopChatPage() {
       })
       .select("*")
       .single();
-    if (error) {
+
+    if (error || !data) {
+      setMessages((m) => m.map((x) => (x._tempId === tempId ? { ...x, _status: "failed" } : x)));
       toast.error("Gagal mengirim pesan");
       return null;
     }
-    // Optimistic merge (realtime juga akan dapat, tapi dedupe by id)
-    setMessages((m) => (m.some((x) => x.id === data.id) ? m : [...m, data as Message]));
+
+    // Replace optimistic with real row; dedupe in case realtime already arrived.
+    setMessages((m) => {
+      const withoutTemp = m.filter((x) => x._tempId !== tempId);
+      if (withoutTemp.some((x) => x.id === data.id)) return withoutTemp;
+      return [...withoutTemp, { ...(data as Message), _status: "sent" }];
+    });
     return data as Message;
+  }
+
+  async function retrySend(msg: Message) {
+    // Remove failed bubble and re-send with same payload.
+    if (!msg._tempId) return;
+    setMessages((m) => m.filter((x) => x._tempId !== msg._tempId));
+    await insertMessage({
+      body: msg.body,
+      attachment_url: msg.attachment_url,
+      attachment_type: msg.attachment_type,
+      product_id: msg.product_id,
+    });
   }
 
   async function sendMessage() {
