@@ -733,7 +733,7 @@ function SearchPage() {
                           <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             <span>{shopMoreError}</span>
-                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreShops} disabled={loadingMoreS}>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={() => loadMoreShops({ isRetry: true })} disabled={loadingMoreS}>
                               <RefreshCw className="h-3 w-3" /> Coba lagi
                             </Button>
                           </div>
