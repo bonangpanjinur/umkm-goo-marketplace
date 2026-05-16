@@ -545,6 +545,18 @@ function SearchPage() {
             {hasFilters && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showFilter ? "rotate-180" : ""}`} />
           </Button>
+          {hasQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
+              onClick={clearAllCachesAndRefetch}
+              title="Hapus cache hasil pencarian dan muat ulang"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Hapus cache</span>
+            </Button>
+          )}
         </div>
 
         {/* Active filter pills */}
