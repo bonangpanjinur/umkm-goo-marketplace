@@ -883,6 +883,29 @@ function SearchPage() {
         )}
       </div>
       <MarketplaceFooter />
+
+      {/* Dialog konfirmasi hapus cache */}
+      <AlertDialog open={showClearCacheDialog} onOpenChange={setShowClearCacheDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus cache pencarian?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Semua cache hasil pencarian akan dihapus dan dimuat ulang dari server. Cache lainnya tidak terpengaruh.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowClearCacheDialog(false)}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowClearCacheDialog(false);
+                clearAllCachesAndRefetch();
+              }}
+            >
+              Hapus & Muat Ulang
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
