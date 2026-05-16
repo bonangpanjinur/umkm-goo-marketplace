@@ -452,14 +452,13 @@ function ShopPage() {
     : null;
 
   if (notFound) {
+    if (typeof window !== "undefined") {
+      toast.info("Toko tidak ditemukan");
+      navigate({ to: "/", replace: true });
+    }
     return (
-      <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
-        <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold">Toko tidak ditemukan</h1>
-          <Link to="/" className="mt-4 inline-block text-primary hover:underline">← Beranda</Link>
-        </div>
-        <MarketplaceFooter />
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm text-muted-foreground">Mengalihkan ke beranda…</p>
       </div>
     );
   }
