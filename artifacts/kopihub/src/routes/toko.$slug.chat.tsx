@@ -352,8 +352,28 @@ function ShopChatPage() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm leading-none">{shopName}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {sellerTyping ? <span className="text-primary">sedang mengetik…</span> : "Chat sebelum beli · tanya apa saja"}
+          <p className="text-xs mt-0.5 flex items-center gap-1.5">
+            {sellerTyping ? (
+              <span className="text-primary">sedang mengetik…</span>
+            ) : rtStatus === "live" ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <span className="text-muted-foreground">Live · chat real-time aktif</span>
+              </>
+            ) : rtStatus === "connecting" ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Menghubungkan…</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-3 w-3 text-amber-500" />
+                <span className="text-amber-600 dark:text-amber-400">Offline · pesan baru tidak tampil otomatis</span>
+              </>
+            )}
           </p>
         </div>
       </div>
