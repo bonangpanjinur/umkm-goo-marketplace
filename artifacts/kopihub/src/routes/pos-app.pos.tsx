@@ -894,6 +894,7 @@ function CartTabs({
   onOpenParked: () => void;
   parkedCount: number;
   onOpenOrders: () => void;
+  ordersTodayCount?: number;
 }) {
   return (
     <>
@@ -959,6 +960,11 @@ function CartTabs({
       <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
         <ListOrdered className="h-3.5 w-3.5" />
         Pesanan
+        {ordersTodayCount && ordersTodayCount > 0 ? (
+          <span className="rounded-full bg-primary/15 text-primary px-1.5 text-[10px] font-medium">
+            {ordersTodayCount}
+          </span>
+        ) : null}
       </Button>
     </>
   );
