@@ -561,16 +561,28 @@ function SearchPage() {
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showFilter ? "rotate-180" : ""}`} />
           </Button>
           {hasQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
-              onClick={clearAllCachesAndRefetch}
-              title="Hapus cache hasil pencarian dan muat ulang"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Hapus cache</span>
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={refreshCurrentCache}
+                title="Muat ulang hasil untuk filter saat ini"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="hidden sm:inline">Refresh</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={clearAllCachesAndRefetch}
+                title="Hapus cache hasil pencarian dan muat ulang"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Hapus cache</span>
+              </Button>
+            </>
           )}
         </div>
 
