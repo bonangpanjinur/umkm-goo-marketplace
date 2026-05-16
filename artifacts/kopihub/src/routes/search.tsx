@@ -184,11 +184,21 @@ function SearchEmptyState({
             : `Belum ada ${type} yang tersedia saat ini.`}
         </p>
       </div>
-      {hasFilters && (
-        <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
-          <X className="h-3.5 w-3.5" /> Hapus filter
-        </Button>
-      )}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {hasFilters && (
+          <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
+            <X className="h-3.5 w-3.5" /> Hapus filter
+          </Button>
+        )}
+        {type === "toko" && (
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground shadow hover:bg-primary/90 h-8"
+          >
+            <Store className="h-3.5 w-3.5" /> Buka toko di UMKMgo
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
