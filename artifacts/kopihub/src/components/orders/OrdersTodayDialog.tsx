@@ -881,6 +881,56 @@ export function OrdersTodayDialog({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Cancel-QR-with-reason dialog: unlocks table_label editing on order from QR */}
+        <Dialog open={cancelOpen} onOpenChange={(o) => !o && setCancelOpen(false)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Batalkan Penguncian QR Meja</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Order ini berasal dari QR meja. Kolom Meja terkunci untuk mencegah salah ubah.
+              Masukkan alasan untuk membuka kunci dan mengubah meja.
+            </p>
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Alasan</label>
+              <Input
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Mis. pelanggan pindah meja"
+                maxLength={120}
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setCancelOpen(false)}>Tutup</Button>
+              <Button
+                disabled={!cancelReason.trim() || savingTable}
+                onClick={async () => {
+                  if (!selected) return;
+                  setSavingTable(true);
+                  const reason = cancelReason.trim();
+                  const newNote = `${selected.note ? selected.note + "\n" : ""}[QR Meja dibatalkan] ${reason}`;
+                  const { error } = await supabase
+                    .from("orders")
+                    .update({ channel: "pos", note: newNote })
+                    .eq("id", selected.id);
+                  setSavingTable(false);
+                  if (error) { toast.error("Gagal: " + error.message); return; }
+                  setSelected({ ...selected, channel: "pos", note: newNote });
+                  setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, channel: "pos" } : p));
+                  setCancelOpen(false);
+                  setCancelReason("");
+                  setEditingTable(true);
+                  setTableDraft(selected.table_label ?? "");
+                  toast.success("Kunci QR dilepas — silakan ubah meja");
+                }}
+              >
+                Buka Kunci
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
