@@ -492,6 +492,29 @@ export function OrdersTodayDialog({
               </Select>
             </div>
 
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant={qrUnlockedOnly ? "default" : "outline"}
+                className="h-7 text-[11px]"
+                onClick={() => setQrUnlockedOnly((v) => !v)}
+                title="Tampilkan hanya pesanan yang pernah di-unlock dari QR Meja"
+              >
+                <Lock className="mr-1 h-3 w-3" />
+                Hanya QR Unlock {qrUnlockedOnly && `(${qrUnlockedIds.size})`}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[11px]"
+                onClick={() => setExportOpen(true)}
+                title="Ekspor riwayat QR unlock ke CSV/PDF"
+              >
+                <FileDown className="mr-1 h-3 w-3" />
+                Ekspor Audit QR
+              </Button>
+            </div>
+
             <div className="flex-1 overflow-auto">
               {loading ? (
                 <div className="flex h-32 items-center justify-center">
