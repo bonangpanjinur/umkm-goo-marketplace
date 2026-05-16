@@ -64,6 +64,7 @@ type Order = {
   channel: "pos" | "online" | null;
   marketplace_order: boolean | null;
   customer_phone: string | null;
+  order_source: "pos" | "qr_table" | "website" | "marketplace" | null;
 };
 
 type OrderDetail = Order & {
@@ -189,7 +190,7 @@ export function OrdersTodayDialog({
     supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order, order_source",
       )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
@@ -214,10 +215,10 @@ export function OrdersTodayDialog({
         if (o.status === "voided" || o.status === "cancelled") return false;
       }
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
-      if (sourceFilter === "pos" && o.channel !== "pos") return false;
-      if (sourceFilter === "online" && o.channel !== "online") return false;
-      if (sourceFilter === "qr_table" && !(o.channel === "online" && o.table_label)) return false;
-      if (sourceFilter === "marketplace" && !o.marketplace_order) return false;
+      if (sourceFilter === "pos" && !(o.order_source === "pos" || (!o.order_source && o.channel === "pos"))) return false;
+      if (sourceFilter === "online" && !(o.order_source === "website" || (!o.order_source && o.channel === "online" && !o.table_label))) return false;
+      if (sourceFilter === "qr_table" && !(o.order_source === "qr_table" || (!o.order_source && o.channel === "online" && o.table_label))) return false;
+      if (sourceFilter === "marketplace" && !(o.order_source === "marketplace" || o.marketplace_order)) return false;
       if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
       if (q) {
         const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.customer_phone ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method} ${o.channel ?? ""} ${o.fulfillment ?? ""}`.toLowerCase();
@@ -246,7 +247,7 @@ export function OrdersTodayDialog({
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, channel, marketplace_order, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, channel, marketplace_order, order_source, shop_id, outlet_id, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
       .eq("id", id)
       .single();
@@ -310,13 +311,23 @@ export function OrdersTodayDialog({
   }));
   const isDelivery = printSource?.fulfillment === "delivery";
   const sourceText: string | null = printSource
-    ? printSource.marketplace_order
+    ? printSource.order_source === "marketplace" || printSource.marketplace_order
       ? "Marketplace"
-      : printSource.channel === "online"
-        ? (printSource.table_label ? "QR Meja" : "Online / Website")
-        : "POS / Kasir"
+      : printSource.order_source === "qr_table"
+        ? "QR Meja"
+        : printSource.order_source === "website"
+          ? "Online / Website"
+          : printSource.order_source === "pos"
+            ? "POS / Kasir"
+            : printSource.channel === "online"
+              ? (printSource.table_label ? "QR Meja" : "Online / Website")
+              : "POS / Kasir"
     : null;
-  const isQrTable = !!(printSource && printSource.channel === "online" && printSource.table_label);
+  const isQrTable = !!(
+    printSource &&
+    (printSource.order_source === "qr_table" ||
+      (!printSource.order_source && printSource.channel === "online" && printSource.table_label))
+  );
   const displayCustomer = printSource
     ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
         .filter(Boolean)
@@ -421,12 +432,18 @@ export function OrdersTodayDialog({
                 <ul className="divide-y rounded-lg border">
                   {pageItems.map((o) => {
                     const voided = o.status === "voided" || o.status === "cancelled";
+                    const src = o.order_source
+                      ?? (o.marketplace_order ? "marketplace"
+                          : o.channel === "online" ? (o.table_label ? "qr_table" : "website")
+                          : "pos");
                     const sourceLabel =
-                      o.marketplace_order
+                      src === "marketplace"
                         ? { txt: "MARKETPLACE", cls: "bg-purple-100 text-purple-800" }
-                        : o.channel === "online"
-                          ? { txt: o.table_label ? "QR MEJA" : "ONLINE", cls: "bg-amber-100 text-amber-800" }
-                          : { txt: "POS", cls: "bg-slate-100 text-slate-700" };
+                        : src === "qr_table"
+                          ? { txt: "QR MEJA", cls: "bg-amber-100 text-amber-800" }
+                          : src === "website"
+                            ? { txt: "ONLINE", cls: "bg-amber-100 text-amber-800" }
+                            : { txt: "POS", cls: "bg-slate-100 text-slate-700" };
                     const fulfillLabel =
                       o.fulfillment === "delivery"
                         ? { txt: "DELIVERY", cls: "bg-blue-100 text-blue-800" }
@@ -551,17 +568,15 @@ export function OrdersTodayDialog({
             <div className="rounded-lg border p-3 text-sm space-y-1">
               <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
                 <span className={`rounded px-1.5 py-0.5 font-semibold ${
-                  selected.marketplace_order
-                    ? "bg-purple-100 text-purple-800"
-                    : selected.channel === "online"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-slate-100 text-slate-700"
+                  isQrTable
+                    ? "bg-amber-100 text-amber-800"
+                    : (selected.order_source === "marketplace" || selected.marketplace_order)
+                      ? "bg-purple-100 text-purple-800"
+                      : (selected.order_source === "website" || selected.channel === "online")
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-slate-100 text-slate-700"
                 }`}>
-                  {selected.marketplace_order
-                    ? "Marketplace"
-                    : selected.channel === "online"
-                      ? (selected.table_label ? "QR Meja" : "Online / Website")
-                      : "POS / Kasir"}
+                  {sourceText ?? "—"}
                 </span>
                 {selected.fulfillment && (
                   <span className="rounded bg-muted px-1.5 py-0.5 font-semibold uppercase">
@@ -911,14 +926,35 @@ export function OrdersTodayDialog({
                   setSavingTable(true);
                   const reason = cancelReason.trim();
                   const newNote = `${selected.note ? selected.note + "\n" : ""}[QR Meja dibatalkan] ${reason}`;
+                  const previousLabel = selected.table_label ?? null;
                   const { error } = await supabase
                     .from("orders")
-                    .update({ channel: "pos", note: newNote } as never)
+                    .update({ channel: "pos", order_source: "pos", note: newNote } as never)
                     .eq("id", selected.id);
                   setSavingTable(false);
                   if (error) { toast.error("Gagal: " + error.message); return; }
-                  setSelected({ ...selected, channel: "pos", note: newNote });
-                  setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, channel: "pos" } : p));
+                  setSelected({ ...selected, channel: "pos", order_source: "pos", note: newNote });
+                  setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, channel: "pos", order_source: "pos" } : p));
+                  // Audit log entry — best-effort, do not block UI on failure
+                  try {
+                    await supabase.from("order_audit_log").insert({
+                      shop_id: (selected as any).shop_id,
+                      outlet_id: (selected as any).outlet_id ?? null,
+                      order_id: selected.id,
+                      order_no: selected.order_no,
+                      action: "qr_unlock",
+                      reason,
+                      actor_id: user?.id ?? null,
+                      actor_name: (user as any)?.user_metadata?.full_name ?? user?.email ?? null,
+                      metadata: {
+                        previous_table_label: previousLabel,
+                        previous_order_source: "qr_table",
+                        new_order_source: "pos",
+                      },
+                    } as never);
+                  } catch (e) {
+                    console.warn("qr_unlock audit log failed", e);
+                  }
                   setCancelOpen(false);
                   setCancelReason("");
                   setEditingTable(true);

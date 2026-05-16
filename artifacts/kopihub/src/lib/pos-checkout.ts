@@ -112,6 +112,7 @@ export async function submitCheckout(p: CheckoutPayload, maxAttempts = 3): Promi
           change_due: p.change_due ?? 0,
           cashier_id: p.cashier_id,
           channel: "pos",
+          order_source: "pos",
           client_idempotency_key: p.client_idempotency_key,
           customer_name: p.customer_name ?? null,
           table_label: p.table_label ?? null,

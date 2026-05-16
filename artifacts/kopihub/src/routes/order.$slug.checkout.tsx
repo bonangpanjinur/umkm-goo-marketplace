@@ -114,6 +114,7 @@ function DineInCheckoutPage() {
           status: "pending",
           notes: note.trim() || null,
           channel: table ? "online" : "pos",
+          order_source: table ? "qr_table" : "website",
           table_id: table || null,
           table_name: displayTableName || null,
           table_label: table ? (displayTableName || `Meja ${table}`) : null,

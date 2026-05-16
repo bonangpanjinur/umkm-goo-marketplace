@@ -59,7 +59,15 @@ type DomainOption = {
 function TableQRPage() {
   const { shop } = useCurrentShop();
   const { current: outlet, outlets, setCurrent: setOutlet } = useOutletContext();
-  const { data: tables, isLoading } = useTables(outlet?.id || "");
+  const outletActive = !!(outlet as any)?.is_active;
+  const { data: rawTables, isLoading } = useTables(outlet?.id || "");
+  // Only allow QR for ACTIVE tables on ACTIVE outlets — never expose inactive ones.
+  const tables = useMemo(
+    () => outletActive
+      ? (rawTables || []).filter((t: any) => t?.is_active !== false)
+      : [],
+    [rawTables, outletActive],
+  );
   const [search, setSearch] = useState("");
   const [selectedTable, setSelectedTable] = useState<{ id: string; name: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -112,10 +120,14 @@ function TableQRPage() {
   );
 
   function getTableUrl(tableId: string, tableName: string) {
+    if (!outlet?.id || !tableId) return "";
     return `${baseOrderUrl}?table=${encodeURIComponent(tableId)}&tableName=${encodeURIComponent(tableName)}`;
   }
 
   function copyUrl(tableId: string, tableName: string) {
+    if (!outletActive) { toast.error("Outlet non-aktif — tidak boleh membuat QR."); return; }
+    const t = (rawTables || []).find((x: any) => x.id === tableId);
+    if (t && t.is_active === false) { toast.error("Meja non-aktif — tidak boleh membuat QR."); return; }
     navigator.clipboard.writeText(getTableUrl(tableId, tableName));
     setCopiedId(tableId);
     toast.success("Link disalin!");
@@ -125,6 +137,7 @@ function TableQRPage() {
   // ---- Download all as PDF (4 per A4 page) ----
   async function downloadPdfAll() {
     if (!tables?.length || !shop) return;
+    if (!outletActive) { toast.error("Outlet non-aktif — tidak boleh membuat QR."); return; }
     setDownloading("pdf");
     try {
       const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
@@ -189,6 +202,7 @@ function TableQRPage() {
   // ---- Download all as ZIP of PNGs ----
   async function downloadZipAll() {
     if (!tables?.length || !shop) return;
+    if (!outletActive) { toast.error("Outlet non-aktif — tidak boleh membuat QR."); return; }
     setDownloading("zip");
     try {
       const zip = new JSZip();
@@ -219,6 +233,9 @@ function TableQRPage() {
   }
 
   function printSingle(tableId: string, tableName: string) {
+    if (!outletActive) { toast.error("Outlet non-aktif — tidak boleh membuat QR."); return; }
+    const t = (rawTables || []).find((x: any) => x.id === tableId);
+    if (t && t.is_active === false) { toast.error("Meja non-aktif — tidak boleh membuat QR."); return; }
     const url = getTableUrl(tableId, tableName);
     const win = window.open("", "_blank", "width=420,height=620");
     if (!win) return;
@@ -319,11 +336,18 @@ function TableQRPage() {
                   <SelectValue placeholder="Pilih outlet" />
                 </SelectTrigger>
                 <SelectContent>
-                  {outlets.map((o) => (
-                    <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
-                  ))}
+                  {outlets
+                    .filter((o) => (o as any).is_active !== false)
+                    .map((o) => (
+                      <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
+              {!outletActive && (
+                <p className="text-[11px] text-red-600 mt-1">
+                  Outlet ini non-aktif. QR tidak bisa dibuat sampai outlet diaktifkan kembali.
+                </p>
+              )}
             </div>
           </div>
 
