@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Sparkles, Store, ShieldCheck, Zap, TrendingUp, Star,
   ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
-  Plus, Flame, BadgeCheck,
+  Plus, Flame, BadgeCheck, Heart,
 } from "lucide-react";
 
 function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
@@ -621,6 +623,55 @@ function MarketplaceHome() {
   );
 }
 
+function ProductCardHeart({ productId }: { productId: string }) {
+  const { user } = useAuth();
+  const [wished, setWished] = useState(false);
+  const [wishId, setWishId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setWished(false); setWishId(null); return; }
+    supabase.from("wishlists" as any).select("id")
+      .eq("user_id", user.id).eq("menu_item_id", productId).maybeSingle()
+      .then(({ data }) => { if (data) { setWished(true); setWishId((data as any).id); } });
+  }, [user?.id, productId]);
+
+  const toggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.info("Masuk untuk menyimpan wishlist"); return; }
+    if (busy) return;
+    setBusy(true);
+    if (wished && wishId) {
+      await supabase.from("wishlists" as any).delete().eq("id", wishId);
+      setWished(false); setWishId(null);
+      toast.success("Dihapus dari wishlist");
+    } else {
+      const { data } = await supabase.from("wishlists" as any)
+        .insert({ user_id: user.id, menu_item_id: productId }).select("id").single();
+      setWished(true); setWishId((data as any)?.id ?? null);
+      toast.success("Ditambahkan ke wishlist");
+    }
+    setBusy(false);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}
+      title={wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}
+      className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-md ring-1 transition-all hover:scale-110 active:scale-95 ${
+        wished
+          ? "bg-rose-500 text-white ring-rose-300"
+          : "bg-background/85 text-foreground/70 ring-border/60 hover:bg-background hover:text-rose-500"
+      }`}
+    >
+      <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} />
+    </button>
+  );
+}
+
 export function ProductCard({ product }: { product: Product }) {
   const shopSlug = product.shop?.slug ?? "";
   const now = Date.now();
@@ -656,6 +707,9 @@ export function ProductCard({ product }: { product: Product }) {
       params={{ slug: shopSlug, productId: product.id }}
       className="group relative flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20"
     >
+      {/* Wishlist heart (top-right) */}
+      <ProductCardHeart productId={product.id} />
+
       {/* Image */}
       <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
         {product.image_url
@@ -679,9 +733,9 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        {/* Top-right: flash countdown */}
+        {/* Top-right (below heart): flash countdown */}
         {flashActive && remaining && (
-          <span className="absolute right-2 top-2 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow-sm backdrop-blur-md ring-1 ring-border/40">
+          <span className="absolute right-2 top-11 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow-sm backdrop-blur-md ring-1 ring-border/40">
             ⏱ {remaining}
           </span>
         )}

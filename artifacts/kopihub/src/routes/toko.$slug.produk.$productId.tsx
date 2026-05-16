@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles, Zap } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles, Zap, MessageCircle } from "lucide-react";
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -642,6 +642,20 @@ function ProductDetailPage() {
         )}
       </div>
       <MarketplaceFooter />
+      {shop && (
+        <Link
+          to="/toko/$slug/chat"
+          params={{ slug: shop.slug }}
+          aria-label="Chat dengan toko"
+          className="fixed bottom-6 right-6 z-40 group flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-2xl shadow-primary/40 ring-4 ring-primary/15 transition-all hover:scale-105 hover:shadow-primary/60 active:scale-95"
+        >
+          <span className="relative flex h-6 w-6 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-primary-foreground/30 animate-ping" />
+            <MessageCircle className="relative h-6 w-6" />
+          </span>
+          <span className="hidden sm:inline text-sm font-semibold pr-1">Chat Toko</span>
+        </Link>
+      )}
     </div>
   );
 }
