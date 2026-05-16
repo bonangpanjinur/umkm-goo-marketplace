@@ -746,9 +746,43 @@ export function OrdersTodayDialog({
                       )}
                       {isQrTable ? (
                         <>
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200">
-                            <Lock className="h-3 w-3" /> Terkunci (dari QR)
-                          </span>
+                          <TooltipProvider delayDuration={150}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200 cursor-help">
+                                  <Lock className="h-3 w-3" /> Terkunci (dari QR)
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs text-xs">
+                                {(() => {
+                                  const last = auditEntries.find((a) => a.action === "qr_unlock");
+                                  if (!last) {
+                                    return (
+                                      <div>
+                                        Kolom Meja dikunci karena order berasal dari QR Meja.
+                                        Klik "Batalkan QR…" untuk membuka kunci dengan alasan.
+                                      </div>
+                                    );
+                                  }
+                                  const meta = (last.metadata ?? {}) as Record<string, unknown>;
+                                  const prev = (meta.previous_table_label as string | null) ?? null;
+                                  return (
+                                    <div className="space-y-1">
+                                      <div className="font-semibold">Unlock terakhir</div>
+                                      <div>Oleh: {last.actor_name ?? last.actor_id ?? "Sistem"}</div>
+                                      <div>{new Date(last.created_at).toLocaleString("id-ID")}</div>
+                                      {last.reason && <div>Alasan: <span className="italic">{last.reason}</span></div>}
+                                      <div>
+                                        Meja: <span className="font-mono">{prev ?? "—"}</span>
+                                        {" → "}
+                                        <span className="font-mono">{selected.table_label ?? "—"}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           <Button
                             size="sm"
                             variant="outline"
