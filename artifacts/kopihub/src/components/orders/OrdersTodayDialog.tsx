@@ -604,16 +604,18 @@ export function OrdersTodayDialog({
                 <Lock className="mr-1 h-3 w-3" />
                 Hanya QR Unlock {qrUnlockedOnly && `(${qrUnlockedIds.size})`}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-[11px]"
-                onClick={() => setExportOpen(true)}
-                title="Ekspor riwayat QR unlock ke CSV/PDF"
-              >
-                <FileDown className="mr-1 h-3 w-3" />
-                Ekspor Audit QR
-              </Button>
+              {role === "owner" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px]"
+                  onClick={() => setExportOpen(true)}
+                  title="Ekspor riwayat QR unlock ke CSV/PDF"
+                >
+                  <FileDown className="mr-1 h-3 w-3" />
+                  Ekspor Audit QR
+                </Button>
+              )}
             </div>
 
             <div className="flex-1 overflow-auto">
