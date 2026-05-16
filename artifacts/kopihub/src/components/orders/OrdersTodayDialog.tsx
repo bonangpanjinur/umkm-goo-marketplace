@@ -355,7 +355,14 @@ export function OrdersTodayDialog({
       (!printSource.order_source && printSource.channel === "online" && printSource.table_label))
   );
   const displayCustomer = printSource
-    ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
+    ? [
+        printSource.table_label
+          ? `Meja ${printSource.table_label}`
+          : isQrTable
+            ? "QR Meja (no. meja belum tercatat)"
+            : null,
+        printSource.customer_name,
+      ]
         .filter(Boolean)
         .join(" · ") || null
     : null;
