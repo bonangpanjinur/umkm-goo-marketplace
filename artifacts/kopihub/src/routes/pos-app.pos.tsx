@@ -654,6 +654,19 @@ function POSPage() {
         onConfirm={handleCheckout}
       />
 
+      {outlet && shop && (
+        <OrdersTodayDialog
+          open={ordersDlgOpen}
+          onOpenChange={setOrdersDlgOpen}
+          outletId={outlet.id}
+          outletName={outlet.name}
+          shopName={shop.name}
+          shopLogoUrl={shop.logo_url}
+          shopAddress={shop.address}
+          shopPhone={shop.phone}
+        />
+      )}
+
       {/* Floating re-print + paper picker for the last completed order */}
       {lastReceipt && (
         <div className="fixed bottom-4 left-4 z-40 flex flex-wrap items-center gap-2 rounded-2xl border bg-background/95 px-3 py-2 shadow-lg backdrop-blur">
