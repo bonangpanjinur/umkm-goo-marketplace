@@ -270,6 +270,9 @@ function RefundPanel({ bookingId, onRefunded }: { bookingId: string; onRefunded:
 
 function BookingPage() {
   const { shop } = useShop();
+  const { type: bookingType } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const isTableMode = bookingType === "table";
   const [view, setView] = useState<"bookings" | "slots" | "packages">("bookings");
   const [date, setDate] = useState(isoDate(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
