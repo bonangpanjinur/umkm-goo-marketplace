@@ -654,44 +654,100 @@ export function ProductCard({ product }: { product: Product }) {
     <Link
       to="/toko/$slug/produk/$productId"
       params={{ slug: shopSlug, productId: product.id }}
-      className="group rounded-xl border border-border bg-card overflow-hidden transition hover:border-primary/50 hover:shadow-md"
+      className="group relative flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20"
     >
-      <div className="relative aspect-square w-full bg-muted/40">
+      {/* Image */}
+      <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
         {product.image_url
-          ? <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition group-hover:scale-105" />
-          : <div className="flex h-full w-full items-center justify-center text-muted-foreground"><Store className="h-8 w-8" /></div>
+          ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+          : <div className="flex h-full w-full items-center justify-center text-muted-foreground/40"><Store className="h-10 w-10" /></div>
         }
-        {flashActive && (
-          <span className="absolute left-2 top-2 rounded-md bg-destructive px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-destructive-foreground shadow">
-            -{discountPct}%
-          </span>
-        )}
-        {flashActive && remaining && (
-          <span className="absolute right-2 top-2 rounded-md bg-background/90 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow backdrop-blur">
-            ⚡ {remaining}
-          </span>
-        )}
-        {product.rating_avg && Number(product.rating_avg) >= 4.5 && (
-          <span className="absolute bottom-2 left-2 flex items-center gap-0.5 rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
-            <Star className="h-2.5 w-2.5 fill-white" />{Number(product.rating_avg).toFixed(1)}
-          </span>
-        )}
-      </div>
-      <div className="p-3">
-        <div className="line-clamp-2 text-xs font-medium leading-snug">{product.name}</div>
-        <div className="mt-1.5 flex items-baseline gap-1.5">
-          <span className={`text-sm font-bold ${flashActive ? "text-destructive" : "text-primary"}`}>
-            Rp {displayPrice.toLocaleString("id-ID")}
-          </span>
+        {/* Bottom gradient overlay for readability */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+        {/* Top-left badges */}
+        <div className="absolute left-2 top-2 flex flex-col gap-1">
           {flashActive && (
-            <span className="text-[10px] text-muted-foreground line-through">
-              Rp {Number(product.price).toLocaleString("id-ID")}
+            <span className="flex items-center gap-0.5 rounded-md bg-gradient-to-r from-rose-500 to-orange-500 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white shadow-md animate-pulse">
+              <Flame className="h-2.5 w-2.5" />-{discountPct}%
+            </span>
+          )}
+          {!flashActive && product.stock != null && product.stock > 0 && product.stock <= (product.low_stock_threshold ?? 5) && (
+            <span className="rounded-md bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+              Sisa {product.stock}
             </span>
           )}
         </div>
-        {product.shop && (
-          <div className="mt-1 truncate text-[11px] text-muted-foreground">{product.shop.name}</div>
+
+        {/* Top-right: flash countdown */}
+        {flashActive && remaining && (
+          <span className="absolute right-2 top-2 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow-sm backdrop-blur-md ring-1 ring-border/40">
+            ⏱ {remaining}
+          </span>
         )}
+
+        {/* Bottom-left rating chip */}
+        {product.rating_avg && Number(product.rating_avg) >= 4.5 && (
+          <span className="absolute bottom-2 left-2 flex items-center gap-0.5 rounded-full bg-amber-400/95 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-md">
+            <Star className="h-2.5 w-2.5 fill-white" />{Number(product.rating_avg).toFixed(1)}
+          </span>
+        )}
+
+        {/* Quick-Add floating button (desktop hover) */}
+        <button
+          type="button"
+          aria-label="Tambah cepat"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          className="absolute bottom-2 right-2 hidden h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 opacity-0 translate-y-1 transition-all duration-300 hover:scale-110 group-hover:flex group-hover:opacity-100 group-hover:translate-y-0"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col p-3">
+        <div className="line-clamp-2 min-h-[2.25rem] text-sm font-semibold leading-snug tracking-tight text-foreground">
+          {product.name}
+        </div>
+
+        {/* Price block */}
+        <div className="mt-2 flex flex-col gap-0.5">
+          <span className={`text-base font-extrabold leading-none ${flashActive ? "text-rose-600" : "text-primary"}`}>
+            Rp {displayPrice.toLocaleString("id-ID")}
+          </span>
+          {flashActive && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-muted-foreground line-through">
+                Rp {Number(product.price).toLocaleString("id-ID")}
+              </span>
+              <span className="rounded bg-rose-50 px-1 py-px text-[9px] font-bold text-rose-600 dark:bg-rose-500/10">
+                HEMAT {discountPct}%
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer: shop + sold */}
+        <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-border/40 pt-2">
+          {product.shop && (
+            <div className="flex min-w-0 items-center gap-1.5">
+              <div className="h-4 w-4 shrink-0 overflow-hidden rounded-full bg-muted ring-1 ring-border/40">
+                {product.shop.logo_url
+                  ? <img src={product.shop.logo_url} alt="" className="h-full w-full object-cover" />
+                  : <div className="flex h-full w-full items-center justify-center text-[8px] text-muted-foreground">{product.shop.name?.[0]?.toUpperCase()}</div>}
+              </div>
+              <span className="truncate text-[10px] font-medium text-muted-foreground">{product.shop.name}</span>
+              {product.shop.kyc_status === "approved" && (
+                <BadgeCheck className="h-3 w-3 shrink-0 text-sky-500" />
+              )}
+            </div>
+          )}
+          {product.total_sold != null && product.total_sold > 0 && (
+            <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+              {product.total_sold >= 1000 ? `${(product.total_sold / 1000).toFixed(1)}rb` : product.total_sold} terjual
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );
