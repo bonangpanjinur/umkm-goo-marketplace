@@ -25,6 +25,7 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
+import { ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import type { CartItem } from "@/lib/cart";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/receipt-printer";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
 import { PrinterPicker } from "@/components/pos/printer-picker";
+import { OrdersTodayDialog } from "@/components/orders/OrdersTodayDialog";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
@@ -127,6 +129,7 @@ function POSPage() {
   // Parked carts list (multi-device)
   const [parkedList, setParkedList] = useState<ParkedCart[]>([]);
   const [parkedListOpen, setParkedListOpen] = useState(false);
+  const [ordersDlgOpen, setOrdersDlgOpen] = useState(false);
 
   // Last completed order — kept in state so we can render a hidden Receipt
   // and trigger window.print() (auto-print after checkout, or manual re-print).
@@ -571,6 +574,7 @@ function POSPage() {
           onAdd={addCartTab}
           onOpenParked={() => setParkedListOpen(true)}
           parkedCount={parkedList.length}
+          onOpenOrders={() => setOrdersDlgOpen(true)}
         />
       </div>
 
@@ -585,6 +589,7 @@ function POSPage() {
             onAdd={addCartTab}
             onOpenParked={() => setParkedListOpen(true)}
             parkedCount={parkedList.length}
+            onOpenOrders={() => setOrdersDlgOpen(true)}
           />
         </div>
         <div className="flex-1 min-h-0">
@@ -648,6 +653,19 @@ function POSPage() {
         total={charges.total}
         onConfirm={handleCheckout}
       />
+
+      {outlet && shop && (
+        <OrdersTodayDialog
+          open={ordersDlgOpen}
+          onOpenChange={setOrdersDlgOpen}
+          outletId={outlet.id}
+          outletName={outlet.name}
+          shopName={shop.name}
+          shopLogoUrl={shop.logo_url}
+          shopAddress={shop.address}
+          shopPhone={shop.phone}
+        />
+      )}
 
       {/* Floating re-print + paper picker for the last completed order */}
       {lastReceipt && (
@@ -849,6 +867,7 @@ function CartTabs({
   onAdd,
   onOpenParked,
   parkedCount,
+  onOpenOrders,
 }: {
   carts: LocalCart[];
   activeIdx: number;
@@ -857,6 +876,7 @@ function CartTabs({
   onAdd: () => void;
   onOpenParked: () => void;
   parkedCount: number;
+  onOpenOrders: () => void;
 }) {
   return (
     <>
@@ -918,6 +938,10 @@ function CartTabs({
             {parkedCount}
           </span>
         )}
+      </Button>
+      <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
+        <ListOrdered className="h-3.5 w-3.5" />
+        Pesanan
       </Button>
     </>
   );
