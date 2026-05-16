@@ -28,12 +28,13 @@ const SHOP_PAGE_SIZE = 12;
 const searchSchema = z.object({
   q:       z.string().optional().default(""),
   cat:     z.string().optional().default(""),
-  sort:    z.enum(["relevan", "termurah", "termahal", "rating"]).optional().default("relevan"),
+  sort:    z.enum(["relevan", "termurah", "termahal", "rating", "terbaru"]).optional().default("relevan"),
   min:     z.coerce.number().optional(),
   max:     z.coerce.number().optional(),
   minRating: z.coerce.number().optional(),
   city:    z.string().optional().default(""),
   pay:     z.enum(["", "cash", "qris", "transfer", "ewallet", "card"]).optional().default(""),
+  verified: z.coerce.boolean().optional().default(false),
   tab:     z.enum(["semua", "produk", "toko"]).optional().default("semua"),
 });
 
@@ -43,12 +44,19 @@ const PAY_LABEL: Record<string, string> = {
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Pencarian — UMKMgo" },
-      { name: "description", content: "Cari produk dan toko di marketplace UMKMgo." },
-    ],
-  }),
+  head: ({ search }) => {
+    const q = (search as any)?.q?.trim();
+    const title = q ? `Hasil "${q}" — UMKMgo` : "Pencarian — UMKMgo";
+    const description = q
+      ? `Cari "${q}" — produk dan toko UMKM lokal di UMKMgo marketplace.`
+      : "Cari produk dan toko di marketplace UMKMgo.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+      ],
+    };
+  },
   component: SearchPage,
 });
 
@@ -74,10 +82,41 @@ function ShopSkeletonCards({ n = 4 }: { n?: number }) {
   return (
     <>
       {Array.from({ length: n }).map((_, i) => (
-        <div key={`ss-${i}`} className="rounded-xl border border-border bg-muted/30 animate-pulse p-4 h-20" />
+        <div key={`ss-${i}`} className="rounded-xl border border-border bg-muted/30 animate-pulse p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-muted/60" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 bg-muted rounded w-3/5" />
+              <div className="h-2.5 bg-muted rounded w-2/5" />
+            </div>
+          </div>
+          <div className="mt-3 h-2.5 bg-muted rounded w-4/5" />
+          <div className="mt-1.5 h-2.5 bg-muted rounded w-2/3" />
+        </div>
       ))}
     </>
   );
+}
+
+// Ekstrak nama kota dari alamat lengkap (best-effort, untuk display ringkas).
+function extractCity(address?: string | null): string {
+  if (!address) return "";
+  const parts = address.split(",").map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) return "";
+  // Prioritas: cari token yang diawali "Kota " atau "Kab. "
+  const tagged = parts.find(p => /^(kota|kab\.?|kabupaten)\s+/i.test(p));
+  if (tagged) return tagged.replace(/^(kota|kab\.?|kabupaten)\s+/i, "");
+  // Fallback: ambil bagian ke-2 dari belakang (umumnya kota di alamat Indonesia)
+  return parts[parts.length - 2] ?? parts[parts.length - 1] ?? "";
+}
+
+function formatRelativeTime(ts: number): string {
+  const diff = Math.max(0, Date.now() - ts);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "baru saja";
+  if (m < 60) return `${m} menit lalu`;
+  const h = Math.floor(m / 60);
+  return `${h} jam lalu`;
 }
 
 function SkeletonProductGrid({ n = 10 }: { n?: number }) {
@@ -145,11 +184,21 @@ function SearchEmptyState({
             : `Belum ada ${type} yang tersedia saat ini.`}
         </p>
       </div>
-      {hasFilters && (
-        <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
-          <X className="h-3.5 w-3.5" /> Hapus filter
-        </Button>
-      )}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {hasFilters && (
+          <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
+            <X className="h-3.5 w-3.5" /> Hapus filter
+          </Button>
+        )}
+        {type === "toko" && (
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground shadow hover:bg-primary/90 h-8"
+          >
+            <Store className="h-3.5 w-3.5" /> Buka toko di UMKMgo
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
@@ -194,7 +243,7 @@ function isAbortError(e: any): boolean {
 }
 
 function SearchPage() {
-  const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
+  const { q, cat, sort, min, max, minRating, city, pay, verified, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
 
   // Draft state for inputs that should NOT auto-apply (city, pay)
@@ -227,7 +276,7 @@ function SearchPage() {
   const productCacheRef = useRef<Map<string, ProductCacheEntry>>(new Map());
   const shopCacheRef    = useRef<Map<string, ShopCacheEntry>>(new Map());
   const cacheHydratedRef = useRef(false);
-  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay });
+  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay, verified: !!verified });
 
   // AbortController per-section untuk membatalkan request lama saat filter berubah cepat.
   const productAbortRef = useRef<AbortController | null>(null);
@@ -258,9 +307,9 @@ function SearchPage() {
   useEffect(() => {
     if (!q && !cat) return;
     try {
-      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, sort, min, max, minRating, city, pay, tab }));
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, sort, min, max, minRating, city, pay, verified, tab }));
     } catch { /* ignore */ }
-  }, [q, cat, sort, min, max, minRating, city, pay, tab]);
+  }, [q, cat, sort, min, max, minRating, city, pay, verified, tab]);
 
   useEffect(() => {
     supabase.from("business_categories").select("id, slug, name").eq("is_active", true).order("sort_order")
@@ -283,12 +332,14 @@ function SearchPage() {
     if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
     if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
     if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
+    if (verified) prodQ = (prodQ as any).eq("shop.kyc_status", "approved");
     if (cat) {
       const c = cats.find(x => x.slug === cat);
       if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
     }
     if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
     else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
+    else if (sort === "terbaru")  prodQ = prodQ.order("created_at", { ascending: false });
     else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
     return prodQ;
   };
@@ -310,7 +361,9 @@ function SearchPage() {
     if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
     if (city) shopQ = shopQ.ilike("address", `%${city}%`);
     if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
-    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    if (verified) shopQ = shopQ.eq("kyc_status", "approved");
+    if (sort === "terbaru") shopQ = shopQ.order("created_at", { ascending: false });
+    else                    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
     return shopQ;
   };
 
@@ -410,7 +463,7 @@ function SearchPage() {
       fetchShops();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
+  }, [q, cat, sort, min, max, minRating, city, pay, verified, cats]);
 
   const loadMoreProducts = async (opts?: { isRetry?: boolean }) => {
     const next = productPage + 1;
@@ -523,9 +576,10 @@ function SearchPage() {
     pay: (payDraft as any) || undefined,
   });
 
-  const hasFilters = !!(cat || min || max || minRating || city || pay);
+  const hasFilters = !!(cat || min || max || minRating || city || pay || verified);
   const activePills: { label: string; key: string }[] = [];
   if (cat)       activePills.push({ label: cats.find(c => c.slug === cat)?.name ?? cat, key: "cat" });
+  if (verified)  activePills.push({ label: "Terverifikasi", key: "verified" });
   if (minRating) activePills.push({ label: `Min ★${minRating}`, key: "minRating" });
   if (min)       activePills.push({ label: `Min Rp${Number(min).toLocaleString("id-ID")}`, key: "min" });
   if (max)       activePills.push({ label: `Max Rp${Number(max).toLocaleString("id-ID")}`, key: "max" });
@@ -568,6 +622,7 @@ function SearchPage() {
             size="sm"
             className={`gap-1.5 shrink-0 mt-1 ${showFilter ? "border-primary text-primary" : ""}`}
             onClick={() => setShowFilter(v => !v)}
+            aria-label="Buka filter"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filter
@@ -582,6 +637,7 @@ function SearchPage() {
                 className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
                 onClick={refreshCurrentCache}
                 title="Muat ulang hasil untuk filter saat ini"
+                aria-label="Refresh hasil pencarian"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>
@@ -592,6 +648,7 @@ function SearchPage() {
                 className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowClearCacheDialog(true)}
                 title="Hapus cache hasil pencarian dan muat ulang"
+                aria-label="Hapus cache hasil pencarian"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Hapus cache</span>
@@ -606,7 +663,7 @@ function SearchPage() {
             {activePills.map(p => (
               <ActiveFilterPill key={p.key} label={p.label} onRemove={() => clearFilter(p.key)} />
             ))}
-            <button onClick={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+            <button onClick={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
               Reset semua
             </button>
@@ -634,6 +691,7 @@ function SearchPage() {
                   <SelectContent>
                     <SelectItem value="relevan">Paling relevan</SelectItem>
                     <SelectItem value="rating">Rating tertinggi</SelectItem>
+                    <SelectItem value="terbaru">Terbaru</SelectItem>
                     <SelectItem value="termurah">Harga terendah</SelectItem>
                     <SelectItem value="termahal">Harga tertinggi</SelectItem>
                   </SelectContent>
@@ -683,6 +741,20 @@ function SearchPage() {
                     <SelectItem value="card">Kartu Debit/Kredit</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 mt-1 h-9 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-input accent-primary"
+                    checked={!!verified}
+                    onChange={e => update({ verified: e.target.checked ? true : undefined })}
+                  />
+                  <span className="text-xs inline-flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    Hanya terverifikasi
+                  </span>
+                </label>
               </div>
             </div>
             <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-3">
@@ -754,15 +826,26 @@ function SearchPage() {
             {/* Shops section */}
             {tab !== "produk" && (
               <section>
-                <h2 className="mb-4 text-base font-semibold text-muted-foreground">
-                  Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
-                </h2>
+                <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="text-base font-semibold text-muted-foreground">
+                    Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
+                  </h2>
+                  {(() => {
+                    const c = shopCacheRef.current.get(cacheKey);
+                    if (!c || loadingShops) return null;
+                    return (
+                      <span className="text-[11px] text-muted-foreground/80 italic">
+                        dari cache · diperbarui {formatRelativeTime(c.ts)}
+                      </span>
+                    );
+                  })()}
+                </div>
                 {loadingShops ? <SkeletonShopGrid />
                   : shopError && shops.length === 0 ? (
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryShops}
                       error={shopError}
                     />
@@ -770,40 +853,71 @@ function SearchPage() {
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryShops}
                     />
                   ) : (
                       <>
                         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-                          {visibleShops.map(s => (
-                            <Link
-                              key={s.id}
-                              to="/toko/$slug"
-                              params={{ slug: s.slug }}
-                              className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/50 hover:shadow-md"
-                            >
-                              <div className="flex items-center gap-3">
-                                {s.logo_url
-                                  ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover" />
-                                  : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
-                                }
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1 min-w-0">
-                                    <span className="truncate text-sm font-semibold">{s.name}</span>
-                                    {s.kyc_status === "approved" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
-                                  </div>
-                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    {s.rating_avg
-                                      ? <><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{Number(s.rating_avg).toFixed(1)}</>
-                                      : "Toko baru"
-                                    }
+                          {visibleShops.map(s => {
+                            const cityName = extractCity(s.address);
+                            const payList: string[] = Array.isArray(s.payment_methods_enabled) ? s.payment_methods_enabled : [];
+                            return (
+                              <Link
+                                key={s.id}
+                                to="/toko/$slug"
+                                params={{ slug: s.slug }}
+                                className="group flex flex-col rounded-xl border border-border bg-card p-4 transition hover:border-primary/50 hover:shadow-md"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {s.logo_url
+                                    ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover" />
+                                    : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
+                                  }
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1 min-w-0">
+                                      <span className="truncate text-sm font-semibold">{s.name}</span>
+                                      {s.kyc_status === "approved" && (
+                                        <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-label="Toko terverifikasi" />
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                      {s.rating_avg ? (
+                                        <span className="inline-flex items-center gap-0.5">
+                                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                          {Number(s.rating_avg).toFixed(1)}
+                                          {s.rating_count ? <span className="text-muted-foreground/70">({Number(s.rating_count).toLocaleString("id-ID")})</span> : null}
+                                        </span>
+                                      ) : (
+                                        <span>Toko baru</span>
+                                      )}
+                                      {cityName && (
+                                        <>
+                                          <span className="text-muted-foreground/40">·</span>
+                                          <span className="truncate">{cityName}</span>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
-                            </Link>
-                          ))}
+                                {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
+                                {payList.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-1">
+                                    {payList.slice(0, 3).map(p => (
+                                      <span key={p} className="rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                        {PAY_LABEL[p] ?? p}
+                                      </span>
+                                    ))}
+                                    {payList.length > 3 && (
+                                      <span className="rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                        +{payList.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </Link>
+                            );
+                          })}
                           {loadingMoreS && <ShopSkeletonCards n={4} />}
                         </div>
                         {shopMoreError && (
@@ -834,15 +948,26 @@ function SearchPage() {
             {/* Products section */}
             {tab !== "toko" && (
               <section>
-                <h2 className="mb-4 text-base font-semibold text-muted-foreground">
-                  Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
-                </h2>
+                <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="text-base font-semibold text-muted-foreground">
+                    Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
+                  </h2>
+                  {(() => {
+                    const c = productCacheRef.current.get(cacheKey);
+                    if (!c || loadingProducts) return null;
+                    return (
+                      <span className="text-[11px] text-muted-foreground/80 italic">
+                        dari cache · diperbarui {formatRelativeTime(c.ts)}
+                      </span>
+                    );
+                  })()}
+                </div>
                 {loadingProducts ? <SkeletonProductGrid />
                   : productError && products.length === 0 ? (
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryProducts}
                       error={productError}
                     />
@@ -850,7 +975,7 @@ function SearchPage() {
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryProducts}
                     />
                   ) : (
