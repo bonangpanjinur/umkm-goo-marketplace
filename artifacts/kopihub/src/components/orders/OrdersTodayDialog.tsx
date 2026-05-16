@@ -926,14 +926,35 @@ export function OrdersTodayDialog({
                   setSavingTable(true);
                   const reason = cancelReason.trim();
                   const newNote = `${selected.note ? selected.note + "\n" : ""}[QR Meja dibatalkan] ${reason}`;
+                  const previousLabel = selected.table_label ?? null;
                   const { error } = await supabase
                     .from("orders")
-                    .update({ channel: "pos", note: newNote } as never)
+                    .update({ channel: "pos", order_source: "pos", note: newNote } as never)
                     .eq("id", selected.id);
                   setSavingTable(false);
                   if (error) { toast.error("Gagal: " + error.message); return; }
-                  setSelected({ ...selected, channel: "pos", note: newNote });
-                  setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, channel: "pos" } : p));
+                  setSelected({ ...selected, channel: "pos", order_source: "pos", note: newNote });
+                  setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, channel: "pos", order_source: "pos" } : p));
+                  // Audit log entry — best-effort, do not block UI on failure
+                  try {
+                    await supabase.from("order_audit_log").insert({
+                      shop_id: (selected as any).shop_id,
+                      outlet_id: (selected as any).outlet_id ?? null,
+                      order_id: selected.id,
+                      order_no: selected.order_no,
+                      action: "qr_unlock",
+                      reason,
+                      actor_id: user?.id ?? null,
+                      actor_name: (user as any)?.user_metadata?.full_name ?? user?.email ?? null,
+                      metadata: {
+                        previous_table_label: previousLabel,
+                        previous_order_source: "qr_table",
+                        new_order_source: "pos",
+                      },
+                    } as never);
+                  } catch (e) {
+                    console.warn("qr_unlock audit log failed", e);
+                  }
                   setCancelOpen(false);
                   setCancelReason("");
                   setEditingTable(true);
