@@ -53,6 +53,7 @@ function CustomOrderForm() {
       return;
     }
     setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from("custom_order_requests").insert({
       shop_id: shop.id,
       product_id: product?.id ?? null,
@@ -63,7 +64,8 @@ function CustomOrderForm() {
       budget_max: budgetMax ? Number(budgetMax) : null,
       deadline: deadline || null,
       reference_image_url: refUrl.trim() || null,
-    });
+      user_id: user?.id ?? null,
+    } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     try { localStorage.setItem(`kopihub:custom-order-contact:${slug}`, contact.trim()); } catch {}
