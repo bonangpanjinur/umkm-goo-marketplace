@@ -868,10 +868,13 @@ function BookingPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <CalendarCheck className="h-6 w-6" /> Booking Jadwal Layanan
+            <CalendarCheck className="h-6 w-6" />
+            {isTableMode ? "Reservasi Meja" : "Booking Jadwal Layanan"}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Kelola slot waktu dan konfirmasi booking pelanggan
+            {isTableMode
+              ? "Kelola meja/area dan konfirmasi reservasi pelanggan"
+              : "Kelola slot waktu dan konfirmasi booking pelanggan"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -881,9 +884,26 @@ function BookingPage() {
           </Button>
           <Button size="sm" onClick={() => setSlotOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" />
-            Buat Slot
+            {isTableMode ? "Buat Meja" : "Buat Slot"}
           </Button>
         </div>
+      </div>
+
+      {/* Tabs: Layanan / Meja */}
+      <div className="inline-flex rounded-lg border bg-muted/30 p-1">
+        {(["service", "table"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => navigate({ search: { type: t } })}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              bookingType === t
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t === "service" ? "Layanan" : "Meja"}
+          </button>
+        ))}
       </div>
 
       {/* ─── Voucher Booking Card ─── */}
