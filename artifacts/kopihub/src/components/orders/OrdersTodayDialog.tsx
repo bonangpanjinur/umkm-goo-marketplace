@@ -64,6 +64,7 @@ type Order = {
   channel: "pos" | "online" | null;
   marketplace_order: boolean | null;
   customer_phone: string | null;
+  order_source: "pos" | "qr_table" | "website" | "marketplace" | null;
 };
 
 type OrderDetail = Order & {
@@ -189,7 +190,7 @@ export function OrdersTodayDialog({
     supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order, order_source",
       )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
@@ -214,10 +215,10 @@ export function OrdersTodayDialog({
         if (o.status === "voided" || o.status === "cancelled") return false;
       }
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
-      if (sourceFilter === "pos" && o.channel !== "pos") return false;
-      if (sourceFilter === "online" && o.channel !== "online") return false;
-      if (sourceFilter === "qr_table" && !(o.channel === "online" && o.table_label)) return false;
-      if (sourceFilter === "marketplace" && !o.marketplace_order) return false;
+      if (sourceFilter === "pos" && !(o.order_source === "pos" || (!o.order_source && o.channel === "pos"))) return false;
+      if (sourceFilter === "online" && !(o.order_source === "website" || (!o.order_source && o.channel === "online" && !o.table_label))) return false;
+      if (sourceFilter === "qr_table" && !(o.order_source === "qr_table" || (!o.order_source && o.channel === "online" && o.table_label))) return false;
+      if (sourceFilter === "marketplace" && !(o.order_source === "marketplace" || o.marketplace_order)) return false;
       if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
       if (q) {
         const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.customer_phone ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method} ${o.channel ?? ""} ${o.fulfillment ?? ""}`.toLowerCase();
@@ -246,7 +247,7 @@ export function OrdersTodayDialog({
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, channel, marketplace_order, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, channel, marketplace_order, order_source, shop_id, outlet_id, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
       .eq("id", id)
       .single();
@@ -310,13 +311,23 @@ export function OrdersTodayDialog({
   }));
   const isDelivery = printSource?.fulfillment === "delivery";
   const sourceText: string | null = printSource
-    ? printSource.marketplace_order
+    ? printSource.order_source === "marketplace" || printSource.marketplace_order
       ? "Marketplace"
-      : printSource.channel === "online"
-        ? (printSource.table_label ? "QR Meja" : "Online / Website")
-        : "POS / Kasir"
+      : printSource.order_source === "qr_table"
+        ? "QR Meja"
+        : printSource.order_source === "website"
+          ? "Online / Website"
+          : printSource.order_source === "pos"
+            ? "POS / Kasir"
+            : printSource.channel === "online"
+              ? (printSource.table_label ? "QR Meja" : "Online / Website")
+              : "POS / Kasir"
     : null;
-  const isQrTable = !!(printSource && printSource.channel === "online" && printSource.table_label);
+  const isQrTable = !!(
+    printSource &&
+    (printSource.order_source === "qr_table" ||
+      (!printSource.order_source && printSource.channel === "online" && printSource.table_label))
+  );
   const displayCustomer = printSource
     ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
         .filter(Boolean)
