@@ -1299,6 +1299,7 @@ export type Database = {
           shop_id: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           budget_max?: number | null
@@ -1315,6 +1316,7 @@ export type Database = {
           shop_id: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           budget_max?: number | null
@@ -1331,6 +1333,7 @@ export type Database = {
           shop_id?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -5949,6 +5952,109 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      shop_chat_messages: {
+        Row: {
+          body: string
+          chat_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+          sender_role: string
+          shop_id: string
+        }
+        Insert: {
+          body: string
+          chat_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+          sender_role: string
+          shop_id: string
+        }
+        Update: {
+          body?: string
+          chat_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_role?: string
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "shop_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chat_messages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chat_messages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      shop_chats: {
+        Row: {
+          buyer_archived: boolean
+          buyer_user_id: string
+          created_at: string
+          id: string
+          last_message_at: string | null
+          seller_archived: boolean
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_archived?: boolean
+          buyer_user_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          seller_archived?: boolean
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_archived?: boolean
+          buyer_user_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          seller_archived?: boolean
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_chats_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chats_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       shop_customers: {
         Row: {

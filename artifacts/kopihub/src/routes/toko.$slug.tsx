@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, UtensilsCrossed, Star } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, UtensilsCrossed, Star, Sparkles, Crown, Map as MapIcon, ClipboardList } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useSeo } from "@/lib/use-seo";
@@ -514,10 +514,21 @@ function ShopPage() {
                   <Users className="h-3 w-3" /> {followCount} pengikut
                 </span>
                 {shop?.address && (
-                  <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {shop.address}</span>
+                  <Link
+                    to="/toko/$slug/map"
+                    params={{ slug }}
+                    className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+                  >
+                    <MapPin className="h-3 w-3" /> {shop.address}
+                  </Link>
                 )}
                 {shop?.phone && (
-                  <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {shop.phone}</span>
+                  <a
+                    href={`tel:${shop.phone}`}
+                    className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+                  >
+                    <Phone className="h-3 w-3" /> {shop.phone}
+                  </a>
                 )}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -547,6 +558,36 @@ function ShopPage() {
                   <Link to="/toko/$slug/chat" params={{ slug }}>
                     <MessageCircle className="h-3.5 w-3.5" />
                     Chat dengan Toko
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <Link to="/toko/$slug/custom-order" params={{ slug }}>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Custom Order
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <Link to="/toko/$slug/membership" params={{ slug }}>
+                    <Crown className="h-3.5 w-3.5" />
+                    Membership
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <Link to="/toko/$slug/map" params={{ slug }}>
+                    <MapIcon className="h-3.5 w-3.5" />
+                    Lihat Lokasi
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <Link to="/toko/$slug/ulasan" params={{ slug }}>
+                    <Star className="h-3.5 w-3.5" />
+                    Ulasan
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                  <Link to="/akun/bookings">
+                    <ClipboardList className="h-3.5 w-3.5" />
+                    Booking Saya
                   </Link>
                 </Button>
                 {certResult && (
