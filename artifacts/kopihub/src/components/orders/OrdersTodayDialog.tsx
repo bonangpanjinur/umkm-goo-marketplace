@@ -432,12 +432,18 @@ export function OrdersTodayDialog({
                 <ul className="divide-y rounded-lg border">
                   {pageItems.map((o) => {
                     const voided = o.status === "voided" || o.status === "cancelled";
+                    const src = o.order_source
+                      ?? (o.marketplace_order ? "marketplace"
+                          : o.channel === "online" ? (o.table_label ? "qr_table" : "website")
+                          : "pos");
                     const sourceLabel =
-                      o.marketplace_order
+                      src === "marketplace"
                         ? { txt: "MARKETPLACE", cls: "bg-purple-100 text-purple-800" }
-                        : o.channel === "online"
-                          ? { txt: o.table_label ? "QR MEJA" : "ONLINE", cls: "bg-amber-100 text-amber-800" }
-                          : { txt: "POS", cls: "bg-slate-100 text-slate-700" };
+                        : src === "qr_table"
+                          ? { txt: "QR MEJA", cls: "bg-amber-100 text-amber-800" }
+                          : src === "website"
+                            ? { txt: "ONLINE", cls: "bg-amber-100 text-amber-800" }
+                            : { txt: "POS", cls: "bg-slate-100 text-slate-700" };
                     const fulfillLabel =
                       o.fulfillment === "delivery"
                         ? { txt: "DELIVERY", cls: "bg-blue-100 text-blue-800" }
