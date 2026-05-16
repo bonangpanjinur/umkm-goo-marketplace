@@ -276,7 +276,7 @@ function SearchPage() {
   const productCacheRef = useRef<Map<string, ProductCacheEntry>>(new Map());
   const shopCacheRef    = useRef<Map<string, ShopCacheEntry>>(new Map());
   const cacheHydratedRef = useRef(false);
-  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay });
+  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay, verified: !!verified });
 
   // AbortController per-section untuk membatalkan request lama saat filter berubah cepat.
   const productAbortRef = useRef<AbortController | null>(null);
