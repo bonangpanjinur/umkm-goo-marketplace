@@ -568,17 +568,15 @@ export function OrdersTodayDialog({
             <div className="rounded-lg border p-3 text-sm space-y-1">
               <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
                 <span className={`rounded px-1.5 py-0.5 font-semibold ${
-                  selected.marketplace_order
-                    ? "bg-purple-100 text-purple-800"
-                    : selected.channel === "online"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-slate-100 text-slate-700"
+                  isQrTable
+                    ? "bg-amber-100 text-amber-800"
+                    : (selected.order_source === "marketplace" || selected.marketplace_order)
+                      ? "bg-purple-100 text-purple-800"
+                      : (selected.order_source === "website" || selected.channel === "online")
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-slate-100 text-slate-700"
                 }`}>
-                  {selected.marketplace_order
-                    ? "Marketplace"
-                    : selected.channel === "online"
-                      ? (selected.table_label ? "QR Meja" : "Online / Website")
-                      : "POS / Kasir"}
+                  {sourceText ?? "—"}
                 </span>
                 {selected.fulfillment && (
                   <span className="rounded bg-muted px-1.5 py-0.5 font-semibold uppercase">
