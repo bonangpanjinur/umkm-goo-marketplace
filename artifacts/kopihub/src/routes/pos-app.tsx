@@ -363,6 +363,7 @@ function AppLayoutInner() {
   const { criticalCount: lowStockCount, emptyCount, items: lowStockItems } = useLowStockIngredients(shop?.id ?? null);
   const unansweredQACount = useUnansweredQACount(shop?.id ?? null);
   const restockPendingCount = useRestockPendingCount(shop?.id ?? null);
+  const unreadChatCount = useUnreadChatCount(shop?.id ?? null);
   const prevLowStockCountRef = useRef<number>(0);
   const prevRestockCountRef = useRef<number>(-1);
   const [checking, setChecking] = useState(true);
