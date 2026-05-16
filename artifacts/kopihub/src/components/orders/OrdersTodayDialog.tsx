@@ -31,7 +31,10 @@ import {
   Pencil,
   Check,
   X,
+  Download,
+  FileDown,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatIDR } from "@/lib/format";
@@ -176,6 +179,17 @@ export function OrdersTodayDialog({
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
 
+  // QR-unlock filter for list view
+  const [qrUnlockedOnly, setQrUnlockedOnly] = useState(false);
+  const [qrUnlockedIds, setQrUnlockedIds] = useState<Set<string>>(new Set());
+
+  // Export dialog state
+  const [exportOpen, setExportOpen] = useState(false);
+  const today = new Date().toISOString().slice(0, 10);
+  const [exportFrom, setExportFrom] = useState<string>(today);
+  const [exportTo, setExportTo] = useState<string>(today);
+  const [exporting, setExporting] = useState(false);
+
   async function loadAudit(orderId: string) {
     setAuditLoading(true);
     const { data } = await supabase
@@ -231,6 +245,31 @@ export function OrdersTodayDialog({
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
 
+  // Load IDs of today's orders that have at least one qr_unlock entry
+  useEffect(() => {
+    if (!open || !outletId) return;
+    let cancelled = false;
+    (async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("order_audit_log")
+        .select("order_id")
+        .eq("outlet_id", outletId)
+        .eq("action", "qr_unlock")
+        .gte("created_at", startOfDay.toISOString());
+      if (cancelled) return;
+      const set = new Set<string>();
+      (data ?? []).forEach((r: { order_id: string | null }) => {
+        if (r.order_id) set.add(r.order_id);
+      });
+      setQrUnlockedIds(set);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, outletId, orders.length]);
+
   // Filter + sort + paginate
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -246,6 +285,7 @@ export function OrdersTodayDialog({
       if (sourceFilter === "qr_table" && !(o.order_source === "qr_table" || (!o.order_source && o.channel === "online" && o.table_label))) return false;
       if (sourceFilter === "marketplace" && !(o.order_source === "marketplace" || o.marketplace_order)) return false;
       if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
+      if (qrUnlockedOnly && !qrUnlockedIds.has(o.id)) return false;
       if (q) {
         const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.customer_phone ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method} ${o.channel ?? ""} ${o.fulfillment ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
@@ -258,7 +298,7 @@ export function OrdersTodayDialog({
       return sortDir === "newest" ? tb - ta : ta - tb;
     });
     return list;
-  }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir]);
+  }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir, qrUnlockedOnly, qrUnlockedIds]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -267,7 +307,7 @@ export function OrdersTodayDialog({
   // Reset to page 1 when filters/search change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter]);
+  }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter, qrUnlockedOnly]);
 
   async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
@@ -298,6 +338,105 @@ export function OrdersTodayDialog({
 
   // Quick reprint: fetch detail, render hidden, then print receipt + ticket/courier
   const quickPendingRef = useRef(false);
+
+  // ===== Export QR-unlock audit (CSV / PDF) =====
+  async function fetchExportRows(): Promise<Array<{
+    created_at: string;
+    order_no: string | null;
+    actor: string;
+    reason: string;
+    previous_label: string;
+    new_label: string;
+  }>> {
+    const from = new Date(exportFrom + "T00:00:00").toISOString();
+    const to = new Date(exportTo + "T23:59:59.999").toISOString();
+    const { data } = await supabase
+      .from("order_audit_log")
+      .select("created_at, order_no, order_id, actor_name, actor_id, reason, metadata")
+      .eq("outlet_id", outletId)
+      .eq("action", "qr_unlock")
+      .gte("created_at", from)
+      .lte("created_at", to)
+      .order("created_at", { ascending: false });
+    const orderIds = Array.from(new Set((data ?? []).map((r: any) => r.order_id).filter(Boolean)));
+    let currentLabels = new Map<string, string | null>();
+    if (orderIds.length > 0) {
+      const { data: ords } = await supabase
+        .from("orders")
+        .select("id, table_label")
+        .in("id", orderIds);
+      (ords ?? []).forEach((o: any) => currentLabels.set(o.id, o.table_label));
+    }
+    return (data ?? []).map((r: any) => {
+      const meta = (r.metadata ?? {}) as Record<string, unknown>;
+      const prev = (meta.previous_table_label as string | null) ?? null;
+      const newLbl = currentLabels.get(r.order_id) ?? null;
+      return {
+        created_at: new Date(r.created_at).toLocaleString("id-ID"),
+        order_no: r.order_no,
+        actor: r.actor_name ?? r.actor_id ?? "—",
+        reason: r.reason ?? "",
+        previous_label: prev ?? "—",
+        new_label: newLbl ?? "—",
+      };
+    });
+  }
+
+  async function exportCSV() {
+    setExporting(true);
+    try {
+      const rows = await fetchExportRows();
+      if (rows.length === 0) { toast.info("Tidak ada entri QR unlock pada rentang ini"); return; }
+      const header = ["Waktu", "No. Order", "Oleh", "Alasan", "Meja sebelum", "Meja sesudah"];
+      const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+      const csv = [header.join(","), ...rows.map((r) => [r.created_at, r.order_no ?? "", r.actor, r.reason, r.previous_label, r.new_label].map(esc).join(","))].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-unlock-${outletName}-${exportFrom}_${exportTo}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Diekspor ${rows.length} entri`);
+    } catch (e: any) {
+      toast.error("Gagal ekspor CSV: " + (e?.message ?? "error"));
+    } finally { setExporting(false); }
+  }
+
+  async function exportPDF() {
+    setExporting(true);
+    try {
+      const rows = await fetchExportRows();
+      if (rows.length === 0) { toast.info("Tidak ada entri QR unlock pada rentang ini"); return; }
+      const { default: jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const margin = 32;
+      let y = margin;
+      doc.setFontSize(14);
+      doc.text("Riwayat QR Unlock", margin, y); y += 18;
+      doc.setFontSize(10);
+      doc.text(`Outlet: ${outletName}`, margin, y); y += 14;
+      doc.text(`Rentang: ${exportFrom} s.d. ${exportTo}`, margin, y); y += 14;
+      doc.text(`Total entri: ${rows.length}`, margin, y); y += 18;
+      const lineH = 12;
+      doc.setFontSize(9);
+      rows.forEach((r, i) => {
+        if (y > 780) { doc.addPage(); y = margin; }
+        doc.setFont("helvetica", "bold");
+        doc.text(`${i + 1}. #${r.order_no ?? "-"}  ·  ${r.created_at}`, margin, y); y += lineH;
+        doc.setFont("helvetica", "normal");
+        doc.text(`Oleh: ${r.actor}`, margin, y); y += lineH;
+        doc.text(`Meja: ${r.previous_label} → ${r.new_label}`, margin, y); y += lineH;
+        const reasonLines = doc.splitTextToSize(`Alasan: ${r.reason || "-"}`, 530);
+        doc.text(reasonLines, margin, y); y += lineH * reasonLines.length + 4;
+      });
+      doc.save(`qr-unlock-${outletName}-${exportFrom}_${exportTo}.pdf`);
+      toast.success(`PDF dibuat (${rows.length} entri)`);
+    } catch (e: any) {
+      toast.error("Gagal ekspor PDF: " + (e?.message ?? "error"));
+    } finally { setExporting(false); }
+  }
+
   async function quickReprint(o: Order) {
     if (quickPendingRef.current) return;
     quickPendingRef.current = true;
@@ -450,6 +589,29 @@ export function OrdersTodayDialog({
                   <SelectItem value="oldest">Terlama</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant={qrUnlockedOnly ? "default" : "outline"}
+                className="h-7 text-[11px]"
+                onClick={() => setQrUnlockedOnly((v) => !v)}
+                title="Tampilkan hanya pesanan yang pernah di-unlock dari QR Meja"
+              >
+                <Lock className="mr-1 h-3 w-3" />
+                Hanya QR Unlock {qrUnlockedOnly && `(${qrUnlockedIds.size})`}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[11px]"
+                onClick={() => setExportOpen(true)}
+                title="Ekspor riwayat QR unlock ke CSV/PDF"
+              >
+                <FileDown className="mr-1 h-3 w-3" />
+                Ekspor Audit QR
+              </Button>
             </div>
 
             <div className="flex-1 overflow-auto">
@@ -683,9 +845,43 @@ export function OrdersTodayDialog({
                       )}
                       {isQrTable ? (
                         <>
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200">
-                            <Lock className="h-3 w-3" /> Terkunci (dari QR)
-                          </span>
+                          <TooltipProvider delayDuration={150}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200 cursor-help">
+                                  <Lock className="h-3 w-3" /> Terkunci (dari QR)
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs text-xs">
+                                {(() => {
+                                  const last = auditEntries.find((a) => a.action === "qr_unlock");
+                                  if (!last) {
+                                    return (
+                                      <div>
+                                        Kolom Meja dikunci karena order berasal dari QR Meja.
+                                        Klik "Batalkan QR…" untuk membuka kunci dengan alasan.
+                                      </div>
+                                    );
+                                  }
+                                  const meta = (last.metadata ?? {}) as Record<string, unknown>;
+                                  const prev = (meta.previous_table_label as string | null) ?? null;
+                                  return (
+                                    <div className="space-y-1">
+                                      <div className="font-semibold">Unlock terakhir</div>
+                                      <div>Oleh: {last.actor_name ?? last.actor_id ?? "Sistem"}</div>
+                                      <div>{new Date(last.created_at).toLocaleString("id-ID")}</div>
+                                      {last.reason && <div>Alasan: <span className="italic">{last.reason}</span></div>}
+                                      <div>
+                                        Meja: <span className="font-mono">{prev ?? "—"}</span>
+                                        {" → "}
+                                        <span className="font-mono">{selected.table_label ?? "—"}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           <Button
                             size="sm"
                             variant="outline"
@@ -1060,6 +1256,37 @@ export function OrdersTodayDialog({
                 }}
               >
                 Buka Kunci
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Export QR-unlock audit (CSV / PDF) */}
+        <Dialog open={exportOpen} onOpenChange={(o) => !o && setExportOpen(false)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Ekspor Audit QR Unlock</DialogTitle>
+            </DialogHeader>
+            <p className="text-xs text-muted-foreground">
+              Outlet: <span className="font-medium">{outletName}</span>
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Dari</label>
+                <Input type="date" value={exportFrom} onChange={(e) => setExportFrom(e.target.value)} className="h-8" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Sampai</label>
+                <Input type="date" value={exportTo} onChange={(e) => setExportTo(e.target.value)} className="h-8" />
+              </div>
+            </div>
+            <DialogFooter className="flex-wrap gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setExportOpen(false)} disabled={exporting}>Tutup</Button>
+              <Button variant="outline" onClick={exportCSV} disabled={exporting}>
+                <Download className="mr-2 h-4 w-4" /> CSV
+              </Button>
+              <Button onClick={exportPDF} disabled={exporting}>
+                {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />} PDF
               </Button>
             </DialogFooter>
           </DialogContent>
