@@ -691,6 +691,7 @@ function SearchPage() {
                   <SelectContent>
                     <SelectItem value="relevan">Paling relevan</SelectItem>
                     <SelectItem value="rating">Rating tertinggi</SelectItem>
+                    <SelectItem value="terbaru">Terbaru</SelectItem>
                     <SelectItem value="termurah">Harga terendah</SelectItem>
                     <SelectItem value="termahal">Harga tertinggi</SelectItem>
                   </SelectContent>
