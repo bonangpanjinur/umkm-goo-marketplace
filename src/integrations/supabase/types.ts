@@ -3413,6 +3413,7 @@ export type Database = {
           cashier_id: string | null
           change_due: number
           channel: Database["public"]["Enums"]["order_channel"]
+          client_idempotency_key: string | null
           commission_amount: number | null
           commission_rate: number | null
           courier_id: string | null
@@ -3479,6 +3480,7 @@ export type Database = {
           cashier_id?: string | null
           change_due?: number
           channel?: Database["public"]["Enums"]["order_channel"]
+          client_idempotency_key?: string | null
           commission_amount?: number | null
           commission_rate?: number | null
           courier_id?: string | null
@@ -3545,6 +3547,7 @@ export type Database = {
           cashier_id?: string | null
           change_due?: number
           channel?: Database["public"]["Enums"]["order_channel"]
+          client_idempotency_key?: string | null
           commission_amount?: number | null
           commission_rate?: number | null
           courier_id?: string | null
