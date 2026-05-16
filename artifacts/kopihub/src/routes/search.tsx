@@ -11,6 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 const PRODUCT_PAGE_SIZE = 24;
 const SHOP_PAGE_SIZE = 12;
@@ -211,7 +221,7 @@ function SearchPage() {
   const [productMoreError, setProductMoreError] = useState<string | null>(null);
   const [shopMoreError,    setShopMoreError]    = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [showClearCacheDialog, setShowClearCacheDialog] = useState(false);
 
   // Cache terpisah: produk & toko (independent), dengan TTL & localStorage persistence.
   const productCacheRef = useRef<Map<string, ProductCacheEntry>>(new Map());
@@ -576,7 +586,7 @@ function SearchPage() {
                 variant="ghost"
                 size="sm"
                 className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
-                onClick={clearAllCachesAndRefetch}
+                onClick={() => setShowClearCacheDialog(true)}
                 title="Hapus cache hasil pencarian dan muat ulang"
               >
                 <Trash2 className="h-4 w-4" />
@@ -873,6 +883,29 @@ function SearchPage() {
         )}
       </div>
       <MarketplaceFooter />
+
+      {/* Dialog konfirmasi hapus cache */}
+      <AlertDialog open={showClearCacheDialog} onOpenChange={setShowClearCacheDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus cache pencarian?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Semua cache hasil pencarian akan dihapus dan dimuat ulang dari server. Cache lainnya tidak terpengaruh.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowClearCacheDialog(false)}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowClearCacheDialog(false);
+                clearAllCachesAndRefetch();
+              }}
+            >
+              Hapus & Muat Ulang
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
