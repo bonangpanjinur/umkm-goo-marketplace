@@ -168,15 +168,10 @@ function DigitalProductsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {item.menu_item?.file_type && (
+                        {fileType && (
                           <Badge variant="secondary" className="text-[10px] uppercase font-mono">
-                            {item.menu_item.file_type}
+                            {fileType}
                           </Badge>
-                        )}
-                        {item.menu_item?.file_size_kb && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {fmtSize(item.menu_item.file_size_kb)}
-                          </span>
                         )}
                       </div>
                     </div>
