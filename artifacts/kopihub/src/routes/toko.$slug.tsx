@@ -543,9 +543,9 @@ function ShopPage() {
                   {followed ? "Mengikuti" : "Ikuti Toko"}
                 </Button>
                 <Button asChild size="sm" variant="default" className="gap-1.5">
-                  <Link to="/toko/$slug/booking" params={{ slug }}>
+                  <Link to="/toko/$slug/booking" params={{ slug }} search={{ type: "table" }}>
                     <CalendarCheck className="h-3.5 w-3.5" />
-                    Booking &amp; Reservasi
+                    Reservasi Meja
                   </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
