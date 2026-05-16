@@ -57,6 +57,9 @@ type Order = {
   customer_name: string | null;
   fulfillment: string | null;
   table_label: string | null;
+  channel: "pos" | "online" | null;
+  marketplace_order: boolean | null;
+  customer_phone: string | null;
 };
 
 type OrderDetail = Order & {
@@ -93,6 +96,8 @@ const PAGE_SIZE = 10;
 type SortDir = "newest" | "oldest";
 type StatusFilter = "all" | "active" | "voided";
 type PayFilter = "all" | "cash" | "qris";
+type SourceFilter = "all" | "pos" | "online" | "marketplace";
+type FulfillmentFilter = "all" | "dine_in" | "pickup" | "delivery";
 
 function lsGet(key: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
@@ -136,6 +141,8 @@ export function OrdersTodayDialog({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [payFilter, setPayFilter] = useState<PayFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const [fulfillFilter, setFulfillFilter] = useState<FulfillmentFilter>("all");
   const [sortDir, setSortDir] = useState<SortDir>(
     () => (lsGet(sortKey, "newest") as SortDir) || "newest",
   );
@@ -163,7 +170,7 @@ export function OrdersTodayDialog({
     supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order",
       )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
@@ -188,8 +195,12 @@ export function OrdersTodayDialog({
         if (o.status === "voided" || o.status === "cancelled") return false;
       }
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
+      if (sourceFilter === "pos" && o.channel !== "pos") return false;
+      if (sourceFilter === "online" && o.channel !== "online") return false;
+      if (sourceFilter === "marketplace" && !o.marketplace_order) return false;
+      if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
       if (q) {
-        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
+        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.customer_phone ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method} ${o.channel ?? ""} ${o.fulfillment ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -200,7 +211,7 @@ export function OrdersTodayDialog({
       return sortDir === "newest" ? tb - ta : ta - tb;
     });
     return list;
-  }, [orders, search, statusFilter, payFilter, sortDir]);
+  }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -209,7 +220,7 @@ export function OrdersTodayDialog({
   // Reset to page 1 when filters/search change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, payFilter]);
+  }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter]);
 
   async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
