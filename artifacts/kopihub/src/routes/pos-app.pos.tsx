@@ -146,6 +146,8 @@ function POSPage() {
     paymentMethod: "cash" | "qris";
     amountTendered: number;
     changeDue: number;
+    customerName?: string | null;
+    tableLabel?: string | null;
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const pendingPrintRef = useRef(false);
@@ -434,7 +436,11 @@ function POSPage() {
     tax_inclusive: shop?.tax_inclusive ?? false,
   });
 
-  const handleCheckout = async (method: string, _amount: number) => {
+  const handleCheckout = async (
+    method: string,
+    _amount: number,
+    extras?: { customer_name?: string | null; table_label?: string | null }
+  ) => {
     if (!outlet || !user) return;
 
     try {
@@ -458,6 +464,8 @@ function POSPage() {
         amount_tendered: _amount,
         change_due: Math.max(0, _amount - charges.total),
         client_idempotency_key: idemKey,
+        customer_name: extras?.customer_name ?? null,
+        table_label: extras?.table_label ?? null,
         items: cart.items.map((it) => ({
           menu_item_id: it.menu_item_id,
           name: it.name,
@@ -495,6 +503,8 @@ function POSPage() {
         paymentMethod: (method === "qris" ? "qris" : "cash"),
         amountTendered: _amount,
         changeDue: Math.max(0, _amount - charges.total),
+        customerName: extras?.customer_name ?? null,
+        tableLabel: extras?.table_label ?? null,
       });
 
       // Reset current tab
