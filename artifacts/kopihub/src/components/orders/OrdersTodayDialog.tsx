@@ -656,6 +656,7 @@ export function OrdersTodayDialog({
                           setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, table_label: newLabel } : p));
                           setEditingTable(false);
                           toast.success("Meja diperbarui");
+                          loadAudit(selected.id);
                         }}
                       >
                         <Check className="h-3.5 w-3.5" />
