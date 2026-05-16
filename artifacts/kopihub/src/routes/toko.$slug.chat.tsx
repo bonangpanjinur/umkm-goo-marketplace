@@ -34,6 +34,12 @@ type Message = {
   /** Client-only fields for optimistic UI */
   _tempId?: string;
   _status?: SendStatus;
+  /** Local blob URL preview while attachment is uploading. */
+  _localPreview?: string;
+  /** Upload progress 0..1 while attachment is being uploaded (sending state only). */
+  _uploadProgress?: number;
+  /** True when this bubble's attachment still needs to be uploaded. */
+  _pendingUpload?: boolean;
 };
 
 type RtStatus = "connecting" | "live" | "offline";
@@ -79,6 +85,15 @@ function ShopChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  /** Files awaiting upload (text-only fallback) keyed by tempId; survives retries. */
+  const pendingFilesRef = useRef<Map<string, { file: File; caption: string }>>(new Map());
+  /** Blob URLs we created so we can revoke them on unmount. */
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => () => {
+    blobUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
+    blobUrlsRef.current.clear();
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -252,9 +267,127 @@ function ShopChatPage() {
     return data as Message;
   }
 
+  /**
+   * Upload a file via signed URL using XHR so we get real progress events.
+   * Returns the final public URL on success.
+   */
+  function uploadFileWithProgress(
+    file: File,
+    onProgress: (pct: number) => void,
+  ): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+      if (!user) { reject(new Error("not-auth")); return; }
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      const { data: signed, error: signErr } = await (supabase.storage
+        .from("chat-attachments") as any)
+        .createSignedUploadUrl(path);
+      if (signErr || !signed?.signedUrl) {
+        reject(signErr ?? new Error("sign-failed"));
+        return;
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", signed.signedUrl, true);
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+      xhr.setRequestHeader("x-upsert", "false");
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) onProgress(ev.loaded / ev.total);
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const { data: pub } = supabase.storage.from("chat-attachments").getPublicUrl(path);
+          onProgress(1);
+          resolve(pub.publicUrl);
+        } else {
+          reject(new Error(`upload-${xhr.status}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error("network"));
+      xhr.onabort = () => reject(new Error("aborted"));
+      xhr.send(file);
+    });
+  }
+
+  /**
+   * Begin (or retry) uploading a pending-attachment bubble, then INSERT the
+   * message row when upload finishes. Progress is reflected directly on the
+   * optimistic bubble — file selection is preserved across retries.
+   */
+  async function uploadAndInsertForBubble(tempId: string) {
+    const entry = pendingFilesRef.current.get(tempId);
+    if (!entry || !user || !chatId || !shopId) return;
+    const { file, caption } = entry;
+
+    // Mark sending + reset progress
+    setMessages((m) => m.map((x) =>
+      x._tempId === tempId
+        ? { ...x, _status: "sending", _uploadProgress: 0, _pendingUpload: true }
+        : x,
+    ));
+
+    let publicUrl: string;
+    try {
+      publicUrl = await uploadFileWithProgress(file, (pct) => {
+        setMessages((m) => m.map((x) =>
+          x._tempId === tempId ? { ...x, _uploadProgress: pct } : x,
+        ));
+      });
+    } catch {
+      // Keep file in ref so user can retry without re-picking it.
+      setMessages((m) => m.map((x) =>
+        x._tempId === tempId ? { ...x, _status: "failed", _uploadProgress: undefined } : x,
+      ));
+      toast.error("Gagal upload gambar — file disimpan, coba lagi");
+      return;
+    }
+
+    // Upload OK → INSERT message row
+    const { data, error } = await (supabase as any)
+      .from("shop_chat_messages")
+      .insert({
+        chat_id: chatId,
+        shop_id: shopId,
+        sender_id: user.id,
+        sender_role: "buyer",
+        body: caption,
+        attachment_url: publicUrl,
+        attachment_type: "image",
+        product_id: null,
+      })
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      // Insert failed but file IS uploaded. Keep URL on bubble so retry skips upload.
+      setMessages((m) => m.map((x) =>
+        x._tempId === tempId
+          ? { ...x, _status: "failed", _uploadProgress: 1, attachment_url: publicUrl, attachment_type: "image", _pendingUpload: false }
+          : x,
+      ));
+      pendingFilesRef.current.delete(tempId);
+      toast.error("Upload OK tapi gagal kirim, coba lagi");
+      return;
+    }
+
+    // Success → swap optimistic bubble with real row
+    pendingFilesRef.current.delete(tempId);
+    setMessages((m) => {
+      const without = m.filter((x) => x._tempId !== tempId);
+      if (without.some((x) => x.id === data.id)) return without;
+      return [...without, { ...(data as Message), _status: "sent" }];
+    });
+  }
+
   async function retrySend(msg: Message) {
-    // Remove failed bubble and re-send with same payload.
     if (!msg._tempId) return;
+    // If attachment still needs upload, restart the upload+insert flow.
+    if (msg._pendingUpload && pendingFilesRef.current.has(msg._tempId)) {
+      await uploadAndInsertForBubble(msg._tempId);
+      return;
+    }
+    // Attachment already uploaded (or text-only) → just re-insert message row.
     setMessages((m) => m.filter((x) => x._tempId !== msg._tempId));
     await insertMessage({
       body: msg.body,
@@ -274,7 +407,7 @@ function ShopChatPage() {
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || !chatId || !shopId) return;
     e.target.value = "";
 
     if (!file.type.startsWith("image/")) {
@@ -286,24 +419,36 @@ function ShopChatPage() {
       return;
     }
 
-    setUploading(true);
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("chat-attachments")
-      .upload(path, file, { cacheControl: "3600", upsert: false });
-    if (upErr) {
-      toast.error("Gagal upload gambar");
-      setUploading(false);
-      return;
-    }
-    const { data: pub } = supabase.storage.from("chat-attachments").getPublicUrl(path);
-    await insertMessage({
-      body: text.trim(),
-      attachment_url: pub.publicUrl,
+    // 1. Create optimistic bubble immediately with local preview + caption
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const localPreview = URL.createObjectURL(file);
+    blobUrlsRef.current.add(localPreview);
+    const caption = text.trim();
+    pendingFilesRef.current.set(tempId, { file, caption });
+
+    const optimistic: Message = {
+      id: tempId,
+      chat_id: chatId,
+      sender_id: user.id,
+      sender_role: "buyer",
+      body: caption,
+      attachment_url: null,
       attachment_type: "image",
-    });
+      product_id: null,
+      read_at: null,
+      created_at: new Date().toISOString(),
+      _tempId: tempId,
+      _status: "sending",
+      _localPreview: localPreview,
+      _uploadProgress: 0,
+      _pendingUpload: true,
+    };
+    setMessages((m) => [...m, optimistic]);
     setText("");
+
+    // 2. Kick off upload + insert (progress updates flow into the bubble)
+    setUploading(true);
+    await uploadAndInsertForBubble(tempId);
     setUploading(false);
   }
 
@@ -448,15 +593,42 @@ function ShopChatPage() {
                       <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
                     )}
 
-                    {msg.attachment_url && msg.attachment_type === "image" && (
-                      <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block mb-1.5">
-                        <img
-                          src={msg.attachment_url}
-                          alt="Lampiran"
-                          className="rounded-lg max-h-60 w-auto object-cover"
-                          loading="lazy"
-                        />
-                      </a>
+                    {(msg.attachment_url || msg._localPreview) && msg.attachment_type === "image" && (
+                      <div className="relative mb-1.5">
+                        {msg.attachment_url ? (
+                          <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block">
+                            <img
+                              src={msg.attachment_url}
+                              alt="Lampiran"
+                              className="rounded-lg max-h-60 w-auto object-cover"
+                              loading="lazy"
+                            />
+                          </a>
+                        ) : (
+                          <img
+                            src={msg._localPreview!}
+                            alt="Lampiran (mengunggah)"
+                            className={`rounded-lg max-h-60 w-auto object-cover ${
+                              isSending ? "opacity-70" : isFailed ? "opacity-60 grayscale" : ""
+                            }`}
+                          />
+                        )}
+                        {/* Upload progress overlay */}
+                        {isSending && msg._pendingUpload && typeof msg._uploadProgress === "number" && (
+                          <div className="absolute inset-x-1.5 bottom-1.5 rounded-full bg-black/55 px-2 py-1 backdrop-blur-sm">
+                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-white">
+                              <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                              <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
+                              <div className="ml-auto h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                                <div
+                                  className="h-full bg-white transition-[width] duration-150 ease-out"
+                                  style={{ width: `${Math.round(msg._uploadProgress * 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {prod && (
