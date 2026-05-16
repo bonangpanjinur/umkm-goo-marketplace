@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   Send, ChevronLeft, Store, Loader2, AlertCircle, MessageCircle,
-  Paperclip, ImageIcon, X, ShoppingBag,
+  Paperclip, ImageIcon, X, ShoppingBag, Check, CheckCheck, Clock, RefreshCw, Wifi, WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
 
