@@ -913,7 +913,7 @@ export function OrdersTodayDialog({
                   const newNote = `${selected.note ? selected.note + "\n" : ""}[QR Meja dibatalkan] ${reason}`;
                   const { error } = await supabase
                     .from("orders")
-                    .update({ channel: "pos", note: newNote })
+                    .update({ channel: "pos", note: newNote } as never)
                     .eq("id", selected.id);
                   setSavingTable(false);
                   if (error) { toast.error("Gagal: " + error.message); return; }
