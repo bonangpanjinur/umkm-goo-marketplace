@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { DeliveryEstimate } from "@/components/marketplace/DeliveryEstimate";
 import { Button } from "@/components/ui/button";
-import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles, Zap } from "lucide-react";
+import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingDown, Ruler, AlertTriangle, Scale, Lock, Play, Package, Layers, Sparkles, Zap, MessageCircle } from "lucide-react";
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
