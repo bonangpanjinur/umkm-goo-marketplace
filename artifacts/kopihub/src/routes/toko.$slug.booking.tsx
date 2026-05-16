@@ -124,6 +124,15 @@ function fmtTime(t: string) {
 }
 
 export default function PublicBookingPage() {
+  const { type: bookingType } = Route.useSearch();
+  const isTableMode = bookingType === "table";
+  const labels = {
+    title: isTableMode ? "Reservasi Meja" : "Booking Layanan",
+    slotLabel: isTableMode ? "Pilih Meja / Area" : "Pilih Slot",
+    emptySlots: isTableMode
+      ? "Belum ada meja yang dibuka untuk reservasi."
+      : "Belum ada slot booking tersedia.",
+  };
   const { slug } = Route.useParams();
 
   const [shop, setShop] = useState<Shop | null>(null);
