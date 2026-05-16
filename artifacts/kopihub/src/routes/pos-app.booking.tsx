@@ -692,7 +692,7 @@ function BookingPage() {
     } finally {
       setLoading(false);
     }
-  }, [shop?.id, date]);
+  }, [shop?.id, date, bookingType]);
 
   useEffect(() => { load(); }, [load]);
 
