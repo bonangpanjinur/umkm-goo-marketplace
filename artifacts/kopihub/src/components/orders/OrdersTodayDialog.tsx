@@ -600,7 +600,7 @@ export function OrdersTodayDialog({
                           const newLabel = tableDraft.trim() || null;
                           const { error } = await supabase
                             .from("orders")
-                            .update({ table_label: newLabel })
+                            .update({ table_label: newLabel } as never)
                             .eq("id", selected.id);
                           setSavingTable(false);
                           if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
