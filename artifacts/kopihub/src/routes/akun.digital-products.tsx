@@ -14,7 +14,7 @@ export const Route = createFileRoute("/akun/digital-products")({
 type DigitalItem = {
   id: string;
   quantity: number;
-  price: number;
+  unit_price: number;
   created_at: string;
   menu_item: {
     name: string;
@@ -70,7 +70,7 @@ function DigitalProductsPage() {
         const { data, error: err } = await (supabase as any)
           .from("order_items")
           .select(`
-            id, quantity, price, created_at,
+            id, quantity, unit_price, created_at,
             menu_item:menu_items!inner(name, is_digital, digital_file_url, digital_file_name, image_url),
             order:orders!inner(id, status, created_at, customer_user_id, shop:coffee_shops(name, slug))
           `)
@@ -178,7 +178,7 @@ function DigitalProductsPage() {
 
                     <div className="mt-1 flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
                       <span>Dibeli: {fmtDate(item.order?.created_at ?? item.created_at)}</span>
-                      <span>{fmtPrice(item.price)}</span>
+                      <span>{fmtPrice(item.unit_price)}</span>
                       {item.quantity > 1 && <span>× {item.quantity}</span>}
                     </div>
 
