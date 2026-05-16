@@ -322,6 +322,103 @@ type ReviewStats = {
   replyRate: number;
 };
 
+
+function LocationDialogButton({ shop, slug }: { shop: Shop; slug: string }) {
+  const [open, setOpen] = useState(false);
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const hasCoords = shop.latitude != null && shop.longitude != null;
+  const lat = Number(shop.latitude);
+  const lng = Number(shop.longitude);
+  const addrQuery = encodeURIComponent(`${shop.name} ${shop.address ?? ""} ${shop.city ?? ""}`);
+  const mapEmbed = hasCoords
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}&layer=mapnik&marker=${lat},${lng}`
+    : null;
+
+  const gmapsView = hasCoords
+    ? `https://www.google.com/maps?q=${lat},${lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${addrQuery}`;
+
+  const gmapsDir = (() => {
+    const dest = hasCoords ? `${lat},${lng}` : addrQuery;
+    const origin = userLoc ? `&origin=${userLoc.lat},${userLoc.lng}` : "";
+    return `https://www.google.com/maps/dir/?api=1&destination=${dest}${origin}`;
+  })();
+
+  const wazeUrl = hasCoords
+    ? `https://www.waze.com/ul?ll=${lat},${lng}&navigate=yes`
+    : null;
+
+  const getMyLocation = () => {
+    if (!navigator.geolocation) { toast.error("Browser tidak mendukung lokasi"); return; }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setUserLoc({ lat: p.coords.latitude, lng: p.coords.longitude }); setLocating(false); toast.success("Lokasi kamu terdeteksi"); },
+      () => { setLocating(false); toast.error("Tidak bisa mengambil lokasi"); },
+      { timeout: 10000 }
+    );
+  };
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setOpen(true)}>
+        <MapIcon className="h-3.5 w-3.5" />
+        Lihat Lokasi
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <MapPin className="h-4 w-4 text-primary" /> Lokasi {shop.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-5 pb-2">
+            {(shop.address || shop.city) && (
+              <p className="text-sm text-muted-foreground">
+                {[shop.address, shop.city].filter(Boolean).join(", ")}
+              </p>
+            )}
+          </div>
+          {mapEmbed ? (
+            <div className="h-64 w-full border-y border-border bg-muted/30">
+              <iframe title="Peta lokasi" src={mapEmbed} className="h-full w-full" style={{ border: 0 }} />
+            </div>
+          ) : (
+            <div className="h-48 mx-5 my-2 rounded-xl border border-dashed border-border flex flex-col items-center justify-center bg-muted/30 text-muted-foreground">
+              <MapIcon className="h-10 w-10 mb-2 opacity-40" />
+              <p className="text-sm">Koordinat belum diatur toko</p>
+              <p className="text-xs mt-0.5">Gunakan tombol Google Maps untuk mencari berdasarkan alamat</p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-4">
+            <Button variant="outline" size="sm" onClick={getMyLocation} disabled={locating} className="gap-1.5">
+              <MapPin className="h-3.5 w-3.5" />
+              {locating ? "Mencari…" : "Lokasiku"}
+            </Button>
+            <a href={gmapsView} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border bg-background hover:bg-muted text-xs font-medium px-3">
+              <MapIcon className="h-3.5 w-3.5" /> Google Maps
+            </a>
+            <a href={gmapsDir} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 h-9 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold px-3 col-span-2 sm:col-span-1">
+              <CalendarCheck className="h-3.5 w-3.5" /> Petunjuk Arah
+            </a>
+            {wazeUrl && (
+              <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border bg-background hover:bg-muted text-xs font-medium px-3">
+                <MapIcon className="h-3.5 w-3.5" /> Waze
+              </a>
+            )}
+          </div>
+          <div className="px-5 pb-4 text-center">
+            <Link to="/toko/$slug/map" params={{ slug }} className="text-xs text-primary hover:underline">
+              Buka halaman lokasi lengkap →
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function ShopPage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
