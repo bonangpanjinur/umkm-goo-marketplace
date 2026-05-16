@@ -25,9 +25,9 @@ const basePath = process.env.BASE_PATH ?? "/";
  *  - `node:*` & built-in Node (`crypto`, `fs`, `child_process`, dst.)
  *    hanya boleh diimport dari file `*.server.ts(x)`.
  *  - File `*.server.ts(x)` tidak boleh diimport dari modul client
- *    (dideteksi via importer yang BUKAN `*.server.*`). Pakai
- *    `await import("...")` dengan `/* @vite-ignore */` untuk lazy-load
- *    di handler server route.
+ *    (dideteksi via importer yang BUKAN `*.server.*`). Pakai dynamic
+ *    import dengan vite-ignore comment untuk lazy-load di handler
+ *    server route.
  */
 const NODE_BUILTINS = new Set([
   "crypto","fs","fs/promises","path","os","child_process","worker_threads",
