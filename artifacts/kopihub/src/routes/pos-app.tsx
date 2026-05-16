@@ -4,6 +4,7 @@ import { useLowStockIngredients } from "@/hooks/use-low-stock";
 import { useOwnerPaymentPendingCount } from "@/hooks/useAdNotifications";
 import { useUnansweredQACount } from "@/hooks/use-unanswered-qa";
 import { useRestockPendingCount } from "@/hooks/use-restock-pending-count";
+import { useUnreadChatCount } from "@/hooks/use-unread-chat";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
