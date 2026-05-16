@@ -18,10 +18,9 @@ type DigitalItem = {
   created_at: string;
   menu_item: {
     name: string;
-    product_type: string;
-    download_url: string | null;
-    file_type: string | null;
-    file_size_kb: number | null;
+    is_digital: boolean | null;
+    digital_file_url: string | null;
+    digital_file_name: string | null;
     image_url: string | null;
   } | null;
   order: {
@@ -72,11 +71,11 @@ function DigitalProductsPage() {
           .from("order_items")
           .select(`
             id, quantity, price, created_at,
-            menu_item:menu_items!inner(name, product_type, download_url, file_type, file_size_kb, image_url),
+            menu_item:menu_items!inner(name, is_digital, digital_file_url, digital_file_name, image_url),
             order:orders!inner(id, status, created_at, customer_user_id, shop:coffee_shops(name, slug))
           `)
           .eq("order.customer_user_id", user.id)
-          .eq("menu_item.product_type", "digital")
+          .eq("menu_item.is_digital", true)
           .in("order.status", ["completed", "paid"])
           .order("created_at", { ascending: false })
           .limit(100);
@@ -129,7 +128,10 @@ function DigitalProductsPage() {
       {items.length > 0 && (
         <div className="space-y-3">
           {items.map(item => {
-            const hasDownload = !!item.menu_item?.download_url;
+            const downloadUrl = item.menu_item?.digital_file_url ?? null;
+            const hasDownload = !!downloadUrl;
+            const fileName = item.menu_item?.digital_file_name ?? null;
+            const fileType = fileName?.split(".").pop()?.toLowerCase() ?? null;
             return (
               <div key={item.id} className="rounded-xl border border-border bg-card p-4">
                 <div className="flex gap-4">
@@ -143,7 +145,7 @@ function DigitalProductsPage() {
                       />
                     ) : (
                       <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <FileIcon type={item.menu_item?.file_type ?? null} />
+                        <FileIcon type={fileType} />
                       </div>
                     )}
                   </div>
@@ -166,15 +168,10 @@ function DigitalProductsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {item.menu_item?.file_type && (
+                        {fileType && (
                           <Badge variant="secondary" className="text-[10px] uppercase font-mono">
-                            {item.menu_item.file_type}
+                            {fileType}
                           </Badge>
-                        )}
-                        {item.menu_item?.file_size_kb && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {fmtSize(item.menu_item.file_size_kb)}
-                          </span>
                         )}
                       </div>
                     </div>
@@ -188,7 +185,7 @@ function DigitalProductsPage() {
                     <div className="mt-3 flex items-center gap-2 flex-wrap">
                       {hasDownload ? (
                         <a
-                          href={item.menu_item!.download_url!}
+                          href={downloadUrl!}
                           target="_blank"
                           rel="noopener noreferrer"
                           download
