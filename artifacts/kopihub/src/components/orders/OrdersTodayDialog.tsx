@@ -285,6 +285,7 @@ export function OrdersTodayDialog({
       if (sourceFilter === "qr_table" && !(o.order_source === "qr_table" || (!o.order_source && o.channel === "online" && o.table_label))) return false;
       if (sourceFilter === "marketplace" && !(o.order_source === "marketplace" || o.marketplace_order)) return false;
       if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
+      if (qrUnlockedOnly && !qrUnlockedIds.has(o.id)) return false;
       if (q) {
         const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.customer_phone ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method} ${o.channel ?? ""} ${o.fulfillment ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
@@ -297,7 +298,7 @@ export function OrdersTodayDialog({
       return sortDir === "newest" ? tb - ta : ta - tb;
     });
     return list;
-  }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir]);
+  }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir, qrUnlockedOnly, qrUnlockedIds]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -306,7 +307,7 @@ export function OrdersTodayDialog({
   // Reset to page 1 when filters/search change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter]);
+  }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter, qrUnlockedOnly]);
 
   async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
