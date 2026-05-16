@@ -437,23 +437,6 @@ function POSPage() {
     return () => window.removeEventListener("online", tryFlush);
   }, []);
 
-  // unused-var silence
-  void handleCheckout;
-  const _noop = () => {
-    void handleCheckout;
-  };
-  void _noop;
-  const handleCheckoutNoop = () => {};
-  void handleCheckoutNoop;
-  return null as any;
-};
-
-// (Real component continues below — restore original return)
-const _unused = async () => {
-  await Promise.resolve();
-    }
-  };
-
   if (shopLoading)
     return (
       <div className="flex h-screen items-center justify-center">
