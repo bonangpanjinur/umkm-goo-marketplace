@@ -267,9 +267,127 @@ function ShopChatPage() {
     return data as Message;
   }
 
+  /**
+   * Upload a file via signed URL using XHR so we get real progress events.
+   * Returns the final public URL on success.
+   */
+  function uploadFileWithProgress(
+    file: File,
+    onProgress: (pct: number) => void,
+  ): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+      if (!user) { reject(new Error("not-auth")); return; }
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      const { data: signed, error: signErr } = await (supabase.storage
+        .from("chat-attachments") as any)
+        .createSignedUploadUrl(path);
+      if (signErr || !signed?.signedUrl) {
+        reject(signErr ?? new Error("sign-failed"));
+        return;
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", signed.signedUrl, true);
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+      xhr.setRequestHeader("x-upsert", "false");
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) onProgress(ev.loaded / ev.total);
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const { data: pub } = supabase.storage.from("chat-attachments").getPublicUrl(path);
+          onProgress(1);
+          resolve(pub.publicUrl);
+        } else {
+          reject(new Error(`upload-${xhr.status}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error("network"));
+      xhr.onabort = () => reject(new Error("aborted"));
+      xhr.send(file);
+    });
+  }
+
+  /**
+   * Begin (or retry) uploading a pending-attachment bubble, then INSERT the
+   * message row when upload finishes. Progress is reflected directly on the
+   * optimistic bubble — file selection is preserved across retries.
+   */
+  async function uploadAndInsertForBubble(tempId: string) {
+    const entry = pendingFilesRef.current.get(tempId);
+    if (!entry || !user || !chatId || !shopId) return;
+    const { file, caption } = entry;
+
+    // Mark sending + reset progress
+    setMessages((m) => m.map((x) =>
+      x._tempId === tempId
+        ? { ...x, _status: "sending", _uploadProgress: 0, _pendingUpload: true }
+        : x,
+    ));
+
+    let publicUrl: string;
+    try {
+      publicUrl = await uploadFileWithProgress(file, (pct) => {
+        setMessages((m) => m.map((x) =>
+          x._tempId === tempId ? { ...x, _uploadProgress: pct } : x,
+        ));
+      });
+    } catch {
+      // Keep file in ref so user can retry without re-picking it.
+      setMessages((m) => m.map((x) =>
+        x._tempId === tempId ? { ...x, _status: "failed", _uploadProgress: undefined } : x,
+      ));
+      toast.error("Gagal upload gambar — file disimpan, coba lagi");
+      return;
+    }
+
+    // Upload OK → INSERT message row
+    const { data, error } = await (supabase as any)
+      .from("shop_chat_messages")
+      .insert({
+        chat_id: chatId,
+        shop_id: shopId,
+        sender_id: user.id,
+        sender_role: "buyer",
+        body: caption,
+        attachment_url: publicUrl,
+        attachment_type: "image",
+        product_id: null,
+      })
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      // Insert failed but file IS uploaded. Keep URL on bubble so retry skips upload.
+      setMessages((m) => m.map((x) =>
+        x._tempId === tempId
+          ? { ...x, _status: "failed", _uploadProgress: 1, attachment_url: publicUrl, attachment_type: "image", _pendingUpload: false }
+          : x,
+      ));
+      pendingFilesRef.current.delete(tempId);
+      toast.error("Upload OK tapi gagal kirim, coba lagi");
+      return;
+    }
+
+    // Success → swap optimistic bubble with real row
+    pendingFilesRef.current.delete(tempId);
+    setMessages((m) => {
+      const without = m.filter((x) => x._tempId !== tempId);
+      if (without.some((x) => x.id === data.id)) return without;
+      return [...without, { ...(data as Message), _status: "sent" }];
+    });
+  }
+
   async function retrySend(msg: Message) {
-    // Remove failed bubble and re-send with same payload.
     if (!msg._tempId) return;
+    // If attachment still needs upload, restart the upload+insert flow.
+    if (msg._pendingUpload && pendingFilesRef.current.has(msg._tempId)) {
+      await uploadAndInsertForBubble(msg._tempId);
+      return;
+    }
+    // Attachment already uploaded (or text-only) → just re-insert message row.
     setMessages((m) => m.filter((x) => x._tempId !== msg._tempId));
     await insertMessage({
       body: msg.body,
@@ -289,7 +407,7 @@ function ShopChatPage() {
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || !chatId || !shopId) return;
     e.target.value = "";
 
     if (!file.type.startsWith("image/")) {
@@ -301,24 +419,36 @@ function ShopChatPage() {
       return;
     }
 
-    setUploading(true);
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("chat-attachments")
-      .upload(path, file, { cacheControl: "3600", upsert: false });
-    if (upErr) {
-      toast.error("Gagal upload gambar");
-      setUploading(false);
-      return;
-    }
-    const { data: pub } = supabase.storage.from("chat-attachments").getPublicUrl(path);
-    await insertMessage({
-      body: text.trim(),
-      attachment_url: pub.publicUrl,
+    // 1. Create optimistic bubble immediately with local preview + caption
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const localPreview = URL.createObjectURL(file);
+    blobUrlsRef.current.add(localPreview);
+    const caption = text.trim();
+    pendingFilesRef.current.set(tempId, { file, caption });
+
+    const optimistic: Message = {
+      id: tempId,
+      chat_id: chatId,
+      sender_id: user.id,
+      sender_role: "buyer",
+      body: caption,
+      attachment_url: null,
       attachment_type: "image",
-    });
+      product_id: null,
+      read_at: null,
+      created_at: new Date().toISOString(),
+      _tempId: tempId,
+      _status: "sending",
+      _localPreview: localPreview,
+      _uploadProgress: 0,
+      _pendingUpload: true,
+    };
+    setMessages((m) => [...m, optimistic]);
     setText("");
+
+    // 2. Kick off upload + insert (progress updates flow into the bubble)
+    setUploading(true);
+    await uploadAndInsertForBubble(tempId);
     setUploading(false);
   }
 
