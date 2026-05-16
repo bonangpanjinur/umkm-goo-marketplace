@@ -464,9 +464,22 @@ function SearchPage() {
                 </h2>
                 {loading
                   ? <SkeletonShopGrid />
-                  : shops.length === 0
-                    ? <p className="text-sm text-muted-foreground">Tidak ada toko yang cocok.</p>
-                    : (
+                  : error ? (
+                    <SearchEmptyState
+                      type="toko"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                      error={error}
+                    />
+                  ) : shops.length === 0 ? (
+                    <SearchEmptyState
+                      type="toko"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                    />
+                  ) : (
                       <>
                         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                           {visibleShops.map(s => (
