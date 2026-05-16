@@ -71,11 +71,11 @@ function DigitalProductsPage() {
           .from("order_items")
           .select(`
             id, quantity, price, created_at,
-            menu_item:menu_items!inner(name, product_type, download_url, file_type, file_size_kb, image_url),
+            menu_item:menu_items!inner(name, is_digital, digital_file_url, digital_file_name, image_url),
             order:orders!inner(id, status, created_at, customer_user_id, shop:coffee_shops(name, slug))
           `)
           .eq("order.customer_user_id", user.id)
-          .eq("menu_item.product_type", "digital")
+          .eq("menu_item.is_digital", true)
           .in("order.status", ["completed", "paid"])
           .order("created_at", { ascending: false })
           .limit(100);
