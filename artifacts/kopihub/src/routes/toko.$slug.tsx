@@ -545,13 +545,7 @@ function ShopPage() {
                 <Button asChild size="sm" variant="default" className="gap-1.5">
                   <Link to="/toko/$slug/booking" params={{ slug }}>
                     <CalendarCheck className="h-3.5 w-3.5" />
-                    Booking Layanan
-                  </Link>
-                </Button>
-                <Button asChild size="sm" variant="outline" className="gap-1.5">
-                  <Link to="/toko/$slug/booking" params={{ slug }} search={{ type: "table" }}>
-                    <UtensilsCrossed className="h-3.5 w-3.5" />
-                    Reservasi Meja
+                    Booking &amp; Reservasi
                   </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
