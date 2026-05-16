@@ -271,6 +271,7 @@ export type Database = {
       }
       booking_slots: {
         Row: {
+          booking_type: string
           capacity: number
           created_at: string
           deposit_percent: number
@@ -287,6 +288,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          booking_type?: string
           capacity?: number
           created_at?: string
           deposit_percent?: number
@@ -303,6 +305,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          booking_type?: string
           capacity?: number
           created_at?: string
           deposit_percent?: number
@@ -404,6 +407,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          booking_type: string
           cancel_token: string
           cancelled_at: string | null
           cancelled_reason: string | null
@@ -431,6 +435,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          booking_type?: string
           cancel_token?: string
           cancelled_at?: string | null
           cancelled_reason?: string | null
@@ -458,6 +463,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          booking_type?: string
           cancel_token?: string
           cancelled_at?: string | null
           cancelled_reason?: string | null

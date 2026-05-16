@@ -23,6 +23,9 @@ import { formatIDR } from "@/lib/format";
 import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payment-gateway";
 
 export const Route = createFileRoute("/toko/$slug/booking")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: (search.type === "table" ? "table" : "service") as "service" | "table",
+  }),
   component: PublicBookingPage,
 });
 
@@ -121,6 +124,15 @@ function fmtTime(t: string) {
 }
 
 export default function PublicBookingPage() {
+  const { type: bookingType } = Route.useSearch();
+  const isTableMode = bookingType === "table";
+  const labels = {
+    title: isTableMode ? "Reservasi Meja" : "Booking Layanan",
+    slotLabel: isTableMode ? "Pilih Meja / Area" : "Pilih Slot",
+    emptySlots: isTableMode
+      ? "Belum ada meja yang dibuka untuk reservasi."
+      : "Belum ada slot booking tersedia.",
+  };
   const { slug } = Route.useParams();
 
   const [shop, setShop] = useState<Shop | null>(null);
@@ -224,13 +236,14 @@ export default function PublicBookingPage() {
       .from("booking_slots" as any)
       .select("*")
       .eq("shop_id" as any, shopId)
+      .eq("booking_type" as any, bookingType)
       .gte("slot_date" as any, today)
       .lte("slot_date" as any, end)
       .order("slot_date" as any)
       .order("slot_time" as any) as any;
     setAllSlots((data ?? []) as Slot[]);
     setSlotsLoading(false);
-  }, []);
+  }, [bookingType]);
 
   // Load staff — graceful: if table missing or empty, staffList stays []
   const loadStaff = useCallback(async (shopId: string) => {

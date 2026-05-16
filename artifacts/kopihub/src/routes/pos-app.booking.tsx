@@ -57,7 +57,12 @@ import {
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/pos-app/booking")({ component: BookingPage });
+export const Route = createFileRoute("/pos-app/booking")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: (search.type === "table" ? "table" : "service") as "service" | "table",
+  }),
+  component: BookingPage,
+});
 
 /*
 -- SB-07: Catatan pelanggan per kunjungan (jalankan di Supabase SQL Editor):
@@ -265,6 +270,9 @@ function RefundPanel({ bookingId, onRefunded }: { bookingId: string; onRefunded:
 
 function BookingPage() {
   const { shop } = useShop();
+  const { type: bookingType } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const isTableMode = bookingType === "table";
   const [view, setView] = useState<"bookings" | "slots" | "packages">("bookings");
   const [date, setDate] = useState(isoDate(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -641,12 +649,14 @@ function BookingPage() {
           .from("booking_slots" as any)
           .select("*")
           .eq("shop_id" as any, shop.id)
+          .eq("booking_type" as any, bookingType)
           .eq("slot_date" as any, date)
           .order("slot_time" as any) as any,
         supabase
           .from("bookings" as any)
           .select("*, booking_slots!inner(*, shop_id)")
           .eq("booking_slots.shop_id" as any, shop.id)
+          .eq("booking_type" as any, bookingType)
           .eq("booking_slots.slot_date" as any, date)
           .order("created_at", { ascending: false }) as any,
       ]);
@@ -682,7 +692,7 @@ function BookingPage() {
     } finally {
       setLoading(false);
     }
-  }, [shop?.id, date]);
+  }, [shop?.id, date, bookingType]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -710,6 +720,7 @@ function BookingPage() {
       max_capacity: Number(slotForm.max_capacity),
       price: Number(slotForm.price),
       notes: slotForm.notes.trim() || null,
+      booking_type: bookingType,
     });
     setSavingSlot(false);
     if (error) { toast.error(error.message); return; }
@@ -857,10 +868,13 @@ function BookingPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <CalendarCheck className="h-6 w-6" /> Booking Jadwal Layanan
+            <CalendarCheck className="h-6 w-6" />
+            {isTableMode ? "Reservasi Meja" : "Booking Jadwal Layanan"}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Kelola slot waktu dan konfirmasi booking pelanggan
+            {isTableMode
+              ? "Kelola meja/area dan konfirmasi reservasi pelanggan"
+              : "Kelola slot waktu dan konfirmasi booking pelanggan"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -870,9 +884,26 @@ function BookingPage() {
           </Button>
           <Button size="sm" onClick={() => setSlotOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" />
-            Buat Slot
+            {isTableMode ? "Buat Meja" : "Buat Slot"}
           </Button>
         </div>
+      </div>
+
+      {/* Tabs: Layanan / Meja */}
+      <div className="inline-flex rounded-lg border bg-muted/30 p-1">
+        {(["service", "table"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => navigate({ search: { type: t } })}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              bookingType === t
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t === "service" ? "Layanan" : "Meja"}
+          </button>
+        ))}
       </div>
 
       {/* ─── Voucher Booking Card ─── */}
