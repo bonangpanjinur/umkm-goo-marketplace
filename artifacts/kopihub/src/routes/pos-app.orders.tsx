@@ -453,7 +453,16 @@ function DetailDialog({
                 cashierName="Kasir"
                 date={new Date(order.created_at)}
                 items={items}
-                subtotal={Number(order.total)}
+                subtotal={Number(order.subtotal ?? order.total)}
+                manualDiscount={Number(order.discount ?? 0)}
+                promoCode={order.promo_code}
+                serviceCharge={Number(order.service_charge ?? 0)}
+                tax={Number(order.tax ?? 0)}
+                tipAmount={Number(order.tip_amount ?? 0)}
+                pointsRedeemed={order.points_redeemed ?? 0}
+                pointsEarned={order.points_earned ?? 0}
+                customerName={order.customer_name ?? undefined}
+                paymentSplit={Array.isArray(order.payment_split) ? order.payment_split : []}
                 total={Number(order.total)}
                 paymentMethod={order.payment_method}
                 amountTendered={order.amount_tendered ? Number(order.amount_tendered) : undefined}
@@ -468,6 +477,25 @@ function DetailDialog({
                 customerName={order.customer_name}
                 items={items}
               />
+            </div>
+            <div ref={courierRef}>
+              {isDelivery && (
+                <CourierReceipt
+                  shopName={shopName}
+                  outletName={outletName}
+                  orderNo={order.order_no}
+                  date={new Date(order.created_at)}
+                  customerName={order.customer_name}
+                  customerPhone={order.customer_phone}
+                  deliveryAddress={order.delivery_address}
+                  courierName={order.courier_name}
+                  trackingNumber={order.tracking_number}
+                  deliveryFee={Number(order.delivery_fee ?? 0)}
+                  total={Number(order.total)}
+                  items={items}
+                  note={order.note}
+                />
+              )}
             </div>
           </div>
         </div>
