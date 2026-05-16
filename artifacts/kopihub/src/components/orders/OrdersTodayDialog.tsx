@@ -294,6 +294,14 @@ export function OrdersTodayDialog({
     note: i.note ?? undefined,
   }));
   const isDelivery = printSource?.fulfillment === "delivery";
+  const sourceText: string | null = printSource
+    ? printSource.marketplace_order
+      ? "Marketplace"
+      : printSource.channel === "online"
+        ? (printSource.table_label ? "QR Meja" : "Online / Website")
+        : "POS / Kasir"
+    : null;
+  const isQrTable = !!(printSource && printSource.channel === "online" && printSource.table_label);
   const displayCustomer = printSource
     ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
         .filter(Boolean)
