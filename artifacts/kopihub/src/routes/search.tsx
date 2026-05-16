@@ -490,6 +490,8 @@ function SearchPage() {
     setShopError(null);
     setProductMoreError(null);
     setShopMoreError(null);
+    setLoadingProducts(true);
+    setLoadingShops(true);
     // Refetch
     fetchProducts();
     fetchShops();
