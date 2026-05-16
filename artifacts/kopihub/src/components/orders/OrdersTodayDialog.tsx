@@ -338,6 +338,105 @@ export function OrdersTodayDialog({
 
   // Quick reprint: fetch detail, render hidden, then print receipt + ticket/courier
   const quickPendingRef = useRef(false);
+
+  // ===== Export QR-unlock audit (CSV / PDF) =====
+  async function fetchExportRows(): Promise<Array<{
+    created_at: string;
+    order_no: string | null;
+    actor: string;
+    reason: string;
+    previous_label: string;
+    new_label: string;
+  }>> {
+    const from = new Date(exportFrom + "T00:00:00").toISOString();
+    const to = new Date(exportTo + "T23:59:59.999").toISOString();
+    const { data } = await supabase
+      .from("order_audit_log")
+      .select("created_at, order_no, order_id, actor_name, actor_id, reason, metadata")
+      .eq("outlet_id", outletId)
+      .eq("action", "qr_unlock")
+      .gte("created_at", from)
+      .lte("created_at", to)
+      .order("created_at", { ascending: false });
+    const orderIds = Array.from(new Set((data ?? []).map((r: any) => r.order_id).filter(Boolean)));
+    let currentLabels = new Map<string, string | null>();
+    if (orderIds.length > 0) {
+      const { data: ords } = await supabase
+        .from("orders")
+        .select("id, table_label")
+        .in("id", orderIds);
+      (ords ?? []).forEach((o: any) => currentLabels.set(o.id, o.table_label));
+    }
+    return (data ?? []).map((r: any) => {
+      const meta = (r.metadata ?? {}) as Record<string, unknown>;
+      const prev = (meta.previous_table_label as string | null) ?? null;
+      const newLbl = currentLabels.get(r.order_id) ?? null;
+      return {
+        created_at: new Date(r.created_at).toLocaleString("id-ID"),
+        order_no: r.order_no,
+        actor: r.actor_name ?? r.actor_id ?? "—",
+        reason: r.reason ?? "",
+        previous_label: prev ?? "—",
+        new_label: newLbl ?? "—",
+      };
+    });
+  }
+
+  async function exportCSV() {
+    setExporting(true);
+    try {
+      const rows = await fetchExportRows();
+      if (rows.length === 0) { toast.info("Tidak ada entri QR unlock pada rentang ini"); return; }
+      const header = ["Waktu", "No. Order", "Oleh", "Alasan", "Meja sebelum", "Meja sesudah"];
+      const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+      const csv = [header.join(","), ...rows.map((r) => [r.created_at, r.order_no ?? "", r.actor, r.reason, r.previous_label, r.new_label].map(esc).join(","))].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-unlock-${outletName}-${exportFrom}_${exportTo}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Diekspor ${rows.length} entri`);
+    } catch (e: any) {
+      toast.error("Gagal ekspor CSV: " + (e?.message ?? "error"));
+    } finally { setExporting(false); }
+  }
+
+  async function exportPDF() {
+    setExporting(true);
+    try {
+      const rows = await fetchExportRows();
+      if (rows.length === 0) { toast.info("Tidak ada entri QR unlock pada rentang ini"); return; }
+      const { default: jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const margin = 32;
+      let y = margin;
+      doc.setFontSize(14);
+      doc.text("Riwayat QR Unlock", margin, y); y += 18;
+      doc.setFontSize(10);
+      doc.text(`Outlet: ${outletName}`, margin, y); y += 14;
+      doc.text(`Rentang: ${exportFrom} s.d. ${exportTo}`, margin, y); y += 14;
+      doc.text(`Total entri: ${rows.length}`, margin, y); y += 18;
+      const lineH = 12;
+      doc.setFontSize(9);
+      rows.forEach((r, i) => {
+        if (y > 780) { doc.addPage(); y = margin; }
+        doc.setFont("helvetica", "bold");
+        doc.text(`${i + 1}. #${r.order_no ?? "-"}  ·  ${r.created_at}`, margin, y); y += lineH;
+        doc.setFont("helvetica", "normal");
+        doc.text(`Oleh: ${r.actor}`, margin, y); y += lineH;
+        doc.text(`Meja: ${r.previous_label} → ${r.new_label}`, margin, y); y += lineH;
+        const reasonLines = doc.splitTextToSize(`Alasan: ${r.reason || "-"}`, 530);
+        doc.text(reasonLines, margin, y); y += lineH * reasonLines.length + 4;
+      });
+      doc.save(`qr-unlock-${outletName}-${exportFrom}_${exportTo}.pdf`);
+      toast.success(`PDF dibuat (${rows.length} entri)`);
+    } catch (e: any) {
+      toast.error("Gagal ekspor PDF: " + (e?.message ?? "error"));
+    } finally { setExporting(false); }
+  }
+
   async function quickReprint(o: Order) {
     if (quickPendingRef.current) return;
     quickPendingRef.current = true;
