@@ -468,12 +468,12 @@ function SearchPage() {
                               {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
                             </Link>
                           ))}
+                          {loadingMoreS && <ShopSkeletonCards n={4} />}
                         </div>
                         {canLoadMoreShops && tab !== "produk" && (
                           <div className="mt-4 flex justify-center">
-                            <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS}>
-                              {loadingMoreS && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                              Muat lebih banyak toko
+                            <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS} className="gap-1.5">
+                              {loadingMoreS ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak toko"}
                             </Button>
                           </div>
                         )}
