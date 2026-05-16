@@ -32,6 +32,7 @@ import { cartCount, cartTotal, cartItemKey, lineUnitPrice } from "@/lib/cart";
 import { computeCharges } from "@/lib/pricing";
 import { ModifierPicker } from "@/components/modifier-picker";
 import { getActiveShift, openShift, type CashShift } from "@/lib/shift";
+import { submitCheckout, flushPendingCheckouts, loadPendingCheckouts } from "@/lib/pos-checkout";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
@@ -366,39 +367,35 @@ function POSPage() {
     if (!outlet || !user) return;
 
     try {
-      const { data: order, error: orderErr } = await (supabase as any)
-        .from("orders")
-        .insert({
-          outlet_id: outlet.id,
-          shop_id: shop!.id,
-          subtotal: rawSubtotal,
-          discount: discount,
-          service_charge: charges.service_charge,
-          tax: charges.tax,
-          total: charges.total,
-          status: "completed",
-          payment_method: method,
-          payment_status: "paid",
-          cashier_id: user.id,
-          channel: "pos",
-        })
-        .select()
-        .single();
+      // Stable idempotency key per cart attempt — survives retries.
+      const idemKey = (cart as any).idemKey
+        ?? (typeof crypto !== "undefined" && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      if (!(cart as any).idemKey) updateCart((c) => ({ ...(c as any), idemKey } as any));
 
-      if (orderErr) throw orderErr;
-
-      const orderItems = cart.items.map((it) => ({
-        order_id: order.id,
-        menu_item_id: it.menu_item_id,
-        name: it.name,
-        quantity: it.quantity,
-        unit_price: lineUnitPrice(it),
-        subtotal: lineUnitPrice(it) * it.quantity,
-        note: it.note ?? null,
-      }));
-
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
-      if (itemsErr) throw itemsErr;
+      const result = await submitCheckout({
+        shop_id: shop!.id,
+        outlet_id: outlet.id,
+        cashier_id: user.id,
+        subtotal: rawSubtotal,
+        discount,
+        service_charge: charges.service_charge,
+        tax: charges.tax,
+        total: charges.total,
+        payment_method: method,
+        amount_tendered: _amount,
+        change_due: Math.max(0, _amount - charges.total),
+        client_idempotency_key: idemKey,
+        items: cart.items.map((it) => ({
+          menu_item_id: it.menu_item_id,
+          name: it.name,
+          quantity: it.quantity,
+          unit_price: lineUnitPrice(it),
+          subtotal: lineUnitPrice(it) * it.quantity,
+          note: it.note ?? null,
+        })),
+      });
 
       // If cart was bound to a parked entry, remove it from DB
       if (cart.parkedId) {
@@ -409,13 +406,51 @@ function POSPage() {
         }
       }
 
-      toast.success("Pesanan berhasil");
+      toast.success(`Pesanan ${result.order_no} berhasil`);
       setCheckoutOpen(false);
       setCartSheetOpen(false);
       // Reset current tab
       updateCart(() => newCart(cart.label));
     } catch (e: any) {
-      toast.error(e.message);
+      const offline = !navigator.onLine;
+      toast.error(
+        offline
+          ? "Tidak ada koneksi. Pesanan disimpan & akan diproses otomatis saat online."
+          : `Checkout gagal: ${e?.message ?? "Error tidak diketahui"}. Tekan checkout lagi untuk mencoba ulang (nomor order tidak akan dobel).`,
+        { duration: 8000 },
+      );
+    }
+  };
+
+  // Auto-retry queued offline checkouts when connection returns
+  useEffect(() => {
+    const tryFlush = async () => {
+      if (!navigator.onLine) return;
+      const pending = loadPendingCheckouts();
+      if (pending.length === 0) return;
+      const res = await flushPendingCheckouts();
+      if (res.ok > 0) toast.success(`${res.ok} pesanan tertunda berhasil diproses`);
+      if (res.failed > 0) toast.error(`${res.failed} pesanan masih gagal — coba lagi nanti`);
+    };
+    tryFlush();
+    window.addEventListener("online", tryFlush);
+    return () => window.removeEventListener("online", tryFlush);
+  }, []);
+
+  // unused-var silence
+  void handleCheckout;
+  const _noop = () => {
+    void handleCheckout;
+  };
+  void _noop;
+  const handleCheckoutNoop = () => {};
+  void handleCheckoutNoop;
+  return null as any;
+};
+
+// (Real component continues below — restore original return)
+const _unused = async () => {
+  await Promise.resolve();
     }
   };
 
