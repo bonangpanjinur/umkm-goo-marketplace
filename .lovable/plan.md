@@ -1,76 +1,74 @@
-# Rencana: Payment Gateway Paket + Reminder Dinamis + Audit PRD
+# Rencana Perbaikan: Visual Card, Not-Found, dan Konsolidasi Booking/Reservasi
 
-Tiga pekerjaan terpisah, dieksekusi berurutan dalam satu sesi build.
+## 1. Upgrade visual Card Produk (estetika premium)
 
-## 1. Pengaturan Payment Gateway untuk Pembelian Paket Platform
+Saat ini `ProductCard` (di `src/routes/index.tsx`, dipakai juga di `toko.$slug`) masih sangat standar: border tipis + sedikit hover shadow. Akan dirombak menjadi card berkelas "marketplace modern":
 
-Status saat ini: `admin.payment-config.tsx` sudah menyimpan key Midtrans/Xendit di `platform_settings.payment_gateways` — namun konteksnya untuk pesanan marketplace, dan belum ada flow checkout paket berlangganan.
+- Rounded `2xl`, border halus `border-border/60`, ring transparan yang muncul saat hover (`hover:ring-2 hover:ring-primary/30`).
+- Shadow berlapis: idle `shadow-sm`, hover `shadow-xl shadow-primary/10` + lift `-translate-y-0.5`.
+- Image area: overlay gradient bawah (`from-black/40 to-transparent`), zoom halus `group-hover:scale-110` (700ms ease-out), skeleton shimmer saat loading.
+- Badge baru: **Stok menipis**, **Terjual N**, **Gratis Ongkir** (jika ada), badge **Flash Sale** dengan animasi pulse + countdown chip kaca (backdrop-blur).
+- Tipografi: nama produk `text-sm font-semibold tracking-tight`, harga lebih kontras (`text-base font-bold`), harga coret muncul di baris terpisah dengan persen diskon kecil pill.
+- Footer card: avatar toko + nama + verified check (jika `is_verified`), rating + jumlah ulasan, semua dalam baris ringkas.
+- Tombol "Quick Add" floating muncul di kanan-bawah image saat hover (desktop), tap target full di mobile.
 
-Yang akan dibuat:
+Semua warna ambil dari token semantik di `src/styles.css` (tidak ada hex langsung). Akan ditambah token `--shadow-card-hover` dan `--gradient-card-overlay` agar konsisten lintas tema.
 
-- **Halaman baru `admin.platform-billing.tsx`** (sidebar "Billing Paket Platform")
-  - Pilih gateway aktif untuk billing paket: Midtrans, Xendit, Manual Transfer, QRIS Statis.
-  - Re-use credential dari `payment_gateways` (tidak duplikasi key) + tambahan field khusus paket: `webhook_url_billing`, `success_redirect_url`, `failure_redirect_url`, `auto_activate_on_paid` (toggle), `invoice_prefix`, `tax_inclusive` (PPN 11%).
-  - Tombol "Test Koneksi" yang memanggil server function untuk ping endpoint Midtrans/Xendit dengan key tersimpan.
-  - Panel daftar metode pembayaran yang akan ditampilkan ke owner saat upgrade paket (drag-to-reorder).
-- **Tabel baru `platform_billing_config`** (key/value JSON di `platform_settings` dengan key `plan_billing`).
-- **Server function `createPlanCheckout`** (`src/lib/plan-billing.functions.ts`)
-  - Input: `plan_id`, `shop_id`. Output: `checkout_url` + `invoice_id`.
-  - Routing per gateway aktif (Midtrans Snap / Xendit Invoice).
-- **Server route webhook `/api/public/webhooks/plan-billing/{provider}.ts`**
-  - Verifikasi signature, update `shop_subscriptions.status = 'active'`, set `plan_expires_at`, kirim notifikasi.
-- **Tombol "Upgrade" di `pos-app` (owner)** mengarah ke flow checkout baru bila gateway aktif; fallback manual transfer bila tidak.
+## 2. Memperbaiki Not Found di salah satu route
 
-Catatan: kredensial Midtrans/Xendit (server key, secret) akan tetap disimpan di tabel `platform_settings` (terenkripsi via RLS — hanya super admin baca). Tidak menggunakan Lovable secret store karena nilai harus dapat di-rotate dari UI super admin (multi-tenant).
+Saya butuh konfirmasi singkat: route mana yang selalu "not found"? (URL persisnya). Sementara itu rencana investigasi:
 
-## 2. Pengaturan Reminder Paket Habis (Trial & Berbayar)
+- Audit semua `loader` di `src/routes/` yang melempar `notFound()` pada query gagal — beberapa kemungkinan penyebab: shop slug case-sensitive, kolom `is_active` di-filter ketat, atau join `business_category` kembalikan null sehingga seluruh row dianggap tidak ada.
+- Cek route yang punya parameter dinamis (mis. `toko.$slug.produk.$productId`, `katalog.$slug`, `kategori.$slug`, `d.$token`, `download.$token`) — pastikan pola `maybeSingle()` + guard yang benar.
+- Tambah logging sekali jalan (console.warn) di loader yang dicurigai agar terlihat alasan not-found (slug tidak ditemukan vs RLS block vs is_active=false).
+- Setelah penyebab ketahuan: perbaiki query (mis. `ilike` untuk slug, longgarkan filter, atau redirect ke halaman alternatif), bukan sekadar mengganti `notFound()` jadi halaman kosong.
 
-Status saat ini: `admin.auto-renewal.tsx` sudah eksekusi cron, tapi window hari & template pesannya hardcoded.
+> Mohon sebutkan route persisnya supaya langsung ke akar masalah.
 
-Yang akan dibuat:
+## 3. Konsolidasi Booking Layanan vs Reservasi Meja
 
-- **Halaman baru `admin.expiry-reminders.tsx`** (sidebar grup "Notifikasi")
-  - Tab **Trial**, tab **Paket Berbayar**.
-  - Per tab: daftar "rule reminder" yang bisa di-CRUD:
-    - `days_before_expiry` (1, 3, 7, 14 …)
-    - `channels` (multi: in-app, email, WhatsApp, push)
-    - `template_subject` & `template_body` (mendukung variabel `{{shop_name}}`, `{{plan_name}}`, `{{days_left}}`, `{{expires_at}}`, `{{renewal_url}}`)
-    - `is_active` toggle, urutan prioritas
-  - Pengaturan global: jam kirim harian (default 09:00 WIB), zona waktu, batas maksimal reminder per hari per shop (anti-spam), aksi otomatis pada hari ekspiry (suspend / grace period N hari).
-  - Preview render template dengan data dummy.
-  - Tombol "Test kirim ke owner saya" (kirim ke akun super admin).
-- **Tabel baru `expiry_reminder_rules`** (`id`, `audience` enum trial/paid, `days_before`, `channels` text[], `template_subject`, `template_body`, `is_active`, `sort_order`, timestamps) + RLS super admin only.
-- **Tabel baru `expiry_reminder_settings`** (single-row JSON di `platform_settings.expiry_reminders`).
-- **Refactor cron job auto-renewal** untuk membaca rule dari tabel (tidak hardcode), dan mendukung audience `trial` (membaca `shops.trial_ends_at` jika ada — kalau kolom belum ada akan ditambahkan via migrasi).
-- Link cross-navigasi dari halaman `admin.auto-renewal.tsx` → "Atur rule reminder di sini".
+Saat ini ada duplikasi modul:
 
-## 3. Audit PRD vs Codebase
+```text
+Customer side:
+  toko.$slug.booking.tsx     (2344 baris) — booking layanan/jasa
+  toko.$slug.reservasi.tsx   ( 786 baris) — reservasi meja
 
-Skrip otomatis (sekali jalan, tidak disimpan):
+Merchant side:
+  pos-app.booking.tsx        (2202 baris)
+  pos-app.reservasi.tsx      ( 438 baris)
+  pos-app.tables.tsx, table-maps, table-qr, booking-analytics, booking-reminders, booking-reviews
+```
 
-1. Parse `PRD_MARKETPLACE.md`, ekstrak baris berformat tabel dengan kolom status (✅ / ❌ / ⬜).
-2. Untuk setiap baris dengan referensi file route (mis. ``pos-app.followup-reminders.tsx``) atau nama fitur kunci (mis. "Open Bills", "Audit Pesanan", "Lokasi Sesi Foto", "Tarif Ongkir Outlet"), cek keberadaan file di `artifacts/kopihub/src/routes/`.
-3. Hasilkan laporan dua bagian:
-   - **A. Sudah ada di codebase tapi masih ❌/⬜ di PRD** → akan diubah menjadi ✅ dengan catatan path file.
-   - **B. Masih ❌ dan benar-benar belum ada** → ditambahkan ke section baru di PRD: `## 📋 Backlog Aktual (Audit 15 Mei 2026)` berisi list item + estimasi prioritas.
-4. Patch `PRD_MARKETPLACE.md` in-place dengan kedua perubahan.
+Banyak logika tumpang tindih (slot waktu, kalender, konfirmasi, reminder, cancel/reschedule token). Rencana refactor:
 
-Item kandidat update ✅ (berdasarkan eksplorasi cepat — akan diverifikasi di audit):
-- F-16/SB-10/RT-09 Deposit via Payment Gateway — sebagian terjawab oleh `admin.payment-config.tsx` (config sudah ada, eksekusi checkout belum) → tetap ❌ sampai item #1 di plan ini selesai.
-- Open Bills realtime, Audit Pesanan, Tarif Ongkir Outlet, Lokasi Sesi Foto — kemungkinan belum ditandai di PRD.
+### Konsep terpadu: "Booking" sebagai modul tunggal dengan dua **tipe**
+- `service` → booking layanan (durasi, staff, paket)
+- `table` → reservasi meja (kapasitas, table_id, area)
 
-## Detail Teknis
+### Langkah teknis (tanpa menghapus data lama)
 
-- Stack: TanStack Start + Supabase (Lovable Cloud). Server-side pakai `createServerFn` + `requireSupabaseAuth`; webhook publik di `src/routes/api/public/`.
-- Validasi input pakai Zod (panjang, format URL untuk redirect, regex template variabel).
-- RLS: tabel `platform_billing_config`, `expiry_reminder_rules` hanya bisa diakses role `super_admin` via `has_role()`.
-- Webhook gateway: verifikasi signature SHA512 (Midtrans) / x-callback-token (Xendit) sebelum mutasi data.
-- Audit script: Node + regex sederhana, output ke stdout dulu untuk review, baru patch file.
+1. **Schema**: tambah kolom `booking_type` ENUM('service','table') pada tabel `bookings` (default 'service'); migrasi `reservations` → `bookings` dengan `booking_type='table'` (script idempoten, simpan tabel lama sebagai view back-compat `reservations_legacy`).
+2. **Hook bersama** `useBookings({ type })` di `src/lib/` untuk fetch/mutate kedua tipe.
+3. **Komponen UI bersama**:
+   - `<BookingCalendar />`, `<BookingSlotPicker />`, `<BookingStatusBadge />`, `<BookingDetailDrawer />`, `<BookingListTable />` — semua menerima prop `type`.
+4. **Route customer**: ganti dua route lama menjadi satu `toko.$slug.booking.tsx` dengan tab "Layanan" / "Meja" (atau auto-pilih dari `business_subtype`). Route `toko.$slug.reservasi.tsx` dijadikan **redirect** ke `?type=table` agar link lama tetap hidup.
+5. **Route merchant**: gabungkan `pos-app.booking.tsx` + `pos-app.reservasi.tsx` menjadi satu dashboard dengan filter tipe. Sub-modul `pos-app.booking-analytics`, `booking-reminders`, `booking-reviews` otomatis cover keduanya karena sumber data sama.
+6. **Akun pelanggan**: `akun.bookings.tsx` menampilkan kedua tipe dengan ikon berbeda.
+7. **Token URL** `booking.cancel.$token`, `booking.reschedule.$token` sudah generic — dipertahankan, hanya perlu cek `type` saat render.
 
-## Urutan Eksekusi
+### Hasil akhir
+- 4 file route besar (~5,7k baris) → ~2 file gabungan + komponen reusable, target turun 35-45% LOC.
+- Satu pintu konfigurasi di `admin.booking-config.tsx` untuk kedua tipe.
+- UX customer lebih jelas (tidak bingung "booking" vs "reservasi").
 
-1. Migrasi DB (3 tabel + kolom `shops.trial_ends_at` jika perlu).
-2. Halaman `admin.platform-billing.tsx` + server function checkout + webhook.
-3. Halaman `admin.expiry-reminders.tsx` + refactor cron.
-4. Audit script + patch PRD.
-5. Tambah entri sidebar `admin.tsx` untuk dua halaman baru.
+## Urutan eksekusi yang diusulkan
+1. Konfirmasi route not-found dari Anda.
+2. Upgrade `ProductCard` + token di `styles.css` (cepat, langsung terlihat).
+3. Perbaiki loader not-found berdasarkan jawaban.
+4. Refactor booking/reservasi (paling besar — akan dipecah jadi 3 commit: schema → komponen bersama → migrasi route).
+
+## Catatan teknis
+- Semua perubahan dibatasi pada `artifacts/kopihub/`.
+- Migrasi DB akan dipanggil via tool migration (butuh approval).
+- Tidak ada perubahan ke `src/integrations/supabase/*` yang auto-generated.
