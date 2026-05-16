@@ -882,7 +882,18 @@ function BookingPage() {
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button size="sm" onClick={() => setSlotOpen(true)}>
+          <Button size="sm" onClick={() => {
+            setSlotForm({
+              service_name: "",
+              slot_date: date,
+              slot_time: isTableMode ? "18:00" : "09:00",
+              duration_min: isTableMode ? "90" : "60",
+              max_capacity: isTableMode ? "4" : "1",
+              price: "0",
+              notes: "",
+            });
+            setSlotOpen(true);
+          }}>
             <Plus className="h-4 w-4 mr-1.5" />
             {isTableMode ? "Buat Meja" : "Buat Slot"}
           </Button>
