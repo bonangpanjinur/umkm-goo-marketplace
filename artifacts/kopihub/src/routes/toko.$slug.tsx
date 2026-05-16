@@ -322,6 +322,7 @@ type ReviewStats = {
 function ShopPage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
