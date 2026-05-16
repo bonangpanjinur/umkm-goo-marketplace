@@ -306,6 +306,7 @@ function OrdersPage() {
           order={selected}
           shopName={shop.name}
           outletName={outlet.name}
+          outletId={outlet.id}
           shopLogoUrl={shop.logo_url}
           shopAddress={shop.address}
           shopPhone={shop.phone}
