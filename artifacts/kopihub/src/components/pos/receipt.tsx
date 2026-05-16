@@ -33,6 +33,8 @@ type Props = {
   shopPhone?: string | null;
   receiptHeader?: string | null;
   receiptFooter?: string | null;
+  /** e.g. "QR Meja", "POS / Kasir", "Online", "Marketplace" — printed di bawah baris Kasir */
+  source?: string | null;
 };
 
 function methodLabel(m: string) {
@@ -71,6 +73,7 @@ export const Receipt = forwardRef<HTMLDivElement, Props>(function Receipt(
     shopPhone = null,
     receiptHeader = null,
     receiptFooter = null,
+    source = null,
   },
   ref,
 ) {
@@ -115,6 +118,12 @@ export const Receipt = forwardRef<HTMLDivElement, Props>(function Receipt(
         <span>Kasir</span>
         <span>{cashierName}</span>
       </div>
+      {source && (
+        <div className="r-row">
+          <span>Sumber</span>
+          <span className="r-bold">{source}</span>
+        </div>
+      )}
       {customerName && (
         <div className="r-row">
           <span>Pelanggan</span>

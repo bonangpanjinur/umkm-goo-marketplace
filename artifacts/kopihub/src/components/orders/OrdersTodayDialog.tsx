@@ -27,6 +27,10 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -96,7 +100,7 @@ const PAGE_SIZE = 10;
 type SortDir = "newest" | "oldest";
 type StatusFilter = "all" | "active" | "voided";
 type PayFilter = "all" | "cash" | "qris";
-type SourceFilter = "all" | "pos" | "online" | "marketplace";
+type SourceFilter = "all" | "pos" | "online" | "qr_table" | "marketplace";
 type FulfillmentFilter = "all" | "dine_in" | "pickup" | "delivery";
 
 function lsGet(key: string, fallback: string) {
@@ -151,6 +155,21 @@ export function OrdersTodayDialog({
     return Number.isFinite(p) && p > 0 ? p : 1;
   });
 
+  // Edit state for table_label in detail view
+  const [editingTable, setEditingTable] = useState(false);
+  const [tableDraft, setTableDraft] = useState("");
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [savingTable, setSavingTable] = useState(false);
+
+  useEffect(() => {
+    // Reset edit state when changing selected order
+    setEditingTable(false);
+    setTableDraft(selected?.table_label ?? "");
+    setCancelOpen(false);
+    setCancelReason("");
+  }, [selected?.id]);
+
   // Persist sort & page
   useEffect(() => {
     lsSet(sortKey, sortDir);
@@ -197,6 +216,7 @@ export function OrdersTodayDialog({
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
       if (sourceFilter === "pos" && o.channel !== "pos") return false;
       if (sourceFilter === "online" && o.channel !== "online") return false;
+      if (sourceFilter === "qr_table" && !(o.channel === "online" && o.table_label)) return false;
       if (sourceFilter === "marketplace" && !o.marketplace_order) return false;
       if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
       if (q) {
@@ -289,6 +309,14 @@ export function OrdersTodayDialog({
     note: i.note ?? undefined,
   }));
   const isDelivery = printSource?.fulfillment === "delivery";
+  const sourceText: string | null = printSource
+    ? printSource.marketplace_order
+      ? "Marketplace"
+      : printSource.channel === "online"
+        ? (printSource.table_label ? "QR Meja" : "Online / Website")
+        : "POS / Kasir"
+    : null;
+  const isQrTable = !!(printSource && printSource.channel === "online" && printSource.table_label);
   const displayCustomer = printSource
     ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
         .filter(Boolean)
@@ -342,6 +370,7 @@ export function OrdersTodayDialog({
                   <SelectItem value="all">Semua sumber</SelectItem>
                   <SelectItem value="pos">POS / Kasir</SelectItem>
                   <SelectItem value="online">Online / QR</SelectItem>
+                  <SelectItem value="qr_table">QR Meja</SelectItem>
                   <SelectItem value="marketplace">Marketplace</SelectItem>
                 </SelectContent>
               </Select>
@@ -539,12 +568,93 @@ export function OrdersTodayDialog({
                     {selected.fulfillment === "dine_in" ? "Dine-in" : selected.fulfillment}
                   </span>
                 )}
-                {selected.table_label && (
-                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
-                    Meja {selected.table_label}
-                  </span>
-                )}
               </div>
+              {/* Sumber baris jelas — staf tahu order dari mana */}
+              <div>
+                <span className="text-muted-foreground">Sumber: </span>
+                <span className="font-semibold">
+                  {isQrTable ? "QR Meja" : sourceText ?? "—"}
+                </span>
+              </div>
+              {/* Baris Meja dengan kunci/edit */}
+              {(selected.table_label || editingTable) && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-muted-foreground">Meja:</span>
+                  {editingTable ? (
+                    <>
+                      <Input
+                        value={tableDraft}
+                        onChange={(e) => setTableDraft(e.target.value)}
+                        placeholder="Mis. 5 / A1"
+                        className="h-7 w-32"
+                        maxLength={40}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2"
+                        disabled={savingTable}
+                        onClick={async () => {
+                          if (!selected) return;
+                          setSavingTable(true);
+                          const newLabel = tableDraft.trim() || null;
+                          const { error } = await supabase
+                            .from("orders")
+                            .update({ table_label: newLabel } as never)
+                            .eq("id", selected.id);
+                          setSavingTable(false);
+                          if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
+                          setSelected({ ...selected, table_label: newLabel });
+                          setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, table_label: newLabel } : p));
+                          setEditingTable(false);
+                          toast.success("Meja diperbarui");
+                        }}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2"
+                        onClick={() => { setEditingTable(false); setTableDraft(selected.table_label ?? ""); }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
+                        {selected.table_label ?? "—"}
+                      </span>
+                      {isQrTable ? (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200">
+                            <Lock className="h-3 w-3" /> Terkunci (dari QR)
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-[11px]"
+                            onClick={() => setCancelOpen(true)}
+                          >
+                            Batalkan QR…
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2"
+                          onClick={() => { setTableDraft(selected.table_label ?? ""); setEditingTable(true); }}
+                          title="Edit meja"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               <div>
                 <span className="text-muted-foreground">Atas nama: </span>
                 <span className="font-medium">{selected.customer_name ?? "—"}</span>
@@ -614,6 +724,7 @@ export function OrdersTodayDialog({
                 pointsRedeemed={printSource.points_redeemed ?? 0}
                 pointsEarned={printSource.points_earned ?? 0}
                 customerName={displayCustomer ?? undefined}
+                source={sourceText}
                 paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                 total={Number(printSource.total)}
                 paymentMethod={printSource.payment_method}
@@ -628,6 +739,7 @@ export function OrdersTodayDialog({
                 outletName={outletName}
                 customerName={displayCustomer}
                 items={items}
+                source={sourceText}
               />
             </div>
             <div ref={courierRef}>
@@ -710,6 +822,7 @@ export function OrdersTodayDialog({
                     pointsRedeemed={printSource.points_redeemed ?? 0}
                     pointsEarned={printSource.points_earned ?? 0}
                     customerName={displayCustomer ?? undefined}
+                    source={sourceText}
                     paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                     total={Number(printSource.total)}
                     paymentMethod={printSource.payment_method}
@@ -724,6 +837,7 @@ export function OrdersTodayDialog({
                     outletName={outletName}
                     customerName={displayCustomer}
                     items={items}
+                    source={sourceText}
                   />
                 )}
                 {fallbackOpen === "courier" && printSource && isDelivery && (
@@ -763,6 +877,56 @@ export function OrdersTodayDialog({
                 }}
               >
                 <Printer className="mr-2 h-4 w-4" /> Cetak Sekarang
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Cancel-QR-with-reason dialog: unlocks table_label editing on order from QR */}
+        <Dialog open={cancelOpen} onOpenChange={(o) => !o && setCancelOpen(false)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Batalkan Penguncian QR Meja</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Order ini berasal dari QR meja. Kolom Meja terkunci untuk mencegah salah ubah.
+              Masukkan alasan untuk membuka kunci dan mengubah meja.
+            </p>
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Alasan</label>
+              <Input
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Mis. pelanggan pindah meja"
+                maxLength={120}
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setCancelOpen(false)}>Tutup</Button>
+              <Button
+                disabled={!cancelReason.trim() || savingTable}
+                onClick={async () => {
+                  if (!selected) return;
+                  setSavingTable(true);
+                  const reason = cancelReason.trim();
+                  const newNote = `${selected.note ? selected.note + "\n" : ""}[QR Meja dibatalkan] ${reason}`;
+                  const { error } = await supabase
+                    .from("orders")
+                    .update({ channel: "pos", note: newNote } as never)
+                    .eq("id", selected.id);
+                  setSavingTable(false);
+                  if (error) { toast.error("Gagal: " + error.message); return; }
+                  setSelected({ ...selected, channel: "pos", note: newNote });
+                  setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, channel: "pos" } : p));
+                  setCancelOpen(false);
+                  setCancelReason("");
+                  setEditingTable(true);
+                  setTableDraft(selected.table_label ?? "");
+                  toast.success("Kunci QR dilepas — silakan ubah meja");
+                }}
+              >
+                Buka Kunci
               </Button>
             </DialogFooter>
           </DialogContent>
