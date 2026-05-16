@@ -5955,30 +5955,39 @@ export type Database = {
       }
       shop_chat_messages: {
         Row: {
+          attachment_type: string | null
+          attachment_url: string | null
           body: string
           chat_id: string
           created_at: string
           id: string
+          product_id: string | null
           read_at: string | null
           sender_id: string
           sender_role: string
           shop_id: string
         }
         Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           body: string
           chat_id: string
           created_at?: string
           id?: string
+          product_id?: string | null
           read_at?: string | null
           sender_id: string
           sender_role: string
           shop_id: string
         }
         Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           body?: string
           chat_id?: string
           created_at?: string
           id?: string
+          product_id?: string | null
           read_at?: string | null
           sender_id?: string
           sender_role?: string
