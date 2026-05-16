@@ -85,6 +85,15 @@ function ShopChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  /** Files awaiting upload (text-only fallback) keyed by tempId; survives retries. */
+  const pendingFilesRef = useRef<Map<string, { file: File; caption: string }>>(new Map());
+  /** Blob URLs we created so we can revoke them on unmount. */
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => () => {
+    blobUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
+    blobUrlsRef.current.clear();
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
