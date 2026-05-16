@@ -265,11 +265,14 @@ function ShopChatPage() {
     setSending(false);
   }
 
+  useEffect(() => {
+    if (!notFound) return;
+    toast.info("Toko tidak ditemukan");
+    const t = setTimeout(() => navigate({ to: "/", replace: true }), 800);
+    return () => clearTimeout(t);
+  }, [notFound, navigate]);
+
   if (notFound) {
-    if (typeof window !== "undefined") {
-      toast.info("Toko tidak ditemukan");
-      navigate({ to: "/", replace: true });
-    }
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <p className="text-sm text-muted-foreground">Mengalihkan ke beranda…</p>
