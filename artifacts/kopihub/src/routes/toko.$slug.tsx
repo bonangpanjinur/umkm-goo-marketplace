@@ -311,6 +311,9 @@ type Shop = {
   rating_count: number | null;
   business_category_id: string | null;
   kyc_status: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
 };
 
 type ReviewStats = {
