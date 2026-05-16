@@ -28,12 +28,13 @@ const SHOP_PAGE_SIZE = 12;
 const searchSchema = z.object({
   q:       z.string().optional().default(""),
   cat:     z.string().optional().default(""),
-  sort:    z.enum(["relevan", "termurah", "termahal", "rating"]).optional().default("relevan"),
+  sort:    z.enum(["relevan", "termurah", "termahal", "rating", "terbaru"]).optional().default("relevan"),
   min:     z.coerce.number().optional(),
   max:     z.coerce.number().optional(),
   minRating: z.coerce.number().optional(),
   city:    z.string().optional().default(""),
   pay:     z.enum(["", "cash", "qris", "transfer", "ewallet", "card"]).optional().default(""),
+  verified: z.coerce.boolean().optional().default(false),
   tab:     z.enum(["semua", "produk", "toko"]).optional().default("semua"),
 });
 
@@ -43,11 +44,19 @@ const PAY_LABEL: Record<string, string> = {
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Pencarian — UMKMgo" },
-      { name: "description", content: "Cari produk dan toko di marketplace UMKMgo." },
-    ],
+  head: ({ search }) => {
+    const q = (search as any)?.q?.trim();
+    const title = q ? `Hasil "${q}" — UMKMgo` : "Pencarian — UMKMgo";
+    const description = q
+      ? `Cari "${q}" — produk dan toko UMKM lokal di UMKMgo marketplace.`
+      : "Cari produk dan toko di marketplace UMKMgo.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+      ],
+    };
+  },
   }),
   component: SearchPage,
 });
