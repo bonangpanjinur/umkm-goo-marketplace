@@ -221,7 +221,7 @@ function SearchPage() {
   const [productMoreError, setProductMoreError] = useState<string | null>(null);
   const [shopMoreError,    setShopMoreError]    = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [showClearCacheDialog, setShowClearCacheDialog] = useState(false);
 
   // Cache terpisah: produk & toko (independent), dengan TTL & localStorage persistence.
   const productCacheRef = useRef<Map<string, ProductCacheEntry>>(new Map());
