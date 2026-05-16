@@ -18,10 +18,9 @@ type DigitalItem = {
   created_at: string;
   menu_item: {
     name: string;
-    product_type: string;
-    download_url: string | null;
-    file_type: string | null;
-    file_size_kb: number | null;
+    is_digital: boolean | null;
+    digital_file_url: string | null;
+    digital_file_name: string | null;
     image_url: string | null;
   } | null;
   order: {
