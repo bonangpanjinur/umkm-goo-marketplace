@@ -463,7 +463,7 @@ function SearchPage() {
       fetchShops();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
+  }, [q, cat, sort, min, max, minRating, city, pay, verified, cats]);
 
   const loadMoreProducts = async (opts?: { isRetry?: boolean }) => {
     const next = productPage + 1;
