@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Sparkles, Store, ShieldCheck, Zap, TrendingUp, Star,
   ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
-  Plus, Flame, BadgeCheck,
+  Plus, Flame, BadgeCheck, Heart,
 } from "lucide-react";
 
 function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
