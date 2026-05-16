@@ -625,7 +625,7 @@ export function OrdersTodayDialog({
                 </span>
               </div>
               {/* Baris Meja dengan kunci/edit */}
-              {(selected.table_label || editingTable) && (
+              {(selected.table_label || editingTable || isQrTable) && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-muted-foreground">Meja:</span>
                   {editingTable ? (
@@ -671,9 +671,15 @@ export function OrdersTodayDialog({
                     </>
                   ) : (
                     <>
-                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
-                        {selected.table_label ?? "—"}
-                      </span>
+                      {selected.table_label ? (
+                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
+                          {selected.table_label}
+                        </span>
+                      ) : (
+                        <span className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[11px] italic text-amber-800">
+                          (no. meja belum tercatat)
+                        </span>
+                      )}
                       {isQrTable ? (
                         <>
                           <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200">
