@@ -10,13 +10,15 @@ import {
 } from "@/components/ui/sheet";
 import {
   Send, ChevronLeft, Store, Loader2, AlertCircle, MessageCircle,
-  Paperclip, ImageIcon, X, ShoppingBag,
+  Paperclip, ImageIcon, X, ShoppingBag, Check, CheckCheck, Clock, RefreshCw, Wifi, WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/toko/$slug/chat")({
   component: ShopChatPage,
 });
+
+type SendStatus = "sending" | "sent" | "failed";
 
 type Message = {
   id: string;
@@ -29,7 +31,12 @@ type Message = {
   attachment_url?: string | null;
   attachment_type?: string | null;
   product_id?: string | null;
+  /** Client-only fields for optimistic UI */
+  _tempId?: string;
+  _status?: SendStatus;
 };
+
+type RtStatus = "connecting" | "live" | "offline";
 
 type ProductLite = {
   id: string;
@@ -67,6 +74,7 @@ function ShopChatPage() {
   const [products, setProducts] = useState<ProductLite[]>([]);
   const [productSheetOpen, setProductSheetOpen] = useState(false);
   const [sellerTyping, setSellerTyping] = useState(false);
+  const [rtStatus, setRtStatus] = useState<RtStatus>("connecting");
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,6 +154,7 @@ function ShopChatPage() {
   // Realtime: pesan baru + typing indicator
   useEffect(() => {
     if (!chatId || !user) return;
+    setRtStatus("connecting");
     const ch = supabase
       .channel(`shop-chat-${chatId}`, { config: { presence: { key: user.id } } })
       .on(
@@ -153,7 +162,7 @@ function ShopChatPage() {
         { event: "INSERT", schema: "public", table: "shop_chat_messages", filter: `chat_id=eq.${chatId}` },
         (payload) => setMessages((m) => {
           const n = payload.new as Message;
-          return m.some((x) => x.id === n.id) ? m : [...m, n];
+          return m.some((x) => x.id === n.id) ? m : [...m, { ...n, _status: "sent" }];
         }),
       )
       .on("broadcast", { event: "typing" }, (payload) => {
@@ -164,11 +173,16 @@ function ShopChatPage() {
           typingTimeoutRef.current = setTimeout(() => setSellerTyping(false), 3000);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setRtStatus("live");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") setRtStatus("offline");
+        else setRtStatus("connecting");
+      });
     channelRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
       channelRef.current = null;
+      setRtStatus("offline");
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [chatId, user]);
@@ -182,8 +196,32 @@ function ShopChatPage() {
     channelRef.current.send({ type: "broadcast", event: "typing", payload: { from: "buyer" } });
   }
 
+  /**
+   * Optimistic send:
+   * 1. Push temp bubble (status "sending") immediately.
+   * 2. INSERT into DB.
+   * 3. On success: replace temp with real row (status "sent").
+   * 4. On failure: keep temp bubble, mark status "failed", expose retry.
+   */
   async function insertMessage(payload: Partial<Message>) {
     if (!user || !chatId || !shopId) return null;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic: Message = {
+      id: tempId,
+      chat_id: chatId,
+      sender_id: user.id,
+      sender_role: "buyer",
+      body: payload.body ?? "",
+      attachment_url: payload.attachment_url ?? null,
+      attachment_type: payload.attachment_type ?? null,
+      product_id: payload.product_id ?? null,
+      read_at: null,
+      created_at: new Date().toISOString(),
+      _tempId: tempId,
+      _status: "sending",
+    };
+    setMessages((m) => [...m, optimistic]);
+
     const { data, error } = await (supabase as any)
       .from("shop_chat_messages")
       .insert({
@@ -198,13 +236,32 @@ function ShopChatPage() {
       })
       .select("*")
       .single();
-    if (error) {
+
+    if (error || !data) {
+      setMessages((m) => m.map((x) => (x._tempId === tempId ? { ...x, _status: "failed" } : x)));
       toast.error("Gagal mengirim pesan");
       return null;
     }
-    // Optimistic merge (realtime juga akan dapat, tapi dedupe by id)
-    setMessages((m) => (m.some((x) => x.id === data.id) ? m : [...m, data as Message]));
+
+    // Replace optimistic with real row; dedupe in case realtime already arrived.
+    setMessages((m) => {
+      const withoutTemp = m.filter((x) => x._tempId !== tempId);
+      if (withoutTemp.some((x) => x.id === data.id)) return withoutTemp;
+      return [...withoutTemp, { ...(data as Message), _status: "sent" }];
+    });
     return data as Message;
+  }
+
+  async function retrySend(msg: Message) {
+    // Remove failed bubble and re-send with same payload.
+    if (!msg._tempId) return;
+    setMessages((m) => m.filter((x) => x._tempId !== msg._tempId));
+    await insertMessage({
+      body: msg.body,
+      attachment_url: msg.attachment_url,
+      attachment_type: msg.attachment_type,
+      product_id: msg.product_id,
+    });
   }
 
   async function sendMessage() {
@@ -295,8 +352,28 @@ function ShopChatPage() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm leading-none">{shopName}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {sellerTyping ? <span className="text-primary">sedang mengetik…</span> : "Chat sebelum beli · tanya apa saja"}
+          <p className="text-xs mt-0.5 flex items-center gap-1.5">
+            {sellerTyping ? (
+              <span className="text-primary">sedang mengetik…</span>
+            ) : rtStatus === "live" ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <span className="text-muted-foreground">Live · chat real-time aktif</span>
+              </>
+            ) : rtStatus === "connecting" ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Menghubungkan…</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-3 w-3 text-amber-500" />
+                <span className="text-amber-600 dark:text-amber-400">Offline · pesan baru tidak tampil otomatis</span>
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -354,63 +431,95 @@ function ShopChatPage() {
           messages.map((msg) => {
             const isMine = msg.sender_role === "buyer";
             const prod = msg.product_id ? productById(msg.product_id) : null;
+            const status: SendStatus = msg._status ?? "sent";
+            const isFailed = isMine && status === "failed";
+            const isSending = isMine && status === "sending";
             return (
               <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[78%] rounded-2xl px-3 py-2 ${
-                    isMine
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted rounded-bl-sm"
-                  }`}
-                >
-                  {!isMine && (
-                    <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
-                  )}
-
-                  {msg.attachment_url && msg.attachment_type === "image" && (
-                    <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block mb-1.5">
-                      <img
-                        src={msg.attachment_url}
-                        alt="Lampiran"
-                        className="rounded-lg max-h-60 w-auto object-cover"
-                        loading="lazy"
-                      />
-                    </a>
-                  )}
-
-                  {prod && (
-                    <Link
-                      to="/toko/$slug" params={{ slug }}
-                      className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 ${
-                        isMine ? "bg-primary-foreground/10" : "bg-background"
-                      }`}
-                    >
-                      {prod.image_url ? (
-                        <img src={prod.image_url} alt={prod.name} className="h-10 w-10 rounded object-cover" />
-                      ) : (
-                        <div className={`h-10 w-10 rounded flex items-center justify-center ${isMine ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                          <ShoppingBag className="h-4 w-4 opacity-60" />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium truncate">{prod.name}</p>
-                        <p className={`text-[11px] ${isMine ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{formatIDR(prod.price)}</p>
-                      </div>
-                    </Link>
-                  )}
-
-                  {msg.body && <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>}
-
-                  <p
-                    className={`text-[10px] mt-1 ${
-                      isMine ? "text-primary-foreground/70 text-right" : "text-muted-foreground"
+                <div className={`max-w-[78%] ${isFailed ? "flex flex-col items-end gap-1" : ""}`}>
+                  <div
+                    className={`rounded-2xl px-3 py-2 transition-opacity ${
+                      isMine
+                        ? `${isFailed ? "bg-destructive/10 border border-destructive/40 text-foreground" : "bg-primary text-primary-foreground"} rounded-br-sm ${isSending ? "opacity-70" : ""}`
+                        : "bg-muted rounded-bl-sm"
                     }`}
                   >
-                    {new Date(msg.created_at).toLocaleTimeString("id-ID", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    {!isMine && (
+                      <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
+                    )}
+
+                    {msg.attachment_url && msg.attachment_type === "image" && (
+                      <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block mb-1.5">
+                        <img
+                          src={msg.attachment_url}
+                          alt="Lampiran"
+                          className="rounded-lg max-h-60 w-auto object-cover"
+                          loading="lazy"
+                        />
+                      </a>
+                    )}
+
+                    {prod && (
+                      <Link
+                        to="/toko/$slug" params={{ slug }}
+                        className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 ${
+                          isMine && !isFailed ? "bg-primary-foreground/10" : "bg-background"
+                        }`}
+                      >
+                        {prod.image_url ? (
+                          <img src={prod.image_url} alt={prod.name} className="h-10 w-10 rounded object-cover" />
+                        ) : (
+                          <div className={`h-10 w-10 rounded flex items-center justify-center ${isMine && !isFailed ? "bg-primary-foreground/20" : "bg-muted"}`}>
+                            <ShoppingBag className="h-4 w-4 opacity-60" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium truncate">{prod.name}</p>
+                          <p className={`text-[11px] ${isMine && !isFailed ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{formatIDR(prod.price)}</p>
+                        </div>
+                      </Link>
+                    )}
+
+                    {msg.body && <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>}
+
+                    <div
+                      className={`text-[10px] mt-1 flex items-center gap-1 ${
+                        isMine
+                          ? isFailed
+                            ? "text-destructive justify-end"
+                            : "text-primary-foreground/70 justify-end"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      <span>
+                        {new Date(msg.created_at).toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      {isMine && (
+                        status === "sending" ? (
+                          <Clock className="h-3 w-3" aria-label="Mengirim" />
+                        ) : status === "failed" ? (
+                          <AlertCircle className="h-3 w-3" aria-label="Gagal terkirim" />
+                        ) : msg.read_at ? (
+                          <CheckCheck className="h-3 w-3" aria-label="Dibaca" />
+                        ) : (
+                          <Check className="h-3 w-3" aria-label="Terkirim" />
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {isFailed && (
+                    <button
+                      type="button"
+                      onClick={() => retrySend(msg)}
+                      className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline px-1"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Coba kirim ulang
+                    </button>
+                  )}
                 </div>
               </div>
             );
