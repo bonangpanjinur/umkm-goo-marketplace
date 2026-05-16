@@ -753,6 +753,11 @@ function POSPage() {
               paymentMethod={lastReceipt.paymentMethod}
               amountTendered={lastReceipt.amountTendered}
               changeDue={lastReceipt.changeDue}
+              customerName={
+                [lastReceipt.tableLabel ? `Meja ${lastReceipt.tableLabel}` : null, lastReceipt.customerName]
+                  .filter(Boolean)
+                  .join(" · ") || undefined
+              }
             />
           )}
         </div>
