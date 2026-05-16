@@ -201,6 +201,7 @@ export function OrdersTodayDialog({
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
       if (sourceFilter === "pos" && o.channel !== "pos") return false;
       if (sourceFilter === "online" && o.channel !== "online") return false;
+      if (sourceFilter === "qr_table" && !(o.channel === "online" && o.table_label)) return false;
       if (sourceFilter === "marketplace" && !o.marketplace_order) return false;
       if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
       if (q) {
