@@ -179,6 +179,17 @@ export function OrdersTodayDialog({
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
 
+  // QR-unlock filter for list view
+  const [qrUnlockedOnly, setQrUnlockedOnly] = useState(false);
+  const [qrUnlockedIds, setQrUnlockedIds] = useState<Set<string>>(new Set());
+
+  // Export dialog state
+  const [exportOpen, setExportOpen] = useState(false);
+  const today = new Date().toISOString().slice(0, 10);
+  const [exportFrom, setExportFrom] = useState<string>(today);
+  const [exportTo, setExportTo] = useState<string>(today);
+  const [exporting, setExporting] = useState(false);
+
   async function loadAudit(orderId: string) {
     setAuditLoading(true);
     const { data } = await supabase
