@@ -56,6 +56,7 @@ type Order = {
   created_at: string;
   customer_name: string | null;
   fulfillment: string | null;
+  table_label: string | null;
 };
 
 type OrderDetail = Order & {
@@ -162,7 +163,7 @@ export function OrdersTodayDialog({
     supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label",
       )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
@@ -214,7 +215,7 @@ export function OrdersTodayDialog({
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
       .eq("id", id)
       .single();
