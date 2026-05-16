@@ -96,6 +96,57 @@ function ActiveFilterPill({ label, onRemove }: { label: string; onRemove: () => 
   );
 }
 
+function SearchEmptyState({
+  type,
+  hasFilters,
+  onClear,
+  onRetry,
+  error,
+}: {
+  type: "produk" | "toko";
+  hasFilters: boolean;
+  onClear: () => void;
+  onRetry: () => void;
+  error?: string | null;
+}) {
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-8 text-center space-y-3">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-destructive">Terjadi kesalahan</p>
+          <p className="text-xs text-muted-foreground">{error}</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
+          <RefreshCw className="h-3.5 w-3.5" /> Coba lagi
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl border border-border bg-card p-8 text-center space-y-3">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Inbox className="h-6 w-6" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground">Tidak ada {type} yang cocok</p>
+        <p className="text-xs text-muted-foreground">
+          {hasFilters
+            ? "Coba hapus beberapa filter atau ubah kata kunci pencarian."
+            : "Belum ada {type} yang tersedia saat ini."}
+        </p>
+      </div>
+      {hasFilters && (
+        <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
+          <X className="h-3.5 w-3.5" /> Hapus filter
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function SearchPage() {
   const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
