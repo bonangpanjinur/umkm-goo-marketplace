@@ -7,21 +7,27 @@ import {
   type ReceiptPaper,
 } from "@/lib/receipt-printer";
 
-/** Inline picker (58mm / 80mm) that persists per-device via localStorage
- * and immediately applies the choice to <body> so on-screen preview and
- * subsequent prints both reflect it. */
-export function ReceiptPaperPicker({ className }: { className?: string }) {
+/** Inline picker (58mm / 80mm) — persists per scope (outlet+user) when
+ * `scopeKey` is provided, otherwise per-device. Immediately applies the
+ * choice to <body> so previews and prints both reflect it. */
+export function ReceiptPaperPicker({
+  className,
+  scopeKey,
+}: {
+  className?: string;
+  scopeKey?: string;
+}) {
   const [paper, setPaper] = useState<ReceiptPaper>("58");
 
   useEffect(() => {
-    const v = getReceiptPaper();
+    const v = getReceiptPaper(scopeKey);
     setPaper(v);
-    applyReceiptPaper(v);
-  }, []);
+    applyReceiptPaper(v, scopeKey);
+  }, [scopeKey]);
 
   function pick(v: ReceiptPaper) {
     setPaper(v);
-    setReceiptPaper(v);
+    setReceiptPaper(v, scopeKey);
   }
 
   return (
