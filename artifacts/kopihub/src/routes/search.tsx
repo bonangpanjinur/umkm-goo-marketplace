@@ -502,12 +502,12 @@ function SearchPage() {
                       <>
                         <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                           {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                          {loadingMoreP && <ProductSkeletonCards n={10} />}
                         </div>
                         {canLoadMoreProducts && tab !== "toko" && (
                           <div className="mt-4 flex justify-center">
-                            <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP}>
-                              {loadingMoreP && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                              Muat lebih banyak produk
+                            <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP} className="gap-1.5">
+                              {loadingMoreP ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak produk"}
                             </Button>
                           </div>
                         )}
