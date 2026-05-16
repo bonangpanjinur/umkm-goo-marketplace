@@ -19,7 +19,11 @@ interface PaymentDialogProps {
   subtotal?: number;
   serviceCharge?: number;
   tax?: number;
-  onConfirm: (method: string, amount: number) => Promise<void>;
+  onConfirm: (
+    method: string,
+    amount: number,
+    extras: { customer_name: string | null; table_label: string | null }
+  ) => Promise<void>;
 }
 
 export function PaymentDialog({
@@ -34,12 +38,16 @@ export function PaymentDialog({
   const [method, setMethod] = useState<"cash" | "qris">("cash");
   const [cashAmount, setCashAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [tableLabel, setTableLabel] = useState("");
 
   useEffect(() => {
     if (open) {
       setMethod("cash");
       setCashAmount("");
       setLoading(false);
+      setCustomerName("");
+      setTableLabel("");
     }
   }, [open]);
 
@@ -49,7 +57,10 @@ export function PaymentDialog({
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      await onConfirm(method, method === "cash" ? amount : total);
+      await onConfirm(method, method === "cash" ? amount : total, {
+        customer_name: customerName.trim() || null,
+        table_label: tableLabel.trim() || null,
+      });
     } finally {
       setLoading(false);
     }
@@ -83,6 +94,30 @@ export function PaymentDialog({
             )}
             <div className="text-sm text-muted-foreground">Total Tagihan</div>
             <div className="text-3xl font-bold text-primary">{formatIDR(total)}</div>
+          </div>
+
+          {/* Identitas Pesanan */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="cust-name" className="text-xs">Atas Nama</Label>
+              <Input
+                id="cust-name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Nama pelanggan"
+                maxLength={60}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="table-label" className="text-xs">Meja (opsional)</Label>
+              <Input
+                id="table-label"
+                value={tableLabel}
+                onChange={(e) => setTableLabel(e.target.value)}
+                placeholder="Mis. 5 / VIP-2"
+                maxLength={20}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
