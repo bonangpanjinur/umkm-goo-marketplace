@@ -39,10 +39,18 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
   const [groups, setGroups] = useState<OptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
+  // Only mount the actual Dialog once we've confirmed there are option groups.
+  // Otherwise the picker flashes open and immediately closes (auto-confirm path),
+  // which looks like a disappearing modal to the user.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!open || !menuItemId) return;
+    if (!open || !menuItemId) {
+      setReady(false);
+      return;
+    }
     setLoading(true);
+    setReady(false);
     (async () => {
       const { data: grps } = await supabase
         .from("menu_item_option_groups")
@@ -54,7 +62,7 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
       if (!grps || grps.length === 0) {
         setGroups([]);
         setLoading(false);
-        // No options, confirm immediately
+        // No options — add to cart silently, never show the dialog
         onConfirm([]);
         onClose();
         return;
@@ -88,6 +96,7 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
       });
       setSelections(init);
       setLoading(false);
+      setReady(true);
     })();
   }, [open, menuItemId, shopId]);
 
@@ -136,7 +145,7 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
   );
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open && ready} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Pilih Opsi — {menuItemName}</DialogTitle>
