@@ -172,8 +172,10 @@ import { Route as AkunReferralRouteImport } from './routes/akun.referral'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunLoyaltyRouteImport } from './routes/akun.loyalty'
 import { Route as AkunKursusRouteImport } from './routes/akun.kursus'
+import { Route as AkunInboxRouteImport } from './routes/akun.inbox'
 import { Route as AkunFavoritRouteImport } from './routes/akun.favorit'
 import { Route as AkunDigitalProductsRouteImport } from './routes/akun.digital-products'
+import { Route as AkunCustomOrdersRouteImport } from './routes/akun.custom-orders'
 import { Route as AkunCashbackRouteImport } from './routes/akun.cashback'
 import { Route as AkunBookingsRouteImport } from './routes/akun.bookings'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
@@ -1089,6 +1091,11 @@ const AkunKursusRoute = AkunKursusRouteImport.update({
   path: '/kursus',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunInboxRoute = AkunInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunFavoritRoute = AkunFavoritRouteImport.update({
   id: '/favorit',
   path: '/favorit',
@@ -1097,6 +1104,11 @@ const AkunFavoritRoute = AkunFavoritRouteImport.update({
 const AkunDigitalProductsRoute = AkunDigitalProductsRouteImport.update({
   id: '/digital-products',
   path: '/digital-products',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunCustomOrdersRoute = AkunCustomOrdersRouteImport.update({
+  id: '/custom-orders',
+  path: '/custom-orders',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunCashbackRoute = AkunCashbackRouteImport.update({
@@ -1658,8 +1670,10 @@ export interface FileRoutesByFullPath {
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
   '/akun/cashback': typeof AkunCashbackRoute
+  '/akun/custom-orders': typeof AkunCustomOrdersRoute
   '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
+  '/akun/inbox': typeof AkunInboxRoute
   '/akun/kursus': typeof AkunKursusRouteWithChildren
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
@@ -1917,8 +1931,10 @@ export interface FileRoutesByTo {
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
   '/akun/cashback': typeof AkunCashbackRoute
+  '/akun/custom-orders': typeof AkunCustomOrdersRoute
   '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
+  '/akun/inbox': typeof AkunInboxRoute
   '/akun/kursus': typeof AkunKursusRouteWithChildren
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
@@ -2178,8 +2194,10 @@ export interface FileRoutesById {
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
   '/akun/cashback': typeof AkunCashbackRoute
+  '/akun/custom-orders': typeof AkunCustomOrdersRoute
   '/akun/digital-products': typeof AkunDigitalProductsRoute
   '/akun/favorit': typeof AkunFavoritRoute
+  '/akun/inbox': typeof AkunInboxRoute
   '/akun/kursus': typeof AkunKursusRouteWithChildren
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
@@ -2442,8 +2460,10 @@ export interface FileRouteTypes {
     | '/akun/alamat'
     | '/akun/bookings'
     | '/akun/cashback'
+    | '/akun/custom-orders'
     | '/akun/digital-products'
     | '/akun/favorit'
+    | '/akun/inbox'
     | '/akun/kursus'
     | '/akun/loyalty'
     | '/akun/notifikasi'
@@ -2701,8 +2721,10 @@ export interface FileRouteTypes {
     | '/akun/alamat'
     | '/akun/bookings'
     | '/akun/cashback'
+    | '/akun/custom-orders'
     | '/akun/digital-products'
     | '/akun/favorit'
+    | '/akun/inbox'
     | '/akun/kursus'
     | '/akun/loyalty'
     | '/akun/notifikasi'
@@ -2961,8 +2983,10 @@ export interface FileRouteTypes {
     | '/akun/alamat'
     | '/akun/bookings'
     | '/akun/cashback'
+    | '/akun/custom-orders'
     | '/akun/digital-products'
     | '/akun/favorit'
+    | '/akun/inbox'
     | '/akun/kursus'
     | '/akun/loyalty'
     | '/akun/notifikasi'
@@ -4326,6 +4350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunKursusRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/inbox': {
+      id: '/akun/inbox'
+      path: '/inbox'
+      fullPath: '/akun/inbox'
+      preLoaderRoute: typeof AkunInboxRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/favorit': {
       id: '/akun/favorit'
       path: '/favorit'
@@ -4338,6 +4369,13 @@ declare module '@tanstack/react-router' {
       path: '/digital-products'
       fullPath: '/akun/digital-products'
       preLoaderRoute: typeof AkunDigitalProductsRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/custom-orders': {
+      id: '/akun/custom-orders'
+      path: '/custom-orders'
+      fullPath: '/akun/custom-orders'
+      preLoaderRoute: typeof AkunCustomOrdersRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/cashback': {
@@ -5179,8 +5217,10 @@ interface AkunRouteChildren {
   AkunAlamatRoute: typeof AkunAlamatRoute
   AkunBookingsRoute: typeof AkunBookingsRoute
   AkunCashbackRoute: typeof AkunCashbackRoute
+  AkunCustomOrdersRoute: typeof AkunCustomOrdersRoute
   AkunDigitalProductsRoute: typeof AkunDigitalProductsRoute
   AkunFavoritRoute: typeof AkunFavoritRoute
+  AkunInboxRoute: typeof AkunInboxRoute
   AkunKursusRoute: typeof AkunKursusRouteWithChildren
   AkunLoyaltyRoute: typeof AkunLoyaltyRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
@@ -5198,8 +5238,10 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunAlamatRoute: AkunAlamatRoute,
   AkunBookingsRoute: AkunBookingsRoute,
   AkunCashbackRoute: AkunCashbackRoute,
+  AkunCustomOrdersRoute: AkunCustomOrdersRoute,
   AkunDigitalProductsRoute: AkunDigitalProductsRoute,
   AkunFavoritRoute: AkunFavoritRoute,
+  AkunInboxRoute: AkunInboxRoute,
   AkunKursusRoute: AkunKursusRouteWithChildren,
   AkunLoyaltyRoute: AkunLoyaltyRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
