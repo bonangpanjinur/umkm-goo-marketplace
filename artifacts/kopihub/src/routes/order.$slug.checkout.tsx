@@ -113,9 +113,10 @@ function DineInCheckoutPage() {
           payment_status: "unpaid" as const,
           status: "pending",
           notes: note.trim() || null,
-          channel: "pos",
+          channel: table ? "online" : "pos",
           table_id: table || null,
           table_name: displayTableName || null,
+          table_label: table ? (displayTableName || `Meja ${table}`) : null,
           order_items: orderItems,
         })
         .select("id")
