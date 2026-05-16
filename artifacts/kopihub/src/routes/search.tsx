@@ -600,22 +600,21 @@ function SearchPage() {
                 <h2 className="mb-4 text-base font-semibold text-muted-foreground">
                   Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
                 </h2>
-                {loading
-                  ? <SkeletonProductGrid />
-                  : error ? (
+                {loadingProducts ? <SkeletonProductGrid />
+                  : productError && products.length === 0 ? (
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
-                      error={error}
+                      onRetry={retryProducts}
+                      error={productError}
                     />
                   ) : products.length === 0 ? (
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
+                      onRetry={retryProducts}
                     />
                   ) : (
                       <>
@@ -623,12 +622,24 @@ function SearchPage() {
                           {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
                           {loadingMoreP && <ProductSkeletonCards n={10} />}
                         </div>
-                        {canLoadMoreProducts && tab !== "toko" && (
+                        {productMoreError && (
+                          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>{productMoreError}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreProducts} disabled={loadingMoreP}>
+                              <RefreshCw className="h-3 w-3" /> Coba lagi
+                            </Button>
+                          </div>
+                        )}
+                        {canLoadMoreProducts && tab !== "toko" && !productMoreError && (
                           <div className="mt-4 flex justify-center">
                             <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP} className="gap-1.5">
                               {loadingMoreP ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak produk"}
                             </Button>
                           </div>
+                        )}
+                        {!canLoadMoreProducts && products.length >= PRODUCT_PAGE_SIZE && (
+                          <p className="mt-4 text-center text-xs text-muted-foreground">Tidak ada lagi produk untuk filter ini.</p>
                         )}
                       </>
                     )
