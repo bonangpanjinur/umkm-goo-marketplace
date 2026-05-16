@@ -885,6 +885,7 @@ function CartTabs({
   onOpenParked,
   parkedCount,
   onOpenOrders,
+  ordersTodayCount,
 }: {
   carts: LocalCart[];
   activeIdx: number;
