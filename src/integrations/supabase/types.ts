@@ -7711,6 +7711,7 @@ export type Database = {
         Args: { _shop_id: string; _theme_key: string }
         Returns: undefined
       }
+      test_qr_table_lock: { Args: never; Returns: string }
       user_belongs_to_shop: {
         Args: { _shop_id: string; _user_id: string }
         Returns: boolean

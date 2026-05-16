@@ -11,7 +11,7 @@ export const Route = createFileRoute("/order/$slug")({
     table: (search.table as string) || "",
     tableName: (search.tableName as string) || "",
   }),
-  loader: async ({ params }) => {
+  loader: async ({ params, location }) => {
     const { data: shop } = await supabase
       .from("coffee_shops")
       .select("id, name, slug, description, tagline, logo_url, phone, is_active")
@@ -19,7 +19,33 @@ export const Route = createFileRoute("/order/$slug")({
       .maybeSingle();
 
     if (!shop || !shop.is_active) throw notFound();
-    return { shop };
+
+    // When customer arrives via QR (?table=<uuid>), validate that the table and
+    // its outlet are still active. Block the scan if either is non-aktif so QR
+    // codes printed for inactive outlets/tables cannot produce orphan orders.
+    const tableParam = (location.search as { table?: string }).table || "";
+    let tableValidation: { ok: boolean; reason?: string } = { ok: true };
+    if (tableParam) {
+      try {
+        const { data: t } = await (supabase as any)
+          .from("tables")
+          .select("id, name, is_active, outlet_id, outlets:outlet_id (id, is_active, shop_id)")
+          .eq("id", tableParam)
+          .maybeSingle();
+        if (!t) {
+          tableValidation = { ok: false, reason: "Meja tidak ditemukan untuk QR ini." };
+        } else if (t.outlets?.shop_id && t.outlets.shop_id !== shop.id) {
+          tableValidation = { ok: false, reason: "Meja ini bukan milik toko ini." };
+        } else if (t.is_active === false) {
+          tableValidation = { ok: false, reason: "Meja ini sedang non-aktif." };
+        } else if (t.outlets && t.outlets.is_active === false) {
+          tableValidation = { ok: false, reason: "Outlet untuk meja ini sedang non-aktif." };
+        }
+      } catch {
+        // Tables table may not exist on older projects — fail open in that case.
+      }
+    }
+    return { shop, tableValidation };
   },
   component: DineInLayout,
   notFoundComponent: () => (
@@ -38,7 +64,7 @@ export const Route = createFileRoute("/order/$slug")({
 function DineInLayout() {
   const { slug } = useParams({ from: "/order/$slug" });
   const { table, tableName } = Route.useSearch();
-  const { shop } = Route.useLoaderData();
+  const { shop, tableValidation } = Route.useLoaderData();
   const [cartCnt, setCartCnt] = useState(0);
 
   useEffect(() => {
@@ -58,6 +84,27 @@ function DineInLayout() {
   }, [slug, table]);
 
   const displayTableName = tableName || `Meja ${table}`;
+
+  // Block the whole flow if QR points to inactive/non-matching table/outlet.
+  if (table && tableValidation && !tableValidation.ok) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+        <div className="text-center max-w-sm space-y-3">
+          <div className="mx-auto h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <ScanQrCode className="h-6 w-6 text-red-600" />
+          </div>
+          <h1 className="text-xl font-bold">QR Meja tidak dapat diproses</h1>
+          <p className="text-sm text-muted-foreground">{tableValidation.reason}</p>
+          <p className="text-xs text-muted-foreground">
+            Hubungi staf untuk meminta QR yang aktif, atau pesan tanpa QR meja.
+          </p>
+          <Link to="/order/$slug" params={{ slug }} search={{ table: "", tableName: "" }}>
+            <Button variant="outline">Lihat Menu Tanpa Meja</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

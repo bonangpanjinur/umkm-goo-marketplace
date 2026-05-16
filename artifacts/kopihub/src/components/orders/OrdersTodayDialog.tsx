@@ -163,12 +163,38 @@ export function OrdersTodayDialog({
   const [cancelReason, setCancelReason] = useState("");
   const [savingTable, setSavingTable] = useState(false);
 
+  // Audit history for the currently-selected order (qr_unlock + others)
+  type AuditEntry = {
+    id: string;
+    action: string;
+    reason: string | null;
+    actor_name: string | null;
+    actor_id: string | null;
+    created_at: string;
+    metadata: Record<string, unknown> | null;
+  };
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  async function loadAudit(orderId: string) {
+    setAuditLoading(true);
+    const { data } = await supabase
+      .from("order_audit_log")
+      .select("id, action, reason, actor_name, actor_id, created_at, metadata")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: false });
+    setAuditEntries((data ?? []) as AuditEntry[]);
+    setAuditLoading(false);
+  }
+
   useEffect(() => {
     // Reset edit state when changing selected order
     setEditingTable(false);
     setTableDraft(selected?.table_label ?? "");
     setCancelOpen(false);
     setCancelReason("");
+    setAuditEntries([]);
+    if (selected?.id) loadAudit(selected.id);
   }, [selected?.id]);
 
   // Persist sort & page
@@ -329,7 +355,14 @@ export function OrdersTodayDialog({
       (!printSource.order_source && printSource.channel === "online" && printSource.table_label))
   );
   const displayCustomer = printSource
-    ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
+    ? [
+        printSource.table_label
+          ? `Meja ${printSource.table_label}`
+          : isQrTable
+            ? "QR Meja (no. meja belum tercatat)"
+            : null,
+        printSource.customer_name,
+      ]
         .filter(Boolean)
         .join(" · ") || null
     : null;
@@ -592,7 +625,7 @@ export function OrdersTodayDialog({
                 </span>
               </div>
               {/* Baris Meja dengan kunci/edit */}
-              {(selected.table_label || editingTable) && (
+              {(selected.table_label || editingTable || isQrTable) && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-muted-foreground">Meja:</span>
                   {editingTable ? (
@@ -623,6 +656,7 @@ export function OrdersTodayDialog({
                           setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, table_label: newLabel } : p));
                           setEditingTable(false);
                           toast.success("Meja diperbarui");
+                          loadAudit(selected.id);
                         }}
                       >
                         <Check className="h-3.5 w-3.5" />
@@ -638,9 +672,15 @@ export function OrdersTodayDialog({
                     </>
                   ) : (
                     <>
-                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
-                        {selected.table_label ?? "—"}
-                      </span>
+                      {selected.table_label ? (
+                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
+                          {selected.table_label}
+                        </span>
+                      ) : (
+                        <span className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[11px] italic text-amber-800">
+                          (no. meja belum tercatat)
+                        </span>
+                      )}
                       {isQrTable ? (
                         <>
                           <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200">
@@ -711,6 +751,51 @@ export function OrdersTodayDialog({
               Bayar via {selected.payment_method === "cash" ? "Tunai" : "QRIS"}
               {selected.payment_method === "cash" && selected.amount_tendered != null && (
                 <> · diterima {formatIDR(Number(selected.amount_tendered))} · kembali {formatIDR(Number(selected.change_due))}</>
+              )}
+            </div>
+
+            {/* Riwayat audit (terutama qr_unlock) */}
+            <div className="rounded-lg border p-3 text-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                  Riwayat Audit
+                </span>
+              </div>
+              {auditLoading ? (
+                <div className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Memuat…</div>
+              ) : auditEntries.length === 0 ? (
+                <div className="text-xs text-muted-foreground italic">Belum ada riwayat untuk order ini.</div>
+              ) : (
+                <ul className="space-y-2">
+                  {auditEntries.map((a) => {
+                    const meta = (a.metadata ?? {}) as Record<string, unknown>;
+                    const prev = (meta.previous_table_label as string | null) ?? null;
+                    const isUnlock = a.action === "qr_unlock";
+                    return (
+                      <li key={a.id} className="text-xs border-l-2 border-amber-300 pl-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`rounded px-1.5 py-0.5 font-semibold ${isUnlock ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+                            {isUnlock ? "QR Unlock" : a.action}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {new Date(a.created_at).toLocaleString("id-ID")}
+                          </span>
+                          <span>· oleh <span className="font-medium">{a.actor_name ?? a.actor_id ?? "Sistem"}</span></span>
+                        </div>
+                        {a.reason && <div className="mt-0.5">Alasan: <span className="italic">{a.reason}</span></div>}
+                        {isUnlock && (
+                          <div className="mt-0.5 text-muted-foreground">
+                            Meja sebelum: <span className="font-mono">{prev ?? "—"}</span>
+                            {selected.table_label !== prev && (
+                              <> → sesudah: <span className="font-mono">{selected.table_label ?? "—"}</span></>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
             </div>
           </div>
@@ -907,6 +992,17 @@ export function OrdersTodayDialog({
               Order ini berasal dari QR meja. Kolom Meja terkunci untuk mencegah salah ubah.
               Masukkan alasan untuk membuka kunci dan mengubah meja.
             </p>
+            {/* Riwayat unlock sebelumnya, agar owner tahu sudah pernah dibuka oleh siapa */}
+            {auditEntries.filter((a) => a.action === "qr_unlock").length > 0 && (
+              <div className="rounded border bg-amber-50 border-amber-200 p-2 text-xs space-y-1 max-h-32 overflow-auto">
+                <div className="font-semibold text-amber-900">Riwayat unlock sebelumnya:</div>
+                {auditEntries.filter((a) => a.action === "qr_unlock").map((a) => (
+                  <div key={a.id} className="text-amber-900">
+                    · {new Date(a.created_at).toLocaleString("id-ID")} — {a.actor_name ?? "?"} {a.reason && `("${a.reason}")`}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-xs font-medium">Alasan</label>
               <Input
@@ -960,6 +1056,7 @@ export function OrdersTodayDialog({
                   setEditingTable(true);
                   setTableDraft(selected.table_label ?? "");
                   toast.success("Kunci QR dilepas — silakan ubah meja");
+                  loadAudit(selected.id);
                 }}
               >
                 Buka Kunci
