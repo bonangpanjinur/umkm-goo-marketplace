@@ -185,7 +185,7 @@ function DigitalProductsPage() {
                     <div className="mt-3 flex items-center gap-2 flex-wrap">
                       {hasDownload ? (
                         <a
-                          href={item.menu_item!.download_url!}
+                          href={downloadUrl!}
                           target="_blank"
                           rel="noopener noreferrer"
                           download
