@@ -520,22 +520,21 @@ function SearchPage() {
                 <h2 className="mb-4 text-base font-semibold text-muted-foreground">
                   Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
                 </h2>
-                {loading
-                  ? <SkeletonShopGrid />
-                  : error ? (
+                {loadingShops ? <SkeletonShopGrid />
+                  : shopError && shops.length === 0 ? (
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
-                      error={error}
+                      onRetry={retryShops}
+                      error={shopError}
                     />
                   ) : shops.length === 0 ? (
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
+                      onRetry={retryShops}
                     />
                   ) : (
                       <>
@@ -570,12 +569,24 @@ function SearchPage() {
                           ))}
                           {loadingMoreS && <ShopSkeletonCards n={4} />}
                         </div>
-                        {canLoadMoreShops && tab !== "produk" && (
+                        {shopMoreError && (
+                          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>{shopMoreError}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreShops} disabled={loadingMoreS}>
+                              <RefreshCw className="h-3 w-3" /> Coba lagi
+                            </Button>
+                          </div>
+                        )}
+                        {canLoadMoreShops && tab !== "produk" && !shopMoreError && (
                           <div className="mt-4 flex justify-center">
                             <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS} className="gap-1.5">
                               {loadingMoreS ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak toko"}
                             </Button>
                           </div>
+                        )}
+                        {!canLoadMoreShops && shops.length >= SHOP_PAGE_SIZE && (
+                          <p className="mt-4 text-center text-xs text-muted-foreground">Tidak ada lagi toko untuk filter ini.</p>
                         )}
                       </>
                     )
