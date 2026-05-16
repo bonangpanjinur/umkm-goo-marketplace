@@ -326,6 +326,7 @@ function DetailDialog({
   order,
   shopName,
   outletName,
+  outletId,
   shopLogoUrl,
   shopAddress,
   shopPhone,
@@ -335,17 +336,22 @@ function DetailDialog({
   order: OrderDetail;
   shopName: string;
   outletName: string;
+  outletId: string;
   shopLogoUrl?: string | null;
   shopAddress?: string | null;
   shopPhone?: string | null;
   onClose: () => void;
   onVoided: () => void;
 }) {
+  const { user } = useAuth();
+  const scopeKey = buildScopeKey(outletId, user?.id);
   const printRef = useRef<HTMLDivElement>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
+  const courierRef = useRef<HTMLDivElement>(null);
+  const [fallbackOpen, setFallbackOpen] = useState<null | "receipt" | "ticket" | "courier">(null);
   useEffect(() => {
-    applyReceiptPaper();
-  }, []);
+    applyReceiptPaper(undefined, scopeKey);
+  }, [scopeKey]);
   const [voiding, setVoiding] = useState(false);
   const [refundOpen, setRefundOpen] = useState(false);
   const [refundAmount, setRefundAmount] = useState<string>(String(order.total));
@@ -355,6 +361,7 @@ function DetailDialog({
   );
   const [refunding, setRefunding] = useState(false);
   const isVoided = order.status === "voided" || order.status === "cancelled";
+  const isDelivery = order.fulfillment === "delivery";
   const items: CartItem[] = order.order_items.map((i) => ({
     menu_item_id: "",
     name: i.name,
@@ -363,13 +370,23 @@ function DetailDialog({
     note: i.note ?? undefined,
   }));
 
-  function handlePrint() {
-    printReceiptNode(printRef.current);
+  function tryPrint(
+    kind: "receipt" | "ticket" | "courier",
+    node: HTMLElement | null,
+  ) {
+    const res = printReceiptNode(node, undefined, scopeKey);
+    if (res !== "ok") {
+      // Dialog blocked or unavailable — try popup, then inline fallback.
+      const popped = openReceiptInNewWindow(node, undefined, scopeKey);
+      if (!popped) {
+        toast.error("Dialog cetak diblokir. Buka pratinjau lalu cetak manual.");
+        setFallbackOpen(kind);
+      }
+    }
   }
-
-  function handlePrintTicket() {
-    printReceiptNode(ticketRef.current);
-  }
+  const handlePrint = () => tryPrint("receipt", printRef.current);
+  const handlePrintTicket = () => tryPrint("ticket", ticketRef.current);
+  const handlePrintCourier = () => tryPrint("courier", courierRef.current);
 
   async function handleRefund() {
     const amt = Number(refundAmount || 0);
