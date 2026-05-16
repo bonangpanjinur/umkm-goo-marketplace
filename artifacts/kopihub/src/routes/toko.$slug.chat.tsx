@@ -593,15 +593,42 @@ function ShopChatPage() {
                       <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
                     )}
 
-                    {msg.attachment_url && msg.attachment_type === "image" && (
-                      <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block mb-1.5">
-                        <img
-                          src={msg.attachment_url}
-                          alt="Lampiran"
-                          className="rounded-lg max-h-60 w-auto object-cover"
-                          loading="lazy"
-                        />
-                      </a>
+                    {(msg.attachment_url || msg._localPreview) && msg.attachment_type === "image" && (
+                      <div className="relative mb-1.5">
+                        {msg.attachment_url ? (
+                          <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block">
+                            <img
+                              src={msg.attachment_url}
+                              alt="Lampiran"
+                              className="rounded-lg max-h-60 w-auto object-cover"
+                              loading="lazy"
+                            />
+                          </a>
+                        ) : (
+                          <img
+                            src={msg._localPreview!}
+                            alt="Lampiran (mengunggah)"
+                            className={`rounded-lg max-h-60 w-auto object-cover ${
+                              isSending ? "opacity-70" : isFailed ? "opacity-60 grayscale" : ""
+                            }`}
+                          />
+                        )}
+                        {/* Upload progress overlay */}
+                        {isSending && msg._pendingUpload && typeof msg._uploadProgress === "number" && (
+                          <div className="absolute inset-x-1.5 bottom-1.5 rounded-full bg-black/55 px-2 py-1 backdrop-blur-sm">
+                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-white">
+                              <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                              <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
+                              <div className="ml-auto h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                                <div
+                                  className="h-full bg-white transition-[width] duration-150 ease-out"
+                                  style={{ width: `${Math.round(msg._uploadProgress * 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {prod && (
