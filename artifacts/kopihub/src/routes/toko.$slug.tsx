@@ -584,6 +584,12 @@ function ShopPage() {
                     Ulasan
                   </Link>
                 </Button>
+                <Button asChild size="sm" variant="outline" className="gap-1.5">
+                  <Link to="/toko/$slug/antrian" params={{ slug }}>
+                    <Users className="h-3.5 w-3.5" />
+                    Lihat Antrian
+                  </Link>
+                </Button>
                 <Button asChild size="sm" variant="ghost" className="gap-1.5">
                   <Link to="/akun/bookings">
                     <ClipboardList className="h-3.5 w-3.5" />

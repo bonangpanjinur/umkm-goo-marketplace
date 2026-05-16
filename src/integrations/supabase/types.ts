@@ -269,6 +269,99 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_review_requests: {
+        Row: {
+          booking_id: string
+          clicked_at: string | null
+          customer_phone: string | null
+          customer_user_id: string | null
+          id: string
+          sent_at: string
+        }
+        Insert: {
+          booking_id: string
+          clicked_at?: string | null
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          id?: string
+          sent_at?: string
+        }
+        Update: {
+          booking_id?: string
+          clicked_at?: string | null
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_review_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_reviews: {
+        Row: {
+          body: string | null
+          booking_id: string
+          comment: string | null
+          created_at: string
+          customer_phone: string | null
+          id: string
+          rating: number
+          shop_id: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          booking_id: string
+          comment?: string | null
+          created_at?: string
+          customer_phone?: string | null
+          id?: string
+          rating: number
+          shop_id: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          booking_id?: string
+          comment?: string | null
+          created_at?: string
+          customer_phone?: string | null
+          id?: string
+          rating?: number
+          shop_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       booking_slots: {
         Row: {
           booking_type: string
@@ -344,11 +437,14 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           customer_user_id: string | null
+          estimated_wait_minutes: number | null
           id: string
           notified_at: string | null
           party_size: number
+          queue_number: number | null
           requested_date: string | null
           requested_time: string | null
+          served_at: string | null
           shop_id: string
           slot_id: string | null
           status: string
@@ -358,11 +454,14 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           customer_user_id?: string | null
+          estimated_wait_minutes?: number | null
           id?: string
           notified_at?: string | null
           party_size?: number
+          queue_number?: number | null
           requested_date?: string | null
           requested_time?: string | null
+          served_at?: string | null
           shop_id: string
           slot_id?: string | null
           status?: string
@@ -372,11 +471,14 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           customer_user_id?: string | null
+          estimated_wait_minutes?: number | null
           id?: string
           notified_at?: string | null
           party_size?: number
+          queue_number?: number | null
           requested_date?: string | null
           requested_time?: string | null
+          served_at?: string | null
           shop_id?: string
           slot_id?: string | null
           status?: string
@@ -419,6 +521,7 @@ export type Database = {
           deposit_amount: number
           deposit_paid: boolean
           deposit_paid_at: string | null
+          feedback_requested_at: string | null
           id: string
           location_address: string | null
           location_fee: number
@@ -427,7 +530,9 @@ export type Database = {
           location_type: string | null
           notes: string | null
           party_size: number
+          rating_submitted_at: string | null
           reminded_h1_at: string | null
+          reminded_h1h_at: string | null
           reminded_h3_at: string | null
           shop_id: string
           slot_id: string
@@ -447,6 +552,7 @@ export type Database = {
           deposit_amount?: number
           deposit_paid?: boolean
           deposit_paid_at?: string | null
+          feedback_requested_at?: string | null
           id?: string
           location_address?: string | null
           location_fee?: number
@@ -455,7 +561,9 @@ export type Database = {
           location_type?: string | null
           notes?: string | null
           party_size?: number
+          rating_submitted_at?: string | null
           reminded_h1_at?: string | null
+          reminded_h1h_at?: string | null
           reminded_h3_at?: string | null
           shop_id: string
           slot_id: string
@@ -475,6 +583,7 @@ export type Database = {
           deposit_amount?: number
           deposit_paid?: boolean
           deposit_paid_at?: string | null
+          feedback_requested_at?: string | null
           id?: string
           location_address?: string | null
           location_fee?: number
@@ -483,7 +592,9 @@ export type Database = {
           location_type?: string | null
           notes?: string | null
           party_size?: number
+          rating_submitted_at?: string | null
           reminded_h1_at?: string | null
+          reminded_h1h_at?: string | null
           reminded_h3_at?: string | null
           shop_id?: string
           slot_id?: string
@@ -1285,6 +1396,7 @@ export type Database = {
       }
       custom_order_requests: {
         Row: {
+          attachment_urls: string[] | null
           budget_max: number | null
           budget_min: number | null
           created_at: string
@@ -1302,6 +1414,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          attachment_urls?: string[] | null
           budget_max?: number | null
           budget_min?: number | null
           created_at?: string
@@ -1319,6 +1432,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          attachment_urls?: string[] | null
           budget_max?: number | null
           budget_min?: number | null
           created_at?: string
@@ -8133,6 +8247,14 @@ export type Database = {
       open_shift: {
         Args: { _opening_cash: number; _outlet_id: string }
         Returns: string
+      }
+      process_booking_reminders: {
+        Args: never
+        Returns: {
+          h1_count: number
+          h1h_count: number
+          review_count: number
+        }[]
       }
       process_subscription_renewals: { Args: never; Returns: Json }
       receive_purchase_order: { Args: { _po_id: string }; Returns: undefined }

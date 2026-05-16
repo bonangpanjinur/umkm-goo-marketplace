@@ -245,6 +245,7 @@ import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
 import { Route as TokoSlugCustomOrderRouteImport } from './routes/toko.$slug.custom-order'
 import { Route as TokoSlugChatRouteImport } from './routes/toko.$slug.chat'
 import { Route as TokoSlugBookingRouteImport } from './routes/toko.$slug.booking'
+import { Route as TokoSlugAntrianRouteImport } from './routes/toko.$slug.antrian'
 import { Route as SSlugOrdersRouteImport } from './routes/s.$slug.orders'
 import { Route as SSlugMeRouteImport } from './routes/s.$slug.me'
 import { Route as SSlugLoginRouteImport } from './routes/s.$slug.login'
@@ -269,6 +270,7 @@ import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug
 import { Route as TokoSlugCustomOrderStatusRouteImport } from './routes/toko.$slug.custom-order.status'
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
+import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api/public/hooks/booking-reminders'
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
 import { Route as ApiPublicWebhooksPlanBillingProviderRouteImport } from './routes/api/public/webhooks/plan-billing.$provider'
 
@@ -1459,6 +1461,11 @@ const TokoSlugBookingRoute = TokoSlugBookingRouteImport.update({
   path: '/booking',
   getParentRoute: () => TokoSlugRoute,
 } as any)
+const TokoSlugAntrianRoute = TokoSlugAntrianRouteImport.update({
+  id: '/antrian',
+  path: '/antrian',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const SSlugOrdersRoute = SSlugOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -1582,6 +1589,12 @@ const SSlugMenuMenuIdRoute = SSlugMenuMenuIdRouteImport.update({
   path: '/menu/$menuId',
   getParentRoute: () => SSlugRoute,
 } as any)
+const ApiPublicHooksBookingRemindersRoute =
+  ApiPublicHooksBookingRemindersRouteImport.update({
+    id: '/api/public/hooks/booking-reminders',
+    path: '/api/public/hooks/booking-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminPlansIdMatrixRoute = AdminPlansIdMatrixRouteImport.update({
   id: '/$id/matrix',
   path: '/$id/matrix',
@@ -1840,6 +1853,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/toko/$slug/antrian': typeof TokoSlugAntrianRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
@@ -1852,6 +1866,7 @@ export interface FileRoutesByFullPath {
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
+  '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
@@ -2099,6 +2114,7 @@ export interface FileRoutesByTo {
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/toko/$slug/antrian': typeof TokoSlugAntrianRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
@@ -2111,6 +2127,7 @@ export interface FileRoutesByTo {
   '/order/$slug': typeof OrderSlugIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
+  '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
@@ -2364,6 +2381,7 @@ export interface FileRoutesById {
   '/s/$slug/login': typeof SSlugLoginRoute
   '/s/$slug/me': typeof SSlugMeRoute
   '/s/$slug/orders': typeof SSlugOrdersRoute
+  '/toko/$slug/antrian': typeof TokoSlugAntrianRoute
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
@@ -2376,6 +2394,7 @@ export interface FileRoutesById {
   '/order/$slug/': typeof OrderSlugIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
+  '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
@@ -2630,6 +2649,7 @@ export interface FileRouteTypes {
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/toko/$slug/antrian'
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
@@ -2642,6 +2662,7 @@ export interface FileRouteTypes {
     | '/order/$slug/'
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
+    | '/api/public/hooks/booking-reminders'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
@@ -2889,6 +2910,7 @@ export interface FileRouteTypes {
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/toko/$slug/antrian'
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
@@ -2901,6 +2923,7 @@ export interface FileRouteTypes {
     | '/order/$slug'
     | '/s/$slug'
     | '/admin/plans/$id/matrix'
+    | '/api/public/hooks/booking-reminders'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
@@ -3153,6 +3176,7 @@ export interface FileRouteTypes {
     | '/s/$slug/login'
     | '/s/$slug/me'
     | '/s/$slug/orders'
+    | '/toko/$slug/antrian'
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
@@ -3165,6 +3189,7 @@ export interface FileRouteTypes {
     | '/order/$slug/'
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
+    | '/api/public/hooks/booking-reminders'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
@@ -3204,6 +3229,7 @@ export interface RootRouteChildren {
   KategoriIndexRoute: typeof KategoriIndexRoute
   BookingCancelTokenRoute: typeof BookingCancelTokenRoute
   BookingRescheduleTokenRoute: typeof BookingRescheduleTokenRoute
+  ApiPublicHooksBookingRemindersRoute: typeof ApiPublicHooksBookingRemindersRoute
   ApiPublicWebhooksPlanBillingProviderRoute: typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 
@@ -4861,6 +4887,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TokoSlugBookingRouteImport
       parentRoute: typeof TokoSlugRoute
     }
+    '/toko/$slug/antrian': {
+      id: '/toko/$slug/antrian'
+      path: '/antrian'
+      fullPath: '/toko/$slug/antrian'
+      preLoaderRoute: typeof TokoSlugAntrianRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/s/$slug/orders': {
       id: '/s/$slug/orders'
       path: '/orders'
@@ -5028,6 +5061,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/s/$slug/menu/$menuId'
       preLoaderRoute: typeof SSlugMenuMenuIdRouteImport
       parentRoute: typeof SSlugRoute
+    }
+    '/api/public/hooks/booking-reminders': {
+      id: '/api/public/hooks/booking-reminders'
+      path: '/api/public/hooks/booking-reminders'
+      fullPath: '/api/public/hooks/booking-reminders'
+      preLoaderRoute: typeof ApiPublicHooksBookingRemindersRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/plans/$id/matrix': {
       id: '/admin/plans/$id/matrix'
@@ -5648,6 +5688,7 @@ const TokoSlugCustomOrderRouteWithChildren =
   TokoSlugCustomOrderRoute._addFileChildren(TokoSlugCustomOrderRouteChildren)
 
 interface TokoSlugRouteChildren {
+  TokoSlugAntrianRoute: typeof TokoSlugAntrianRoute
   TokoSlugBookingRoute: typeof TokoSlugBookingRoute
   TokoSlugChatRoute: typeof TokoSlugChatRoute
   TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRouteWithChildren
@@ -5660,6 +5701,7 @@ interface TokoSlugRouteChildren {
 }
 
 const TokoSlugRouteChildren: TokoSlugRouteChildren = {
+  TokoSlugAntrianRoute: TokoSlugAntrianRoute,
   TokoSlugBookingRoute: TokoSlugBookingRoute,
   TokoSlugChatRoute: TokoSlugChatRoute,
   TokoSlugCustomOrderRoute: TokoSlugCustomOrderRouteWithChildren,
@@ -5707,6 +5749,7 @@ const rootRouteChildren: RootRouteChildren = {
   KategoriIndexRoute: KategoriIndexRoute,
   BookingCancelTokenRoute: BookingCancelTokenRoute,
   BookingRescheduleTokenRoute: BookingRescheduleTokenRoute,
+  ApiPublicHooksBookingRemindersRoute: ApiPublicHooksBookingRemindersRoute,
   ApiPublicWebhooksPlanBillingProviderRoute:
     ApiPublicWebhooksPlanBillingProviderRoute,
 }
