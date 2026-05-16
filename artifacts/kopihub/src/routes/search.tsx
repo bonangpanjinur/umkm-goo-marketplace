@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2, Inbox, AlertTriangle, RefreshCw } from "lucide-react";
+import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2, Inbox, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -462,6 +462,30 @@ function SearchPage() {
     fetchShops({ isRetry: true });
   };
 
+  const clearAllCachesAndRefetch = () => {
+    // Hapus seluruh cache in-memory
+    productCacheRef.current.clear();
+    shopCacheRef.current.clear();
+    // Hapus dari localStorage
+    try {
+      localStorage.removeItem(PRODUCT_CACHE_KEY);
+      localStorage.removeItem(SHOP_CACHE_KEY);
+    } catch { /* ignore */ }
+    // Reset state
+    setProducts([]);
+    setShops([]);
+    setProductPage(0);
+    setShopPage(0);
+    setProductError(null);
+    setShopError(null);
+    setProductMoreError(null);
+    setShopMoreError(null);
+    // Refetch
+    fetchProducts();
+    fetchShops();
+    toast.success("Cache dihapus dan hasil dimuat ulang");
+  };
+
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
 
@@ -521,6 +545,18 @@ function SearchPage() {
             {hasFilters && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showFilter ? "rotate-180" : ""}`} />
           </Button>
+          {hasQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
+              onClick={clearAllCachesAndRefetch}
+              title="Hapus cache hasil pencarian dan muat ulang"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Hapus cache</span>
+            </Button>
+          )}
         </div>
 
         {/* Active filter pills */}
