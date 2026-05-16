@@ -623,6 +623,55 @@ function MarketplaceHome() {
   );
 }
 
+function ProductCardHeart({ productId }: { productId: string }) {
+  const { user } = useAuth();
+  const [wished, setWished] = useState(false);
+  const [wishId, setWishId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setWished(false); setWishId(null); return; }
+    supabase.from("wishlists" as any).select("id")
+      .eq("user_id", user.id).eq("menu_item_id", productId).maybeSingle()
+      .then(({ data }) => { if (data) { setWished(true); setWishId((data as any).id); } });
+  }, [user?.id, productId]);
+
+  const toggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.info("Masuk untuk menyimpan wishlist"); return; }
+    if (busy) return;
+    setBusy(true);
+    if (wished && wishId) {
+      await supabase.from("wishlists" as any).delete().eq("id", wishId);
+      setWished(false); setWishId(null);
+      toast.success("Dihapus dari wishlist");
+    } else {
+      const { data } = await supabase.from("wishlists" as any)
+        .insert({ user_id: user.id, menu_item_id: productId }).select("id").single();
+      setWished(true); setWishId((data as any)?.id ?? null);
+      toast.success("Ditambahkan ke wishlist");
+    }
+    setBusy(false);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}
+      title={wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}
+      className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-md ring-1 transition-all hover:scale-110 active:scale-95 ${
+        wished
+          ? "bg-rose-500 text-white ring-rose-300"
+          : "bg-background/85 text-foreground/70 ring-border/60 hover:bg-background hover:text-rose-500"
+      }`}
+    >
+      <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} />
+    </button>
+  );
+}
+
 export function ProductCard({ product }: { product: Product }) {
   const shopSlug = product.shop?.slug ?? "";
   const now = Date.now();
