@@ -57,7 +57,6 @@ export const Route = createFileRoute("/search")({
       ],
     };
   },
-  }),
   component: SearchPage,
 });
 
