@@ -3,13 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, X, SlidersHorizontal, ChevronDown, Star, Search } from "lucide-react";
+import { Store, X, SlidersHorizontal, ChevronDown, Star, Search, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
+
+const PRODUCT_PAGE_SIZE = 24;
+const SHOP_PAGE_SIZE = 12;
 
 const searchSchema = z.object({
   q:       z.string().optional().default(""),
@@ -40,10 +43,10 @@ export const Route = createFileRoute("/search")({
 
 type Cat = { id: string; slug: string; name: string };
 
-function SkeletonProductGrid() {
+function SkeletonProductGrid({ n = 10 }: { n?: number }) {
   return (
     <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
-      {Array.from({ length: 10 }).map((_, i) => (
+      {Array.from({ length: n }).map((_, i) => (
         <div key={i} className="rounded-xl border border-border bg-muted/30 animate-pulse">
           <div className="aspect-square w-full rounded-t-xl bg-muted/50" />
           <div className="p-3 space-y-1.5">
@@ -80,8 +83,23 @@ function ActiveFilterPill({ label, onRemove }: { label: string; onRemove: () => 
 function SearchPage() {
   const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
+
+  // Draft state for inputs that should NOT auto-apply (city, pay)
+  const [cityDraft, setCityDraft] = useState(city ?? "");
+  const [payDraft, setPayDraft]   = useState<string>(pay ?? "");
+  useEffect(() => { setCityDraft(city ?? ""); }, [city]);
+  useEffect(() => { setPayDraft(pay ?? ""); }, [pay]);
+  const draftDirty = (cityDraft || "") !== (city || "") || (payDraft || "") !== (pay || "");
+
   const [products,   setProducts]   = useState<any[]>([]);
   const [shops,      setShops]      = useState<any[]>([]);
+  const [productTotal, setProductTotal] = useState(0);
+  const [shopTotal,    setShopTotal]    = useState(0);
+  const [productPage, setProductPage] = useState(0);
+  const [shopPage,    setShopPage]    = useState(0);
+  const [loadingMoreP, setLoadingMoreP] = useState(false);
+  const [loadingMoreS, setLoadingMoreS] = useState(false);
+
   const [cats,       setCats]       = useState<Cat[]>([]);
   const [loading,    setLoading]    = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -92,53 +110,102 @@ function SearchPage() {
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
 
+  // Build a product query with current applied filters
+  const buildProductQuery = () => {
+    const term = q ? `%${q}%` : "%";
+    let prodQ = supabase
+      .from("menu_items")
+      .select(
+        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
+        { count: "exact" },
+      )
+      .ilike("name", term)
+      .eq("is_available", true);
+    if (typeof min       === "number") prodQ = prodQ.gte("price", min);
+    if (typeof max       === "number") prodQ = prodQ.lte("price", max);
+    if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
+    if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
+    if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
+    if (cat) {
+      const c = cats.find(x => x.slug === cat);
+      if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
+    }
+    if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
+    else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
+    else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    return prodQ;
+  };
+
+  const buildShopQuery = () => {
+    const term = q ? `%${q}%` : "%";
+    let shopQ = supabase
+      .from("coffee_shops")
+      .select(
+        "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
+        { count: "exact" },
+      )
+      .eq("is_active", true);
+    if (q) shopQ = shopQ.or(`name.ilike.${term},tagline.ilike.${term}`);
+    if (cat) {
+      const c = cats.find(x => x.slug === cat);
+      if (c) shopQ = shopQ.eq("business_category_id", c.id);
+    }
+    if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
+    if (city) shopQ = shopQ.ilike("address", `%${city}%`);
+    if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
+    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    return shopQ;
+  };
+
+  // Initial fetch / refetch on applied filter change
   useEffect(() => {
-    if (!q && !cat) { setProducts([]); setShops([]); return; }
+    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); return; }
     (async () => {
       setLoading(true);
-      const term = q ? `%${q}%` : "%";
-
-      let prodQ = supabase
-        .from("menu_items")
-        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)")
-        .ilike("name", term)
-        .eq("is_available", true);
-      if (typeof min       === "number") prodQ = prodQ.gte("price", min);
-      if (typeof max       === "number") prodQ = prodQ.lte("price", max);
-      if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
-      if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
-      if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
-      if (cat) {
-        const c = cats.find(x => x.slug === cat);
-        if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
-      }
-      if (sort === "termurah")     prodQ = prodQ.order("price",      { ascending: true  });
-      else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
-      else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
-
-      let shopQ = supabase
-        .from("coffee_shops")
-        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled")
-        .eq("is_active", true);
-      if (q) shopQ = shopQ.or(`name.ilike.${term},tagline.ilike.${term}`);
-      if (cat) {
-        const c = cats.find(x => x.slug === cat);
-        if (c) shopQ = shopQ.eq("business_category_id", c.id);
-      }
-      if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
-      if (city) shopQ = shopQ.ilike("address", `%${city}%`);
-      if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
-      shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false }).limit(24);
-
-      const [prodRes, shopRes] = await Promise.all([prodQ.limit(60), shopQ]);
+      setProductPage(0); setShopPage(0);
+      const [prodRes, shopRes] = await Promise.all([
+        buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1),
+        buildShopQuery().range(0, SHOP_PAGE_SIZE - 1),
+      ]);
       setProducts(((prodRes.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
       setShops((shopRes.data as any[]) ?? []);
+      setProductTotal(prodRes.count ?? 0);
+      setShopTotal(shopRes.count ?? 0);
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, cat, sort, min, max, minRating, city, pay, cats]);
+
+  const loadMoreProducts = async () => {
+    const next = productPage + 1;
+    setLoadingMoreP(true);
+    const from = next * PRODUCT_PAGE_SIZE;
+    const to = from + PRODUCT_PAGE_SIZE - 1;
+    const res = await buildProductQuery().range(from, to);
+    const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
+    setProducts(prev => [...prev, ...more]);
+    setProductPage(next);
+    setLoadingMoreP(false);
+  };
+
+  const loadMoreShops = async () => {
+    const next = shopPage + 1;
+    setLoadingMoreS(true);
+    const from = next * SHOP_PAGE_SIZE;
+    const to = from + SHOP_PAGE_SIZE - 1;
+    const res = await buildShopQuery().range(from, to);
+    setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
+    setShopPage(next);
+    setLoadingMoreS(false);
+  };
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
+
+  const applyDrafts = () => update({
+    city: cityDraft || undefined,
+    pay: (payDraft as any) || undefined,
+  });
 
   const hasFilters = !!(cat || min || max || minRating || city || pay);
   const activePills: { label: string; key: string }[] = [];
@@ -152,6 +219,8 @@ function SearchPage() {
   const hasQuery = !!(q || cat);
   const visibleProducts = tab === "toko"  ? [] : products;
   const visibleShops    = tab === "produk" ? [] : shops;
+  const canLoadMoreProducts = products.length < productTotal;
+  const canLoadMoreShops    = shops.length    < shopTotal;
 
   return (
     <div className="min-h-screen bg-background">
@@ -171,7 +240,10 @@ function SearchPage() {
             </h1>
             {hasQuery && !loading && (
               <p className="mt-0.5 text-sm text-muted-foreground">
-                {products.length + shops.length} hasil ditemukan
+                <span className="font-medium text-foreground">{productTotal.toLocaleString("id-ID")}</span> produk
+                {" · "}
+                <span className="font-medium text-foreground">{shopTotal.toLocaleString("id-ID")}</span> toko
+                {" cocok dengan filter"}
               </p>
             )}
           </div>
@@ -194,7 +266,7 @@ function SearchPage() {
             {activePills.map(p => (
               <ActiveFilterPill key={p.key} label={p.label} onRemove={() => clearFilter(p.key)} />
             ))}
-            <button onClick={() => update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined })}
+            <button onClick={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
               Reset semua
             </button>
@@ -203,66 +275,91 @@ function SearchPage() {
 
         {/* Filter panel */}
         {showFilter && (
-          <div className="mt-4 grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 md:grid-cols-5">
-            <div>
-              <Label className="text-xs">Kategori</Label>
-              <Select value={cat || "all"} onValueChange={v => update({ cat: v === "all" ? "" : v })}>
-                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua kategori</SelectItem>
-                  {cats.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+          <div className="mt-4 rounded-xl border border-border bg-card p-4">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
+              <div>
+                <Label className="text-xs">Kategori</Label>
+                <Select value={cat || "all"} onValueChange={v => update({ cat: v === "all" ? "" : v })}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua kategori</SelectItem>
+                    {cats.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Urutkan</Label>
+                <Select value={sort} onValueChange={v => update({ sort: v })}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevan">Paling relevan</SelectItem>
+                    <SelectItem value="rating">Rating tertinggi</SelectItem>
+                    <SelectItem value="termurah">Harga terendah</SelectItem>
+                    <SelectItem value="termahal">Harga tertinggi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Min rating</Label>
+                <Select value={minRating ? String(minRating) : "all"} onValueChange={v => update({ minRating: v === "all" ? undefined : Number(v) })}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua rating</SelectItem>
+                    <SelectItem value="4">★ 4+</SelectItem>
+                    <SelectItem value="4.5">★ 4.5+</SelectItem>
+                    <SelectItem value="3">★ 3+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Harga min (Rp)</Label>
+                <Input ref={searchInputRef} type="number" inputMode="numeric" className="mt-1 h-9" value={min ?? ""} onChange={e => update({ min: e.target.value ? Number(e.target.value) : undefined })} placeholder="0" />
+              </div>
+              <div>
+                <Label className="text-xs">Harga max (Rp)</Label>
+                <Input type="number" inputMode="numeric" className="mt-1 h-9" value={max ?? ""} onChange={e => update({ max: e.target.value ? Number(e.target.value) : undefined })} placeholder="∞" />
+              </div>
+              <div>
+                <Label className="text-xs">Kota / Lokasi</Label>
+                <Input
+                  type="text"
+                  className="mt-1 h-9"
+                  value={cityDraft}
+                  onChange={e => setCityDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") applyDrafts(); }}
+                  placeholder="Jakarta, Bandung…"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Metode Bayar</Label>
+                <Select value={payDraft || "all"} onValueChange={v => setPayDraft(v === "all" ? "" : v)}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua metode</SelectItem>
+                    <SelectItem value="cash">Tunai</SelectItem>
+                    <SelectItem value="qris">QRIS</SelectItem>
+                    <SelectItem value="transfer">Transfer Bank</SelectItem>
+                    <SelectItem value="ewallet">E-Wallet</SelectItem>
+                    <SelectItem value="card">Kartu Debit/Kredit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label className="text-xs">Urutkan</Label>
-              <Select value={sort} onValueChange={v => update({ sort: v })}>
-                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="relevan">Paling relevan</SelectItem>
-                  <SelectItem value="rating">Rating tertinggi</SelectItem>
-                  <SelectItem value="termurah">Harga terendah</SelectItem>
-                  <SelectItem value="termahal">Harga tertinggi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Min rating</Label>
-              <Select value={minRating ? String(minRating) : "all"} onValueChange={v => update({ minRating: v === "all" ? undefined : Number(v) })}>
-                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua rating</SelectItem>
-                  <SelectItem value="4">★ 4+</SelectItem>
-                  <SelectItem value="4.5">★ 4.5+</SelectItem>
-                  <SelectItem value="3">★ 3+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Harga min (Rp)</Label>
-              <Input ref={searchInputRef} type="number" inputMode="numeric" className="mt-1 h-9" value={min ?? ""} onChange={e => update({ min: e.target.value ? Number(e.target.value) : undefined })} placeholder="0" />
-            </div>
-            <div>
-              <Label className="text-xs">Harga max (Rp)</Label>
-              <Input type="number" inputMode="numeric" className="mt-1 h-9" value={max ?? ""} onChange={e => update({ max: e.target.value ? Number(e.target.value) : undefined })} placeholder="∞" />
-            </div>
-            <div>
-              <Label className="text-xs">Kota / Lokasi</Label>
-              <Input type="text" className="mt-1 h-9" value={city ?? ""} onChange={e => update({ city: e.target.value || undefined })} placeholder="Jakarta, Bandung…" />
-            </div>
-            <div>
-              <Label className="text-xs">Metode Bayar</Label>
-              <Select value={pay || "all"} onValueChange={v => update({ pay: v === "all" ? undefined : v })}>
-                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua metode</SelectItem>
-                  <SelectItem value="cash">Tunai</SelectItem>
-                  <SelectItem value="qris">QRIS</SelectItem>
-                  <SelectItem value="transfer">Transfer Bank</SelectItem>
-                  <SelectItem value="ewallet">E-Wallet</SelectItem>
-                  <SelectItem value="card">Kartu Debit/Kredit</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-3">
+              {draftDirty && (
+                <span className="mr-auto text-xs text-muted-foreground">Perubahan belum diterapkan</span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!draftDirty}
+                onClick={() => { setCityDraft(city ?? ""); setPayDraft(pay ?? ""); }}
+              >
+                Batal
+              </Button>
+              <Button size="sm" onClick={applyDrafts} disabled={!draftDirty}>
+                Terapkan filter
+              </Button>
             </div>
           </div>
         )}
@@ -295,7 +392,7 @@ function SearchPage() {
                   tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {t === "semua" ? "Semua" : t === "produk" ? `Produk (${products.length})` : `Toko (${shops.length})`}
+                {t === "semua" ? `Semua (${(productTotal + shopTotal).toLocaleString("id-ID")})` : t === "produk" ? `Produk (${productTotal.toLocaleString("id-ID")})` : `Toko (${shopTotal.toLocaleString("id-ID")})`}
               </button>
             ))}
           </div>
@@ -318,43 +415,53 @@ function SearchPage() {
             {tab !== "produk" && (
               <section>
                 <h2 className="mb-4 text-base font-semibold text-muted-foreground">
-                  {tab === "semua" ? `Toko (${shops.length})` : `${shops.length} toko ditemukan`}
+                  Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
                 </h2>
                 {loading
                   ? <SkeletonShopGrid />
                   : shops.length === 0
                     ? <p className="text-sm text-muted-foreground">Tidak ada toko yang cocok.</p>
                     : (
-                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-                        {shops.map(s => (
-                          <Link
-                            key={s.id}
-                            to="/toko/$slug"
-                            params={{ slug: s.slug }}
-                            className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/50 hover:shadow-md"
-                          >
-                            <div className="flex items-center gap-3">
-                              {s.logo_url
-                                ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover" />
-                                : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
-                              }
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1 min-w-0">
-                                  <span className="truncate text-sm font-semibold">{s.name}</span>
-                                  {s.kyc_status === "approved" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  {s.rating_avg
-                                    ? <><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{Number(s.rating_avg).toFixed(1)}</>
-                                    : "Toko baru"
-                                  }
+                      <>
+                        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                          {visibleShops.map(s => (
+                            <Link
+                              key={s.id}
+                              to="/toko/$slug"
+                              params={{ slug: s.slug }}
+                              className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/50 hover:shadow-md"
+                            >
+                              <div className="flex items-center gap-3">
+                                {s.logo_url
+                                  ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover" />
+                                  : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
+                                }
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1 min-w-0">
+                                    <span className="truncate text-sm font-semibold">{s.name}</span>
+                                    {s.kyc_status === "approved" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
+                                  </div>
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    {s.rating_avg
+                                      ? <><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{Number(s.rating_avg).toFixed(1)}</>
+                                      : "Toko baru"
+                                    }
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
-                          </Link>
-                        ))}
-                      </div>
+                              {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
+                            </Link>
+                          ))}
+                        </div>
+                        {canLoadMoreShops && tab !== "produk" && (
+                          <div className="mt-4 flex justify-center">
+                            <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS}>
+                              {loadingMoreS && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                              Muat lebih banyak toko
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     )
                 }
               </section>
@@ -364,7 +471,7 @@ function SearchPage() {
             {tab !== "toko" && (
               <section>
                 <h2 className="mb-4 text-base font-semibold text-muted-foreground">
-                  {tab === "semua" ? `Produk (${products.length})` : `${products.length} produk ditemukan`}
+                  Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
                 </h2>
                 {loading
                   ? <SkeletonProductGrid />
@@ -376,9 +483,19 @@ function SearchPage() {
                       </div>
                     )
                     : (
-                      <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
-                        {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
-                      </div>
+                      <>
+                        <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+                          {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                        </div>
+                        {canLoadMoreProducts && tab !== "toko" && (
+                          <div className="mt-4 flex justify-center">
+                            <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP}>
+                              {loadingMoreP && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                              Muat lebih banyak produk
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     )
                 }
               </section>
