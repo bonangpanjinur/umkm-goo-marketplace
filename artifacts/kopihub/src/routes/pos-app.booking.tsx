@@ -57,7 +57,12 @@ import {
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/pos-app/booking")({ component: BookingPage });
+export const Route = createFileRoute("/pos-app/booking")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: (search.type === "table" ? "table" : "service") as "service" | "table",
+  }),
+  component: BookingPage,
+});
 
 /*
 -- SB-07: Catatan pelanggan per kunjungan (jalankan di Supabase SQL Editor):
