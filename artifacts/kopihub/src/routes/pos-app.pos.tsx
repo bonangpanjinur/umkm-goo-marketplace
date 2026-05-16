@@ -854,6 +854,7 @@ function CartTabs({
   onAdd,
   onOpenParked,
   parkedCount,
+  onOpenOrders,
 }: {
   carts: LocalCart[];
   activeIdx: number;
@@ -862,6 +863,7 @@ function CartTabs({
   onAdd: () => void;
   onOpenParked: () => void;
   parkedCount: number;
+  onOpenOrders: () => void;
 }) {
   return (
     <>
@@ -923,6 +925,10 @@ function CartTabs({
             {parkedCount}
           </span>
         )}
+      </Button>
+      <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
+        <ListOrdered className="h-3.5 w-3.5" />
+        Pesanan
       </Button>
     </>
   );
