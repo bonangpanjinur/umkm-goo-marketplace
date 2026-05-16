@@ -521,7 +521,7 @@ export function OrdersTodayDialog({
                 tipAmount={Number(printSource.tip_amount ?? 0)}
                 pointsRedeemed={printSource.points_redeemed ?? 0}
                 pointsEarned={printSource.points_earned ?? 0}
-                customerName={printSource.customer_name ?? undefined}
+                customerName={displayCustomer ?? undefined}
                 paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                 total={Number(printSource.total)}
                 paymentMethod={printSource.payment_method}
@@ -534,7 +534,7 @@ export function OrdersTodayDialog({
                 orderNo={printSource.order_no}
                 date={new Date(printSource.created_at)}
                 outletName={outletName}
-                customerName={printSource.customer_name}
+                customerName={displayCustomer}
                 items={items}
               />
             </div>
@@ -545,7 +545,7 @@ export function OrdersTodayDialog({
                   outletName={outletName}
                   orderNo={printSource.order_no}
                   date={new Date(printSource.created_at)}
-                  customerName={printSource.customer_name}
+                  customerName={displayCustomer}
                   customerPhone={printSource.customer_phone}
                   deliveryAddress={printSource.delivery_address}
                   courierName={printSource.courier_name}
@@ -617,7 +617,7 @@ export function OrdersTodayDialog({
                     tipAmount={Number(printSource.tip_amount ?? 0)}
                     pointsRedeemed={printSource.points_redeemed ?? 0}
                     pointsEarned={printSource.points_earned ?? 0}
-                    customerName={printSource.customer_name ?? undefined}
+                    customerName={displayCustomer ?? undefined}
                     paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                     total={Number(printSource.total)}
                     paymentMethod={printSource.payment_method}
@@ -630,7 +630,7 @@ export function OrdersTodayDialog({
                     orderNo={printSource.order_no}
                     date={new Date(printSource.created_at)}
                     outletName={outletName}
-                    customerName={printSource.customer_name}
+                    customerName={displayCustomer}
                     items={items}
                   />
                 )}
@@ -640,7 +640,7 @@ export function OrdersTodayDialog({
                     outletName={outletName}
                     orderNo={printSource.order_no}
                     date={new Date(printSource.created_at)}
-                    customerName={printSource.customer_name}
+                    customerName={displayCustomer}
                     customerPhone={printSource.customer_phone}
                     deliveryAddress={printSource.delivery_address}
                     courierName={printSource.courier_name}
