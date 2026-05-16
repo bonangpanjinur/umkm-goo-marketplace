@@ -733,9 +733,9 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        {/* Top-right: flash countdown */}
+        {/* Top-right (below heart): flash countdown */}
         {flashActive && remaining && (
-          <span className="absolute right-2 top-2 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow-sm backdrop-blur-md ring-1 ring-border/40">
+          <span className="absolute right-2 top-11 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground shadow-sm backdrop-blur-md ring-1 ring-border/40">
             ⏱ {remaining}
           </span>
         )}
