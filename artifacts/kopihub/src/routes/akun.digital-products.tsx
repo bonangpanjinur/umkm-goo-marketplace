@@ -145,7 +145,7 @@ function DigitalProductsPage() {
                       />
                     ) : (
                       <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <FileIcon type={item.menu_item?.file_type ?? null} />
+                        <FileIcon type={fileType} />
                       </div>
                     )}
                   </div>
