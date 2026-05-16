@@ -236,13 +236,14 @@ export default function PublicBookingPage() {
       .from("booking_slots" as any)
       .select("*")
       .eq("shop_id" as any, shopId)
+      .eq("booking_type" as any, bookingType)
       .gte("slot_date" as any, today)
       .lte("slot_date" as any, end)
       .order("slot_date" as any)
       .order("slot_time" as any) as any;
     setAllSlots((data ?? []) as Slot[]);
     setSlotsLoading(false);
-  }, []);
+  }, [bookingType]);
 
   // Load staff — graceful: if table missing or empty, staffList stays []
   const loadStaff = useCallback(async (shopId: string) => {
