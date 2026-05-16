@@ -130,6 +130,7 @@ function POSPage() {
   const [parkedList, setParkedList] = useState<ParkedCart[]>([]);
   const [parkedListOpen, setParkedListOpen] = useState(false);
   const [ordersDlgOpen, setOrdersDlgOpen] = useState(false);
+  const [todayOrdersCount, setTodayOrdersCount] = useState(0);
 
   // Last completed order — kept in state so we can render a hidden Receipt
   // and trigger window.print() (auto-print after checkout, or manual re-print).
@@ -151,6 +152,20 @@ function POSPage() {
   const [printBlocked, setPrintBlocked] = useState(false);
 
   const scopeKey = buildScopeKey(outlet?.id, user?.id);
+
+  // Today's order count for the "Pesanan" badge — refetched on outlet change,
+  // after each successful checkout, and when the modal closes.
+  useEffect(() => {
+    if (!outlet?.id) return;
+    const today = new Date();
+    const businessDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("outlet_id", outlet.id)
+      .eq("business_date", businessDate)
+      .then(({ count }) => setTodayOrdersCount(count ?? 0));
+  }, [outlet?.id, lastReceipt, ordersDlgOpen]);
 
   // Ensure body data attribute is set for thermal @page rules on mount.
   useEffect(() => {
