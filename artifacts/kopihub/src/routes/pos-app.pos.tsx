@@ -34,8 +34,14 @@ import { ModifierPicker } from "@/components/modifier-picker";
 import { getActiveShift, openShift, type CashShift } from "@/lib/shift";
 import { submitCheckout, flushPendingCheckouts, loadPendingCheckouts } from "@/lib/pos-checkout";
 import { Receipt } from "@/components/pos/receipt";
-import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
+import {
+  printReceiptNode,
+  applyReceiptPaper,
+  openReceiptInNewWindow,
+  buildScopeKey,
+} from "@/lib/receipt-printer";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
+import { PrinterPicker } from "@/components/pos/printer-picker";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
@@ -139,20 +145,32 @@ function POSPage() {
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const pendingPrintRef = useRef(false);
+  const [printBlocked, setPrintBlocked] = useState(false);
+
+  const scopeKey = buildScopeKey(outlet?.id, user?.id);
 
   // Ensure body data attribute is set for thermal @page rules on mount.
   useEffect(() => {
-    applyReceiptPaper();
-  }, []);
+    applyReceiptPaper(undefined, scopeKey);
+  }, [scopeKey]);
 
   // When a new receipt becomes available and auto-print was requested,
   // fire window.print() on the next tick so the hidden Receipt is in the DOM.
   useEffect(() => {
     if (!lastReceipt || !pendingPrintRef.current) return;
     pendingPrintRef.current = false;
-    const t = setTimeout(() => printReceiptNode(printRef.current), 80);
+    const t = setTimeout(() => {
+      const res = printReceiptNode(printRef.current, undefined, scopeKey);
+      if (res !== "ok") {
+        const popped = openReceiptInNewWindow(printRef.current, undefined, scopeKey);
+        if (!popped) {
+          setPrintBlocked(true);
+          toast.error("Dialog cetak diblokir. Klik 'Cetak ulang' untuk mencoba lagi.");
+        }
+      }
+    }, 80);
     return () => clearTimeout(t);
-  }, [lastReceipt]);
+  }, [lastReceipt, scopeKey]);
 
   const cart = carts[activeIdx] ?? carts[0];
 
