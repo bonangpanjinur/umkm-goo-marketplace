@@ -269,33 +269,74 @@ export type Database = {
         }
         Relationships: []
       }
-      booking_reviews: {
+      booking_review_requests: {
         Row: {
           booking_id: string
-          comment: string | null
-          created_at: string
+          clicked_at: string | null
+          customer_phone: string | null
+          customer_user_id: string | null
           id: string
-          rating: number
-          shop_id: string
-          user_id: string
+          sent_at: string
         }
         Insert: {
           booking_id: string
-          comment?: string | null
-          created_at?: string
+          clicked_at?: string | null
+          customer_phone?: string | null
+          customer_user_id?: string | null
           id?: string
-          rating: number
-          shop_id: string
-          user_id: string
+          sent_at?: string
         }
         Update: {
           booking_id?: string
+          clicked_at?: string | null
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_review_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_reviews: {
+        Row: {
+          body: string | null
+          booking_id: string
+          comment: string | null
+          created_at: string
+          customer_phone: string | null
+          id: string
+          rating: number
+          shop_id: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          booking_id: string
           comment?: string | null
           created_at?: string
+          customer_phone?: string | null
+          id?: string
+          rating: number
+          shop_id: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          booking_id?: string
+          comment?: string | null
+          created_at?: string
+          customer_phone?: string | null
           id?: string
           rating?: number
           shop_id?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
