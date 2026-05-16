@@ -882,7 +882,18 @@ function BookingPage() {
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button size="sm" onClick={() => setSlotOpen(true)}>
+          <Button size="sm" onClick={() => {
+            setSlotForm({
+              service_name: "",
+              slot_date: date,
+              slot_time: isTableMode ? "18:00" : "09:00",
+              duration_min: isTableMode ? "90" : "60",
+              max_capacity: isTableMode ? "4" : "1",
+              price: "0",
+              notes: "",
+            });
+            setSlotOpen(true);
+          }}>
             <Plus className="h-4 w-4 mr-1.5" />
             {isTableMode ? "Buat Meja" : "Buat Slot"}
           </Button>
@@ -1368,8 +1379,17 @@ function BookingPage() {
       ) : view === "slots" ? (
         <div className="space-y-3">
           {slots.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground">
-              Belum ada slot untuk hari ini — klik "Buat Slot" untuk menambahkan
+            <div className="rounded-xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground space-y-2">
+              <p className="font-medium text-foreground">
+                {isTableMode
+                  ? "Belum ada meja/area untuk hari ini"
+                  : "Belum ada slot layanan untuk hari ini"}
+              </p>
+              <p className="text-xs">
+                {isTableMode
+                  ? 'Klik "Buat Meja" untuk menambahkan meja/area beserta kapasitas tempat duduk.'
+                  : 'Klik "Buat Slot" untuk membuka jadwal layanan baru.'}
+              </p>
             </div>
           ) : slots.map((slot) => {
             const avail = slot.max_capacity - slot.booked_count;
@@ -2152,11 +2172,18 @@ function BookingPage() {
 
       <Dialog open={slotOpen} onOpenChange={setSlotOpen}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Buat Slot Baru</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{isTableMode ? "Buat Meja / Area Baru" : "Buat Slot Baru"}</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3 mt-2">
             <div>
-              <Label>Nama Layanan *</Label>
-              <Input value={slotForm.service_name} onChange={(e) => setSlotForm((f) => ({ ...f, service_name: e.target.value }))} placeholder="cth: Konsultasi, Fotografi, Potong Rambut" className="mt-1" />
+              <Label>{isTableMode ? "Nama Meja / Area *" : "Nama Layanan *"}</Label>
+              <Input
+                value={slotForm.service_name}
+                onChange={(e) => setSlotForm((f) => ({ ...f, service_name: e.target.value }))}
+                placeholder={isTableMode ? "cth: Meja 5, Area Outdoor, VIP Room" : "cth: Konsultasi, Fotografi, Potong Rambut"}
+                className="mt-1"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -2174,7 +2201,7 @@ function BookingPage() {
                 <Input type="number" min={15} step={15} value={slotForm.duration_min} onChange={(e) => setSlotForm((f) => ({ ...f, duration_min: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label>Kapasitas</Label>
+                <Label>{isTableMode ? "Kursi" : "Kapasitas"}</Label>
                 <Input type="number" min={1} value={slotForm.max_capacity} onChange={(e) => setSlotForm((f) => ({ ...f, max_capacity: e.target.value }))} className="mt-1" />
               </div>
               <div>
@@ -2184,11 +2211,19 @@ function BookingPage() {
             </div>
             <div>
               <Label>Catatan</Label>
-              <Textarea value={slotForm.notes} onChange={(e) => setSlotForm((f) => ({ ...f, notes: e.target.value }))} rows={2} className="mt-1" placeholder="Opsional" />
+              <Textarea
+                value={slotForm.notes}
+                onChange={(e) => setSlotForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={2}
+                className="mt-1"
+                placeholder={isTableMode ? "cth: dekat jendela, smoking area" : "Opsional"}
+              />
             </div>
             <div className="flex gap-2 pt-1">
               <Button variant="outline" className="flex-1" onClick={() => setSlotOpen(false)}>Batal</Button>
-              <Button className="flex-1" onClick={saveSlot} disabled={savingSlot}>{savingSlot ? "Menyimpan…" : "Buat Slot"}</Button>
+              <Button className="flex-1" onClick={saveSlot} disabled={savingSlot}>
+                {savingSlot ? "Menyimpan…" : (isTableMode ? "Buat Meja" : "Buat Slot")}
+              </Button>
             </div>
           </div>
         </DialogContent>
