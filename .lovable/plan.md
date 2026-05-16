@@ -1,33 +1,51 @@
-# Konsolidasi Booking & Reservasi Meja
+# Integrasi Payment Gateway untuk Booking Deposit (F-16)
 
 ## Tujuan
-Satu alur booking terpadu untuk **layanan** dan **reservasi meja**, menghapus halaman reservasi yang redundan dan sebagian broken (mengacu ke tabel `tables` / `table_reservations` yang tidak pernah ada di DB).
+Hubungkan alur booking yang sudah ada ke payment gateway (Midtrans / Xendit) yang sudah terkonfigurasi di API server, sehingga deposit booking bisa dibayar otomatis tanpa konfirmasi manual via WA.
 
-## Strategi: 1 tabel, 1 dimensi pembeda
-Pakai tabel `bookings` + `booking_slots` yang sudah ada. Tambah satu kolom diskriminator:
+## Perubahan
 
-- `booking_slots.booking_type text not null default 'service'` — check: `'service' | 'table'`
-- `bookings.booking_type text not null default 'service'` — diisi otomatis via trigger dari slot, untuk filter cepat & RLS.
+### 1. Database — Tambah kolom & tabel transaksi booking
+- Tambah `deposit_transaction_id` dan `deposit_paid_at` pada `bookings`.
+- Tambah `deposit_amount` pada `booking_slots` (opsional, default 0 = tanpa deposit).
+- Pastikan tabel `payment_transactions` (Drizzle) mendukung `booking_id` selain `order_id`.
 
-Slot bertipe `table` artinya: `capacity` = jumlah orang, `service_name` = nama meja/area (mis. "Meja 4 (outdoor)"), `price`/`deposit_percent` opsional.
+### 2. API Server — Endpoint booking deposit
+- Buat `POST /api/bookings/:id/pay-deposit` yang:
+  - Hitung deposit dari slot (price * deposit_percent / 100).
+  - Pilih gateway aktif (Midtrans/Xendit dari env).
+  - Buat payment transaction record.
+  - Return snap token / checkout URL ke frontend.
 
-## Perubahan file
+- Tambah webhook handler `POST /api/public/webhooks/payment` untuk menerima notifikasi bayar.
+  - Update `bookings.status` dari `pending_deposit` → `confirmed` saat deposit lunas.
+  - Kirim notifikasi ke merchant & customer.
 
-1. **Migration** — tambah kolom + trigger isi `bookings.booking_type` dari slot saat insert.
-2. **Hapus** `src/routes/toko.$slug.reservasi.tsx` (broken, 786 baris) — diganti redirect tipis ke `/toko/$slug/booking?type=table`.
-3. **Hapus** `src/routes/pos-app.reservasi.tsx` (438 baris) — fungsi pindah ke tab di `pos-app.booking.tsx`.
-4. **Update** `src/routes/toko.$slug.booking.tsx`:
-   - Baca query `?type=table|service` (default `service`).
-   - Filter slot berdasarkan `booking_type`.
-   - Heading & copy mengikuti tipe ("Reservasi Meja" vs "Booking Layanan").
-5. **Update** `src/routes/toko.$slug.tsx` baris 541 — link "Reservasi Meja" → `/toko/$slug/booking?type=table`.
-6. **Update** `src/routes/pos-app.booking.tsx` — tambah Tabs "Layanan / Meja" di atas list, filter `booking_type`.
+### 3. Frontend — Halaman bayar deposit pembeli
+- Di `/toko/$slug/booking.tsx` atau halaman konfirmasi booking:
+  - Setelah pembeli pilih slot, tampilkan ringkasan + tombol "Bayar Deposit".
+  - Integrasi Midtrans Snap (popup) atau redirect Xendit.
+  - Halaman `/booking/$id/status` untuk cek status pembayaran.
 
-## Yang TIDAK berubah
-- Skema `bookings` lain (slot_id, customer, deposit, dst) tetap.
-- Cancel/reschedule via token tetap (sudah generic).
-- Admin booking-config, reminders, analytics ikut otomatis (pakai tabel yang sama).
+### 4. POS / Merchant — Status booking terbaru
+- Update `/pos-app/booking.tsx`:
+  - Badge status booking berwarna: `pending_deposit` (kuning), `confirmed` (hijau), `cancelled` (merah).
+  - Tampilkan indikator "Deposit dibayar / belum dibayar".
+
+### 5. Reminder & Notifikasi
+- Gunakan sistem notifikasi yang sudah ada (`use-notifications.ts` + Supabase Realtime).
+- Trigger notifikasi:
+  - Pembeli: "Deposit berhasil, booking dikonfirmasi."
+  - Merchant: "Booking baru dengan deposit sudah dibayar."
+
+## Yang TIDAK diubah
+- Skema `booking_slots` utama (waktu, kapasitas, service_name) tetap.
+- Cancel / reschedule via token tetap berlaku.
+- Logika QR meja yang baru dikerjakan tidak terganggu.
 
 ## Risiko & mitigasi
-- Slot lama otomatis bertipe `service` (default kolom). Aman.
-- Halaman reservasi lama broken → praktis tidak ada data produksi yang hilang.
+- Midtrans/Xendit env belum disetting → fallback ke konfirmasi manual dengan badge "Tunggu Admin".
+- Webhook gagal terima → polling status tiap 30 detik di halaman status.
+
+## Estimasi
+2-3 hari kerja untuk versi MVP (Midtrans Snap + webhook + update status booking).
