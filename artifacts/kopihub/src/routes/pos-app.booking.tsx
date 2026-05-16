@@ -720,6 +720,7 @@ function BookingPage() {
       max_capacity: Number(slotForm.max_capacity),
       price: Number(slotForm.price),
       notes: slotForm.notes.trim() || null,
+      booking_type: bookingType,
     });
     setSavingSlot(false);
     if (error) { toast.error(error.message); return; }
