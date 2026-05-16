@@ -130,6 +130,7 @@ function POSPage() {
   const [parkedList, setParkedList] = useState<ParkedCart[]>([]);
   const [parkedListOpen, setParkedListOpen] = useState(false);
   const [ordersDlgOpen, setOrdersDlgOpen] = useState(false);
+  const [todayOrdersCount, setTodayOrdersCount] = useState(0);
 
   // Last completed order — kept in state so we can render a hidden Receipt
   // and trigger window.print() (auto-print after checkout, or manual re-print).
@@ -151,6 +152,20 @@ function POSPage() {
   const [printBlocked, setPrintBlocked] = useState(false);
 
   const scopeKey = buildScopeKey(outlet?.id, user?.id);
+
+  // Today's order count for the "Pesanan" badge — refetched on outlet change,
+  // after each successful checkout, and when the modal closes.
+  useEffect(() => {
+    if (!outlet?.id) return;
+    const today = new Date();
+    const businessDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("outlet_id", outlet.id)
+      .eq("business_date", businessDate)
+      .then(({ count }) => setTodayOrdersCount(count ?? 0));
+  }, [outlet?.id, lastReceipt, ordersDlgOpen]);
 
   // Ensure body data attribute is set for thermal @page rules on mount.
   useEffect(() => {
@@ -575,6 +590,7 @@ function POSPage() {
           onOpenParked={() => setParkedListOpen(true)}
           parkedCount={parkedList.length}
           onOpenOrders={() => setOrdersDlgOpen(true)}
+          ordersTodayCount={todayOrdersCount}
         />
       </div>
 
@@ -590,6 +606,7 @@ function POSPage() {
             onOpenParked={() => setParkedListOpen(true)}
             parkedCount={parkedList.length}
             onOpenOrders={() => setOrdersDlgOpen(true)}
+            ordersTodayCount={todayOrdersCount}
           />
         </div>
         <div className="flex-1 min-h-0">
@@ -868,6 +885,7 @@ function CartTabs({
   onOpenParked,
   parkedCount,
   onOpenOrders,
+  ordersTodayCount,
 }: {
   carts: LocalCart[];
   activeIdx: number;
@@ -877,6 +895,7 @@ function CartTabs({
   onOpenParked: () => void;
   parkedCount: number;
   onOpenOrders: () => void;
+  ordersTodayCount?: number;
 }) {
   return (
     <>
@@ -942,6 +961,11 @@ function CartTabs({
       <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
         <ListOrdered className="h-3.5 w-3.5" />
         Pesanan
+        {ordersTodayCount && ordersTodayCount > 0 ? (
+          <span className="rounded-full bg-primary/15 text-primary px-1.5 text-[10px] font-medium">
+            {ordersTodayCount}
+          </span>
+        ) : null}
       </Button>
     </>
   );
