@@ -631,6 +631,51 @@ function POSPage() {
         onConfirm={handleCheckout}
       />
 
+      {/* Floating re-print + paper picker for the last completed order */}
+      {lastReceipt && (
+        <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border bg-background/95 px-3 py-2 shadow-lg backdrop-blur">
+          <span className="text-xs text-muted-foreground">Struk #{lastReceipt.orderNo}</span>
+          <ReceiptPaperPicker />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => printReceiptNode(printRef.current)}
+          >
+            Cetak ulang
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setLastReceipt(null)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Hidden receipt for window.print() */}
+      <div className="hidden">
+        <div ref={printRef}>
+          {lastReceipt && (
+            <Receipt
+              shopName={shop?.name ?? ""}
+              outletName={outlet?.name ?? ""}
+              shopLogoUrl={shop?.logo_url ?? null}
+              shopAddress={shop?.address ?? null}
+              shopPhone={shop?.phone ?? null}
+              orderNo={lastReceipt.orderNo}
+              cashierName="Kasir"
+              date={lastReceipt.date}
+              items={lastReceipt.items}
+              subtotal={lastReceipt.subtotal}
+              total={lastReceipt.total}
+              manualDiscount={lastReceipt.discount || undefined}
+              serviceCharge={lastReceipt.serviceCharge || undefined}
+              tax={lastReceipt.tax || undefined}
+              paymentMethod={lastReceipt.paymentMethod}
+              amountTendered={lastReceipt.amountTendered}
+              changeDue={lastReceipt.changeDue}
+            />
+          )}
+        </div>
+      </div>
+
       {/* Park Dialog */}
       <Dialog open={parkOpen} onOpenChange={setParkOpen}>
         <DialogContent>
