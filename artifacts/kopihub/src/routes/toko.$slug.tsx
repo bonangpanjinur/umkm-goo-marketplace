@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, UtensilsCrossed, Star, Sparkles, Crown, Map as MapIcon, ClipboardList } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, Star, Sparkles, Crown, Map as MapIcon, ClipboardList } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useSeo } from "@/lib/use-seo";
