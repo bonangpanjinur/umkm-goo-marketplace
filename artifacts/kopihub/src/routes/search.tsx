@@ -462,6 +462,30 @@ function SearchPage() {
     fetchShops({ isRetry: true });
   };
 
+  const clearAllCachesAndRefetch = () => {
+    // Hapus seluruh cache in-memory
+    productCacheRef.current.clear();
+    shopCacheRef.current.clear();
+    // Hapus dari localStorage
+    try {
+      localStorage.removeItem(PRODUCT_CACHE_KEY);
+      localStorage.removeItem(SHOP_CACHE_KEY);
+    } catch { /* ignore */ }
+    // Reset state
+    setProducts([]);
+    setShops([]);
+    setProductPage(0);
+    setShopPage(0);
+    setProductError(null);
+    setShopError(null);
+    setProductMoreError(null);
+    setShopMoreError(null);
+    // Refetch
+    fetchProducts();
+    fetchShops();
+    toast.success("Cache dihapus dan hasil dimuat ulang");
+  };
+
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
 
