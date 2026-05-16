@@ -118,7 +118,9 @@ function SearchPage() {
 
   const [cats,       setCats]       = useState<Cat[]>([]);
   const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -126,71 +128,35 @@ function SearchPage() {
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
 
-  // Build a product query with current applied filters
-  const buildProductQuery = () => {
-    const term = q ? `%${q}%` : "%";
-    let prodQ = supabase
-      .from("menu_items")
-      .select(
-        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
-        { count: "exact" },
-      )
-      .ilike("name", term)
-      .eq("is_available", true);
-    if (typeof min       === "number") prodQ = prodQ.gte("price", min);
-    if (typeof max       === "number") prodQ = prodQ.lte("price", max);
-    if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
-    if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
-    if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
-    if (cat) {
-      const c = cats.find(x => x.slug === cat);
-      if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
-    }
-    if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
-    else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
-    else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
-    return prodQ;
-  };
-
-  const buildShopQuery = () => {
-    const term = q ? `%${q}%` : "%";
-    let shopQ = supabase
-      .from("coffee_shops")
-      .select(
-        "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
-        { count: "exact" },
-      )
-      .eq("is_active", true);
-    if (q) shopQ = shopQ.or(`name.ilike.${term},tagline.ilike.${term}`);
-    if (cat) {
-      const c = cats.find(x => x.slug === cat);
-      if (c) shopQ = shopQ.eq("business_category_id", c.id);
-    }
-    if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
-    if (city) shopQ = shopQ.ilike("address", `%${city}%`);
-    if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
-    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
-    return shopQ;
-  };
-
-  // Initial fetch / refetch on applied filter change
-  useEffect(() => {
-    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); return; }
-    (async () => {
-      setLoading(true);
-      setProductPage(0); setShopPage(0);
+  const fetchResults = useCallback(async () => {
+    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); setError(null); return; }
+    setLoading(true);
+    setError(null);
+    setProductPage(0); setShopPage(0);
+    try {
       const [prodRes, shopRes] = await Promise.all([
         buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1),
         buildShopQuery().range(0, SHOP_PAGE_SIZE - 1),
       ]);
+      if (prodRes.error) throw prodRes.error;
+      if (shopRes.error) throw shopRes.error;
       setProducts(((prodRes.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
       setShops((shopRes.data as any[]) ?? []);
       setProductTotal(prodRes.count ?? 0);
       setShopTotal(shopRes.count ?? 0);
+    } catch (e: any) {
+      setError(e.message || "Gagal memuat hasil pencarian.");
+    } finally {
       setLoading(false);
-    })();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
+  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
+
+  // Trigger fetch on filter change or retry
+  useEffect(() => {
+    fetchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
 
   const loadMoreProducts = async () => {
     const next = productPage + 1;
