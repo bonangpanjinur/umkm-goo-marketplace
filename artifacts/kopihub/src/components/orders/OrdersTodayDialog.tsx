@@ -37,6 +37,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/use-permissions";
 import { formatIDR } from "@/lib/format";
 import type { CartItem } from "@/lib/cart";
 import { Receipt } from "@/components/pos/receipt";
@@ -133,6 +134,7 @@ export function OrdersTodayDialog({
   shopPhone,
 }: Props) {
   const { user } = useAuth();
+  const { role } = usePermissions();
   const scopeKey = buildScopeKey(outletId, user?.id);
   const sortKey = `pos:orders-sort:${scopeKey}`;
   const pageKey = `pos:orders-page:${scopeKey}`;
@@ -602,16 +604,18 @@ export function OrdersTodayDialog({
                 <Lock className="mr-1 h-3 w-3" />
                 Hanya QR Unlock {qrUnlockedOnly && `(${qrUnlockedIds.size})`}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-[11px]"
-                onClick={() => setExportOpen(true)}
-                title="Ekspor riwayat QR unlock ke CSV/PDF"
-              >
-                <FileDown className="mr-1 h-3 w-3" />
-                Ekspor Audit QR
-              </Button>
+              {role === "owner" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px]"
+                  onClick={() => setExportOpen(true)}
+                  title="Ekspor riwayat QR unlock ke CSV/PDF"
+                >
+                  <FileDown className="mr-1 h-3 w-3" />
+                  Ekspor Audit QR
+                </Button>
+              )}
             </div>
 
             <div className="flex-1 overflow-auto">
