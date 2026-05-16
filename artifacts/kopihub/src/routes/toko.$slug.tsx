@@ -569,12 +569,7 @@ function ShopPage() {
                     Membership
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline" className="gap-1.5">
-                  <Link to="/toko/$slug/map" params={{ slug }}>
-                    <MapIcon className="h-3.5 w-3.5" />
-                    Lihat Lokasi
-                  </Link>
-                </Button>
+                {shop && <LocationDialogButton shop={shop} slug={slug} />}
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
                   <Link to="/toko/$slug/ulasan" params={{ slug }}>
                     <Star className="h-3.5 w-3.5" />
