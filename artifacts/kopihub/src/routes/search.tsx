@@ -576,9 +576,10 @@ function SearchPage() {
     pay: (payDraft as any) || undefined,
   });
 
-  const hasFilters = !!(cat || min || max || minRating || city || pay);
+  const hasFilters = !!(cat || min || max || minRating || city || pay || verified);
   const activePills: { label: string; key: string }[] = [];
   if (cat)       activePills.push({ label: cats.find(c => c.slug === cat)?.name ?? cat, key: "cat" });
+  if (verified)  activePills.push({ label: "Terverifikasi", key: "verified" });
   if (minRating) activePills.push({ label: `Min ★${minRating}`, key: "minRating" });
   if (min)       activePills.push({ label: `Min Rp${Number(min).toLocaleString("id-ID")}`, key: "min" });
   if (max)       activePills.push({ label: `Max Rp${Number(max).toLocaleString("id-ID")}`, key: "max" });
