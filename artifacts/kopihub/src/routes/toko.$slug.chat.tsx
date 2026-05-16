@@ -18,6 +18,8 @@ export const Route = createFileRoute("/toko/$slug/chat")({
   component: ShopChatPage,
 });
 
+type SendStatus = "sending" | "sent" | "failed";
+
 type Message = {
   id: string;
   chat_id: string;
@@ -29,7 +31,12 @@ type Message = {
   attachment_url?: string | null;
   attachment_type?: string | null;
   product_id?: string | null;
+  /** Client-only fields for optimistic UI */
+  _tempId?: string;
+  _status?: SendStatus;
 };
+
+type RtStatus = "connecting" | "live" | "offline";
 
 type ProductLite = {
   id: string;
