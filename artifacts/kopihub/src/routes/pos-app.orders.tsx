@@ -441,7 +441,7 @@ function DetailDialog({
               <> · diterima {formatIDR(Number(order.amount_tendered))} · kembali {formatIDR(Number(order.change_due))}</>
             )}
           </div>
-          <div className="hidden">
+          <div className="print-host" aria-hidden="true">
             <div ref={printRef}>
               <Receipt
                 shopName={shopName}
