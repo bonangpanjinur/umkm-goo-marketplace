@@ -3413,6 +3413,7 @@ export type Database = {
           cashier_id: string | null
           change_due: number
           channel: Database["public"]["Enums"]["order_channel"]
+          client_idempotency_key: string | null
           commission_amount: number | null
           commission_rate: number | null
           courier_id: string | null
@@ -3479,6 +3480,7 @@ export type Database = {
           cashier_id?: string | null
           change_due?: number
           channel?: Database["public"]["Enums"]["order_channel"]
+          client_idempotency_key?: string | null
           commission_amount?: number | null
           commission_rate?: number | null
           courier_id?: string | null
@@ -3545,6 +3547,7 @@ export type Database = {
           cashier_id?: string | null
           change_due?: number
           channel?: Database["public"]["Enums"]["order_channel"]
+          client_idempotency_key?: string | null
           commission_amount?: number | null
           commission_rate?: number | null
           courier_id?: string | null
@@ -4544,6 +4547,63 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "purchase_orders"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_audit_log: {
+        Row: {
+          action: string
+          cashier_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          order_no: string | null
+          outlet_id: string | null
+          reason: string | null
+          shop_id: string
+        }
+        Insert: {
+          action: string
+          cashier_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          order_no?: string | null
+          outlet_id?: string | null
+          reason?: string | null
+          shop_id: string
+        }
+        Update: {
+          action?: string
+          cashier_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          order_no?: string | null
+          outlet_id?: string | null
+          reason?: string | null
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
           },
         ]
       }
