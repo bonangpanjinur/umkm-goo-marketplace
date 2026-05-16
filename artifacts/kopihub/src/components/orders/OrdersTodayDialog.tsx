@@ -392,7 +392,18 @@ export function OrdersTodayDialog({
                 <ul className="divide-y rounded-lg border">
                   {pageItems.map((o) => {
                     const voided = o.status === "voided" || o.status === "cancelled";
-                    const isDel = o.fulfillment === "delivery";
+                    const sourceLabel =
+                      o.marketplace_order
+                        ? { txt: "MARKETPLACE", cls: "bg-purple-100 text-purple-800" }
+                        : o.channel === "online"
+                          ? { txt: o.table_label ? "QR MEJA" : "ONLINE", cls: "bg-amber-100 text-amber-800" }
+                          : { txt: "POS", cls: "bg-slate-100 text-slate-700" };
+                    const fulfillLabel =
+                      o.fulfillment === "delivery"
+                        ? { txt: "DELIVERY", cls: "bg-blue-100 text-blue-800" }
+                        : o.fulfillment === "pickup"
+                          ? { txt: "PICKUP", cls: "bg-indigo-100 text-indigo-800" }
+                          : null;
                     return (
                       <li
                         key={o.id}
@@ -402,16 +413,19 @@ export function OrdersTodayDialog({
                           className="flex-1 min-w-0 text-left"
                           onClick={() => openDetail(o)}
                         >
-                          <div className="flex items-center gap-2 text-sm font-medium">
+                          <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
                             #{o.order_no}
                             {voided && (
                               <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
                                 VOID
                               </span>
                             )}
-                            {isDel && (
-                              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
-                                DELIVERY
+                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${sourceLabel.cls}`}>
+                              {sourceLabel.txt}
+                            </span>
+                            {fulfillLabel && (
+                              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${fulfillLabel.cls}`}>
+                                {fulfillLabel.txt}
                               </span>
                             )}
                             {o.table_label && (
@@ -419,12 +433,15 @@ export function OrdersTodayDialog({
                                 Meja {o.table_label}
                               </span>
                             )}
-                            {o.customer_name && (
-                              <span className="text-xs text-muted-foreground font-normal truncate">
-                                · {o.customer_name}
-                              </span>
-                            )}
                           </div>
+                          {(o.customer_name || o.customer_phone) && (
+                            <div className="text-xs text-foreground/80 mt-0.5 truncate">
+                              {o.customer_name ?? "—"}
+                              {o.customer_phone && (
+                                <span className="text-muted-foreground"> · {o.customer_phone}</span>
+                              )}
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                             <span>
                               {new Date(o.created_at).toLocaleTimeString("id-ID", {
