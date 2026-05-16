@@ -1368,8 +1368,17 @@ function BookingPage() {
       ) : view === "slots" ? (
         <div className="space-y-3">
           {slots.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground">
-              Belum ada slot untuk hari ini — klik "Buat Slot" untuk menambahkan
+            <div className="rounded-xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground space-y-2">
+              <p className="font-medium text-foreground">
+                {isTableMode
+                  ? "Belum ada meja/area untuk hari ini"
+                  : "Belum ada slot layanan untuk hari ini"}
+              </p>
+              <p className="text-xs">
+                {isTableMode
+                  ? 'Klik "Buat Meja" untuk menambahkan meja/area beserta kapasitas tempat duduk.'
+                  : 'Klik "Buat Slot" untuk membuka jadwal layanan baru.'}
+              </p>
             </div>
           ) : slots.map((slot) => {
             const avail = slot.max_capacity - slot.booked_count;
