@@ -646,12 +646,14 @@ function BookingPage() {
           .from("booking_slots" as any)
           .select("*")
           .eq("shop_id" as any, shop.id)
+          .eq("booking_type" as any, bookingType)
           .eq("slot_date" as any, date)
           .order("slot_time" as any) as any,
         supabase
           .from("bookings" as any)
           .select("*, booking_slots!inner(*, shop_id)")
           .eq("booking_slots.shop_id" as any, shop.id)
+          .eq("booking_type" as any, bookingType)
           .eq("booking_slots.slot_date" as any, date)
           .order("created_at", { ascending: false }) as any,
       ]);
