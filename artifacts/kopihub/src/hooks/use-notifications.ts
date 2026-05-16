@@ -67,7 +67,7 @@ export function useNotifications() {
     };
 
     const ch = supabase
-      .channel(`notif-hook-${user.id}`)
+      .channel(`notif-hook-${user.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         {
