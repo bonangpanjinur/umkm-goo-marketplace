@@ -25,6 +25,7 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
+import { ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import type { CartItem } from "@/lib/cart";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/receipt-printer";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
 import { PrinterPicker } from "@/components/pos/printer-picker";
+import { OrdersTodayDialog } from "@/components/orders/OrdersTodayDialog";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
