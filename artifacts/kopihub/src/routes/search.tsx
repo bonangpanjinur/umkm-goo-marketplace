@@ -622,6 +622,7 @@ function SearchPage() {
             size="sm"
             className={`gap-1.5 shrink-0 mt-1 ${showFilter ? "border-primary text-primary" : ""}`}
             onClick={() => setShowFilter(v => !v)}
+            aria-label="Buka filter"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filter
@@ -636,6 +637,7 @@ function SearchPage() {
                 className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
                 onClick={refreshCurrentCache}
                 title="Muat ulang hasil untuk filter saat ini"
+                aria-label="Refresh hasil pencarian"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>
@@ -646,6 +648,7 @@ function SearchPage() {
                 className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowClearCacheDialog(true)}
                 title="Hapus cache hasil pencarian dan muat ulang"
+                aria-label="Hapus cache hasil pencarian"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Hapus cache</span>
