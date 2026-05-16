@@ -347,6 +347,7 @@ export function OrdersTodayDialog({
                   <SelectItem value="all">Semua sumber</SelectItem>
                   <SelectItem value="pos">POS / Kasir</SelectItem>
                   <SelectItem value="online">Online / QR</SelectItem>
+                  <SelectItem value="qr_table">QR Meja</SelectItem>
                   <SelectItem value="marketplace">Marketplace</SelectItem>
                 </SelectContent>
               </Select>
