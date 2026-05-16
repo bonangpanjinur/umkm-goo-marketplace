@@ -161,24 +161,36 @@ function SearchPage() {
   const loadMoreProducts = async () => {
     const next = productPage + 1;
     setLoadingMoreP(true);
-    const from = next * PRODUCT_PAGE_SIZE;
-    const to = from + PRODUCT_PAGE_SIZE - 1;
-    const res = await buildProductQuery().range(from, to);
-    const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
-    setProducts(prev => [...prev, ...more]);
-    setProductPage(next);
-    setLoadingMoreP(false);
+    try {
+      const from = next * PRODUCT_PAGE_SIZE;
+      const to = from + PRODUCT_PAGE_SIZE - 1;
+      const res = await buildProductQuery().range(from, to);
+      if (res.error) throw res.error;
+      const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
+      setProducts(prev => [...prev, ...more]);
+      setProductPage(next);
+    } catch (e: any) {
+      setError(e.message || "Gagal memuat produk tambahan.");
+    } finally {
+      setLoadingMoreP(false);
+    }
   };
 
   const loadMoreShops = async () => {
     const next = shopPage + 1;
     setLoadingMoreS(true);
-    const from = next * SHOP_PAGE_SIZE;
-    const to = from + SHOP_PAGE_SIZE - 1;
-    const res = await buildShopQuery().range(from, to);
-    setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
-    setShopPage(next);
-    setLoadingMoreS(false);
+    try {
+      const from = next * SHOP_PAGE_SIZE;
+      const to = from + SHOP_PAGE_SIZE - 1;
+      const res = await buildShopQuery().range(from, to);
+      if (res.error) throw res.error;
+      setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
+      setShopPage(next);
+    } catch (e: any) {
+      setError(e.message || "Gagal memuat toko tambahan.");
+    } finally {
+      setLoadingMoreS(false);
+    }
   };
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
