@@ -991,6 +991,17 @@ export function OrdersTodayDialog({
               Order ini berasal dari QR meja. Kolom Meja terkunci untuk mencegah salah ubah.
               Masukkan alasan untuk membuka kunci dan mengubah meja.
             </p>
+            {/* Riwayat unlock sebelumnya, agar owner tahu sudah pernah dibuka oleh siapa */}
+            {auditEntries.filter((a) => a.action === "qr_unlock").length > 0 && (
+              <div className="rounded border bg-amber-50 border-amber-200 p-2 text-xs space-y-1 max-h-32 overflow-auto">
+                <div className="font-semibold text-amber-900">Riwayat unlock sebelumnya:</div>
+                {auditEntries.filter((a) => a.action === "qr_unlock").map((a) => (
+                  <div key={a.id} className="text-amber-900">
+                    · {new Date(a.created_at).toLocaleString("id-ID")} — {a.actor_name ?? "?"} {a.reason && `("${a.reason}")`}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-xs font-medium">Alasan</label>
               <Input
@@ -1044,6 +1055,7 @@ export function OrdersTodayDialog({
                   setEditingTable(true);
                   setTableDraft(selected.table_label ?? "");
                   toast.success("Kunci QR dilepas — silakan ubah meja");
+                  loadAudit(selected.id);
                 }}
               >
                 Buka Kunci
