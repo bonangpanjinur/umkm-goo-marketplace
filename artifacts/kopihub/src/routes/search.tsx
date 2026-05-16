@@ -332,12 +332,14 @@ function SearchPage() {
     if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
     if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
     if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
+    if (verified) prodQ = (prodQ as any).eq("shop.kyc_status", "approved");
     if (cat) {
       const c = cats.find(x => x.slug === cat);
       if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
     }
     if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
     else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
+    else if (sort === "terbaru")  prodQ = prodQ.order("created_at", { ascending: false });
     else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
     return prodQ;
   };
