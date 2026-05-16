@@ -336,11 +336,18 @@ function TableQRPage() {
                   <SelectValue placeholder="Pilih outlet" />
                 </SelectTrigger>
                 <SelectContent>
-                  {outlets.map((o) => (
-                    <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
-                  ))}
+                  {outlets
+                    .filter((o) => (o as any).is_active !== false)
+                    .map((o) => (
+                      <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
+              {!outletActive && (
+                <p className="text-[11px] text-red-600 mt-1">
+                  Outlet ini non-aktif. QR tidak bisa dibuat sampai outlet diaktifkan kembali.
+                </p>
+              )}
             </div>
           </div>
 
