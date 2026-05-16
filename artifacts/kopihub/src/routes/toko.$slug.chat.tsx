@@ -303,9 +303,34 @@ function ShopChatPage() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
+          <>
+            {/* Skeleton seller */}
+            <div className="flex justify-start animate-pulse">
+              <div className="max-w-[78%] space-y-2">
+                <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-56 h-12" />
+                <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-40 h-10" />
+              </div>
+            </div>
+            {/* Skeleton mine */}
+            <div className="flex justify-end animate-pulse">
+              <div className="space-y-2 max-w-[78%]">
+                <div className="bg-primary/20 rounded-2xl rounded-br-sm px-3 py-2.5 w-48 h-10" />
+                <div className="bg-primary/20 rounded-2xl rounded-br-sm px-3 py-2.5 w-32 h-8" />
+              </div>
+            </div>
+            {/* Skeleton seller */}
+            <div className="flex justify-start animate-pulse">
+              <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-64 h-14" />
+            </div>
+            {/* Skeleton mine */}
+            <div className="flex justify-end animate-pulse">
+              <div className="bg-primary/20 rounded-2xl rounded-br-sm px-3 py-2.5 w-44 h-10" />
+            </div>
+            {/* Skeleton seller */}
+            <div className="flex justify-start animate-pulse">
+              <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-52 h-10" />
+            </div>
+          </>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
             <MessageCircle className="h-10 w-10 text-muted-foreground opacity-30" />
