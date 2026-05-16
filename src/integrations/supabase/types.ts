@@ -4547,6 +4547,63 @@ export type Database = {
           },
         ]
       }
+      pos_audit_log: {
+        Row: {
+          action: string
+          cashier_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          order_no: string | null
+          outlet_id: string | null
+          reason: string | null
+          shop_id: string
+        }
+        Insert: {
+          action: string
+          cashier_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          order_no?: string | null
+          outlet_id?: string | null
+          reason?: string | null
+          shop_id: string
+        }
+        Update: {
+          action?: string
+          cashier_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          order_no?: string | null
+          outlet_id?: string | null
+          reason?: string | null
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       printers: {
         Row: {
           address: string | null
