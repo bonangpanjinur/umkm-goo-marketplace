@@ -3442,6 +3442,7 @@ export type Database = {
           net_to_shop: number | null
           note: string | null
           order_no: string
+          order_source: string | null
           outlet_id: string
           paid_at: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
@@ -3510,6 +3511,7 @@ export type Database = {
           net_to_shop?: number | null
           note?: string | null
           order_no: string
+          order_source?: string | null
           outlet_id: string
           paid_at?: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
@@ -3578,6 +3580,7 @@ export type Database = {
           net_to_shop?: number | null
           note?: string | null
           order_no?: string
+          order_source?: string | null
           outlet_id?: string
           paid_at?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
