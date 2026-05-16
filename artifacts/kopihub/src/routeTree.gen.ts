@@ -15,10 +15,12 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PromoRouteImport } from './routes/promo'
 import { Route as PosAppRouteImport } from './routes/pos-app'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as MasukRouteImport } from './routes/masuk'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DaftarRouteImport } from './routes/daftar'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BandingkanRouteImport } from './routes/bandingkan'
 import { Route as AkunRouteImport } from './routes/akun'
@@ -298,6 +300,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasukRoute = MasukRouteImport.update({
+  id: '/masuk',
+  path: '/masuk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -316,6 +323,11 @@ const KeranjangRoute = KeranjangRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarRoute = DaftarRouteImport.update({
+  id: '/daftar',
+  path: '/daftar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -1576,10 +1588,12 @@ export interface FileRoutesByFullPath {
   '/akun': typeof AkunRouteWithChildren
   '/bandingkan': typeof BandingkanRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/daftar': typeof DaftarRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/masuk': typeof MasukRoute
   '/onboarding': typeof OnboardingRoute
   '/pos-app': typeof PosAppRouteWithChildren
   '/promo': typeof PromoRoute
@@ -1834,10 +1848,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bandingkan': typeof BandingkanRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/daftar': typeof DaftarRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/masuk': typeof MasukRoute
   '/onboarding': typeof OnboardingRoute
   '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -2092,10 +2108,12 @@ export interface FileRoutesById {
   '/akun': typeof AkunRouteWithChildren
   '/bandingkan': typeof BandingkanRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/daftar': typeof DaftarRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/masuk': typeof MasukRoute
   '/onboarding': typeof OnboardingRoute
   '/pos-app': typeof PosAppRouteWithChildren
   '/promo': typeof PromoRoute
@@ -2354,10 +2372,12 @@ export interface FileRouteTypes {
     | '/akun'
     | '/bandingkan'
     | '/checkout'
+    | '/daftar'
     | '/forgot-password'
     | '/keranjang'
     | '/leaderboard'
     | '/login'
+    | '/masuk'
     | '/onboarding'
     | '/pos-app'
     | '/promo'
@@ -2612,10 +2632,12 @@ export interface FileRouteTypes {
     | '/'
     | '/bandingkan'
     | '/checkout'
+    | '/daftar'
     | '/forgot-password'
     | '/keranjang'
     | '/leaderboard'
     | '/login'
+    | '/masuk'
     | '/onboarding'
     | '/promo'
     | '/reset-password'
@@ -2869,10 +2891,12 @@ export interface FileRouteTypes {
     | '/akun'
     | '/bandingkan'
     | '/checkout'
+    | '/daftar'
     | '/forgot-password'
     | '/keranjang'
     | '/leaderboard'
     | '/login'
+    | '/masuk'
     | '/onboarding'
     | '/pos-app'
     | '/promo'
@@ -3130,10 +3154,12 @@ export interface RootRouteChildren {
   AkunRoute: typeof AkunRouteWithChildren
   BandingkanRoute: typeof BandingkanRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
+  DaftarRoute: typeof DaftarRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   KeranjangRoute: typeof KeranjangRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
+  MasukRoute: typeof MasukRoute
   OnboardingRoute: typeof OnboardingRoute
   PosAppRoute: typeof PosAppRouteWithChildren
   PromoRoute: typeof PromoRoute
@@ -3201,6 +3227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/masuk': {
+      id: '/masuk'
+      path: '/masuk'
+      fullPath: '/masuk'
+      preLoaderRoute: typeof MasukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -3227,6 +3260,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar': {
+      id: '/daftar'
+      path: '/daftar'
+      fullPath: '/daftar'
+      preLoaderRoute: typeof DaftarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -5599,10 +5639,12 @@ const rootRouteChildren: RootRouteChildren = {
   AkunRoute: AkunRouteWithChildren,
   BandingkanRoute: BandingkanRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
+  DaftarRoute: DaftarRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   KeranjangRoute: KeranjangRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
+  MasukRoute: MasukRoute,
   OnboardingRoute: OnboardingRoute,
   PosAppRoute: PosAppRouteWithChildren,
   PromoRoute: PromoRoute,
