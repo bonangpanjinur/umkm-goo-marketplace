@@ -586,7 +586,7 @@ function SearchPage() {
                 variant="ghost"
                 size="sm"
                 className="shrink-0 mt-1 gap-1.5 text-muted-foreground hover:text-foreground"
-                onClick={clearAllCachesAndRefetch}
+                onClick={() => setShowClearCacheDialog(true)}
                 title="Hapus cache hasil pencarian dan muat ulang"
               >
                 <Trash2 className="h-4 w-4" />
