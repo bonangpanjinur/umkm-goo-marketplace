@@ -1,13 +1,54 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ShoppingBag, ShoppingCart, Store, User } from "lucide-react";
+import { Search, ShoppingBag, ShoppingCart, Store, User, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { cartCount } from "@/lib/marketplace-cart";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MarketplaceBottomNav } from "./MarketplaceBottomNav";
+
+function ChatInboxButton({ userId }: { userId: string }) {
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    let mounted = true;
+    const refresh = async () => {
+      const { data: chats } = await (supabase as any)
+        .from("shop_chats")
+        .select("id")
+        .eq("buyer_user_id", userId);
+      const ids = (chats ?? []).map((c: any) => c.id);
+      if (!ids.length) { if (mounted) setUnread(0); return; }
+      const { count } = await (supabase as any)
+        .from("shop_chat_messages")
+        .select("id", { count: "exact", head: true })
+        .in("chat_id", ids)
+        .eq("sender_role", "seller")
+        .is("read_at", null);
+      if (mounted) setUnread(count ?? 0);
+    };
+    refresh();
+    const ch = supabase
+      .channel(`mp-chat-unread-${userId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "shop_chat_messages" }, refresh)
+      .subscribe();
+    return () => { mounted = false; supabase.removeChannel(ch); };
+  }, [userId]);
+
+  return (
+    <Link to="/akun/inbox" className="relative" aria-label="Kotak masuk chat">
+      <Button variant="ghost" size="icon" className="h-9 w-9">
+        <MessageCircle className="h-4 w-4" />
+      </Button>
+      {unread > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 export function MarketplaceHeader() {
   const [count, setCount] = useState(0);
@@ -67,6 +108,7 @@ export function MarketplaceHeader() {
             </span>
           )}
         </Link>
+        {user && <ChatInboxButton userId={user.id} />}
         {user && <NotificationBell />}
         {user ? (
           <>
