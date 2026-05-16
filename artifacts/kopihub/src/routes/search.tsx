@@ -82,10 +82,41 @@ function ShopSkeletonCards({ n = 4 }: { n?: number }) {
   return (
     <>
       {Array.from({ length: n }).map((_, i) => (
-        <div key={`ss-${i}`} className="rounded-xl border border-border bg-muted/30 animate-pulse p-4 h-20" />
+        <div key={`ss-${i}`} className="rounded-xl border border-border bg-muted/30 animate-pulse p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-muted/60" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 bg-muted rounded w-3/5" />
+              <div className="h-2.5 bg-muted rounded w-2/5" />
+            </div>
+          </div>
+          <div className="mt-3 h-2.5 bg-muted rounded w-4/5" />
+          <div className="mt-1.5 h-2.5 bg-muted rounded w-2/3" />
+        </div>
       ))}
     </>
   );
+}
+
+// Ekstrak nama kota dari alamat lengkap (best-effort, untuk display ringkas).
+function extractCity(address?: string | null): string {
+  if (!address) return "";
+  const parts = address.split(",").map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) return "";
+  // Prioritas: cari token yang diawali "Kota " atau "Kab. "
+  const tagged = parts.find(p => /^(kota|kab\.?|kabupaten)\s+/i.test(p));
+  if (tagged) return tagged.replace(/^(kota|kab\.?|kabupaten)\s+/i, "");
+  // Fallback: ambil bagian ke-2 dari belakang (umumnya kota di alamat Indonesia)
+  return parts[parts.length - 2] ?? parts[parts.length - 1] ?? "";
+}
+
+function formatRelativeTime(ts: number): string {
+  const diff = Math.max(0, Date.now() - ts);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "baru saja";
+  if (m < 60) return `${m} menit lalu`;
+  const h = Math.floor(m / 60);
+  return `${h} jam lalu`;
 }
 
 function SkeletonProductGrid({ n = 10 }: { n?: number }) {
