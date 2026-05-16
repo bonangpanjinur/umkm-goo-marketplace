@@ -948,15 +948,26 @@ function SearchPage() {
             {/* Products section */}
             {tab !== "toko" && (
               <section>
-                <h2 className="mb-4 text-base font-semibold text-muted-foreground">
-                  Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
-                </h2>
+                <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="text-base font-semibold text-muted-foreground">
+                    Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
+                  </h2>
+                  {(() => {
+                    const c = productCacheRef.current.get(cacheKey);
+                    if (!c || loadingProducts) return null;
+                    return (
+                      <span className="text-[11px] text-muted-foreground/80 italic">
+                        dari cache · diperbarui {formatRelativeTime(c.ts)}
+                      </span>
+                    );
+                  })()}
+                </div>
                 {loadingProducts ? <SkeletonProductGrid />
                   : productError && products.length === 0 ? (
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryProducts}
                       error={productError}
                     />
@@ -964,7 +975,7 @@ function SearchPage() {
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryProducts}
                     />
                   ) : (
