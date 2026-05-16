@@ -590,6 +590,7 @@ function POSPage() {
           onOpenParked={() => setParkedListOpen(true)}
           parkedCount={parkedList.length}
           onOpenOrders={() => setOrdersDlgOpen(true)}
+          ordersTodayCount={todayOrdersCount}
         />
       </div>
 
@@ -605,6 +606,7 @@ function POSPage() {
             onOpenParked={() => setParkedListOpen(true)}
             parkedCount={parkedList.length}
             onOpenOrders={() => setOrdersDlgOpen(true)}
+            ordersTodayCount={todayOrdersCount}
           />
         </div>
         <div className="flex-1 min-h-0">
