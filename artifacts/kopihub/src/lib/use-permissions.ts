@@ -69,6 +69,11 @@ export function usePermissions() {
   }, [user, shop]);
 
   const can = (module: PermissionModule): boolean => {
+    // While permissions are still loading, allow optimistic access.
+    // Server-side RLS still enforces real authorization, so this only
+    // prevents the false-negative flash where owners momentarily see
+    // "tidak memiliki izin" before role data resolves.
+    if (loading) return true;
     if (role === "owner") return true;
     if (allowedModules.includes("*")) return true;
     
