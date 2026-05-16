@@ -245,6 +245,31 @@ export function OrdersTodayDialog({
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
 
+  // Load IDs of today's orders that have at least one qr_unlock entry
+  useEffect(() => {
+    if (!open || !outletId) return;
+    let cancelled = false;
+    (async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("order_audit_log")
+        .select("order_id")
+        .eq("outlet_id", outletId)
+        .eq("action", "qr_unlock")
+        .gte("created_at", startOfDay.toISOString());
+      if (cancelled) return;
+      const set = new Set<string>();
+      (data ?? []).forEach((r: { order_id: string | null }) => {
+        if (r.order_id) set.add(r.order_id);
+      });
+      setQrUnlockedIds(set);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, outletId, orders.length]);
+
   // Filter + sort + paginate
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
