@@ -742,6 +742,20 @@ function SearchPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 mt-1 h-9 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-input accent-primary"
+                    checked={!!verified}
+                    onChange={e => update({ verified: e.target.checked ? true : undefined })}
+                  />
+                  <span className="text-xs inline-flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    Hanya terverifikasi
+                  </span>
+                </label>
+              </div>
             </div>
             <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-3">
               {draftDirty && (
