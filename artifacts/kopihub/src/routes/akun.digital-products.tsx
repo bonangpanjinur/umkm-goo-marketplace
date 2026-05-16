@@ -128,7 +128,10 @@ function DigitalProductsPage() {
       {items.length > 0 && (
         <div className="space-y-3">
           {items.map(item => {
-            const hasDownload = !!item.menu_item?.download_url;
+            const downloadUrl = item.menu_item?.digital_file_url ?? null;
+            const hasDownload = !!downloadUrl;
+            const fileName = item.menu_item?.digital_file_name ?? null;
+            const fileType = fileName?.split(".").pop()?.toLowerCase() ?? null;
             return (
               <div key={item.id} className="rounded-xl border border-border bg-card p-4">
                 <div className="flex gap-4">
