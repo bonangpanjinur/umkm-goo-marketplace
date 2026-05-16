@@ -202,6 +202,7 @@ function TableQRPage() {
   // ---- Download all as ZIP of PNGs ----
   async function downloadZipAll() {
     if (!tables?.length || !shop) return;
+    if (!outletActive) { toast.error("Outlet non-aktif — tidak boleh membuat QR."); return; }
     setDownloading("zip");
     try {
       const zip = new JSZip();
@@ -232,6 +233,9 @@ function TableQRPage() {
   }
 
   function printSingle(tableId: string, tableName: string) {
+    if (!outletActive) { toast.error("Outlet non-aktif — tidak boleh membuat QR."); return; }
+    const t = (rawTables || []).find((x: any) => x.id === tableId);
+    if (t && t.is_active === false) { toast.error("Meja non-aktif — tidak boleh membuat QR."); return; }
     const url = getTableUrl(tableId, tableName);
     const win = window.open("", "_blank", "width=420,height=620");
     if (!win) return;
