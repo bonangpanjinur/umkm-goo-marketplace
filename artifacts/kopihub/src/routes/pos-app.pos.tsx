@@ -129,6 +129,7 @@ function POSPage() {
   // Parked carts list (multi-device)
   const [parkedList, setParkedList] = useState<ParkedCart[]>([]);
   const [parkedListOpen, setParkedListOpen] = useState(false);
+  const [ordersDlgOpen, setOrdersDlgOpen] = useState(false);
 
   // Last completed order — kept in state so we can render a hidden Receipt
   // and trigger window.print() (auto-print after checkout, or manual re-print).
@@ -573,6 +574,7 @@ function POSPage() {
           onAdd={addCartTab}
           onOpenParked={() => setParkedListOpen(true)}
           parkedCount={parkedList.length}
+          onOpenOrders={() => setOrdersDlgOpen(true)}
         />
       </div>
 
@@ -587,6 +589,7 @@ function POSPage() {
             onAdd={addCartTab}
             onOpenParked={() => setParkedListOpen(true)}
             parkedCount={parkedList.length}
+            onOpenOrders={() => setOrdersDlgOpen(true)}
           />
         </div>
         <div className="flex-1 min-h-0">
