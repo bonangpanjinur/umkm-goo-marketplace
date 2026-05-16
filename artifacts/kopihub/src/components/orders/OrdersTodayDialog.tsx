@@ -37,6 +37,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/use-permissions";
 import { formatIDR } from "@/lib/format";
 import type { CartItem } from "@/lib/cart";
 import { Receipt } from "@/components/pos/receipt";
