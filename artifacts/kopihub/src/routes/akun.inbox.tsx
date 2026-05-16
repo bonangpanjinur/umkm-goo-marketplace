@@ -88,7 +88,29 @@ function InboxPage() {
   }, [user]);
 
   if (loading) {
-    return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+    return (
+      <div className="space-y-3">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="h-5 w-5 rounded-full bg-muted animate-pulse" />
+          <div className="h-5 w-40 rounded bg-muted animate-pulse" />
+        </div>
+        <ul className="divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden animate-pulse">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="flex items-center gap-3 p-3">
+              <div className="h-11 w-11 rounded-full bg-muted shrink-0" />
+              <div className="flex-1 space-y-1.5 min-w-0">
+                <div className="flex items-baseline justify-between gap-2">
+                  <div className="h-4 w-24 rounded bg-muted" />
+                  <div className="h-3 w-10 rounded bg-muted shrink-0" />
+                </div>
+                <div className="h-3 w-2/3 rounded bg-muted" />
+              </div>
+              <div className="h-5 w-5 rounded-full bg-muted shrink-0" />
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   }
 
   return (
