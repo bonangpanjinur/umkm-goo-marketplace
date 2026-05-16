@@ -57,6 +57,9 @@ type Order = {
   customer_name: string | null;
   fulfillment: string | null;
   table_label: string | null;
+  channel: "pos" | "online" | null;
+  marketplace_order: boolean | null;
+  customer_phone: string | null;
 };
 
 type OrderDetail = Order & {
@@ -93,6 +96,8 @@ const PAGE_SIZE = 10;
 type SortDir = "newest" | "oldest";
 type StatusFilter = "all" | "active" | "voided";
 type PayFilter = "all" | "cash" | "qris";
+type SourceFilter = "all" | "pos" | "online" | "marketplace";
+type FulfillmentFilter = "all" | "dine_in" | "pickup" | "delivery";
 
 function lsGet(key: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
@@ -136,6 +141,8 @@ export function OrdersTodayDialog({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [payFilter, setPayFilter] = useState<PayFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const [fulfillFilter, setFulfillFilter] = useState<FulfillmentFilter>("all");
   const [sortDir, setSortDir] = useState<SortDir>(
     () => (lsGet(sortKey, "newest") as SortDir) || "newest",
   );
@@ -163,7 +170,7 @@ export function OrdersTodayDialog({
     supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order",
       )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
@@ -188,8 +195,12 @@ export function OrdersTodayDialog({
         if (o.status === "voided" || o.status === "cancelled") return false;
       }
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
+      if (sourceFilter === "pos" && o.channel !== "pos") return false;
+      if (sourceFilter === "online" && o.channel !== "online") return false;
+      if (sourceFilter === "marketplace" && !o.marketplace_order) return false;
+      if (fulfillFilter !== "all" && o.fulfillment !== fulfillFilter) return false;
       if (q) {
-        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
+        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.customer_phone ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method} ${o.channel ?? ""} ${o.fulfillment ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -200,7 +211,7 @@ export function OrdersTodayDialog({
       return sortDir === "newest" ? tb - ta : ta - tb;
     });
     return list;
-  }, [orders, search, statusFilter, payFilter, sortDir]);
+  }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -209,13 +220,13 @@ export function OrdersTodayDialog({
   // Reset to page 1 when filters/search change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, payFilter]);
+  }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter]);
 
   async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, channel, marketplace_order, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
       .eq("id", id)
       .single();
@@ -315,18 +326,36 @@ export function OrdersTodayDialog({
         {!selected && (
           <>
             {/* Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-              <div className="relative sm:col-span-5">
+            <div className="grid grid-cols-2 sm:grid-cols-12 gap-2">
+              <div className="relative col-span-2 sm:col-span-12">
                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari No. order / pelanggan…"
+                  placeholder="Cari No. order / nama / no. HP / meja…"
                   className="h-9 pl-8"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+              <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
                 <SelectTrigger className="h-9 sm:col-span-3"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua sumber</SelectItem>
+                  <SelectItem value="pos">POS / Kasir</SelectItem>
+                  <SelectItem value="online">Online / QR</SelectItem>
+                  <SelectItem value="marketplace">Marketplace</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={fulfillFilter} onValueChange={(v) => setFulfillFilter(v as FulfillmentFilter)}>
+                <SelectTrigger className="h-9 sm:col-span-3"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua jenis</SelectItem>
+                  <SelectItem value="dine_in">Dine-in</SelectItem>
+                  <SelectItem value="pickup">Pickup</SelectItem>
+                  <SelectItem value="delivery">Delivery</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className="h-9 sm:col-span-2"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua status</SelectItem>
                   <SelectItem value="active">Aktif</SelectItem>
@@ -363,7 +392,18 @@ export function OrdersTodayDialog({
                 <ul className="divide-y rounded-lg border">
                   {pageItems.map((o) => {
                     const voided = o.status === "voided" || o.status === "cancelled";
-                    const isDel = o.fulfillment === "delivery";
+                    const sourceLabel =
+                      o.marketplace_order
+                        ? { txt: "MARKETPLACE", cls: "bg-purple-100 text-purple-800" }
+                        : o.channel === "online"
+                          ? { txt: o.table_label ? "QR MEJA" : "ONLINE", cls: "bg-amber-100 text-amber-800" }
+                          : { txt: "POS", cls: "bg-slate-100 text-slate-700" };
+                    const fulfillLabel =
+                      o.fulfillment === "delivery"
+                        ? { txt: "DELIVERY", cls: "bg-blue-100 text-blue-800" }
+                        : o.fulfillment === "pickup"
+                          ? { txt: "PICKUP", cls: "bg-indigo-100 text-indigo-800" }
+                          : null;
                     return (
                       <li
                         key={o.id}
@@ -373,16 +413,19 @@ export function OrdersTodayDialog({
                           className="flex-1 min-w-0 text-left"
                           onClick={() => openDetail(o)}
                         >
-                          <div className="flex items-center gap-2 text-sm font-medium">
+                          <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
                             #{o.order_no}
                             {voided && (
                               <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
                                 VOID
                               </span>
                             )}
-                            {isDel && (
-                              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
-                                DELIVERY
+                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${sourceLabel.cls}`}>
+                              {sourceLabel.txt}
+                            </span>
+                            {fulfillLabel && (
+                              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${fulfillLabel.cls}`}>
+                                {fulfillLabel.txt}
                               </span>
                             )}
                             {o.table_label && (
@@ -390,12 +433,15 @@ export function OrdersTodayDialog({
                                 Meja {o.table_label}
                               </span>
                             )}
-                            {o.customer_name && (
-                              <span className="text-xs text-muted-foreground font-normal truncate">
-                                · {o.customer_name}
-                              </span>
-                            )}
                           </div>
+                          {(o.customer_name || o.customer_phone) && (
+                            <div className="text-xs text-foreground/80 mt-0.5 truncate">
+                              {o.customer_name ?? "—"}
+                              {o.customer_phone && (
+                                <span className="text-muted-foreground"> · {o.customer_phone}</span>
+                              )}
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                             <span>
                               {new Date(o.created_at).toLocaleTimeString("id-ID", {
@@ -472,6 +518,52 @@ export function OrdersTodayDialog({
           <div className="flex-1 overflow-auto space-y-3">
             <div className="text-xs text-muted-foreground">
               {new Date(selected.created_at).toLocaleString("id-ID")}
+            </div>
+            <div className="rounded-lg border p-3 text-sm space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span className={`rounded px-1.5 py-0.5 font-semibold ${
+                  selected.marketplace_order
+                    ? "bg-purple-100 text-purple-800"
+                    : selected.channel === "online"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-slate-100 text-slate-700"
+                }`}>
+                  {selected.marketplace_order
+                    ? "Marketplace"
+                    : selected.channel === "online"
+                      ? (selected.table_label ? "QR Meja" : "Online / Website")
+                      : "POS / Kasir"}
+                </span>
+                {selected.fulfillment && (
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-semibold uppercase">
+                    {selected.fulfillment === "dine_in" ? "Dine-in" : selected.fulfillment}
+                  </span>
+                )}
+                {selected.table_label && (
+                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
+                    Meja {selected.table_label}
+                  </span>
+                )}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Atas nama: </span>
+                <span className="font-medium">{selected.customer_name ?? "—"}</span>
+              </div>
+              {selected.customer_phone && (
+                <div>
+                  <span className="text-muted-foreground">No. HP: </span>
+                  <span>{selected.customer_phone}</span>
+                </div>
+              )}
+              {selected.delivery_address && (
+                <div>
+                  <span className="text-muted-foreground">Alamat: </span>
+                  <span>{selected.delivery_address}</span>
+                </div>
+              )}
+              {selected.note && (
+                <div className="italic text-muted-foreground">📝 {selected.note}</div>
+              )}
             </div>
             <ul className="divide-y rounded-lg border">
               {items.map((it, k) => (
