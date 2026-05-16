@@ -155,6 +155,21 @@ export function OrdersTodayDialog({
     return Number.isFinite(p) && p > 0 ? p : 1;
   });
 
+  // Edit state for table_label in detail view
+  const [editingTable, setEditingTable] = useState(false);
+  const [tableDraft, setTableDraft] = useState("");
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [savingTable, setSavingTable] = useState(false);
+
+  useEffect(() => {
+    // Reset edit state when changing selected order
+    setEditingTable(false);
+    setTableDraft(selected?.table_label ?? "");
+    setCancelOpen(false);
+    setCancelReason("");
+  }, [selected?.id]);
+
   // Persist sort & page
   useEffect(() => {
     lsSet(sortKey, sortDir);
