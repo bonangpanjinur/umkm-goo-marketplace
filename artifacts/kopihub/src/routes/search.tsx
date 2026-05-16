@@ -18,8 +18,14 @@ const searchSchema = z.object({
   min:     z.coerce.number().optional(),
   max:     z.coerce.number().optional(),
   minRating: z.coerce.number().optional(),
+  city:    z.string().optional().default(""),
+  pay:     z.enum(["", "cash", "qris", "transfer", "ewallet", "card"]).optional().default(""),
   tab:     z.enum(["semua", "produk", "toko"]).optional().default("semua"),
 });
+
+const PAY_LABEL: Record<string, string> = {
+  cash: "Tunai", qris: "QRIS", transfer: "Transfer Bank", ewallet: "E-Wallet", card: "Kartu",
+};
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
@@ -72,7 +78,7 @@ function ActiveFilterPill({ label, onRemove }: { label: string; onRemove: () => 
 }
 
 function SearchPage() {
-  const { q, cat, sort, min, max, minRating, tab } = Route.useSearch();
+  const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
   const [products,   setProducts]   = useState<any[]>([]);
   const [shops,      setShops]      = useState<any[]>([]);
@@ -94,12 +100,14 @@ function SearchPage() {
 
       let prodQ = supabase
         .from("menu_items")
-        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id)")
+        .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)")
         .ilike("name", term)
         .eq("is_available", true);
       if (typeof min       === "number") prodQ = prodQ.gte("price", min);
       if (typeof max       === "number") prodQ = prodQ.lte("price", max);
       if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
+      if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
+      if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
       if (cat) {
         const c = cats.find(x => x.slug === cat);
         if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
@@ -110,7 +118,7 @@ function SearchPage() {
 
       let shopQ = supabase
         .from("coffee_shops")
-        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status")
+        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled")
         .eq("is_active", true);
       if (q) shopQ = shopQ.or(`name.ilike.${term},tagline.ilike.${term}`);
       if (cat) {
@@ -118,6 +126,8 @@ function SearchPage() {
         if (c) shopQ = shopQ.eq("business_category_id", c.id);
       }
       if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
+      if (city) shopQ = shopQ.ilike("address", `%${city}%`);
+      if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
       shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false }).limit(24);
 
       const [prodRes, shopRes] = await Promise.all([prodQ.limit(60), shopQ]);
@@ -125,17 +135,19 @@ function SearchPage() {
       setShops((shopRes.data as any[]) ?? []);
       setLoading(false);
     })();
-  }, [q, cat, sort, min, max, minRating, cats]);
+  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
 
-  const hasFilters = !!(cat || min || max || minRating);
+  const hasFilters = !!(cat || min || max || minRating || city || pay);
   const activePills: { label: string; key: string }[] = [];
   if (cat)       activePills.push({ label: cats.find(c => c.slug === cat)?.name ?? cat, key: "cat" });
   if (minRating) activePills.push({ label: `Min ★${minRating}`, key: "minRating" });
   if (min)       activePills.push({ label: `Min Rp${Number(min).toLocaleString("id-ID")}`, key: "min" });
   if (max)       activePills.push({ label: `Max Rp${Number(max).toLocaleString("id-ID")}`, key: "max" });
+  if (city)      activePills.push({ label: `Kota: ${city}`, key: "city" });
+  if (pay)       activePills.push({ label: `Bayar: ${PAY_LABEL[pay] ?? pay}`, key: "pay" });
 
   const hasQuery = !!(q || cat);
   const visibleProducts = tab === "toko"  ? [] : products;
@@ -182,7 +194,7 @@ function SearchPage() {
             {activePills.map(p => (
               <ActiveFilterPill key={p.key} label={p.label} onRemove={() => clearFilter(p.key)} />
             ))}
-            <button onClick={() => update({ cat: undefined, min: undefined, max: undefined, minRating: undefined })}
+            <button onClick={() => update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined })}
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
               Reset semua
             </button>
@@ -233,6 +245,24 @@ function SearchPage() {
             <div>
               <Label className="text-xs">Harga max (Rp)</Label>
               <Input type="number" inputMode="numeric" className="mt-1 h-9" value={max ?? ""} onChange={e => update({ max: e.target.value ? Number(e.target.value) : undefined })} placeholder="∞" />
+            </div>
+            <div>
+              <Label className="text-xs">Kota / Lokasi</Label>
+              <Input type="text" className="mt-1 h-9" value={city ?? ""} onChange={e => update({ city: e.target.value || undefined })} placeholder="Jakarta, Bandung…" />
+            </div>
+            <div>
+              <Label className="text-xs">Metode Bayar</Label>
+              <Select value={pay || "all"} onValueChange={v => update({ pay: v === "all" ? undefined : v })}>
+                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua metode</SelectItem>
+                  <SelectItem value="cash">Tunai</SelectItem>
+                  <SelectItem value="qris">QRIS</SelectItem>
+                  <SelectItem value="transfer">Transfer Bank</SelectItem>
+                  <SelectItem value="ewallet">E-Wallet</SelectItem>
+                  <SelectItem value="card">Kartu Debit/Kredit</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
