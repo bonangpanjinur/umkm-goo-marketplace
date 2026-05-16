@@ -272,6 +272,7 @@ function BundleContents({ productId }: { productId: string }) {
 
 function ProductDetailPage() {
   const { slug, productId } = Route.useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
