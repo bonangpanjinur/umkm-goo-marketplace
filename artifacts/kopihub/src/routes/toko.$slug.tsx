@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
@@ -322,6 +322,7 @@ type ReviewStats = {
 function ShopPage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -451,14 +452,13 @@ function ShopPage() {
     : null;
 
   if (notFound) {
+    if (typeof window !== "undefined") {
+      toast.info("Toko tidak ditemukan");
+      navigate({ to: "/", replace: true });
+    }
     return (
-      <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
-        <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold">Toko tidak ditemukan</h1>
-          <Link to="/" className="mt-4 inline-block text-primary hover:underline">← Beranda</Link>
-        </div>
-        <MarketplaceFooter />
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm text-muted-foreground">Mengalihkan ke beranda…</p>
       </div>
     );
   }
@@ -543,9 +543,9 @@ function ShopPage() {
                   {followed ? "Mengikuti" : "Ikuti Toko"}
                 </Button>
                 <Button asChild size="sm" variant="default" className="gap-1.5">
-                  <Link to="/toko/$slug/booking" params={{ slug }}>
+                  <Link to="/toko/$slug/booking" params={{ slug }} search={{ type: "table" }}>
                     <CalendarCheck className="h-3.5 w-3.5" />
-                    Booking &amp; Reservasi
+                    Reservasi Meja
                   </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">

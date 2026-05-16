@@ -24,7 +24,8 @@ import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payme
 
 export const Route = createFileRoute("/toko/$slug/booking")({
   validateSearch: (search: Record<string, unknown>) => ({
-    type: (search.type === "table" ? "table" : "service") as "service" | "table",
+    // F&B (KopiHub) → default & paksa ke "table". Mode "service" tidak dipakai lagi.
+    type: "table" as "service" | "table",
   }),
   component: PublicBookingPage,
 });
@@ -830,49 +831,7 @@ export default function PublicBookingPage() {
         </div>
       </div>
 
-      {/* Mode switcher: Layanan / Meja */}
-      <div className="mx-auto max-w-2xl px-4 pt-4">
-        <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-          {([
-            { key: "service", label: "Booking Layanan", icon: CalendarCheck },
-            { key: "table", label: "Reservasi Meja", icon: UtensilsCrossed },
-          ] as const).map((t) => {
-            const active = (t.key === "table") === isTableMode;
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => {
-                  if (active) return;
-                  // reset wizard state saat ganti mode
-                  setStep("date");
-                  setSelectedSlot(null);
-                  setSelectedStaffId(NO_PREF_STAFF_ID);
-                  setSelectedPackage(null);
-                  setSelectedAddonIds(new Set());
-                  setSelectedLocation(null);
-                  setAppliedVoucher(null);
-                  navigate({
-                    to: "/toko/$slug/booking",
-                    params: { slug },
-                    search: t.key === "table" ? { type: "table" } : { type: "service" },
-                    replace: true,
-                  });
-                }}
-                className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* F&B mode: hanya reservasi meja — tab Layanan disembunyikan */}
 
       <div className="mx-auto max-w-2xl px-4 py-6">
 

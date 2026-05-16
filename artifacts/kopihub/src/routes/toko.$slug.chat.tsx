@@ -266,14 +266,13 @@ function ShopChatPage() {
   }
 
   if (notFound) {
+    if (typeof window !== "undefined") {
+      toast.info("Toko tidak ditemukan");
+      navigate({ to: "/", replace: true });
+    }
     return (
-      <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
-        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center px-4">
-          <AlertCircle className="h-12 w-12 text-muted-foreground opacity-30" />
-          <p className="text-muted-foreground">Toko tidak ditemukan</p>
-          <Button asChild variant="outline"><Link to="/">Beranda</Link></Button>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm text-muted-foreground">Mengalihkan ke beranda…</p>
       </div>
     );
   }

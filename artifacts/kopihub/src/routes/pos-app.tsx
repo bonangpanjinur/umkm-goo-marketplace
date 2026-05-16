@@ -4,6 +4,7 @@ import { useLowStockIngredients } from "@/hooks/use-low-stock";
 import { useOwnerPaymentPendingCount } from "@/hooks/useAdNotifications";
 import { useUnansweredQACount } from "@/hooks/use-unanswered-qa";
 import { useRestockPendingCount } from "@/hooks/use-restock-pending-count";
+import { useUnreadChatCount } from "@/hooks/use-unread-chat";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -362,6 +363,7 @@ function AppLayoutInner() {
   const { criticalCount: lowStockCount, emptyCount, items: lowStockItems } = useLowStockIngredients(shop?.id ?? null);
   const unansweredQACount = useUnansweredQACount(shop?.id ?? null);
   const restockPendingCount = useRestockPendingCount(shop?.id ?? null);
+  const unreadChatCount = useUnreadChatCount(shop?.id ?? null);
   const prevLowStockCountRef = useRef<number>(0);
   const prevRestockCountRef = useRef<number>(-1);
   const [checking, setChecking] = useState(true);
@@ -670,6 +672,11 @@ function AppLayoutInner() {
                         {item.to === "/pos-app/restock-notify" && restockPendingCount > 0 && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white animate-pulse">
                             {restockPendingCount > 9 ? "9+" : restockPendingCount}
+                          </span>
+                        )}
+                        {item.to === "/pos-app/inbox" && unreadChatCount > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground animate-pulse">
+                            {unreadChatCount > 9 ? "9+" : unreadChatCount}
                           </span>
                         )}
                       </Link>

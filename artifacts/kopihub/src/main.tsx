@@ -39,19 +39,13 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 }
 
 function DefaultNotFoundComponent() {
+  // Instant redirect ke beranda marketplace — tidak ada layar 404.
+  if (typeof window !== "undefined") {
+    window.location.replace("/");
+  }
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold tracking-tight text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">Halaman tidak ditemukan</h2>
-        <p className="mt-2 text-sm text-muted-foreground">URL yang Anda buka tidak ada atau sudah dipindah.</p>
-        <a
-          href="/"
-          className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          Kembali ke beranda
-        </a>
-      </div>
+      <p className="text-sm text-muted-foreground">Mengalihkan ke beranda…</p>
     </div>
   );
 }
