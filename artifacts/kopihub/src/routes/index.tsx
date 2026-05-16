@@ -641,33 +641,53 @@ function ProductCardHeart({ productId }: { productId: string }) {
     e.stopPropagation();
     if (!user) { toast.info("Masuk untuk menyimpan wishlist"); return; }
     if (busy) return;
+
+    // Optimistic flip
+    const wasWished = wished;
+    const prevWishId = wishId;
+    setWished(!wasWished);
+    if (wasWished) setWishId(null);
     setBusy(true);
-    if (wished && wishId) {
-      await supabase.from("wishlists" as any).delete().eq("id", wishId);
-      setWished(false); setWishId(null);
-      toast.success("Dihapus dari wishlist");
-    } else {
-      const { data } = await supabase.from("wishlists" as any)
-        .insert({ user_id: user.id, menu_item_id: productId }).select("id").single();
-      setWished(true); setWishId((data as any)?.id ?? null);
-      toast.success("Ditambahkan ke wishlist");
+
+    try {
+      if (wasWished && prevWishId) {
+        const { error } = await supabase.from("wishlists" as any).delete().eq("id", prevWishId);
+        if (error) throw error;
+        toast.success("Dihapus dari wishlist");
+      } else {
+        const { data, error } = await supabase.from("wishlists" as any)
+          .insert({ user_id: user.id, menu_item_id: productId }).select("id").single();
+        if (error) throw error;
+        setWishId((data as any)?.id ?? null);
+        toast.success("Ditambahkan ke wishlist");
+      }
+    } catch {
+      // Revert
+      setWished(wasWished);
+      setWishId(prevWishId);
+      toast.error("Gagal memperbarui wishlist");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   };
 
   return (
     <button
       type="button"
       onClick={toggle}
+      disabled={busy}
       aria-label={wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}
+      aria-busy={busy}
       title={wished ? "Hapus dari wishlist" : "Tambah ke wishlist"}
-      className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-md ring-1 transition-all hover:scale-110 active:scale-95 ${
+      className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md shadow-md ring-1 transition-all hover:scale-110 active:scale-95 disabled:opacity-80 disabled:cursor-wait ${
         wished
           ? "bg-rose-500 text-white ring-rose-300"
           : "bg-background/85 text-foreground/70 ring-border/60 hover:bg-background hover:text-rose-500"
       }`}
     >
-      <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} />
+      {busy
+        ? <Loader2 className="h-4 w-4 animate-spin" />
+        : <Heart className={`h-4 w-4 transition-transform ${wished ? "fill-current scale-110" : ""}`} />}
     </button>
   );
 }
