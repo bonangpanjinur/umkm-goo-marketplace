@@ -18,8 +18,14 @@ const searchSchema = z.object({
   min:     z.coerce.number().optional(),
   max:     z.coerce.number().optional(),
   minRating: z.coerce.number().optional(),
+  city:    z.string().optional().default(""),
+  pay:     z.enum(["", "cash", "qris", "transfer", "ewallet", "card"]).optional().default(""),
   tab:     z.enum(["semua", "produk", "toko"]).optional().default("semua"),
 });
+
+const PAY_LABEL: Record<string, string> = {
+  cash: "Tunai", qris: "QRIS", transfer: "Transfer Bank", ewallet: "E-Wallet", card: "Kartu",
+};
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
