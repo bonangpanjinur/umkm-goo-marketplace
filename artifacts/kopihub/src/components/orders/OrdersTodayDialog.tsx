@@ -568,12 +568,93 @@ export function OrdersTodayDialog({
                     {selected.fulfillment === "dine_in" ? "Dine-in" : selected.fulfillment}
                   </span>
                 )}
-                {selected.table_label && (
-                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
-                    Meja {selected.table_label}
-                  </span>
-                )}
               </div>
+              {/* Sumber baris jelas — staf tahu order dari mana */}
+              <div>
+                <span className="text-muted-foreground">Sumber: </span>
+                <span className="font-semibold">
+                  {isQrTable ? "QR Meja" : sourceText ?? "—"}
+                </span>
+              </div>
+              {/* Baris Meja dengan kunci/edit */}
+              {(selected.table_label || editingTable) && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-muted-foreground">Meja:</span>
+                  {editingTable ? (
+                    <>
+                      <Input
+                        value={tableDraft}
+                        onChange={(e) => setTableDraft(e.target.value)}
+                        placeholder="Mis. 5 / A1"
+                        className="h-7 w-32"
+                        maxLength={40}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2"
+                        disabled={savingTable}
+                        onClick={async () => {
+                          if (!selected) return;
+                          setSavingTable(true);
+                          const newLabel = tableDraft.trim() || null;
+                          const { error } = await supabase
+                            .from("orders")
+                            .update({ table_label: newLabel })
+                            .eq("id", selected.id);
+                          setSavingTable(false);
+                          if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
+                          setSelected({ ...selected, table_label: newLabel });
+                          setOrders((prev) => prev.map((p) => p.id === selected.id ? { ...p, table_label: newLabel } : p));
+                          setEditingTable(false);
+                          toast.success("Meja diperbarui");
+                        }}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2"
+                        onClick={() => { setEditingTable(false); setTableDraft(selected.table_label ?? ""); }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
+                        {selected.table_label ?? "—"}
+                      </span>
+                      {isQrTable ? (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 border border-amber-200">
+                            <Lock className="h-3 w-3" /> Terkunci (dari QR)
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-[11px]"
+                            onClick={() => setCancelOpen(true)}
+                          >
+                            Batalkan QR…
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2"
+                          onClick={() => { setTableDraft(selected.table_label ?? ""); setEditingTable(true); }}
+                          title="Edit meja"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               <div>
                 <span className="text-muted-foreground">Atas nama: </span>
                 <span className="font-medium">{selected.customer_name ?? "—"}</span>
