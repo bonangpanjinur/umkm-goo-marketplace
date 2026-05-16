@@ -33,6 +33,9 @@ import { computeCharges } from "@/lib/pricing";
 import { ModifierPicker } from "@/components/modifier-picker";
 import { getActiveShift, openShift, type CashShift } from "@/lib/shift";
 import { submitCheckout, flushPendingCheckouts, loadPendingCheckouts } from "@/lib/pos-checkout";
+import { Receipt } from "@/components/pos/receipt";
+import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
+import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
@@ -118,6 +121,38 @@ function POSPage() {
   // Parked carts list (multi-device)
   const [parkedList, setParkedList] = useState<ParkedCart[]>([]);
   const [parkedListOpen, setParkedListOpen] = useState(false);
+
+  // Last completed order — kept in state so we can render a hidden Receipt
+  // and trigger window.print() (auto-print after checkout, or manual re-print).
+  const [lastReceipt, setLastReceipt] = useState<{
+    orderNo: string;
+    date: Date;
+    items: CartItem[];
+    subtotal: number;
+    discount: number;
+    serviceCharge: number;
+    tax: number;
+    total: number;
+    paymentMethod: "cash" | "qris";
+    amountTendered: number;
+    changeDue: number;
+  } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  const pendingPrintRef = useRef(false);
+
+  // Ensure body data attribute is set for thermal @page rules on mount.
+  useEffect(() => {
+    applyReceiptPaper();
+  }, []);
+
+  // When a new receipt becomes available and auto-print was requested,
+  // fire window.print() on the next tick so the hidden Receipt is in the DOM.
+  useEffect(() => {
+    if (!lastReceipt || !pendingPrintRef.current) return;
+    pendingPrintRef.current = false;
+    const t = setTimeout(() => printReceiptNode(printRef.current), 80);
+    return () => clearTimeout(t);
+  }, [lastReceipt]);
 
   const cart = carts[activeIdx] ?? carts[0];
 
