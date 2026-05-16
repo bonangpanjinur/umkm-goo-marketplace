@@ -97,11 +97,7 @@ function ActiveFilterPill({ label, onRemove }: { label: string; onRemove: () => 
 }
 
 function SearchEmptyState({
-  type,
-  hasFilters,
-  onClear,
-  onRetry,
-  error,
+  type, hasFilters, onClear, onRetry, error,
 }: {
   type: "produk" | "toko";
   hasFilters: boolean;
@@ -116,7 +112,7 @@ function SearchEmptyState({
           <AlertTriangle className="h-6 w-6" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-destructive">Terjadi kesalahan</p>
+          <p className="text-sm font-medium text-destructive">Gagal memuat {type}</p>
           <p className="text-xs text-muted-foreground">{error}</p>
         </div>
         <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
@@ -135,7 +131,7 @@ function SearchEmptyState({
         <p className="text-xs text-muted-foreground">
           {hasFilters
             ? "Coba hapus beberapa filter atau ubah kata kunci pencarian."
-            : "Belum ada {type} yang tersedia saat ini."}
+            : `Belum ada ${type} yang tersedia saat ini.`}
         </p>
       </div>
       {hasFilters && (
@@ -146,6 +142,12 @@ function SearchEmptyState({
     </div>
   );
 }
+
+type CacheEntry = {
+  products: any[]; shops: any[];
+  productTotal: number; shopTotal: number;
+  productPage: number; shopPage: number;
+};
 
 function SearchPage() {
   const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
