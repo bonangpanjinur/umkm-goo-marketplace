@@ -707,6 +707,9 @@ export function ProductCard({ product }: { product: Product }) {
       params={{ slug: shopSlug, productId: product.id }}
       className="group relative flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 hover:ring-2 hover:ring-primary/20"
     >
+      {/* Wishlist heart (top-right) */}
+      <ProductCardHeart productId={product.id} />
+
       {/* Image */}
       <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
         {product.image_url
