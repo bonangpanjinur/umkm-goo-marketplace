@@ -431,63 +431,95 @@ function ShopChatPage() {
           messages.map((msg) => {
             const isMine = msg.sender_role === "buyer";
             const prod = msg.product_id ? productById(msg.product_id) : null;
+            const status: SendStatus = msg._status ?? "sent";
+            const isFailed = isMine && status === "failed";
+            const isSending = isMine && status === "sending";
             return (
               <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[78%] rounded-2xl px-3 py-2 ${
-                    isMine
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-muted rounded-bl-sm"
-                  }`}
-                >
-                  {!isMine && (
-                    <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
-                  )}
-
-                  {msg.attachment_url && msg.attachment_type === "image" && (
-                    <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block mb-1.5">
-                      <img
-                        src={msg.attachment_url}
-                        alt="Lampiran"
-                        className="rounded-lg max-h-60 w-auto object-cover"
-                        loading="lazy"
-                      />
-                    </a>
-                  )}
-
-                  {prod && (
-                    <Link
-                      to="/toko/$slug" params={{ slug }}
-                      className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 ${
-                        isMine ? "bg-primary-foreground/10" : "bg-background"
-                      }`}
-                    >
-                      {prod.image_url ? (
-                        <img src={prod.image_url} alt={prod.name} className="h-10 w-10 rounded object-cover" />
-                      ) : (
-                        <div className={`h-10 w-10 rounded flex items-center justify-center ${isMine ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                          <ShoppingBag className="h-4 w-4 opacity-60" />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium truncate">{prod.name}</p>
-                        <p className={`text-[11px] ${isMine ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{formatIDR(prod.price)}</p>
-                      </div>
-                    </Link>
-                  )}
-
-                  {msg.body && <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>}
-
-                  <p
-                    className={`text-[10px] mt-1 ${
-                      isMine ? "text-primary-foreground/70 text-right" : "text-muted-foreground"
+                <div className={`max-w-[78%] ${isFailed ? "flex flex-col items-end gap-1" : ""}`}>
+                  <div
+                    className={`rounded-2xl px-3 py-2 transition-opacity ${
+                      isMine
+                        ? `${isFailed ? "bg-destructive/10 border border-destructive/40 text-foreground" : "bg-primary text-primary-foreground"} rounded-br-sm ${isSending ? "opacity-70" : ""}`
+                        : "bg-muted rounded-bl-sm"
                     }`}
                   >
-                    {new Date(msg.created_at).toLocaleTimeString("id-ID", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    {!isMine && (
+                      <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
+                    )}
+
+                    {msg.attachment_url && msg.attachment_type === "image" && (
+                      <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block mb-1.5">
+                        <img
+                          src={msg.attachment_url}
+                          alt="Lampiran"
+                          className="rounded-lg max-h-60 w-auto object-cover"
+                          loading="lazy"
+                        />
+                      </a>
+                    )}
+
+                    {prod && (
+                      <Link
+                        to="/toko/$slug" params={{ slug }}
+                        className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 ${
+                          isMine && !isFailed ? "bg-primary-foreground/10" : "bg-background"
+                        }`}
+                      >
+                        {prod.image_url ? (
+                          <img src={prod.image_url} alt={prod.name} className="h-10 w-10 rounded object-cover" />
+                        ) : (
+                          <div className={`h-10 w-10 rounded flex items-center justify-center ${isMine && !isFailed ? "bg-primary-foreground/20" : "bg-muted"}`}>
+                            <ShoppingBag className="h-4 w-4 opacity-60" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium truncate">{prod.name}</p>
+                          <p className={`text-[11px] ${isMine && !isFailed ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{formatIDR(prod.price)}</p>
+                        </div>
+                      </Link>
+                    )}
+
+                    {msg.body && <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>}
+
+                    <div
+                      className={`text-[10px] mt-1 flex items-center gap-1 ${
+                        isMine
+                          ? isFailed
+                            ? "text-destructive justify-end"
+                            : "text-primary-foreground/70 justify-end"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      <span>
+                        {new Date(msg.created_at).toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      {isMine && (
+                        status === "sending" ? (
+                          <Clock className="h-3 w-3" aria-label="Mengirim" />
+                        ) : status === "failed" ? (
+                          <AlertCircle className="h-3 w-3" aria-label="Gagal terkirim" />
+                        ) : msg.read_at ? (
+                          <CheckCheck className="h-3 w-3" aria-label="Dibaca" />
+                        ) : (
+                          <Check className="h-3 w-3" aria-label="Terkirim" />
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {isFailed && (
+                    <button
+                      type="button"
+                      onClick={() => retrySend(msg)}
+                      className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline px-1"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Coba kirim ulang
+                    </button>
+                  )}
                 </div>
               </div>
             );
