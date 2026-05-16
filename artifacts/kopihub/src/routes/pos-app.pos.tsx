@@ -444,6 +444,23 @@ function POSPage() {
       toast.success(`Pesanan ${result.order_no} berhasil`);
       setCheckoutOpen(false);
       setCartSheetOpen(false);
+
+      // Snapshot for receipt + trigger auto-print
+      pendingPrintRef.current = true;
+      setLastReceipt({
+        orderNo: result.order_no,
+        date: new Date(),
+        items: cart.items,
+        subtotal: rawSubtotal,
+        discount,
+        serviceCharge: charges.service_charge,
+        tax: charges.tax,
+        total: charges.total,
+        paymentMethod: (method === "qris" ? "qris" : "cash"),
+        amountTendered: _amount,
+        changeDue: Math.max(0, _amount - charges.total),
+      });
+
       // Reset current tab
       updateCart(() => newCart(cart.label));
     } catch (e: any) {
