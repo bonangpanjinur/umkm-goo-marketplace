@@ -33,6 +33,9 @@ import { computeCharges } from "@/lib/pricing";
 import { ModifierPicker } from "@/components/modifier-picker";
 import { getActiveShift, openShift, type CashShift } from "@/lib/shift";
 import { submitCheckout, flushPendingCheckouts, loadPendingCheckouts } from "@/lib/pos-checkout";
+import { Receipt } from "@/components/pos/receipt";
+import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
+import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
@@ -118,6 +121,38 @@ function POSPage() {
   // Parked carts list (multi-device)
   const [parkedList, setParkedList] = useState<ParkedCart[]>([]);
   const [parkedListOpen, setParkedListOpen] = useState(false);
+
+  // Last completed order — kept in state so we can render a hidden Receipt
+  // and trigger window.print() (auto-print after checkout, or manual re-print).
+  const [lastReceipt, setLastReceipt] = useState<{
+    orderNo: string;
+    date: Date;
+    items: CartItem[];
+    subtotal: number;
+    discount: number;
+    serviceCharge: number;
+    tax: number;
+    total: number;
+    paymentMethod: "cash" | "qris";
+    amountTendered: number;
+    changeDue: number;
+  } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  const pendingPrintRef = useRef(false);
+
+  // Ensure body data attribute is set for thermal @page rules on mount.
+  useEffect(() => {
+    applyReceiptPaper();
+  }, []);
+
+  // When a new receipt becomes available and auto-print was requested,
+  // fire window.print() on the next tick so the hidden Receipt is in the DOM.
+  useEffect(() => {
+    if (!lastReceipt || !pendingPrintRef.current) return;
+    pendingPrintRef.current = false;
+    const t = setTimeout(() => printReceiptNode(printRef.current), 80);
+    return () => clearTimeout(t);
+  }, [lastReceipt]);
 
   const cart = carts[activeIdx] ?? carts[0];
 
@@ -409,6 +444,23 @@ function POSPage() {
       toast.success(`Pesanan ${result.order_no} berhasil`);
       setCheckoutOpen(false);
       setCartSheetOpen(false);
+
+      // Snapshot for receipt + trigger auto-print
+      pendingPrintRef.current = true;
+      setLastReceipt({
+        orderNo: result.order_no,
+        date: new Date(),
+        items: cart.items,
+        subtotal: rawSubtotal,
+        discount,
+        serviceCharge: charges.service_charge,
+        tax: charges.tax,
+        total: charges.total,
+        paymentMethod: (method === "qris" ? "qris" : "cash"),
+        amountTendered: _amount,
+        changeDue: Math.max(0, _amount - charges.total),
+      });
+
       // Reset current tab
       updateCart(() => newCart(cart.label));
     } catch (e: any) {
@@ -578,6 +630,51 @@ function POSPage() {
         total={charges.total}
         onConfirm={handleCheckout}
       />
+
+      {/* Floating re-print + paper picker for the last completed order */}
+      {lastReceipt && (
+        <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border bg-background/95 px-3 py-2 shadow-lg backdrop-blur">
+          <span className="text-xs text-muted-foreground">Struk #{lastReceipt.orderNo}</span>
+          <ReceiptPaperPicker />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => printReceiptNode(printRef.current)}
+          >
+            Cetak ulang
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setLastReceipt(null)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Hidden receipt for window.print() */}
+      <div className="hidden">
+        <div ref={printRef}>
+          {lastReceipt && (
+            <Receipt
+              shopName={shop?.name ?? ""}
+              outletName={outlet?.name ?? ""}
+              shopLogoUrl={shop?.logo_url ?? null}
+              shopAddress={shop?.address ?? null}
+              shopPhone={shop?.phone ?? null}
+              orderNo={lastReceipt.orderNo}
+              cashierName="Kasir"
+              date={lastReceipt.date}
+              items={lastReceipt.items}
+              subtotal={lastReceipt.subtotal}
+              total={lastReceipt.total}
+              manualDiscount={lastReceipt.discount || undefined}
+              serviceCharge={lastReceipt.serviceCharge || undefined}
+              tax={lastReceipt.tax || undefined}
+              paymentMethod={lastReceipt.paymentMethod}
+              amountTendered={lastReceipt.amountTendered}
+              changeDue={lastReceipt.changeDue}
+            />
+          )}
+        </div>
+      </div>
 
       {/* Park Dialog */}
       <Dialog open={parkOpen} onOpenChange={setParkOpen}>
