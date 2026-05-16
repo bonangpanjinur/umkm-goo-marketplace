@@ -170,50 +170,97 @@ function SearchPage() {
   const [loadingMoreS, setLoadingMoreS] = useState(false);
 
   const [cats,       setCats]       = useState<Cat[]>([]);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState<string | null>(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingShops,    setLoadingShops]    = useState(false);
+  const [productError,    setProductError]    = useState<string | null>(null);
+  const [shopError,       setShopError]       = useState<string | null>(null);
+  const [productMoreError, setProductMoreError] = useState<string | null>(null);
+  const [shopMoreError,    setShopMoreError]    = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
-  const [retryNonce, setRetryNonce] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Cache per kombinasi filter (q+cat+sort+min+max+minRating+city+pay).
+  // Saat user kembali ke kombinasi sebelumnya, hasil dipulihkan tanpa refetch.
+  const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
+  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay });
 
   useEffect(() => {
     supabase.from("business_categories").select("id, slug, name").eq("is_active", true).order("sort_order")
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
 
-  const fetchResults = useCallback(async () => {
-    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); setError(null); return; }
-    setLoading(true);
-    setError(null);
-    setProductPage(0); setShopPage(0);
-    try {
-      const [prodRes, shopRes] = await Promise.all([
-        buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1),
-        buildShopQuery().range(0, SHOP_PAGE_SIZE - 1),
-      ]);
-      if (prodRes.error) throw prodRes.error;
-      if (shopRes.error) throw shopRes.error;
-      setProducts(((prodRes.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
-      setShops((shopRes.data as any[]) ?? []);
-      setProductTotal(prodRes.count ?? 0);
-      setShopTotal(shopRes.count ?? 0);
-    } catch (e: any) {
-      setError(e.message || "Gagal memuat hasil pencarian.");
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
-
-  // Trigger fetch on filter change or retry
+  const writeCache = () => {
+    cacheRef.current.set(cacheKey, { products, shops, productTotal, shopTotal, productPage, shopPage });
+  };
+  // Sync state -> cache setiap kali hasil berubah
   useEffect(() => {
-    fetchResults();
+    if (!q && !cat) return;
+    if (productError || shopError) return; // jangan cache state error
+    cacheRef.current.set(cacheKey, { products, shops, productTotal, shopTotal, productPage, shopPage });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
+  }, [products, shops, productTotal, shopTotal, productPage, shopPage]);
+
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    setProductError(null);
+    try {
+      const res = await buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1);
+      if (res.error) throw res.error;
+      setProducts(((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
+      setProductTotal(res.count ?? 0);
+      setProductPage(0);
+    } catch (e: any) {
+      setProductError(e.message || "Gagal memuat produk.");
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const fetchShops = async () => {
+    setLoadingShops(true);
+    setShopError(null);
+    try {
+      const res = await buildShopQuery().range(0, SHOP_PAGE_SIZE - 1);
+      if (res.error) throw res.error;
+      setShops((res.data as any[]) ?? []);
+      setShopTotal(res.count ?? 0);
+      setShopPage(0);
+    } catch (e: any) {
+      setShopError(e.message || "Gagal memuat toko.");
+    } finally {
+      setLoadingShops(false);
+    }
+  };
+
+  // Initial / filter-change effect: pakai cache jika ada
+  useEffect(() => {
+    if (!q && !cat) {
+      setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0);
+      setProductError(null); setShopError(null);
+      setProductMoreError(null); setShopMoreError(null);
+      return;
+    }
+    setProductMoreError(null); setShopMoreError(null);
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) {
+      setProducts(cached.products);
+      setShops(cached.shops);
+      setProductTotal(cached.productTotal);
+      setShopTotal(cached.shopTotal);
+      setProductPage(cached.productPage);
+      setShopPage(cached.shopPage);
+      setProductError(null); setShopError(null);
+      return;
+    }
+    fetchProducts();
+    fetchShops();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
 
   const loadMoreProducts = async () => {
     const next = productPage + 1;
     setLoadingMoreP(true);
+    setProductMoreError(null);
     try {
       const from = next * PRODUCT_PAGE_SIZE;
       const to = from + PRODUCT_PAGE_SIZE - 1;
@@ -222,8 +269,9 @@ function SearchPage() {
       const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
       setProducts(prev => [...prev, ...more]);
       setProductPage(next);
+      if (res.count != null) setProductTotal(res.count);
     } catch (e: any) {
-      setError(e.message || "Gagal memuat produk tambahan.");
+      setProductMoreError(e.message || "Gagal memuat produk tambahan.");
     } finally {
       setLoadingMoreP(false);
     }
@@ -232,6 +280,7 @@ function SearchPage() {
   const loadMoreShops = async () => {
     const next = shopPage + 1;
     setLoadingMoreS(true);
+    setShopMoreError(null);
     try {
       const from = next * SHOP_PAGE_SIZE;
       const to = from + SHOP_PAGE_SIZE - 1;
@@ -239,12 +288,19 @@ function SearchPage() {
       if (res.error) throw res.error;
       setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
       setShopPage(next);
+      if (res.count != null) setShopTotal(res.count);
     } catch (e: any) {
-      setError(e.message || "Gagal memuat toko tambahan.");
+      setShopMoreError(e.message || "Gagal memuat toko tambahan.");
     } finally {
       setLoadingMoreS(false);
     }
   };
+
+  // Invalidate cache + refetch (untuk tombol Coba lagi pada initial-fetch error)
+  const retryProducts = () => { cacheRef.current.delete(cacheKey); fetchProducts(); };
+  const retryShops    = () => { cacheRef.current.delete(cacheKey); fetchShops(); };
+  // suppress unused warning
+  void writeCache;
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
