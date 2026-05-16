@@ -519,6 +519,52 @@ export function OrdersTodayDialog({
             <div className="text-xs text-muted-foreground">
               {new Date(selected.created_at).toLocaleString("id-ID")}
             </div>
+            <div className="rounded-lg border p-3 text-sm space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span className={`rounded px-1.5 py-0.5 font-semibold ${
+                  selected.marketplace_order
+                    ? "bg-purple-100 text-purple-800"
+                    : selected.channel === "online"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-slate-100 text-slate-700"
+                }`}>
+                  {selected.marketplace_order
+                    ? "Marketplace"
+                    : selected.channel === "online"
+                      ? (selected.table_label ? "QR Meja" : "Online / Website")
+                      : "POS / Kasir"}
+                </span>
+                {selected.fulfillment && (
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-semibold uppercase">
+                    {selected.fulfillment === "dine_in" ? "Dine-in" : selected.fulfillment}
+                  </span>
+                )}
+                {selected.table_label && (
+                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-800">
+                    Meja {selected.table_label}
+                  </span>
+                )}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Atas nama: </span>
+                <span className="font-medium">{selected.customer_name ?? "—"}</span>
+              </div>
+              {selected.customer_phone && (
+                <div>
+                  <span className="text-muted-foreground">No. HP: </span>
+                  <span>{selected.customer_phone}</span>
+                </div>
+              )}
+              {selected.delivery_address && (
+                <div>
+                  <span className="text-muted-foreground">Alamat: </span>
+                  <span>{selected.delivery_address}</span>
+                </div>
+              )}
+              {selected.note && (
+                <div className="italic text-muted-foreground">📝 {selected.note}</div>
+              )}
+            </div>
             <ul className="divide-y rounded-lg border">
               {items.map((it, k) => (
                 <li key={k} className="px-3 py-2 text-sm">
