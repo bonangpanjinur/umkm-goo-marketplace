@@ -1260,6 +1260,37 @@ export function OrdersTodayDialog({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Export QR-unlock audit (CSV / PDF) */}
+        <Dialog open={exportOpen} onOpenChange={(o) => !o && setExportOpen(false)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Ekspor Audit QR Unlock</DialogTitle>
+            </DialogHeader>
+            <p className="text-xs text-muted-foreground">
+              Outlet: <span className="font-medium">{outletName}</span>
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Dari</label>
+                <Input type="date" value={exportFrom} onChange={(e) => setExportFrom(e.target.value)} className="h-8" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Sampai</label>
+                <Input type="date" value={exportTo} onChange={(e) => setExportTo(e.target.value)} className="h-8" />
+              </div>
+            </div>
+            <DialogFooter className="flex-wrap gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setExportOpen(false)} disabled={exporting}>Tutup</Button>
+              <Button variant="outline" onClick={exportCSV} disabled={exporting}>
+                <Download className="mr-2 h-4 w-4" /> CSV
+              </Button>
+              <Button onClick={exportPDF} disabled={exporting}>
+                {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />} PDF
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
