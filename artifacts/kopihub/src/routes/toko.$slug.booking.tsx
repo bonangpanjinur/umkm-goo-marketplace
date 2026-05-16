@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
@@ -17,7 +17,7 @@ import {
   AlertTriangle, Ticket, Tag, X, XCircle, Package, Plus,
   FileText, Upload, Trash2, CreditCard, Car,
   QrCode, Smartphone, Wallet, ExternalLink, Zap, ListOrdered,
-  MapPin, Building2, Trees, Home,
+  MapPin, Building2, Trees, Home, UtensilsCrossed,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payment-gateway";
@@ -125,6 +125,8 @@ function fmtTime(t: string) {
 
 export default function PublicBookingPage() {
   const { type: bookingType } = Route.useSearch();
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const isTableMode = bookingType === "table";
   const labels = {
     title: isTableMode ? "Reservasi Meja" : "Booking Layanan",
@@ -133,7 +135,6 @@ export default function PublicBookingPage() {
       ? "Belum ada meja yang dibuka untuk reservasi."
       : "Belum ada slot booking tersedia.",
   };
-  const { slug } = Route.useParams();
 
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
@@ -826,6 +827,50 @@ export default function PublicBookingPage() {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mode switcher: Layanan / Meja */}
+      <div className="mx-auto max-w-2xl px-4 pt-4">
+        <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+          {([
+            { key: "service", label: "Booking Layanan", icon: CalendarCheck },
+            { key: "table", label: "Reservasi Meja", icon: UtensilsCrossed },
+          ] as const).map((t) => {
+            const active = (t.key === "table") === isTableMode;
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => {
+                  if (active) return;
+                  // reset wizard state saat ganti mode
+                  setStep("date");
+                  setSelectedSlot(null);
+                  setSelectedStaffId(NO_PREF_STAFF_ID);
+                  setSelectedPackage(null);
+                  setSelectedAddonIds(new Set());
+                  setSelectedLocation(null);
+                  setAppliedVoucher(null);
+                  navigate({
+                    to: "/toko/$slug/booking",
+                    params: { slug },
+                    search: t.key === "table" ? { type: "table" } : { type: "service" },
+                    replace: true,
+                  });
+                }}
+                className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
