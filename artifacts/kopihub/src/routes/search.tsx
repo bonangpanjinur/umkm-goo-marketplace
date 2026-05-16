@@ -243,7 +243,7 @@ function isAbortError(e: any): boolean {
 }
 
 function SearchPage() {
-  const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
+  const { q, cat, sort, min, max, minRating, city, pay, verified, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
 
   // Draft state for inputs that should NOT auto-apply (city, pay)
