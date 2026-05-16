@@ -826,15 +826,26 @@ function SearchPage() {
             {/* Shops section */}
             {tab !== "produk" && (
               <section>
-                <h2 className="mb-4 text-base font-semibold text-muted-foreground">
-                  Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
-                </h2>
+                <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="text-base font-semibold text-muted-foreground">
+                    Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
+                  </h2>
+                  {(() => {
+                    const c = shopCacheRef.current.get(cacheKey);
+                    if (!c || loadingShops) return null;
+                    return (
+                      <span className="text-[11px] text-muted-foreground/80 italic">
+                        dari cache · diperbarui {formatRelativeTime(c.ts)}
+                      </span>
+                    );
+                  })()}
+                </div>
                 {loadingShops ? <SkeletonShopGrid />
                   : shopError && shops.length === 0 ? (
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryShops}
                       error={shopError}
                     />
@@ -842,40 +853,71 @@ function SearchPage() {
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryShops}
                     />
                   ) : (
                       <>
                         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-                          {visibleShops.map(s => (
-                            <Link
-                              key={s.id}
-                              to="/toko/$slug"
-                              params={{ slug: s.slug }}
-                              className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/50 hover:shadow-md"
-                            >
-                              <div className="flex items-center gap-3">
-                                {s.logo_url
-                                  ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover" />
-                                  : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
-                                }
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1 min-w-0">
-                                    <span className="truncate text-sm font-semibold">{s.name}</span>
-                                    {s.kyc_status === "approved" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
-                                  </div>
-                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    {s.rating_avg
-                                      ? <><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{Number(s.rating_avg).toFixed(1)}</>
-                                      : "Toko baru"
-                                    }
+                          {visibleShops.map(s => {
+                            const cityName = extractCity(s.address);
+                            const payList: string[] = Array.isArray(s.payment_methods_enabled) ? s.payment_methods_enabled : [];
+                            return (
+                              <Link
+                                key={s.id}
+                                to="/toko/$slug"
+                                params={{ slug: s.slug }}
+                                className="group flex flex-col rounded-xl border border-border bg-card p-4 transition hover:border-primary/50 hover:shadow-md"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {s.logo_url
+                                    ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-full object-cover" />
+                                    : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Store className="h-5 w-5" /></div>
+                                  }
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1 min-w-0">
+                                      <span className="truncate text-sm font-semibold">{s.name}</span>
+                                      {s.kyc_status === "approved" && (
+                                        <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-label="Toko terverifikasi" />
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                      {s.rating_avg ? (
+                                        <span className="inline-flex items-center gap-0.5">
+                                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                          {Number(s.rating_avg).toFixed(1)}
+                                          {s.rating_count ? <span className="text-muted-foreground/70">({Number(s.rating_count).toLocaleString("id-ID")})</span> : null}
+                                        </span>
+                                      ) : (
+                                        <span>Toko baru</span>
+                                      )}
+                                      {cityName && (
+                                        <>
+                                          <span className="text-muted-foreground/40">·</span>
+                                          <span className="truncate">{cityName}</span>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
-                            </Link>
-                          ))}
+                                {s.tagline && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{s.tagline}</p>}
+                                {payList.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-1">
+                                    {payList.slice(0, 3).map(p => (
+                                      <span key={p} className="rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                        {PAY_LABEL[p] ?? p}
+                                      </span>
+                                    ))}
+                                    {payList.length > 3 && (
+                                      <span className="rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                        +{payList.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </Link>
+                            );
+                          })}
                           {loadingMoreS && <ShopSkeletonCards n={4} />}
                         </div>
                         {shopMoreError && (
