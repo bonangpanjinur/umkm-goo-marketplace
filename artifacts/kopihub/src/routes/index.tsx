@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Sparkles, Store, ShieldCheck, Zap, TrendingUp, Star,
   ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
+  Plus, Flame, BadgeCheck,
 } from "lucide-react";
 
 function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/")({
 
 type Category = { id: string; slug: string; name: string; description: string | null; icon_url: string | null };
 type Shop = { id: string; slug: string; name: string; tagline: string | null; logo_url: string | null; rating_avg: number | null; rating_count: number | null; is_featured?: boolean; kyc_status?: string; business_category_id?: string | null };
-type Product = { id: string; shop_id: string; name: string; price: number; image_url: string | null; slug: string | null; rating_avg: number | null; flash_price?: number | null; flash_starts_at?: string | null; flash_ends_at?: string | null; shop?: { slug: string; name: string } };
+type Product = { id: string; shop_id: string; name: string; price: number; image_url: string | null; slug: string | null; rating_avg: number | null; rating_count?: number | null; stock?: number | null; total_sold?: number | null; low_stock_threshold?: number | null; flash_price?: number | null; flash_starts_at?: string | null; flash_ends_at?: string | null; shop?: { slug: string; name: string; logo_url?: string | null; kyc_status?: string | null } };
 type Banner = { id: string; title: string; subtitle: string | null; cta_text: string | null; cta_link: string | null; image_url: string | null; bg_color: string | null; sort_order: number };
 type AdSpot = { id: string; ad_type: "product" | "shop"; target_id: string; target_name: string; target_image: string | null; position: string; shop_name: string };
 
