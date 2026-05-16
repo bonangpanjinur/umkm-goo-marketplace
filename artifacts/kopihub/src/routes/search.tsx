@@ -194,7 +194,7 @@ function SearchPage() {
             {activePills.map(p => (
               <ActiveFilterPill key={p.key} label={p.label} onRemove={() => clearFilter(p.key)} />
             ))}
-            <button onClick={() => update({ cat: undefined, min: undefined, max: undefined, minRating: undefined })}
+            <button onClick={() => update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined })}
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
               Reset semua
             </button>
