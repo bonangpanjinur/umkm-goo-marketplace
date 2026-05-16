@@ -687,7 +687,7 @@ function POSPage() {
       )}
 
       {/* Hidden receipt for window.print() */}
-      <div className="hidden">
+      <div className="print-host" aria-hidden="true">
         <div ref={printRef}>
           {lastReceipt && (
             <Receipt
