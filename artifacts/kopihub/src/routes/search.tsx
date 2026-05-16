@@ -361,7 +361,9 @@ function SearchPage() {
     if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
     if (city) shopQ = shopQ.ilike("address", `%${city}%`);
     if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
-    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    if (verified) shopQ = shopQ.eq("kyc_status", "approved");
+    if (sort === "terbaru") shopQ = shopQ.order("created_at", { ascending: false });
+    else                    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
     return shopQ;
   };
 
