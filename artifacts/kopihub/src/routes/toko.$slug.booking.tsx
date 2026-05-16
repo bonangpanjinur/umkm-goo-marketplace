@@ -24,7 +24,8 @@ import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payme
 
 export const Route = createFileRoute("/toko/$slug/booking")({
   validateSearch: (search: Record<string, unknown>) => ({
-    type: (search.type === "table" ? "table" : "service") as "service" | "table",
+    // F&B (KopiHub) → default & paksa ke "table". Mode "service" tidak dipakai lagi.
+    type: "table" as "service" | "table",
   }),
   component: PublicBookingPage,
 });
