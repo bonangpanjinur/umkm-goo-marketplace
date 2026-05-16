@@ -752,6 +752,51 @@ export function OrdersTodayDialog({
                 <> · diterima {formatIDR(Number(selected.amount_tendered))} · kembali {formatIDR(Number(selected.change_due))}</>
               )}
             </div>
+
+            {/* Riwayat audit (terutama qr_unlock) */}
+            <div className="rounded-lg border p-3 text-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                  Riwayat Audit
+                </span>
+              </div>
+              {auditLoading ? (
+                <div className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Memuat…</div>
+              ) : auditEntries.length === 0 ? (
+                <div className="text-xs text-muted-foreground italic">Belum ada riwayat untuk order ini.</div>
+              ) : (
+                <ul className="space-y-2">
+                  {auditEntries.map((a) => {
+                    const meta = (a.metadata ?? {}) as Record<string, unknown>;
+                    const prev = (meta.previous_table_label as string | null) ?? null;
+                    const isUnlock = a.action === "qr_unlock";
+                    return (
+                      <li key={a.id} className="text-xs border-l-2 border-amber-300 pl-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`rounded px-1.5 py-0.5 font-semibold ${isUnlock ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+                            {isUnlock ? "QR Unlock" : a.action}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {new Date(a.created_at).toLocaleString("id-ID")}
+                          </span>
+                          <span>· oleh <span className="font-medium">{a.actor_name ?? a.actor_id ?? "Sistem"}</span></span>
+                        </div>
+                        {a.reason && <div className="mt-0.5">Alasan: <span className="italic">{a.reason}</span></div>}
+                        {isUnlock && (
+                          <div className="mt-0.5 text-muted-foreground">
+                            Meja sebelum: <span className="font-mono">{prev ?? "—"}</span>
+                            {selected.table_label !== prev && (
+                              <> → sesudah: <span className="font-mono">{selected.table_label ?? "—"}</span></>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
         )}
 
