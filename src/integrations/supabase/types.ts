@@ -3463,6 +3463,7 @@ export type Database = {
           shop_voucher_discount: number
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
+          table_label: string | null
           tax: number
           tip_amount: number
           total: number
@@ -3530,6 +3531,7 @@ export type Database = {
           shop_voucher_discount?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
+          table_label?: string | null
           tax?: number
           tip_amount?: number
           total?: number
@@ -3597,6 +3599,7 @@ export type Database = {
           shop_voucher_discount?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
+          table_label?: string | null
           tax?: number
           tip_amount?: number
           total?: number

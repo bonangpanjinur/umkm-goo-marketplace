@@ -56,6 +56,7 @@ type Order = {
   created_at: string;
   customer_name: string | null;
   fulfillment: string | null;
+  table_label: string | null;
 };
 
 type OrderDetail = Order & {
@@ -162,7 +163,7 @@ export function OrdersTodayDialog({
     supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label",
       )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
@@ -188,7 +189,7 @@ export function OrdersTodayDialog({
       }
       if (payFilter !== "all" && o.payment_method !== payFilter) return false;
       if (q) {
-        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
+        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.table_label ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -214,7 +215,7 @@ export function OrdersTodayDialog({
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, table_label, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
       .eq("id", id)
       .single();
@@ -277,6 +278,11 @@ export function OrdersTodayDialog({
     note: i.note ?? undefined,
   }));
   const isDelivery = printSource?.fulfillment === "delivery";
+  const displayCustomer = printSource
+    ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
+        .filter(Boolean)
+        .join(" · ") || null
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -377,6 +383,11 @@ export function OrdersTodayDialog({
                             {isDel && (
                               <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
                                 DELIVERY
+                              </span>
+                            )}
+                            {o.table_label && (
+                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                                Meja {o.table_label}
                               </span>
                             )}
                             {o.customer_name && (
@@ -510,7 +521,7 @@ export function OrdersTodayDialog({
                 tipAmount={Number(printSource.tip_amount ?? 0)}
                 pointsRedeemed={printSource.points_redeemed ?? 0}
                 pointsEarned={printSource.points_earned ?? 0}
-                customerName={printSource.customer_name ?? undefined}
+                customerName={displayCustomer ?? undefined}
                 paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                 total={Number(printSource.total)}
                 paymentMethod={printSource.payment_method}
@@ -523,7 +534,7 @@ export function OrdersTodayDialog({
                 orderNo={printSource.order_no}
                 date={new Date(printSource.created_at)}
                 outletName={outletName}
-                customerName={printSource.customer_name}
+                customerName={displayCustomer}
                 items={items}
               />
             </div>
@@ -534,7 +545,7 @@ export function OrdersTodayDialog({
                   outletName={outletName}
                   orderNo={printSource.order_no}
                   date={new Date(printSource.created_at)}
-                  customerName={printSource.customer_name}
+                  customerName={displayCustomer}
                   customerPhone={printSource.customer_phone}
                   deliveryAddress={printSource.delivery_address}
                   courierName={printSource.courier_name}
@@ -606,7 +617,7 @@ export function OrdersTodayDialog({
                     tipAmount={Number(printSource.tip_amount ?? 0)}
                     pointsRedeemed={printSource.points_redeemed ?? 0}
                     pointsEarned={printSource.points_earned ?? 0}
-                    customerName={printSource.customer_name ?? undefined}
+                    customerName={displayCustomer ?? undefined}
                     paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                     total={Number(printSource.total)}
                     paymentMethod={printSource.payment_method}
@@ -619,7 +630,7 @@ export function OrdersTodayDialog({
                     orderNo={printSource.order_no}
                     date={new Date(printSource.created_at)}
                     outletName={outletName}
-                    customerName={printSource.customer_name}
+                    customerName={displayCustomer}
                     items={items}
                   />
                 )}
@@ -629,7 +640,7 @@ export function OrdersTodayDialog({
                     outletName={outletName}
                     orderNo={printSource.order_no}
                     date={new Date(printSource.created_at)}
-                    customerName={printSource.customer_name}
+                    customerName={displayCustomer}
                     customerPhone={printSource.customer_phone}
                     deliveryAddress={printSource.delivery_address}
                     courierName={printSource.courier_name}
