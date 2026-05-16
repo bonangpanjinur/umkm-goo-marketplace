@@ -23,6 +23,9 @@ import { formatIDR } from "@/lib/format";
 import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payment-gateway";
 
 export const Route = createFileRoute("/toko/$slug/booking")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: (search.type === "table" ? "table" : "service") as "service" | "table",
+  }),
   component: PublicBookingPage,
 });
 
