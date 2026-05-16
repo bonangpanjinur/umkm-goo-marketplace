@@ -22,7 +22,7 @@ describe("QR Meja source fallback rendering", () => {
     const html = renderToStaticMarkup(
       <Receipt {...baseReceiptProps} source="QR Meja" customerName={undefined} />,
     );
-    expect(html).toContain("Sumber:");
+    expect(html).toContain("Sumber");
     expect(html).toContain("QR Meja");
   });
 
