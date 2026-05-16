@@ -307,9 +307,9 @@ function SearchPage() {
   useEffect(() => {
     if (!q && !cat) return;
     try {
-      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, sort, min, max, minRating, city, pay, tab }));
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, sort, min, max, minRating, city, pay, verified, tab }));
     } catch { /* ignore */ }
-  }, [q, cat, sort, min, max, minRating, city, pay, tab]);
+  }, [q, cat, sort, min, max, minRating, city, pay, verified, tab]);
 
   useEffect(() => {
     supabase.from("business_categories").select("id, slug, name").eq("is_active", true).order("sort_order")
