@@ -27,6 +27,10 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -96,7 +100,7 @@ const PAGE_SIZE = 10;
 type SortDir = "newest" | "oldest";
 type StatusFilter = "all" | "active" | "voided";
 type PayFilter = "all" | "cash" | "qris";
-type SourceFilter = "all" | "pos" | "online" | "marketplace";
+type SourceFilter = "all" | "pos" | "online" | "qr_table" | "marketplace";
 type FulfillmentFilter = "all" | "dine_in" | "pickup" | "delivery";
 
 function lsGet(key: string, fallback: string) {
