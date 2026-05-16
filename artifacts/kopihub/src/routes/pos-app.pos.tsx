@@ -651,17 +651,36 @@ function POSPage() {
 
       {/* Floating re-print + paper picker for the last completed order */}
       {lastReceipt && (
-        <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border bg-background/95 px-3 py-2 shadow-lg backdrop-blur">
+        <div className="fixed bottom-4 left-4 z-40 flex flex-wrap items-center gap-2 rounded-2xl border bg-background/95 px-3 py-2 shadow-lg backdrop-blur">
           <span className="text-xs text-muted-foreground">Struk #{lastReceipt.orderNo}</span>
-          <ReceiptPaperPicker />
+          <PrinterPicker outletId={outlet?.id} scopeKey={scopeKey} />
+          <ReceiptPaperPicker scopeKey={scopeKey} />
+          {printBlocked && (
+            <span className="text-[10px] font-medium text-destructive">
+              Dialog cetak diblokir
+            </span>
+          )}
           <Button
             size="sm"
             variant="outline"
-            onClick={() => printReceiptNode(printRef.current)}
+            onClick={() => {
+              const res = printReceiptNode(printRef.current, undefined, scopeKey);
+              if (res !== "ok") {
+                const popped = openReceiptInNewWindow(printRef.current, undefined, scopeKey);
+                if (!popped) {
+                  setPrintBlocked(true);
+                  toast.error("Dialog cetak masih diblokir. Izinkan popup atau tekan Ctrl/Cmd+P.");
+                } else {
+                  setPrintBlocked(false);
+                }
+              } else {
+                setPrintBlocked(false);
+              }
+            }}
           >
             Cetak ulang
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setLastReceipt(null)}>
+          <Button size="sm" variant="ghost" onClick={() => { setLastReceipt(null); setPrintBlocked(false); }}>
             <X className="h-4 w-4" />
           </Button>
         </div>
