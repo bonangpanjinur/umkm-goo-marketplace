@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
@@ -97,11 +97,7 @@ function ActiveFilterPill({ label, onRemove }: { label: string; onRemove: () => 
 }
 
 function SearchEmptyState({
-  type,
-  hasFilters,
-  onClear,
-  onRetry,
-  error,
+  type, hasFilters, onClear, onRetry, error,
 }: {
   type: "produk" | "toko";
   hasFilters: boolean;
@@ -116,7 +112,7 @@ function SearchEmptyState({
           <AlertTriangle className="h-6 w-6" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-destructive">Terjadi kesalahan</p>
+          <p className="text-sm font-medium text-destructive">Gagal memuat {type}</p>
           <p className="text-xs text-muted-foreground">{error}</p>
         </div>
         <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
@@ -135,7 +131,7 @@ function SearchEmptyState({
         <p className="text-xs text-muted-foreground">
           {hasFilters
             ? "Coba hapus beberapa filter atau ubah kata kunci pencarian."
-            : "Belum ada {type} yang tersedia saat ini."}
+            : `Belum ada ${type} yang tersedia saat ini.`}
         </p>
       </div>
       {hasFilters && (
@@ -146,6 +142,12 @@ function SearchEmptyState({
     </div>
   );
 }
+
+type CacheEntry = {
+  products: any[]; shops: any[];
+  productTotal: number; shopTotal: number;
+  productPage: number; shopPage: number;
+};
 
 function SearchPage() {
   const { q, cat, sort, min, max, minRating, city, pay, tab } = Route.useSearch();
@@ -168,50 +170,97 @@ function SearchPage() {
   const [loadingMoreS, setLoadingMoreS] = useState(false);
 
   const [cats,       setCats]       = useState<Cat[]>([]);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState<string | null>(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingShops,    setLoadingShops]    = useState(false);
+  const [productError,    setProductError]    = useState<string | null>(null);
+  const [shopError,       setShopError]       = useState<string | null>(null);
+  const [productMoreError, setProductMoreError] = useState<string | null>(null);
+  const [shopMoreError,    setShopMoreError]    = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
-  const [retryNonce, setRetryNonce] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Cache per kombinasi filter (q+cat+sort+min+max+minRating+city+pay).
+  // Saat user kembali ke kombinasi sebelumnya, hasil dipulihkan tanpa refetch.
+  const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
+  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay });
 
   useEffect(() => {
     supabase.from("business_categories").select("id, slug, name").eq("is_active", true).order("sort_order")
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
 
-  const fetchResults = useCallback(async () => {
-    if (!q && !cat) { setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0); setError(null); return; }
-    setLoading(true);
-    setError(null);
-    setProductPage(0); setShopPage(0);
-    try {
-      const [prodRes, shopRes] = await Promise.all([
-        buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1),
-        buildShopQuery().range(0, SHOP_PAGE_SIZE - 1),
-      ]);
-      if (prodRes.error) throw prodRes.error;
-      if (shopRes.error) throw shopRes.error;
-      setProducts(((prodRes.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
-      setShops((shopRes.data as any[]) ?? []);
-      setProductTotal(prodRes.count ?? 0);
-      setShopTotal(shopRes.count ?? 0);
-    } catch (e: any) {
-      setError(e.message || "Gagal memuat hasil pencarian.");
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
-
-  // Trigger fetch on filter change or retry
+  const writeCache = () => {
+    cacheRef.current.set(cacheKey, { products, shops, productTotal, shopTotal, productPage, shopPage });
+  };
+  // Sync state -> cache setiap kali hasil berubah
   useEffect(() => {
-    fetchResults();
+    if (!q && !cat) return;
+    if (productError || shopError) return; // jangan cache state error
+    cacheRef.current.set(cacheKey, { products, shops, productTotal, shopTotal, productPage, shopPage });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, cats, retryNonce]);
+  }, [products, shops, productTotal, shopTotal, productPage, shopPage]);
+
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    setProductError(null);
+    try {
+      const res = await buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1);
+      if (res.error) throw res.error;
+      setProducts(((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false));
+      setProductTotal(res.count ?? 0);
+      setProductPage(0);
+    } catch (e: any) {
+      setProductError(e.message || "Gagal memuat produk.");
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const fetchShops = async () => {
+    setLoadingShops(true);
+    setShopError(null);
+    try {
+      const res = await buildShopQuery().range(0, SHOP_PAGE_SIZE - 1);
+      if (res.error) throw res.error;
+      setShops((res.data as any[]) ?? []);
+      setShopTotal(res.count ?? 0);
+      setShopPage(0);
+    } catch (e: any) {
+      setShopError(e.message || "Gagal memuat toko.");
+    } finally {
+      setLoadingShops(false);
+    }
+  };
+
+  // Initial / filter-change effect: pakai cache jika ada
+  useEffect(() => {
+    if (!q && !cat) {
+      setProducts([]); setShops([]); setProductTotal(0); setShopTotal(0);
+      setProductError(null); setShopError(null);
+      setProductMoreError(null); setShopMoreError(null);
+      return;
+    }
+    setProductMoreError(null); setShopMoreError(null);
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) {
+      setProducts(cached.products);
+      setShops(cached.shops);
+      setProductTotal(cached.productTotal);
+      setShopTotal(cached.shopTotal);
+      setProductPage(cached.productPage);
+      setShopPage(cached.shopPage);
+      setProductError(null); setShopError(null);
+      return;
+    }
+    fetchProducts();
+    fetchShops();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, cat, sort, min, max, minRating, city, pay, cats]);
 
   const loadMoreProducts = async () => {
     const next = productPage + 1;
     setLoadingMoreP(true);
+    setProductMoreError(null);
     try {
       const from = next * PRODUCT_PAGE_SIZE;
       const to = from + PRODUCT_PAGE_SIZE - 1;
@@ -220,8 +269,9 @@ function SearchPage() {
       const more = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
       setProducts(prev => [...prev, ...more]);
       setProductPage(next);
+      if (res.count != null) setProductTotal(res.count);
     } catch (e: any) {
-      setError(e.message || "Gagal memuat produk tambahan.");
+      setProductMoreError(e.message || "Gagal memuat produk tambahan.");
     } finally {
       setLoadingMoreP(false);
     }
@@ -230,6 +280,7 @@ function SearchPage() {
   const loadMoreShops = async () => {
     const next = shopPage + 1;
     setLoadingMoreS(true);
+    setShopMoreError(null);
     try {
       const from = next * SHOP_PAGE_SIZE;
       const to = from + SHOP_PAGE_SIZE - 1;
@@ -237,12 +288,19 @@ function SearchPage() {
       if (res.error) throw res.error;
       setShops(prev => [...prev, ...((res.data as any[]) ?? [])]);
       setShopPage(next);
+      if (res.count != null) setShopTotal(res.count);
     } catch (e: any) {
-      setError(e.message || "Gagal memuat toko tambahan.");
+      setShopMoreError(e.message || "Gagal memuat toko tambahan.");
     } finally {
       setLoadingMoreS(false);
     }
   };
+
+  // Invalidate cache + refetch (untuk tombol Coba lagi pada initial-fetch error)
+  const retryProducts = () => { cacheRef.current.delete(cacheKey); fetchProducts(); };
+  const retryShops    = () => { cacheRef.current.delete(cacheKey); fetchShops(); };
+  // suppress unused warning
+  void writeCache;
 
   const update = (patch: Record<string, any>) => navigate({ search: (prev: any) => ({ ...prev, ...patch }) });
   const clearFilter = (key: string) => update({ [key]: undefined });
@@ -283,7 +341,7 @@ function SearchPage() {
                   : "Pencarian"
               }
             </h1>
-            {hasQuery && !loading && (
+            {hasQuery && !loadingProducts && !loadingShops && (
               <p className="mt-0.5 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{productTotal.toLocaleString("id-ID")}</span> produk
                 {" · "}
@@ -462,22 +520,21 @@ function SearchPage() {
                 <h2 className="mb-4 text-base font-semibold text-muted-foreground">
                   Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}
                 </h2>
-                {loading
-                  ? <SkeletonShopGrid />
-                  : error ? (
+                {loadingShops ? <SkeletonShopGrid />
+                  : shopError && shops.length === 0 ? (
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
-                      error={error}
+                      onRetry={retryShops}
+                      error={shopError}
                     />
                   ) : shops.length === 0 ? (
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
+                      onRetry={retryShops}
                     />
                   ) : (
                       <>
@@ -512,12 +569,24 @@ function SearchPage() {
                           ))}
                           {loadingMoreS && <ShopSkeletonCards n={4} />}
                         </div>
-                        {canLoadMoreShops && tab !== "produk" && (
+                        {shopMoreError && (
+                          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>{shopMoreError}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreShops} disabled={loadingMoreS}>
+                              <RefreshCw className="h-3 w-3" /> Coba lagi
+                            </Button>
+                          </div>
+                        )}
+                        {canLoadMoreShops && tab !== "produk" && !shopMoreError && (
                           <div className="mt-4 flex justify-center">
                             <Button variant="outline" size="sm" onClick={loadMoreShops} disabled={loadingMoreS} className="gap-1.5">
                               {loadingMoreS ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak toko"}
                             </Button>
                           </div>
+                        )}
+                        {!canLoadMoreShops && shops.length >= SHOP_PAGE_SIZE && (
+                          <p className="mt-4 text-center text-xs text-muted-foreground">Tidak ada lagi toko untuk filter ini.</p>
                         )}
                       </>
                     )
@@ -531,22 +600,21 @@ function SearchPage() {
                 <h2 className="mb-4 text-base font-semibold text-muted-foreground">
                   Produk · menampilkan {products.length.toLocaleString("id-ID")} dari {productTotal.toLocaleString("id-ID")}
                 </h2>
-                {loading
-                  ? <SkeletonProductGrid />
-                  : error ? (
+                {loadingProducts ? <SkeletonProductGrid />
+                  : productError && products.length === 0 ? (
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
-                      error={error}
+                      onRetry={retryProducts}
+                      error={productError}
                     />
                   ) : products.length === 0 ? (
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
                       onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
-                      onRetry={() => setRetryNonce(n => n + 1)}
+                      onRetry={retryProducts}
                     />
                   ) : (
                       <>
@@ -554,12 +622,24 @@ function SearchPage() {
                           {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
                           {loadingMoreP && <ProductSkeletonCards n={10} />}
                         </div>
-                        {canLoadMoreProducts && tab !== "toko" && (
+                        {productMoreError && (
+                          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2 text-xs text-destructive">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>{productMoreError}</span>
+                            <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-destructive hover:text-destructive" onClick={loadMoreProducts} disabled={loadingMoreP}>
+                              <RefreshCw className="h-3 w-3" /> Coba lagi
+                            </Button>
+                          </div>
+                        )}
+                        {canLoadMoreProducts && tab !== "toko" && !productMoreError && (
                           <div className="mt-4 flex justify-center">
                             <Button variant="outline" size="sm" onClick={loadMoreProducts} disabled={loadingMoreP} className="gap-1.5">
                               {loadingMoreP ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat…</> : "Muat lebih banyak produk"}
                             </Button>
                           </div>
+                        )}
+                        {!canLoadMoreProducts && products.length >= PRODUCT_PAGE_SIZE && (
+                          <p className="mt-4 text-center text-xs text-muted-foreground">Tidak ada lagi produk untuk filter ini.</p>
                         )}
                       </>
                     )
