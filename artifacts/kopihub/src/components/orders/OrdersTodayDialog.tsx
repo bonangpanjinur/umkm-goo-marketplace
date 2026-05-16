@@ -134,6 +134,7 @@ export function OrdersTodayDialog({
   shopPhone,
 }: Props) {
   const { user } = useAuth();
+  const { role } = usePermissions();
   const scopeKey = buildScopeKey(outletId, user?.id);
   const sortKey = `pos:orders-sort:${scopeKey}`;
   const pageKey = `pos:orders-page:${scopeKey}`;
