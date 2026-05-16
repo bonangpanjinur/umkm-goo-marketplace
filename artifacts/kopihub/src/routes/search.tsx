@@ -533,14 +533,22 @@ function SearchPage() {
                 </h2>
                 {loading
                   ? <SkeletonProductGrid />
-                  : products.length === 0
-                    ? (
-                      <div className="rounded-xl border border-border bg-card p-8 text-center space-y-2">
-                        <p className="text-muted-foreground">Tidak ada produk yang cocok.</p>
-                        <p className="text-xs text-muted-foreground">Coba hapus beberapa filter atau ubah kata kunci.</p>
-                      </div>
-                    )
-                    : (
+                  : error ? (
+                    <SearchEmptyState
+                      type="produk"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                      error={error}
+                    />
+                  ) : products.length === 0 ? (
+                    <SearchEmptyState
+                      type="produk"
+                      hasFilters={hasFilters}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined }); }}
+                      onRetry={() => setRetryNonce(n => n + 1)}
+                    />
+                  ) : (
                       <>
                         <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
                           {visibleProducts.map(p => <ProductCard key={p.id} product={p} />)}
