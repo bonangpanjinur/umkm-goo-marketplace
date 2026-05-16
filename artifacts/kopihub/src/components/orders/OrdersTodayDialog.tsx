@@ -724,6 +724,7 @@ export function OrdersTodayDialog({
                 pointsRedeemed={printSource.points_redeemed ?? 0}
                 pointsEarned={printSource.points_earned ?? 0}
                 customerName={displayCustomer ?? undefined}
+                source={sourceText}
                 paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                 total={Number(printSource.total)}
                 paymentMethod={printSource.payment_method}
@@ -738,6 +739,7 @@ export function OrdersTodayDialog({
                 outletName={outletName}
                 customerName={displayCustomer}
                 items={items}
+                source={sourceText}
               />
             </div>
             <div ref={courierRef}>
@@ -820,6 +822,7 @@ export function OrdersTodayDialog({
                     pointsRedeemed={printSource.points_redeemed ?? 0}
                     pointsEarned={printSource.points_earned ?? 0}
                     customerName={displayCustomer ?? undefined}
+                    source={sourceText}
                     paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
                     total={Number(printSource.total)}
                     paymentMethod={printSource.payment_method}
@@ -834,6 +837,7 @@ export function OrdersTodayDialog({
                     outletName={outletName}
                     customerName={displayCustomer}
                     items={items}
+                    source={sourceText}
                   />
                 )}
                 {fallbackOpen === "courier" && printSource && isDelivery && (
