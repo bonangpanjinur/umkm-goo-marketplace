@@ -306,8 +306,8 @@ function MarketplaceHome() {
         supabase.from("business_categories").select("id, slug, name, description, icon_url").eq("is_active", true).order("sort_order"),
         (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured, kyc_status, business_category_id").eq("is_active", true).eq("is_featured", true).order("rating_avg", { ascending: false, nullsFirst: false }).limit(32),
         (supabase as any).from("coffee_shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, business_category_id").eq("is_active", true).order("created_at", { ascending: false }).limit(6),
-        supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").eq("is_available", true).order("is_featured", { ascending: false }).order("rating_avg", { ascending: false, nullsFirst: false }).limit(12),
-        supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").eq("is_available", true).not("flash_price", "is", null).lt("flash_starts_at", now).gt("flash_ends_at", now).order("flash_ends_at", { ascending: true }).limit(8),
+        supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, total_sold, low_stock_threshold, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name, logo_url, kyc_status)").eq("is_available", true).order("is_featured", { ascending: false }).order("rating_avg", { ascending: false, nullsFirst: false }).limit(12),
+        supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, total_sold, low_stock_threshold, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name, logo_url, kyc_status)").eq("is_available", true).not("flash_price", "is", null).lt("flash_starts_at", now).gt("flash_ends_at", now).order("flash_ends_at", { ascending: true }).limit(8),
         supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("is_active", true),
         supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("is_available", true),
         supabase.from("coffee_shops").select("business_category_id").eq("is_active", true),
@@ -351,7 +351,7 @@ function MarketplaceHome() {
         }
         const topIds = Object.entries(countMap).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([id]) => id);
         if (topIds.length > 0) {
-          const { data: bestData } = await supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name)").in("id", topIds).eq("is_available", true);
+          const { data: bestData } = await supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, total_sold, low_stock_threshold, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops(slug, name, logo_url, kyc_status)").in("id", topIds).eq("is_available", true);
           setBestsellers((bestData as any) ?? []);
         }
       } catch (_) {}
