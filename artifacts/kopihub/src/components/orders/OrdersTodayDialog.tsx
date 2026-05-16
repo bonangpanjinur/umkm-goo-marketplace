@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,27 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Printer, Banknote, QrCode, ListOrdered, ArrowLeft, ChefHat } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Loader2,
+  Printer,
+  Banknote,
+  QrCode,
+  ListOrdered,
+  ArrowLeft,
+  ChefHat,
+  Search,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatIDR } from "@/lib/format";
@@ -35,6 +55,7 @@ type Order = {
   status: string;
   created_at: string;
   customer_name: string | null;
+  fulfillment: string | null;
 };
 
 type OrderDetail = Order & {
@@ -46,7 +67,6 @@ type OrderDetail = Order & {
   promo_code: string | null;
   points_redeemed: number;
   points_earned: number;
-  fulfillment: string;
   delivery_address: string | null;
   delivery_fee: number;
   courier_name: string | null;
@@ -68,6 +88,26 @@ type Props = {
   shopPhone?: string | null;
 };
 
+const PAGE_SIZE = 10;
+type SortDir = "newest" | "oldest";
+type StatusFilter = "all" | "active" | "voided";
+type PayFilter = "all" | "cash" | "qris";
+
+function lsGet(key: string, fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  try {
+    return window.localStorage.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+function lsSet(key: string, val: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, val);
+  } catch {}
+}
+
 export function OrdersTodayDialog({
   open,
   onOpenChange,
@@ -80,13 +120,36 @@ export function OrdersTodayDialog({
 }: Props) {
   const { user } = useAuth();
   const scopeKey = buildScopeKey(outletId, user?.id);
+  const sortKey = `pos:orders-sort:${scopeKey}`;
+  const pageKey = `pos:orders-page:${scopeKey}`;
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<OrderDetail | null>(null);
+  const [quickOrder, setQuickOrder] = useState<OrderDetail | null>(null);
   const [fallbackOpen, setFallbackOpen] = useState<null | "receipt" | "ticket" | "courier">(null);
   const printRef = useRef<HTMLDivElement>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
   const courierRef = useRef<HTMLDivElement>(null);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [payFilter, setPayFilter] = useState<PayFilter>("all");
+  const [sortDir, setSortDir] = useState<SortDir>(
+    () => (lsGet(sortKey, "newest") as SortDir) || "newest",
+  );
+  const [page, setPage] = useState<number>(() => {
+    const p = parseInt(lsGet(pageKey, "1"), 10);
+    return Number.isFinite(p) && p > 0 ? p : 1;
+  });
+
+  // Persist sort & page
+  useEffect(() => {
+    lsSet(sortKey, sortDir);
+  }, [sortDir, sortKey]);
+  useEffect(() => {
+    lsSet(pageKey, String(page));
+  }, [page, pageKey]);
 
   useEffect(() => {
     if (!open || !outletId) return;
@@ -98,7 +161,9 @@ export function OrdersTodayDialog({
     const businessDate = `${y}-${m}-${d}`;
     supabase
       .from("orders")
-      .select("id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name")
+      .select(
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment",
+      )
       .eq("outlet_id", outletId)
       .eq("business_date", businessDate)
       .order("created_at", { ascending: false })
@@ -112,15 +177,53 @@ export function OrdersTodayDialog({
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
 
-  async function openDetail(o: Order) {
+  // Filter + sort + paginate
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let list = orders.filter((o) => {
+      if (statusFilter === "voided") {
+        if (!(o.status === "voided" || o.status === "cancelled")) return false;
+      } else if (statusFilter === "active") {
+        if (o.status === "voided" || o.status === "cancelled") return false;
+      }
+      if (payFilter !== "all" && o.payment_method !== payFilter) return false;
+      if (q) {
+        const hay = `${o.order_no} ${o.customer_name ?? ""} ${o.status} ${o.payment_method}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    list.sort((a, b) => {
+      const ta = new Date(a.created_at).getTime();
+      const tb = new Date(b.created_at).getTime();
+      return sortDir === "newest" ? tb - ta : ta - tb;
+    });
+    return list;
+  }, [orders, search, statusFilter, payFilter, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  // Reset to page 1 when filters/search change
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, payFilter]);
+
+  async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, fulfillment, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, fulfillment, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
-      .eq("id", o.id)
+      .eq("id", id)
       .single();
-    if (data) setSelected(data as unknown as OrderDetail);
+    return (data ?? null) as unknown as OrderDetail | null;
+  }
+
+  async function openDetail(o: Order) {
+    const detail = await fetchDetail(o.id);
+    if (detail) setSelected(detail);
   }
 
   function tryPrint(kind: "receipt" | "ticket" | "courier", node: HTMLElement | null) {
@@ -134,18 +237,50 @@ export function OrdersTodayDialog({
     }
   }
 
-  const items: CartItem[] = (selected?.order_items ?? []).map((i) => ({
+  // Quick reprint: fetch detail, render hidden, then print receipt + ticket/courier
+  const quickPendingRef = useRef(false);
+  async function quickReprint(o: Order) {
+    if (quickPendingRef.current) return;
+    quickPendingRef.current = true;
+    try {
+      const detail = await fetchDetail(o.id);
+      if (!detail) {
+        toast.error("Detail pesanan tidak ditemukan");
+        return;
+      }
+      setQuickOrder(detail);
+      // Wait two frames for DOM
+      await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+      tryPrint("receipt", printRef.current);
+      // Small delay then print ticket/courier
+      await new Promise((r) => setTimeout(r, 350));
+      if (detail.fulfillment === "delivery") {
+        tryPrint("courier", courierRef.current);
+      } else {
+        tryPrint("ticket", ticketRef.current);
+      }
+      toast.success(`Cetak ulang #${detail.order_no}`);
+      // Clear after a moment so subsequent quick prints re-trigger render
+      setTimeout(() => setQuickOrder(null), 800);
+    } finally {
+      quickPendingRef.current = false;
+    }
+  }
+
+  // The print source — selected (manual) takes precedence over quickOrder
+  const printSource = selected ?? quickOrder;
+  const items: CartItem[] = (printSource?.order_items ?? []).map((i) => ({
     menu_item_id: "",
     name: i.name,
     unit_price: Number(i.unit_price),
     quantity: i.quantity,
     note: i.note ?? undefined,
   }));
-  const isDelivery = selected?.fulfillment === "delivery";
+  const isDelivery = printSource?.fulfillment === "delivery";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {selected ? (
@@ -163,72 +298,163 @@ export function OrdersTodayDialog({
               <>
                 <ListOrdered className="h-4 w-4" />
                 Pesanan Hari Ini
-                <span className="text-xs text-muted-foreground font-normal">· {outletName}</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  · {outletName} · {filtered.length}/{orders.length}
+                </span>
               </>
             )}
           </DialogTitle>
         </DialogHeader>
 
         {!selected && (
-          <div className="flex-1 overflow-auto">
-            {loading ? (
-              <div className="flex h-32 items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <>
+            {/* Filters */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <div className="relative sm:col-span-5">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari No. order / pelanggan…"
+                  className="h-9 pl-8"
+                />
               </div>
-            ) : orders.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                Belum ada pesanan hari ini
-              </div>
-            ) : (
-              <ul className="divide-y rounded-lg border">
-                {orders.map((o) => {
-                  const voided = o.status === "voided" || o.status === "cancelled";
-                  return (
-                    <li
-                      key={o.id}
-                      className={`flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 cursor-pointer ${voided ? "opacity-60" : ""}`}
-                      onClick={() => openDetail(o)}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          #{o.order_no}
-                          {voided && (
-                            <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
-                              VOID
-                            </span>
-                          )}
-                          {o.customer_name && (
-                            <span className="text-xs text-muted-foreground font-normal">
-                              · {o.customer_name}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                          <span>
-                            {new Date(o.created_at).toLocaleTimeString("id-ID", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            {o.payment_method === "cash" ? (
-                              <Banknote className="h-3 w-3" />
-                            ) : (
-                              <QrCode className="h-3 w-3" />
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className="h-9 sm:col-span-3"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua status</SelectItem>
+                  <SelectItem value="active">Aktif</SelectItem>
+                  <SelectItem value="voided">Void/Batal</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={payFilter} onValueChange={(v) => setPayFilter(v as PayFilter)}>
+                <SelectTrigger className="h-9 sm:col-span-2"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua bayar</SelectItem>
+                  <SelectItem value="cash">Tunai</SelectItem>
+                  <SelectItem value="qris">QRIS</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortDir} onValueChange={(v) => setSortDir(v as SortDir)}>
+                <SelectTrigger className="h-9 sm:col-span-2"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Terbaru</SelectItem>
+                  <SelectItem value="oldest">Terlama</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 overflow-auto">
+              {loading ? (
+                <div className="flex h-32 items-center justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : pageItems.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+                  {orders.length === 0 ? "Belum ada pesanan hari ini" : "Tidak ada pesanan cocok dengan filter"}
+                </div>
+              ) : (
+                <ul className="divide-y rounded-lg border">
+                  {pageItems.map((o) => {
+                    const voided = o.status === "voided" || o.status === "cancelled";
+                    const isDel = o.fulfillment === "delivery";
+                    return (
+                      <li
+                        key={o.id}
+                        className={`flex items-center gap-2 px-3 py-2.5 hover:bg-muted/50 ${voided ? "opacity-60" : ""}`}
+                      >
+                        <button
+                          className="flex-1 min-w-0 text-left"
+                          onClick={() => openDetail(o)}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            #{o.order_no}
+                            {voided && (
+                              <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
+                                VOID
+                              </span>
                             )}
-                            {o.payment_method === "cash" ? "Tunai" : "QRIS"}
-                          </span>
+                            {isDel && (
+                              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
+                                DELIVERY
+                              </span>
+                            )}
+                            {o.customer_name && (
+                              <span className="text-xs text-muted-foreground font-normal truncate">
+                                · {o.customer_name}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <span>
+                              {new Date(o.created_at).toLocaleTimeString("id-ID", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              {o.payment_method === "cash" ? (
+                                <Banknote className="h-3 w-3" />
+                              ) : (
+                                <QrCode className="h-3 w-3" />
+                              )}
+                              {o.payment_method === "cash" ? "Tunai" : "QRIS"}
+                            </span>
+                          </div>
+                        </button>
+                        <div className={`text-sm font-semibold tabular-nums ${voided ? "line-through" : ""}`}>
+                          {formatIDR(o.total)}
                         </div>
-                      </div>
-                      <div className={`text-sm font-semibold ${voided ? "line-through" : ""}`}>
-                        {formatIDR(o.total)}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                        {!voided && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              quickReprint(o);
+                            }}
+                            title="Reprint cepat: Struk + Tiket/Surat Jalan"
+                          >
+                            <Zap className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {filtered.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                <span>
+                  Hal. {safePage} dari {totalPages}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
             )}
-          </div>
+          </>
         )}
 
         {selected && (
@@ -259,64 +485,66 @@ export function OrdersTodayDialog({
                 <> · diterima {formatIDR(Number(selected.amount_tendered))} · kembali {formatIDR(Number(selected.change_due))}</>
               )}
             </div>
+          </div>
+        )}
 
-            {/* Hidden print layer */}
-            <div className="print-host" aria-hidden="true">
-              <div ref={printRef}>
-                <Receipt
+        {/* Hidden print layer — uses printSource (selected OR quickOrder) */}
+        {printSource && (
+          <div className="print-host" aria-hidden="true">
+            <div ref={printRef}>
+              <Receipt
+                shopName={shopName}
+                outletName={outletName}
+                shopLogoUrl={shopLogoUrl}
+                shopAddress={shopAddress}
+                shopPhone={shopPhone}
+                orderNo={printSource.order_no}
+                cashierName="Kasir"
+                date={new Date(printSource.created_at)}
+                items={items}
+                subtotal={Number(printSource.subtotal ?? printSource.total)}
+                manualDiscount={Number(printSource.discount ?? 0)}
+                promoCode={printSource.promo_code}
+                serviceCharge={Number(printSource.service_charge ?? 0)}
+                tax={Number(printSource.tax ?? 0)}
+                tipAmount={Number(printSource.tip_amount ?? 0)}
+                pointsRedeemed={printSource.points_redeemed ?? 0}
+                pointsEarned={printSource.points_earned ?? 0}
+                customerName={printSource.customer_name ?? undefined}
+                paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
+                total={Number(printSource.total)}
+                paymentMethod={printSource.payment_method}
+                amountTendered={printSource.amount_tendered ? Number(printSource.amount_tendered) : undefined}
+                changeDue={Number(printSource.change_due)}
+              />
+            </div>
+            <div ref={ticketRef}>
+              <KitchenTicket
+                orderNo={printSource.order_no}
+                date={new Date(printSource.created_at)}
+                outletName={outletName}
+                customerName={printSource.customer_name}
+                items={items}
+              />
+            </div>
+            <div ref={courierRef}>
+              {isDelivery && (
+                <CourierReceipt
                   shopName={shopName}
                   outletName={outletName}
-                  shopLogoUrl={shopLogoUrl}
-                  shopAddress={shopAddress}
-                  shopPhone={shopPhone}
-                  orderNo={selected.order_no}
-                  cashierName="Kasir"
-                  date={new Date(selected.created_at)}
+                  orderNo={printSource.order_no}
+                  date={new Date(printSource.created_at)}
+                  customerName={printSource.customer_name}
+                  customerPhone={printSource.customer_phone}
+                  deliveryAddress={printSource.delivery_address}
+                  courierName={printSource.courier_name}
+                  trackingNumber={printSource.tracking_number}
+                  deliveryFee={Number(printSource.delivery_fee ?? 0)}
+                  total={Number(printSource.total)}
                   items={items}
-                  subtotal={Number(selected.subtotal ?? selected.total)}
-                  manualDiscount={Number(selected.discount ?? 0)}
-                  promoCode={selected.promo_code}
-                  serviceCharge={Number(selected.service_charge ?? 0)}
-                  tax={Number(selected.tax ?? 0)}
-                  tipAmount={Number(selected.tip_amount ?? 0)}
-                  pointsRedeemed={selected.points_redeemed ?? 0}
-                  pointsEarned={selected.points_earned ?? 0}
-                  customerName={selected.customer_name ?? undefined}
-                  paymentSplit={Array.isArray(selected.payment_split) ? selected.payment_split : []}
-                  total={Number(selected.total)}
-                  paymentMethod={selected.payment_method}
-                  amountTendered={selected.amount_tendered ? Number(selected.amount_tendered) : undefined}
-                  changeDue={Number(selected.change_due)}
+                  note={printSource.note}
                 />
-              </div>
-              <div ref={ticketRef}>
-                <KitchenTicket
-                  orderNo={selected.order_no}
-                  date={new Date(selected.created_at)}
-                  outletName={outletName}
-                  customerName={selected.customer_name}
-                  items={items}
-                />
-              </div>
-              <div ref={courierRef}>
-                {isDelivery && (
-                  <CourierReceipt
-                    shopName={shopName}
-                    outletName={outletName}
-                    orderNo={selected.order_no}
-                    date={new Date(selected.created_at)}
-                    customerName={selected.customer_name}
-                    customerPhone={selected.customer_phone}
-                    deliveryAddress={selected.delivery_address}
-                    courierName={selected.courier_name}
-                    trackingNumber={selected.tracking_number}
-                    deliveryFee={Number(selected.delivery_fee ?? 0)}
-                    total={Number(selected.total)}
-                    items={items}
-                    note={selected.note}
-                  />
-                )}
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -341,7 +569,13 @@ export function OrdersTodayDialog({
               </Button>
             </>
           ) : (
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Tutup</Button>
+            <>
+              <div className="mr-auto flex flex-wrap items-center gap-2">
+                <PrinterPicker outletId={outletId} scopeKey={scopeKey} />
+                <ReceiptPaperPicker scopeKey={scopeKey} />
+              </div>
+              <Button variant="ghost" onClick={() => onOpenChange(false)}>Tutup</Button>
+            </>
           )}
         </DialogFooter>
 
@@ -353,57 +587,57 @@ export function OrdersTodayDialog({
             </DialogHeader>
             <div className="rounded-md border bg-muted/30 p-3 max-h-[60vh] overflow-auto">
               <div className="bg-white p-2 mx-auto" style={{ width: "fit-content" }}>
-                {fallbackOpen === "receipt" && selected && (
+                {fallbackOpen === "receipt" && printSource && (
                   <Receipt
                     shopName={shopName}
                     outletName={outletName}
                     shopLogoUrl={shopLogoUrl}
                     shopAddress={shopAddress}
                     shopPhone={shopPhone}
-                    orderNo={selected.order_no}
+                    orderNo={printSource.order_no}
                     cashierName="Kasir"
-                    date={new Date(selected.created_at)}
+                    date={new Date(printSource.created_at)}
                     items={items}
-                    subtotal={Number(selected.subtotal ?? selected.total)}
-                    manualDiscount={Number(selected.discount ?? 0)}
-                    promoCode={selected.promo_code}
-                    serviceCharge={Number(selected.service_charge ?? 0)}
-                    tax={Number(selected.tax ?? 0)}
-                    tipAmount={Number(selected.tip_amount ?? 0)}
-                    pointsRedeemed={selected.points_redeemed ?? 0}
-                    pointsEarned={selected.points_earned ?? 0}
-                    customerName={selected.customer_name ?? undefined}
-                    paymentSplit={Array.isArray(selected.payment_split) ? selected.payment_split : []}
-                    total={Number(selected.total)}
-                    paymentMethod={selected.payment_method}
-                    amountTendered={selected.amount_tendered ? Number(selected.amount_tendered) : undefined}
-                    changeDue={Number(selected.change_due)}
+                    subtotal={Number(printSource.subtotal ?? printSource.total)}
+                    manualDiscount={Number(printSource.discount ?? 0)}
+                    promoCode={printSource.promo_code}
+                    serviceCharge={Number(printSource.service_charge ?? 0)}
+                    tax={Number(printSource.tax ?? 0)}
+                    tipAmount={Number(printSource.tip_amount ?? 0)}
+                    pointsRedeemed={printSource.points_redeemed ?? 0}
+                    pointsEarned={printSource.points_earned ?? 0}
+                    customerName={printSource.customer_name ?? undefined}
+                    paymentSplit={Array.isArray(printSource.payment_split) ? printSource.payment_split : []}
+                    total={Number(printSource.total)}
+                    paymentMethod={printSource.payment_method}
+                    amountTendered={printSource.amount_tendered ? Number(printSource.amount_tendered) : undefined}
+                    changeDue={Number(printSource.change_due)}
                   />
                 )}
-                {fallbackOpen === "ticket" && selected && (
+                {fallbackOpen === "ticket" && printSource && (
                   <KitchenTicket
-                    orderNo={selected.order_no}
-                    date={new Date(selected.created_at)}
+                    orderNo={printSource.order_no}
+                    date={new Date(printSource.created_at)}
                     outletName={outletName}
-                    customerName={selected.customer_name}
+                    customerName={printSource.customer_name}
                     items={items}
                   />
                 )}
-                {fallbackOpen === "courier" && selected && isDelivery && (
+                {fallbackOpen === "courier" && printSource && isDelivery && (
                   <CourierReceipt
                     shopName={shopName}
                     outletName={outletName}
-                    orderNo={selected.order_no}
-                    date={new Date(selected.created_at)}
-                    customerName={selected.customer_name}
-                    customerPhone={selected.customer_phone}
-                    deliveryAddress={selected.delivery_address}
-                    courierName={selected.courier_name}
-                    trackingNumber={selected.tracking_number}
-                    deliveryFee={Number(selected.delivery_fee ?? 0)}
-                    total={Number(selected.total)}
+                    orderNo={printSource.order_no}
+                    date={new Date(printSource.created_at)}
+                    customerName={printSource.customer_name}
+                    customerPhone={printSource.customer_phone}
+                    deliveryAddress={printSource.delivery_address}
+                    courierName={printSource.courier_name}
+                    trackingNumber={printSource.tracking_number}
+                    deliveryFee={Number(printSource.delivery_fee ?? 0)}
+                    total={Number(printSource.total)}
                     items={items}
-                    note={selected.note}
+                    note={printSource.note}
                   />
                 )}
               </div>
