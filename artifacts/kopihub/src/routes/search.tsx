@@ -246,6 +246,24 @@ function SearchPage() {
               <Label className="text-xs">Harga max (Rp)</Label>
               <Input type="number" inputMode="numeric" className="mt-1 h-9" value={max ?? ""} onChange={e => update({ max: e.target.value ? Number(e.target.value) : undefined })} placeholder="∞" />
             </div>
+            <div>
+              <Label className="text-xs">Kota / Lokasi</Label>
+              <Input type="text" className="mt-1 h-9" value={city ?? ""} onChange={e => update({ city: e.target.value || undefined })} placeholder="Jakarta, Bandung…" />
+            </div>
+            <div>
+              <Label className="text-xs">Metode Bayar</Label>
+              <Select value={pay || "all"} onValueChange={v => update({ pay: v === "all" ? undefined : v })}>
+                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua metode</SelectItem>
+                  <SelectItem value="cash">Tunai</SelectItem>
+                  <SelectItem value="qris">QRIS</SelectItem>
+                  <SelectItem value="transfer">Transfer Bank</SelectItem>
+                  <SelectItem value="ewallet">E-Wallet</SelectItem>
+                  <SelectItem value="card">Kartu Debit/Kredit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 
