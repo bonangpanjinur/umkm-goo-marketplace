@@ -975,9 +975,18 @@ export default function PublicBookingPage() {
             </div>
 
             {slotsForDate.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">Tidak ada slot tersedia untuk tanggal ini</p>
-                <Button variant="outline" className="mt-3" onClick={() => setStep("date")}>Pilih tanggal lain</Button>
+              <Card className="p-8 text-center space-y-2">
+                <p className="font-medium">
+                  {isTableMode
+                    ? "Belum ada meja yang dibuka untuk tanggal ini"
+                    : "Belum ada slot layanan untuk tanggal ini"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {isTableMode
+                    ? "Silakan pilih tanggal lain atau hubungi kami untuk reservasi langsung."
+                    : "Coba pilih tanggal lain atau cek lagi nanti."}
+                </p>
+                <Button variant="outline" className="mt-2" onClick={() => setStep("date")}>Pilih tanggal lain</Button>
               </Card>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
