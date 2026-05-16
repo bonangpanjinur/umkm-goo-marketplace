@@ -3,6 +3,7 @@ import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
+import { useAuth } from "@/lib/auth";
 import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2, MessageCircle, CheckSquare, Square, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
@@ -20,8 +21,15 @@ import {
 import { Receipt } from "@/components/pos/receipt";
 import { KitchenTicket } from "@/components/pos/kitchen-ticket";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
+import { PrinterPicker } from "@/components/pos/printer-picker";
+import { CourierReceipt } from "@/components/pos/courier-receipt";
 import { ChefHat } from "lucide-react";
-import { printReceiptNode, applyReceiptPaper } from "@/lib/receipt-printer";
+import {
+  printReceiptNode,
+  applyReceiptPaper,
+  openReceiptInNewWindow,
+  buildScopeKey,
+} from "@/lib/receipt-printer";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
 
@@ -43,6 +51,22 @@ type Order = {
 };
 
 type OrderDetail = Order & {
+  subtotal: number;
+  discount: number;
+  service_charge: number;
+  tax: number;
+  tip_amount: number;
+  promo_code: string | null;
+  points_redeemed: number;
+  points_earned: number;
+  fulfillment: string;
+  delivery_address: string | null;
+  delivery_fee: number;
+  courier_name: string | null;
+  tracking_number: string | null;
+  customer_phone: string | null;
+  note: string | null;
+  payment_split: any;
   order_items: {
     name: string;
     unit_price: number;
@@ -136,7 +160,7 @@ function OrdersPage() {
     const { data } = await supabase
       .from("orders")
       .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, cashier_id, order_items(name, unit_price, quantity, note)",
+        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, cashier_id, subtotal, discount, service_charge, tax, tip_amount, promo_code, points_redeemed, points_earned, fulfillment, delivery_address, delivery_fee, courier_name, tracking_number, customer_phone, note, payment_split, order_items(name, unit_price, quantity, note)",
       )
       .eq("id", o.id)
       .single();
@@ -282,6 +306,7 @@ function OrdersPage() {
           order={selected}
           shopName={shop.name}
           outletName={outlet.name}
+          outletId={outlet.id}
           shopLogoUrl={shop.logo_url}
           shopAddress={shop.address}
           shopPhone={shop.phone}
@@ -301,6 +326,7 @@ function DetailDialog({
   order,
   shopName,
   outletName,
+  outletId,
   shopLogoUrl,
   shopAddress,
   shopPhone,
@@ -310,17 +336,22 @@ function DetailDialog({
   order: OrderDetail;
   shopName: string;
   outletName: string;
+  outletId: string;
   shopLogoUrl?: string | null;
   shopAddress?: string | null;
   shopPhone?: string | null;
   onClose: () => void;
   onVoided: () => void;
 }) {
+  const { user } = useAuth();
+  const scopeKey = buildScopeKey(outletId, user?.id);
   const printRef = useRef<HTMLDivElement>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
+  const courierRef = useRef<HTMLDivElement>(null);
+  const [fallbackOpen, setFallbackOpen] = useState<null | "receipt" | "ticket" | "courier">(null);
   useEffect(() => {
-    applyReceiptPaper();
-  }, []);
+    applyReceiptPaper(undefined, scopeKey);
+  }, [scopeKey]);
   const [voiding, setVoiding] = useState(false);
   const [refundOpen, setRefundOpen] = useState(false);
   const [refundAmount, setRefundAmount] = useState<string>(String(order.total));
@@ -330,6 +361,7 @@ function DetailDialog({
   );
   const [refunding, setRefunding] = useState(false);
   const isVoided = order.status === "voided" || order.status === "cancelled";
+  const isDelivery = order.fulfillment === "delivery";
   const items: CartItem[] = order.order_items.map((i) => ({
     menu_item_id: "",
     name: i.name,
@@ -338,13 +370,23 @@ function DetailDialog({
     note: i.note ?? undefined,
   }));
 
-  function handlePrint() {
-    printReceiptNode(printRef.current);
+  function tryPrint(
+    kind: "receipt" | "ticket" | "courier",
+    node: HTMLElement | null,
+  ) {
+    const res = printReceiptNode(node, undefined, scopeKey);
+    if (res !== "ok") {
+      // Dialog blocked or unavailable — try popup, then inline fallback.
+      const popped = openReceiptInNewWindow(node, undefined, scopeKey);
+      if (!popped) {
+        toast.error("Dialog cetak diblokir. Buka pratinjau lalu cetak manual.");
+        setFallbackOpen(kind);
+      }
+    }
   }
-
-  function handlePrintTicket() {
-    printReceiptNode(ticketRef.current);
-  }
+  const handlePrint = () => tryPrint("receipt", printRef.current);
+  const handlePrintTicket = () => tryPrint("ticket", ticketRef.current);
+  const handlePrintCourier = () => tryPrint("courier", courierRef.current);
 
   async function handleRefund() {
     const amt = Number(refundAmount || 0);
@@ -411,7 +453,16 @@ function DetailDialog({
                 cashierName="Kasir"
                 date={new Date(order.created_at)}
                 items={items}
-                subtotal={Number(order.total)}
+                subtotal={Number(order.subtotal ?? order.total)}
+                manualDiscount={Number(order.discount ?? 0)}
+                promoCode={order.promo_code}
+                serviceCharge={Number(order.service_charge ?? 0)}
+                tax={Number(order.tax ?? 0)}
+                tipAmount={Number(order.tip_amount ?? 0)}
+                pointsRedeemed={order.points_redeemed ?? 0}
+                pointsEarned={order.points_earned ?? 0}
+                customerName={order.customer_name ?? undefined}
+                paymentSplit={Array.isArray(order.payment_split) ? order.payment_split : []}
                 total={Number(order.total)}
                 paymentMethod={order.payment_method}
                 amountTendered={order.amount_tendered ? Number(order.amount_tendered) : undefined}
@@ -426,6 +477,25 @@ function DetailDialog({
                 customerName={order.customer_name}
                 items={items}
               />
+            </div>
+            <div ref={courierRef}>
+              {isDelivery && (
+                <CourierReceipt
+                  shopName={shopName}
+                  outletName={outletName}
+                  orderNo={order.order_no}
+                  date={new Date(order.created_at)}
+                  customerName={order.customer_name}
+                  customerPhone={order.customer_phone}
+                  deliveryAddress={order.delivery_address}
+                  courierName={order.courier_name}
+                  trackingNumber={order.tracking_number}
+                  deliveryFee={Number(order.delivery_fee ?? 0)}
+                  total={Number(order.total)}
+                  items={items}
+                  note={order.note}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -454,7 +524,10 @@ function DetailDialog({
               </Button>
             </>
           )}
-          <ReceiptPaperPicker className="mr-auto" />
+          <div className="mr-auto flex flex-wrap items-center gap-2">
+            <PrinterPicker outletId={outletId} scopeKey={scopeKey} />
+            <ReceiptPaperPicker scopeKey={scopeKey} />
+          </div>
           {order.customer_name && (
             <Button
               variant="outline"
@@ -475,6 +548,11 @@ function DetailDialog({
           <Button variant="outline" onClick={handlePrintTicket}>
             <ChefHat className="mr-2 h-4 w-4" /> Tiket Dapur
           </Button>
+          {isDelivery && (
+            <Button variant="outline" onClick={handlePrintCourier}>
+              <Printer className="mr-2 h-4 w-4" /> Surat Jalan Kurir
+            </Button>
+          )}
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" /> Cetak ulang
           </Button>
@@ -554,6 +632,94 @@ function DetailDialog({
               <Button onClick={handleRefund} disabled={refunding}>
                 {refunding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Konfirmasi refund
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Fallback preview when window.print() is blocked */}
+        <Dialog open={fallbackOpen !== null} onOpenChange={(o) => !o && setFallbackOpen(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Pratinjau Struk</DialogTitle>
+            </DialogHeader>
+            <div className="rounded-md border bg-muted/30 p-3 max-h-[60vh] overflow-auto">
+              <div className="bg-white p-2 mx-auto" style={{ width: "fit-content" }}>
+                {fallbackOpen === "receipt" && (
+                  <Receipt
+                    shopName={shopName}
+                    outletName={outletName}
+                    shopLogoUrl={shopLogoUrl}
+                    shopAddress={shopAddress}
+                    shopPhone={shopPhone}
+                    orderNo={order.order_no}
+                    cashierName="Kasir"
+                    date={new Date(order.created_at)}
+                    items={items}
+                    subtotal={Number(order.subtotal ?? order.total)}
+                    manualDiscount={Number(order.discount ?? 0)}
+                    promoCode={order.promo_code}
+                    serviceCharge={Number(order.service_charge ?? 0)}
+                    tax={Number(order.tax ?? 0)}
+                    tipAmount={Number(order.tip_amount ?? 0)}
+                    pointsRedeemed={order.points_redeemed ?? 0}
+                    pointsEarned={order.points_earned ?? 0}
+                    customerName={order.customer_name ?? undefined}
+                    paymentSplit={Array.isArray(order.payment_split) ? order.payment_split : []}
+                    total={Number(order.total)}
+                    paymentMethod={order.payment_method}
+                    amountTendered={order.amount_tendered ? Number(order.amount_tendered) : undefined}
+                    changeDue={Number(order.change_due)}
+                  />
+                )}
+                {fallbackOpen === "ticket" && (
+                  <KitchenTicket
+                    orderNo={order.order_no}
+                    date={new Date(order.created_at)}
+                    outletName={outletName}
+                    customerName={order.customer_name}
+                    items={items}
+                  />
+                )}
+                {fallbackOpen === "courier" && isDelivery && (
+                  <CourierReceipt
+                    shopName={shopName}
+                    outletName={outletName}
+                    orderNo={order.order_no}
+                    date={new Date(order.created_at)}
+                    customerName={order.customer_name}
+                    customerPhone={order.customer_phone}
+                    deliveryAddress={order.delivery_address}
+                    courierName={order.courier_name}
+                    trackingNumber={order.tracking_number}
+                    deliveryFee={Number(order.delivery_fee ?? 0)}
+                    total={Number(order.total)}
+                    items={items}
+                    note={order.note}
+                  />
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Dialog cetak browser tidak muncul (kemungkinan diblokir popup). Klik "Cetak Sekarang" untuk mencoba lagi, atau gunakan Ctrl/Cmd+P di pratinjau ini.
+            </p>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setFallbackOpen(null)}>Tutup</Button>
+              <Button
+                onClick={() => {
+                  const node =
+                    fallbackOpen === "ticket"
+                      ? ticketRef.current
+                      : fallbackOpen === "courier"
+                        ? courierRef.current
+                        : printRef.current;
+                  const popped = openReceiptInNewWindow(node, undefined, scopeKey);
+                  if (!popped) {
+                    printReceiptNode(node, undefined, scopeKey);
+                  }
+                }}
+              >
+                <Printer className="mr-2 h-4 w-4" /> Cetak Sekarang
               </Button>
             </DialogFooter>
           </DialogContent>
