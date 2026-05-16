@@ -278,6 +278,11 @@ export function OrdersTodayDialog({
     note: i.note ?? undefined,
   }));
   const isDelivery = printSource?.fulfillment === "delivery";
+  const displayCustomer = printSource
+    ? [printSource.table_label ? `Meja ${printSource.table_label}` : null, printSource.customer_name]
+        .filter(Boolean)
+        .join(" · ") || null
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
