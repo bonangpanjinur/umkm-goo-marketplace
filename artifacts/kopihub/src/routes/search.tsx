@@ -341,7 +341,7 @@ function SearchPage() {
                   : "Pencarian"
               }
             </h1>
-            {hasQuery && !loading && (
+            {hasQuery && !loadingProducts && !loadingShops && (
               <p className="mt-0.5 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{productTotal.toLocaleString("id-ID")}</span> produk
                 {" · "}
