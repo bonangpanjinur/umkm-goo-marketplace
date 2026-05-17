@@ -105,6 +105,8 @@ type NavItem = {
   onlyFor?: string[];
   /** If set, only show for these business sub-types (sales-pro: 'umroh' | 'sales') */
   subtypeOnly?: ("umroh" | "sales")[];
+  /** If true, hide from staff (only owner sees) */
+  ownerOnly?: boolean;
 };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
