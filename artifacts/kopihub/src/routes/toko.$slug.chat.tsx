@@ -414,20 +414,17 @@ function ShopChatPage() {
   }
 
   async function cancelSend(tempId: string) {
-    // Abort active XHR if any
+    // 1. Abort active XHR and clear from active uploads map
     const xhr = activeUploadsRef.current.get(tempId);
     if (xhr) {
       xhr.abort();
-      activeUploadsRef.current.delete(tempId);
     }
-    // Remove from pending files
-    const entry = pendingFilesRef.current.get(tempId);
-    if (entry?.file) {
-      const previewUrl = URL.createObjectURL(entry.file);
-      URL.revokeObjectURL(previewUrl); // just in case; main cleanup below
-    }
+    activeUploadsRef.current.delete(tempId);
+
+    // 2. Remove from pending files map
     pendingFilesRef.current.delete(tempId);
-    // Revoke blob URL and remove bubble
+
+    // 3. Revoke blob URL, clear from blobUrlsRef, and remove bubble from messages
     setMessages((m) => {
       const bubble = m.find((x) => x._tempId === tempId);
       if (bubble?._localPreview) {
