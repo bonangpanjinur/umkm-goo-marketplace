@@ -267,11 +267,12 @@ Catatan kompat skema:
 - ✅ `business_categories.booking_config` ditandai sebagai **default seed kategori** (bukan truth) via `COMMENT`. UI `admin.booking-config.tsx` tetap berfungsi sebagai editor default kategori; owner toko override via `pos-app/booking`.
 - ⏭️ Backfill JSON→kolom tidak diperlukan (kolom shop sudah jadi reader tunggal di runtime; JSON kategori hanya saran tampilan).
 
-### F.4 Fase 4 — Operasional ❌ Belum
+### F.4 Fase 4 — Operasional 🔧 Sebagian (17 Mei 2026)
 
-- Cron `auto_cancel_pending_deposit_bookings()` — jalan harian, cancel booking dengan `deposit_status='pending'` & `created_at < now() - interval '24 hours'` (ambil window dari `platform_settings.booking_auto_cancel_hours`).
-- Audit log eskalasi: catat aksi auto-cancel ke `staff_audit_logs` dengan `actor_id = NULL` + `action='auto_cancel_pending_dp'`.
-- E2E test happy path: booking → init DP → webhook paid → status `paid`; + unhappy: webhook signature invalid, double-callback, timeout > window.
+- ✅ Fungsi `auto_cancel_pending_deposit_bookings()` dibuat (SECURITY DEFINER, `SET search_path = public`, `FOR UPDATE SKIP LOCKED` agar aman concurrent). Membaca window dari `platform_settings.booking_auto_cancel_hours` (default 24 jam). Set `status='cancelled'`, `deposit_status='expired'`, `cancelled_reason='auto_cancel_pending_dp'`.
+- ✅ Audit log: setiap auto-cancel dicatat ke `staff_audit_logs` (`actor_id=NULL`, `action='auto_cancel_pending_dp'`, `meta` berisi `booking_id`, `deposit_amount`, `created_at`, `cutoff_hours`).
+- ✅ pg_cron schedule `auto-cancel-pending-deposit-bookings` aktif — jalan setiap jam pada menit ke-15 (`15 * * * *`).
+- ❌ E2E test (happy path + signature invalid + double-callback + timeout > window) belum ditulis — masuk backlog setelah F.6 (Midtrans Snap init) selesai supaya path lengkap.
 
 ### F.5 Fase 5 — Hardening ❌ Belum
 
