@@ -683,7 +683,63 @@ MERCHANT:
 
 ---
 
-### 0.8 Implikasi Teknis: Konfigurasi per Kategori
+### 0.7.1 Capability Matrix (Implementasi Backend)
+
+> **Single source of truth**: tabel `business_categories` (kolom `flow_types`,
+> `enabled_features`) + override per toko `shops.feature_overrides`,
+> dirangkum oleh view `v_shop_capabilities`.
+
+Setiap kategori usaha (11 baris aktif di DB) memiliki:
+- `flow_types text[]` — sub-set dari `T1..T5` (mengacu §0.7)
+- `enabled_features text[]` — daftar `FeatureKey` kanonik yang aktif default
+
+**Mapping seed (migrasi F-17):**
+
+| Slug kategori | `flow_types` | `enabled_features` (highlight) |
+|---|---|---|
+| `fnb` | T1 (+T3 opsional) | POS, MENU, KDS, TABLES, INVENTORY, RECIPES, COMBO_BUILDER |
+| `retail` | T1 | POS, MENU, INVENTORY, VARIANTS, SUPPLIERS |
+| `jasa` | T3, T5 | BOOKING, SERVICE_BUNDLES, CUSTOM_ORDER |
+| `rental` | T4 | RENTAL, RENTAL_AVAILABILITY, RENTAL_DEPOSIT, RENTAL_FINES, RENTAL_CHECKLIST, RENTAL_TNC |
+| `kursus` | T2 | KURSUS, DIGITAL, DIGITAL_LICENSES, DIGITAL_VERSION |
+| `salon` | T3 | BOOKING, STAFF_PICKER, ANTRIAN, FOLLOWUP_REMINDERS |
+| `klinik` | T3 | BOOKING, ANAMNESIS, MEDICAL_INVOICE, PATIENT_RECORDS, ANTRIAN |
+| `studio-foto` | T3, T2 | BOOKING, PORTFOLIO, STUDIO_PACKAGES, STUDIO_ADDONS, STUDIO_BRIEF, STUDIO_DELIVERY |
+| `travel` | T3 | UMROH_PACKAGES, UMROH_FACILITIES, UMROH_FAQ, FLYERS, TESTIMONIALS, LEADS, ABOUT_PAGE |
+| `custom-order` | T5 | CUSTOM_ORDER, CUSTOM_ORDER_QUOTES, MILESTONES, CONTRACTS, JOB_DELIVERABLES, PRE_ORDERS |
+| `lainnya` | T1 | POS, MENU |
+
+**Aturan gating (wajib):**
+
+1. **Nav sidebar** (`pos-app.tsx → NAV_GROUPS`) — setiap item vertikal punya
+   `requires: FeatureKey[]`. `onlyFor` (slug-based) hanya kompatibilitas mundur;
+   sumber kebenaran adalah `requires`.
+2. **Route-level guard** — `pos-app.tsx` layout meng-intercept deep link ke route
+   yang `requires`-nya tidak terpenuhi dan menampilkan `<FeatureBlocked/>`
+   alih-alih `<Outlet/>`. Tidak perlu bungkus halaman vertikal satu per satu.
+3. **Hook utama** — `useShopCapabilities(shopId)` dari
+   `@/lib/use-shop-capabilities`. Jangan baca `business_categories` langsung
+   dari komponen baru.
+4. **Komponen shared** — gunakan `<CategoryGuard shopId feature="X">` saat
+   widget dipanggil dari banyak halaman.
+5. **Checkout** — gunakan `pickCheckoutFlow(caps, cart, { shopSlug })` dari
+   `@/lib/checkout-router` untuk memilih halaman bayar
+   (booking/rental/custom-order/default).
+6. **Onboarding step 2** — saat user pilih kategori, tampilkan badge
+   `flow_types` + `enabled_features` agar user paham fitur apa yang aktif
+   sebelum lanjut.
+
+**Cara menambah fitur baru:**
+
+1. Tambah enum value ke `FEATURE_KEYS` di `src/lib/feature-keys.ts`.
+2. Tambahkan label ramah pengguna di `FEATURE_LABEL`.
+3. Update `enabled_features` pada baris `business_categories` yang relevan.
+4. Tambahkan `requires: ["FEATURE_BARU"]` di item nav yang sesuai.
+5. Owner toko bisa override per-toko via `shops.feature_overrides`
+   (kolom jsonb `{ enable: [...], disable: [...] }`).
+
+---
+
 
 Sistem booking HARUS dikonfigurasi secara berbeda berdasarkan kategori:
 
