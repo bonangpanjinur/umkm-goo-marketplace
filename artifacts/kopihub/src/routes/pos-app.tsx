@@ -203,6 +203,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Tim",
     items: [
       { to: "/pos-app/employees",  label: "Pegawai",       icon: Users },
+      { to: "/pos-app/permissions", label: "Hak Akses Staf", icon: ShieldCheck, ownerOnly: true },
       { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
       { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
       { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
