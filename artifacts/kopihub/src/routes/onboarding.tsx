@@ -97,7 +97,7 @@ function OnboardingPage() {
     setCategoriesError(null);
     const { data, error } = await supabase
       .from("business_categories")
-      .select("id, slug, name, description")
+      .select("id, slug, name, description, enabled_features, flow_types")
       .eq("is_active", true)
       .order("sort_order");
     if (error) {
