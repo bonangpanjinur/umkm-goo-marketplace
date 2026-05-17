@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { listCart, checkout, listShopZones, listShopDeliverySettings, type CartItem, type DeliveryZone, type DeliverySettings } from "@/lib/marketplace-cart";
+import { listCart, checkout, listShopZones, listShopDeliverySettings, updateCartItem, addToCart, type CartItem, type DeliveryZone, type DeliverySettings } from "@/lib/marketplace-cart";
 import { getDeliveryWindow, formatEta, formatTime } from "@/lib/delivery-eta";
 import { useAuth } from "@/lib/auth";
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
-import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift, Crown } from "lucide-react";
+import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift, Crown, Zap, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
