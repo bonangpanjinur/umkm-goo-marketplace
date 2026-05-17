@@ -71,6 +71,7 @@ function AppearancePage() {
       const { setShopTheme } = await import("@/server/entitlements.functions");
       await setShopTheme({ data: { themeKey: key } });
       toast.success("Tema diaktifkan");
+      setPreviewThemeKey(null);
       await reload();
       setIframeKey((k) => k + 1);
     } catch (e) {
