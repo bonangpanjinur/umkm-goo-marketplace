@@ -274,12 +274,14 @@ Catatan kompat skema:
 - ✅ pg_cron schedule `auto-cancel-pending-deposit-bookings` aktif — jalan setiap jam pada menit ke-15 (`15 * * * *`).
 - ❌ E2E test (happy path + signature invalid + double-callback + timeout > window) belum ditulis — masuk backlog setelah F.6 (Midtrans Snap init) selesai supaya path lengkap.
 
-### F.5 Fase 5 — Hardening ❌ Belum
+### F.5 Fase 5 — Hardening 🔧 Sebagian (17 Mei 2026)
 
-- Audit semua RLS policy `USING (true)` (linter flag); ganti dengan scope `shop_id` / `auth.uid()`.
-- Set `SECURITY DEFINER` functions ke `SET search_path = public` (saat ini banyak yang mutable).
-- Tutup public bucket listing storage (`avatars`, `menu-photos`, `documents`) — hanya `SELECT by path`, tanpa list.
-- Pindahkan extensions dari schema `public` ke `extensions` (pgcrypto, pg_net, dll).
+- ✅ `touch_updated_at` di-set `search_path = public` (1 fungsi terakhir yang masih mutable).
+- ✅ RLS dipertajam: `booking_reviews INSERT` wajib `auth.uid() = user_id`; `booking_review_requests UPDATE` dibatasi customer terkait, owner toko, atau super admin.
+- ✅ Listing storage ditutup untuk 10 bucket publik (menu-images, shop-logos, staff-avatars, builder-assets, chat-attachments, flyers, umroh-brochures, delivery-proofs, review-photos, custom-order-attachments) — direct file URL via CDN tetap berfungsi karena bucket masih `public`.
+- ✅ 5 policy publik (`leads`, `custom_order_requests`, `rental_bookings`, `restock_subscribers`, `booking_review_requests rrq_insert`) didokumentasikan sebagai intentional public form via `COMMENT ON POLICY`.
+- 🔧 Hasil linter turun **221 → 208 warning** (-13).
+- ❌ Backlog Fase 5 lanjutan: (a) pindahkan `pg_net` dari schema `public` ke `extensions` (perlu update semua cron command `net.http_post` → `extensions.net.http_post`); (b) audit `SECURITY DEFINER` functions yang executable oleh `anon` — `REVOKE EXECUTE ... FROM anon, authenticated` untuk yang hanya dipanggil dari server.
 
 ### F.6 Fase 6 — Midtrans Snap Client Init ❌ Belum
 
