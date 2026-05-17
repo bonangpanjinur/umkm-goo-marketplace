@@ -49,7 +49,7 @@ Tujuan: turunkan bug rate sebelum menambah fitur baru.
 
 ### Fase H — Penyelesaian fitur per kategori (high-ROI sisa)
 1. ✅ **F&B**: kolom `allergens[]` + `is_halal` + `available_modes[]` + `nutrition_info` di form menu (advanced tab), badge Halal/mode di halaman produk storefront, modifier `is_required` (sudah ada). _Sisa_: `min_select` modifier (perlu migration).
-2. **Retail**: integrasikan `variant-matrix.tsx` ke POS + stok per SKU + barcode scanner pakai `@zxing/browser` (Web).
+2. ✅ **Retail (sebagian)**: kolom `barcode` di `menu_items` + `menu_item_variants` (+ index sku/barcode per shop), input SKU/Barcode di form menu, scanner `@zxing/browser` (`BarcodeScannerDialog`) terintegrasi di POS — lookup barcode/SKU → menu_items dulu lalu fallback ke varian, auto add-to-cart. _Sisa_: UI CRUD varian (matrix size × color) dan stok per varian di POS.
 3. **Travel**: form alternatif untuk subtype `wisata-*` (tanpa field umroh), batch + quota terstruktur di `umroh-packages`.
 4. **Custom Order**: e-sign kontrak (HTML canvas signature) + simpan ke storage.
 5. **Klinik**: lookup ICD-10 + cetak template BPJS.
