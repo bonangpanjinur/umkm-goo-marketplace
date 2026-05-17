@@ -374,7 +374,7 @@ function KursusPage() {
   // ── Module CRUD ────────────────────────────────────────────────
   const openNewModule = () => {
     setEditingModule(null);
-    setModuleForm({ title: "", description: "", sort_order: String(modules.length) });
+    setModuleForm({ ...EMPTY_MODULE });
     setModuleDialog(true);
   };
 
@@ -383,7 +383,7 @@ function KursusPage() {
     setModuleForm({
       title: m.title,
       description: m.description ?? "",
-      sort_order: String(m.sort_order),
+      status: m.status,
     });
     setModuleDialog(true);
   };
@@ -392,12 +392,14 @@ function KursusPage() {
     if (!selectedCourse) return;
     if (!moduleForm.title.trim()) { toast.error("Judul modul wajib diisi"); return; }
     setSavingModule(true);
-    const payload = {
+    const payload: any = {
       menu_item_id: selectedCourse.id,
       title: moduleForm.title.trim(),
       description: moduleForm.description?.trim() || null,
-      sort_order: Number(moduleForm.sort_order) || 0,
+      status: moduleForm.status,
     };
+    // Modul baru → letakkan di akhir
+    if (!editingModule) payload.sort_order = modules.length;
     let error: any;
     if (editingModule) {
       ({ error } = await (supabase as any).from("course_modules").update(payload).eq("id", editingModule.id));
