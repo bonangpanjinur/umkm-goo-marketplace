@@ -612,11 +612,11 @@ function BookingPage() {
     (async () => {
       const { data } = await (supabase as any)
         .from("shops")
-        .select("deposit_required, deposit_percentage, deposit_notes")
+        .select("deposit_enabled, deposit_percentage, deposit_notes")
         .eq("id", shop.id)
         .maybeSingle();
       if (data) {
-        setDepositEnabled(!!data.deposit_required);
+        setDepositEnabled(!!data.deposit_enabled);
         setDepositPercent(String(data.deposit_percentage ?? 50));
         setDepositNotes(data.deposit_notes ?? "");
       }
@@ -630,7 +630,7 @@ function BookingPage() {
     const { error } = await (supabase as any)
       .from("shops")
       .update({
-        deposit_required: depositEnabled,
+        deposit_enabled: depositEnabled,
         deposit_percentage: Number(depositPercent),
         deposit_notes: depositNotes.trim() || null,
       })

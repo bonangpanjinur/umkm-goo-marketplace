@@ -41,7 +41,7 @@ type Shop = {
   rating_avg: number | null;
   rating_count: number | null;
   kyc_status: string | null;
-  deposit_required: boolean | null;
+  deposit_enabled: boolean | null;
   deposit_percentage: number | null;
   deposit_notes: string | null;
   require_id_upload: boolean | null;
@@ -219,7 +219,7 @@ export default function PublicBookingPage() {
     (async () => {
       const { data: s } = await supabase
         .from("shops" as any)
-        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, deposit_required, deposit_percentage, deposit_notes, require_id_upload")
+        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, deposit_enabled, deposit_percentage, deposit_notes, require_id_upload")
         .eq("slug", slug)
         .eq("is_active", true)
         .maybeSingle();
@@ -510,7 +510,7 @@ export default function PublicBookingPage() {
 
   // Computed deposit amount (based on full effective price)
   const depositAmount = (() => {
-    if (!shop?.deposit_required || !selectedSlot) return 0;
+    if (!shop?.deposit_enabled || !selectedSlot) return 0;
     const pct = shop.deposit_percentage ?? 50;
     return Math.ceil((effectivePrice * pct) / 100);
   })();
@@ -537,7 +537,7 @@ export default function PublicBookingPage() {
 
       const staffId = selectedStaffId !== NO_PREF_STAFF_ID ? selectedStaffId : null;
       const staffName = selectedStaff?.name ?? null;
-      const needsDeposit = !!(shop.deposit_required && effectivePrice > 0);
+      const needsDeposit = !!(shop.deposit_enabled && effectivePrice > 0);
 
       const { data: bk, error } = await supabase
         .from("bookings" as any)
@@ -2211,7 +2211,7 @@ export default function PublicBookingPage() {
                     <span className="text-primary">{formatIDR(effectivePrice)}</span>
                   </p>
                 )}
-                {shop?.deposit_required && depositAmount > 0 && (
+                {shop?.deposit_enabled && depositAmount > 0 && (
                   <p className="flex items-center gap-1.5 font-medium text-emerald-700">
                     <Check className="h-3.5 w-3.5" /> DP {formatIDR(depositAmount)} sudah dikonfirmasi
                   </p>

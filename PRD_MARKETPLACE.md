@@ -110,7 +110,7 @@
 
 | # | Kode | Fitur | Estimasi | Catatan |
 |---|---|---|---|---|
-| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-2 ✅ (code align + seed + DB schema) · Fase 3-6 ❌ (konsolidasi config, cron auto-cancel, hardening, Midtrans Snap init) — lihat **BAGIAN F** |
+| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-3 ✅ (code align + seed + DB schema + konsolidasi config) · Fase 4-6 ❌ (cron auto-cancel, hardening, Midtrans Snap init) — lihat **BAGIAN F** |
 | 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
@@ -259,11 +259,13 @@ Catatan kompat skema:
 - `business_categories.booking_type` CHECK hanya menerima `session|rental|both` — mapping: jasa/kursus/salon/klinik/travel → `session`; rental → `rental`; studio-foto → `both`.
 - `user_roles` unique index pada `(user_id, role, shop_id, outlet_id)`.
 
-### F.3 Fase 3 — Konsolidasi Sumber Config ❌ Belum
+### F.3 Fase 3 — Konsolidasi Sumber Config ✅ Selesai (17 Mei 2026)
 
-- Deprecate `shops.booking_config.deposit_*` (jsonb) → satu-satunya truth: kolom `shops.deposit_required`, `shops.deposit_percentage`, `shops.deposit_notes`, `shops.require_id_upload`.
-- `admin.booking-config.tsx` diubah: jadi UI default platform (tulis ke `platform_settings.booking_default_*`), bukan per-shop.
-- Backfill terakhir: copy nilai dari JSON ke kolom (jika ada perbedaan), lalu hapus path JSON dari semua reader.
+- ✅ Drop kolom legacy `shops.deposit_percent` (int) — duplikat `deposit_percentage` (numeric).
+- ✅ Truth source tunggal per toko: `shops.deposit_enabled` + `deposit_percentage` + `deposit_min_total` + `deposit_notes` (semua diberi `COMMENT` dokumentasi).
+- ✅ Fix bug aktif: kode di `toko.$slug.booking.tsx` & `pos-app.booking.tsx` sebelumnya `select("deposit_required")` dari tabel `shops` (kolom tidak ada → query 400). Diganti ke `deposit_enabled`. Field `bookings.deposit_required` (per-baris booking) tetap dipakai.
+- ✅ `business_categories.booking_config` ditandai sebagai **default seed kategori** (bukan truth) via `COMMENT`. UI `admin.booking-config.tsx` tetap berfungsi sebagai editor default kategori; owner toko override via `pos-app/booking`.
+- ⏭️ Backfill JSON→kolom tidak diperlukan (kolom shop sudah jadi reader tunggal di runtime; JSON kategori hanya saran tampilan).
 
 ### F.4 Fase 4 — Operasional ❌ Belum
 
@@ -3042,7 +3044,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 
 | Item | Modul | Estimasi |
 |------|-------|----------|
-| F-16 Fase 3: Konsolidasi config deposit (deprecate `shops.booking_config.deposit_*` JSON) | Booking / Owner | 0.5 hari |
+| ~~F-16 Fase 3: Konsolidasi config deposit~~ | ✅ Selesai 17 Mei 2026 | — |
 | F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log | Backend | 0.5 hari |
 | F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
 | F-16 Fase 5: Hardening RLS `USING(true)`, `search_path`, public bucket listing, extensions schema | Security | 1 hari |
