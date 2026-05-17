@@ -81,6 +81,7 @@ function ShopChatPage() {
   const [productSheetOpen, setProductSheetOpen] = useState(false);
   const [sellerTyping, setSellerTyping] = useState(false);
   const [rtStatus, setRtStatus] = useState<RtStatus>("connecting");
+  const [dragOver, setDragOver] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
