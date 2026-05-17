@@ -1252,7 +1252,8 @@ function AddToCartBlock({ product, shopSlug, shop, qty: qtyProp, onQtyChange }: 
         quantity: qty,
       });
       toast.success(`${product.name} ditambahkan ke keranjang`);
-      if (goCheckout) navigate({ to: "/keranjang" });
+      try { window.dispatchEvent(new CustomEvent("kh-cart-change")); } catch {}
+      if (goCheckout) navigate({ to: "/checkout" });
     } catch (e: any) {
       toast.error(e.message ?? "Gagal menambahkan ke keranjang");
     } finally {
