@@ -1396,7 +1396,8 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
 
   const refreshCount = async () => {
     try {
-      const n = await fetchCartCount();
+      // Hanya hitung item dari toko yang sedang dilihat (cart aktif untuk shop ini)
+      const n = await cartQuantitySum(product.shop_id);
       setCartTotal(n);
     } catch {
       setCartTotal(null);
