@@ -44,6 +44,7 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   other: Package,
 };
 
+type Subtype = { slug: string; label: string; icon?: string };
 type CategoryRow = {
   id: string;
   slug: string;
@@ -51,6 +52,7 @@ type CategoryRow = {
   description: string | null;
   enabled_features?: string[] | null;
   flow_types?: string[] | null;
+  subtypes?: Subtype[] | null;
 };
 
 const STEPS = [
