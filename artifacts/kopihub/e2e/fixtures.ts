@@ -8,53 +8,134 @@ export const DEMO_EMAIL = process.env.E2E_EMAIL ?? "owner@umkmgo.id";
 export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "demo1234";
 
 /**
- * Mock semua mekanisme cetak supaya test deterministik:
- *  - window.print() → no-op + dicatat di window.__printCalls
- *  - window.open()  → mock dengan Document yang punya .print() no-op
- *  - dialog beforeprint diabaikan
+ * Deterministic print mock untuk E2E.
+ *
+ * Yang dipasang di `window`:
+ *  - __printLog: Array<{ source: 'window' | 'popup'; type: string; html: string; ts: number }>
+ *  - __printCalls: number (alias = __printLog.length)
+ *  - __openCalls: number
+ *  - __lastPrintHtml: string
+ *  - __resetPrintLog(): void
+ *
+ * Heuristik tipe struk:
+ *  - Cari elemen ber-`data-receipt-type` di DOM utama saat print() dipanggil,
+ *    atau parse HTML yang di-`document.write` ke popup.
+ *  - Fallback: 'unknown'.
+ *
+ * Popup window dibuat penuh sebagai fake — script `<script>window.print()</script>`
+ * yang ditulis ke document juga dieksekusi (sebagai counter, bukan eval) sehingga
+ * jalur "open in new window → print" tetap ter-track tanpa popup asli.
  */
 export async function installPrintMock(page: Page) {
   await page.addInitScript(() => {
-    // @ts-expect-error: pasang counter di window
-    window.__printCalls = 0;
-    const origPrint = window.print;
+    type Entry = { source: "window" | "popup"; type: string; html: string; ts: number };
+    const log: Entry[] = [];
+    const w = window as any;
+    w.__printLog = log;
+    w.__printCalls = 0;
+    w.__openCalls = 0;
+    w.__lastPrintHtml = "";
+    w.__resetPrintLog = () => {
+      log.length = 0;
+      w.__printCalls = 0;
+      w.__openCalls = 0;
+      w.__lastPrintHtml = "";
+    };
+
+    function detectTypeFromDom(): { type: string; html: string } {
+      // Cari semua kandidat struk yang terlihat (atau ada di .print-area).
+      const nodes = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-receipt-type]"),
+      );
+      // Prioritaskan node dengan class print-area (yang sedang diset oleh printReceiptNode)
+      const active = nodes.find((n) => n.classList.contains("print-area")) ?? nodes[0];
+      if (!active) return { type: "unknown", html: "" };
+      return {
+        type: active.dataset.receiptType ?? "unknown",
+        html: active.outerHTML,
+      };
+    }
+
+    function detectTypeFromHtml(html: string): string {
+      const m = html.match(/data-receipt-type=["']([^"']+)["']/);
+      return m?.[1] ?? "unknown";
+    }
+
+    function record(entry: Entry) {
+      log.push(entry);
+      w.__printCalls = log.length;
+      w.__lastPrintHtml = entry.html;
+    }
+
+    const origPrint = window.print.bind(window);
+    w.__origPrint = origPrint;
     window.print = function mockedPrint() {
-      // @ts-expect-error
-      window.__printCalls = (window.__printCalls ?? 0) + 1;
-      // jangan panggil dialog asli
+      const info = detectTypeFromDom();
+      record({ source: "window", type: info.type, html: info.html, ts: Date.now() });
       return undefined as unknown as void;
     };
-    // Tahan referensi agar bisa di-restore manual jika diperlukan
-    // @ts-expect-error
-    window.__origPrint = origPrint;
 
-    const origOpen = window.open;
+    const origOpen = window.open?.bind(window);
+    w.__origOpen = origOpen;
     window.open = function mockedOpen(..._args: any[]) {
-      // @ts-expect-error
-      window.__openCalls = (window.__openCalls ?? 0) + 1;
+      w.__openCalls = (w.__openCalls ?? 0) + 1;
+      let buffer = "";
       const fakeDoc: any = {
-        open: () => {},
-        write: () => {},
-        close: () => {},
+        open: () => { buffer = ""; },
+        write: (chunk: string) => { buffer += String(chunk ?? ""); },
+        writeln: (chunk: string) => { buffer += String(chunk ?? "") + "\n"; },
+        close: () => {
+          // Jika HTML yang ditulis berisi pemicu auto-print, hitung sebagai print popup.
+          if (/window\.print\s*\(/.test(buffer)) {
+            record({
+              source: "popup",
+              type: detectTypeFromHtml(buffer),
+              html: buffer,
+              ts: Date.now(),
+            });
+          }
+        },
       };
       const fakeWin: any = {
         document: fakeDoc,
         print: () => {
-          // @ts-expect-error
-          window.__printCalls = (window.__printCalls ?? 0) + 1;
+          record({
+            source: "popup",
+            type: detectTypeFromHtml(buffer),
+            html: buffer,
+            ts: Date.now(),
+          });
         },
         close: () => {},
         focus: () => {},
+        closed: false,
       };
       return fakeWin;
-    };
-    // @ts-expect-error
-    window.__origOpen = origOpen;
+    } as typeof window.open;
   });
 
   // Auto-dismiss native print/beforeunload dialogs jika ada
   page.on("dialog", (d) => d.dismiss().catch(() => {}));
 }
+
+/** Tunggu sampai struk dengan tipe tertentu tercatat (default: minimal 1). */
+export async function waitForPrint(
+  page: Page,
+  opts: { type?: string; min?: number; timeout?: number } = {},
+) {
+  const { type, min = 1, timeout = 15_000 } = opts;
+  await page.waitForFunction(
+    ({ type, min }) => {
+      const log = ((window as any).__printLog ?? []) as Array<{ type: string }>;
+      const matched = type ? log.filter((e) => e.type === type) : log;
+      return matched.length >= min;
+    },
+    { type, min },
+    { timeout },
+  );
+  return page.evaluate(() => (window as any).__printLog ?? []);
+}
+
 
 export async function login(page: Page, email = DEMO_EMAIL, password = DEMO_PASSWORD) {
   await page.goto("/login");

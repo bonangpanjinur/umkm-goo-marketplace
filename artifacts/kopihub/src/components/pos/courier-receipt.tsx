@@ -40,7 +40,7 @@ export const CourierReceipt = forwardRef<HTMLDivElement, Props>(function Courier
   ref,
 ) {
   return (
-    <div ref={ref} className="receipt-58">
+    <div ref={ref} className="receipt-58" data-receipt-type="courier" data-testid="courier-receipt">
       <div className="r-center r-bold">SURAT JALAN KURIR</div>
       <div className="r-center r-small">{shopName}{outletName ? ` · ${outletName}` : ""}</div>
       <div className="r-divider" />

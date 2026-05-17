@@ -84,7 +84,7 @@ export const Receipt = forwardRef<HTMLDivElement, Props>(function Receipt(
   const safePhone = (shopPhone ?? "").trim();
   const safeLogo = (shopLogoUrl ?? "").trim();
   return (
-    <div ref={ref} className="receipt-58">
+    <div ref={ref} className="receipt-58" data-receipt-type="customer" data-testid="customer-receipt">
       {safeLogo && (
         <div className="r-center" style={{ marginBottom: 4 }}>
           <img

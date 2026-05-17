@@ -14,7 +14,7 @@ type Props = {
  * container; styling comes from .receipt + @media print rules in styles.css. */
 export function KitchenTicket({ orderNo, date, outletName, customerName, items, station, source }: Props) {
   return (
-    <div className="receipt p-2 font-mono text-[12px] leading-tight">
+    <div className="receipt p-2 font-mono text-[12px] leading-tight" data-receipt-type="kitchen" data-testid="kitchen-ticket">
       <div className="text-center font-bold text-[14px]">TIKET DAPUR</div>
       {station && <div className="text-center uppercase">{station}</div>}
       {source && (
