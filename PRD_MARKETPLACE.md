@@ -3076,6 +3076,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 | F-16 Webhook idempotency fix | Payments | `payments.ts` (RETURNING id + filter `WHERE id=logId`) |
 | F-16 Migrasi DB: kolom `bookings.deposit_status/deposit_required` + index, `shops.deposit_*` | Backend | Migration `20260517105717` |
 | F-16 Fase 2: Seed `business_categories` (11), `plans` (3) + `plan_features` (12), `features` master (4), `user_roles` super_admin + owner, `platform_settings` (12 keys) | Cloud / Seed | Insert idempoten dengan `ON CONFLICT DO NOTHING` |
+| F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` + audit log manual override | Booking / Checkout / Owner | `toko.$slug.booking.tsx` (refactor `markDepositPaid` no-DB-write + redirect URL), `booking.$id.payment-callback.tsx` (baru), `pos-app.booking.tsx` (confirm + `logStaffAction`), `staff-audit.ts` (action baru) |
 | Konsolidasi rencana → satu file `PRD_MARKETPLACE.md` v6.2; `.lovable/plan.md` dihapus | Dokumentasi | PRD diperbarui dengan **BAGIAN F** |
 
 ### Sprint 15 Mei 2026 — Selesai ✅
