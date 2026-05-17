@@ -787,7 +787,7 @@ function ShopChatPage() {
                       <span className="text-[10px] text-muted-foreground">·</span>
                       <button
                         type="button"
-                        onClick={() => cancelSend(msg._tempId!)}
+                        onClick={() => setCancelConfirmId(msg._tempId!)}
                         className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
                       >
                         <X className="h-3 w-3" /> Hapus
