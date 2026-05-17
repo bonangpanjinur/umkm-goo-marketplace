@@ -1004,6 +1004,29 @@ function MenuPage() {
                       </div>
                     </div>
 
+                    {/* Retail — SKU & Barcode */}
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+                          <Boxes className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">SKU & Barcode</div>
+                          <div className="text-[11px] text-muted-foreground">Untuk pencarian cepat & scan barcode di POS.</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">SKU</Label>
+                          <Input value={sku} onChange={(e) => setSku(e.target.value)} placeholder="SKU-001" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Barcode</Label>
+                          <Input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="8991002101234" inputMode="numeric" />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* F&B — Halal, Alergen, Mode order */}
                     <div className="space-y-3 rounded-lg border border-border bg-card p-3">
                       <div className="flex items-center gap-2">
