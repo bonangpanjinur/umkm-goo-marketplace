@@ -99,14 +99,15 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuIt
       }
 
       const groupIds = (grps ?? []).map((g) => g.id);
-      const { data: opts } = groupIds.length
+      const optsRes = groupIds.length
         ? await supabase
             .from("menu_item_options")
             .select("id, group_id, name, price_adjustment, is_available, sort_order")
             .in("group_id", groupIds)
             .eq("is_available", true)
             .order("sort_order", { ascending: true })
-        : { data: [] as OptionChoice[] & { group_id: string }[] };
+        : { data: [] as Array<OptionChoice & { group_id: string }> };
+      const opts = optsRes.data;
 
       const optMap = new Map<string, OptionChoice[]>();
       for (const o of (opts as any[]) ?? []) {
