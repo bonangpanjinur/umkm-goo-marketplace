@@ -3152,3 +3152,47 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 - `createPlanCheckout` membuat invoice via RPC `create_plan_invoice` lalu (untuk gateway non-manual) memanggil edge function opsional `create-plan-checkout-session`. Bila gateway belum dikonfigurasi, owner tetap bisa upload bukti manual.
 - Cron `run_expiry_reminders_v2` membaca `expiry_reminder_rules` dinamis (tidak lagi hard-coded window 1/3/7/14 hari).
 - Cron `process_subscription_renewals` berjalan harian, membuat invoice baru otomatis untuk langganan jatuh tempo dan menandai `past_due` setelah 3× gagal.
+---
+
+## BAGIAN F-18: STRICT CAPABILITY GATING + UPLOAD GAMBAR STANDAR (17 Mei 2026)
+
+### F-18.1 Strict gating navigasi POS
+
+- Sumber kebenaran tunggal: view `v_shop_capabilities` (gabungan `business_categories.enabled_features` + `shops.feature_overrides`).
+- Setiap `NavItem` di `pos-app.tsx` yang punya `requires: FeatureKey[]` **wajib** lolos `caps.hasAll(requires)` untuk ditampilkan.
+- **Default-hide saat loading:** item dengan `requires` disembunyikan sampai caps siap, supaya tidak ada "menu berkedip" yang muncul lalu hilang.
+- `onlyFor` tetap diterima sebagai filter coarse legacy untuk item yang belum punya feature key (mis. delivery/rajaongkir), tapi semua item vertikal baru wajib pakai `requires`.
+- Item tanpa `requires` dan tanpa `onlyFor` = universal (Dashboard, Pesanan, Keuangan, Pengaturan, KYC, Notifikasi).
+
+### F-18.2 Matriks kapabilitas kategori (versi koreksi)
+
+| Slug | Fitur aktif default |
+|---|---|
+| fnb | POS, MENU, KDS, TABLES, INVENTORY, VARIANTS, RECIPES, COMBO_BUILDER, SUPPLIERS, SHIFTS, RESERVASI, ANTRIAN, WAITLIST, LIMITED_EDITIONS, PRE_ORDERS, CUSTOM_ORDER, CUSTOM_ORDER_QUOTES, FOLLOWUP_REMINDERS |
+| retail | POS, MENU, VARIANTS, INVENTORY, SUPPLIERS, SHIFTS, SIZE_GUIDE, LOOKBOOK, LIMITED_EDITIONS, BUNDLES, PRE_ORDERS |
+| jasa | BOOKING, STAFF_PICKER, SERVICE_BUNDLES, FOLLOWUP_REMINDERS, ANTRIAN, WAITLIST, PORTFOLIO, CUSTOM_ORDER, CUSTOM_ORDER_QUOTES, LEADS, TESTIMONIALS |
+| rental | RENTAL + 7 sub-fitur rental, LEADS, TESTIMONIALS, PORTFOLIO |
+| kursus | DIGITAL, DIGITAL_LICENSES, DIGITAL_VERSION, KURSUS, LEADS, TESTIMONIALS, PORTFOLIO |
+| salon | BOOKING, STAFF_PICKER, SERVICE_BUNDLES, FOLLOWUP_REMINDERS, ANTRIAN, WAITLIST, PORTFOLIO, LOOKBOOK, TESTIMONIALS |
+| klinik | BOOKING, ANAMNESIS, MEDICAL_INVOICE, PATIENT_RECORDS, ANTRIAN, WAITLIST, FOLLOWUP_REMINDERS, STAFF_PICKER, LEADS, RESERVASI |
+| studio-foto | BOOKING, PORTFOLIO, STUDIO_PACKAGES, STUDIO_DELIVERY, STUDIO_BRIEF, STUDIO_ADDONS, DIGITAL, LEADS, TESTIMONIALS, FLYERS |
+| travel | UMROH_PACKAGES, UMROH_FACILITIES, UMROH_FAQ, FLYERS, TESTIMONIALS, LEADS, ABOUT_PAGE, RESERVASI, STAFF_PICKER (tanpa BOOKING — pakai LEADS + kuotasi) |
+| custom-order | CUSTOM_ORDER, CUSTOM_ORDER_QUOTES, MILESTONES, CONTRACTS, JOB_DELIVERABLES, PRE_ORDERS, PORTFOLIO, LEADS, TESTIMONIALS, FLYERS |
+| lainnya | POS, MENU, VARIANTS, INVENTORY, BOOKING, RENTAL, DIGITAL, CUSTOM_ORDER, SHIFTS, ANTRIAN, PORTFOLIO, LEADS, TESTIMONIALS |
+
+Owner bisa override per toko via halaman **/pos-app/capabilities** → menulis ke `shops.feature_overrides = {enable:[],disable:[]}`.
+
+### F-18.3 Upload gambar standar
+
+Semua field "URL gambar" di POS owner & admin diganti komponen `src/components/UploadableImage.tsx`:
+
+- Drag & drop / klik untuk pilih file, validasi via `validateImageUpload` (5 MB, JPG/PNG/WebP).
+- Upload langsung ke Supabase Storage, ambil `getPublicUrl`, return ke field.
+- Preview inline + tombol hapus, dan opsi **"Pakai URL eksternal"** untuk paste link.
+- Bucket baru:
+  - `shop-images` (publik read; owner toko write di folder `<shop_id>/...`)
+  - `umroh-covers` (sama pola owner-scoped)
+  - `admin-banners`, `platform-assets` (publik read; hanya `super_admin` yang write)
+- Helper RLS: `public.is_shop_owner(_shop_id uuid, _user_id uuid)` digunakan untuk policy `storage.objects` pada bucket owner-scoped.
+
+Field URL non-gambar (webhook, redirect, link file digital) tetap text input.

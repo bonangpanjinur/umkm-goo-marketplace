@@ -558,24 +558,27 @@ function AppLayoutInner() {
       if (it.ownerOnly && !staff.isOwner) return false;
       // Staff permission check
       if (!staff.isOwner && staff.isStaff && !isModuleAllowed(it.to, staff.allowedModules)) return false;
-      // Category type check — only filter if onlyFor is specified
-      if (it.onlyFor && it.onlyFor.length > 0 && !it.onlyFor.includes(shopCategoryType)) return false;
-      // Sub-type check (only matters for sales-pro)
+      // Sub-type check (only matters for sales-pro / travel)
       if (it.subtypeOnly && it.subtypeOnly.length > 0) {
         if (!shopSubtype || !it.subtypeOnly.includes(shopSubtype as "umroh" | "sales")) return false;
       }
-      // Feature-key check (fine-grained gating via v_shop_capabilities).
-      // Hanya berlaku jika capabilities sudah ter-load — saat masih loading,
-      // jangan sembunyikan apapun supaya nav tidak "berkedip".
-      if (it.requires && it.requires.length > 0 && capabilities.ready && capabilities.data) {
+      // STRICT capability gating: items with `requires` must satisfy ALL feature keys
+      // against `v_shop_capabilities`. While caps are still loading, default-HIDE such
+      // items to avoid showing irrelevant menus that then disappear (no nav flicker).
+      if (it.requires && it.requires.length > 0) {
+        if (!capabilities.ready || !capabilities.data) return false;
         if (!capabilities.hasAll(it.requires)) return false;
       }
+      // Legacy category-type check — still applied for items without `requires`,
+      // so coarse-grained gating (e.g. "delivery only for physical-goods shops")
+      // keeps working until each item migrates to feature-key based gating.
+      if (it.onlyFor && it.onlyFor.length > 0 && !it.onlyFor.includes(shopCategoryType)) return false;
       return true;
     };
     return NAV_GROUPS
       .map((g) => ({ ...g, items: g.items.filter(allowed) }))
       .filter((g) => g.items.length > 0);
-  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype, capabilities.ready, capabilities.data]);
+  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype, capabilities.ready, capabilities.data, capabilities]);
 
   // Track which group is open; auto-open the group that contains the active route
   const matchItem = (it: NavItem, path: string) => {

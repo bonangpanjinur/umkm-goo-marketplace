@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
+import { UploadableImage } from "@/components/UploadableImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -317,8 +318,14 @@ export default function ComboBuilderPage() {
                 <Input value={form.tag} onChange={e => setForm(f => ({ ...f, tag: e.target.value }))} placeholder="BESTSELLER, BARU, dll." />
               </div>
               <div className="space-y-1.5">
-                <Label>URL Foto (opsional)</Label>
-                <Input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." />
+                <Label>Foto Combo (opsional)</Label>
+                <UploadableImage
+                  value={form.image_url || null}
+                  onChange={(url) => setForm(f => ({ ...f, image_url: url ?? "" }))}
+                  bucket="shop-images"
+                  pathPrefix={`${shop?.id ?? ""}/combo`}
+                  hint="Foto kombo/paket, JPG/PNG/WebP maks 5 MB"
+                />
               </div>
             </div>
             <div className="space-y-1.5">

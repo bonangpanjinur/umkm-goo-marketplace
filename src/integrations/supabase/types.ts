@@ -8980,6 +8980,10 @@ export type Database = {
         Args: { _shop_id: string; _user_id: string }
         Returns: boolean
       }
+      is_shop_owner: {
+        Args: { _shop_id: string; _user_id: string }
+        Returns: boolean
+      }
       link_courier_account: { Args: never; Returns: number }
       list_available_delivery_orders: {
         Args: { _courier_id: string }
