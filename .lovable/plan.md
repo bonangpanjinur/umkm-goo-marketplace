@@ -1,86 +1,64 @@
 
-# Fase 2 — Seed Data Inti
+# Rencana — Konsolidasi PRD jadi Single Source of Truth
 
-Tujuan: bikin super admin bisa onboarding, owner bisa pilih plan & kategori usaha, dan default platform terisi. Semua via tool `insert` (data, bukan skema). Idempoten pakai `ON CONFLICT DO NOTHING` supaya aman dijalankan ulang.
+## Tujuan
+Hanya ada **satu** dokumen rencana: `PRD_MARKETPLACE.md`. File `.lovable/plan.md` dihapus. Semua isi `plan.md` (Fase 2 seed) + progres F-16 + gap aktual diserap ke PRD.
 
-## 2.1 `business_categories` — 11 kategori UMKM
+## Temuan Audit (codebase vs PRD)
 
-Kolom dipakai: `slug`, `name`, `description`, `sort_order`, `enabled_features` (text[]), `booking_enabled`, `booking_type`.
+**Codebase sekarang:** 271 route di `artifacts/kopihub/src/routes/` (PRD masih mencatat 226 — versi 15 Mei).
 
-| Slug | Nama | Booking | Features inti |
-|---|---|---|---|
-| fnb | F&B / Kuliner | ❌ | menu, kds, table_qr, open_bills, recipes |
-| retail | Retail / Toko | ❌ | products, inventory, variants, barcode |
-| jasa | Jasa Umum | ✅ service | bookings, schedule, custom_orders |
-| rental | Rental | ✅ rental | rental_units, deposit, checklist |
-| kursus | Kursus / Edukasi | ✅ class | courses, lessons, certificates |
-| salon | Salon / Beauty | ✅ service | bookings, employees, schedule |
-| klinik | Klinik / Medis | ✅ service | patient_records, anamnesis, medical_invoice |
-| studio-foto | Studio Foto | ✅ service | studio_packages, studio_brief, lookbook |
-| travel | Travel / Umroh | ✅ service | umroh_packages, umroh_facilities, contracts |
-| custom-order | Custom Order | ❌ | custom_orders, quotes, job_deliverables |
-| lainnya | Lainnya | ❌ | products, services |
+**Yang sudah selesai tapi belum tercatat di PRD:**
+1. ✅ **Fase 1 F-16** — rename code `require_deposit→deposit_required`, `deposit_percent→deposit_percentage`, `cancellation_token→cancel_token`, status `waiting_payment/verified→pending/paid` di 8 file (toko/pos-app/checkout/booking-cancel/booking-analytics/settings/payments). Migrasi DB tambah kolom `deposit_status`, `deposit_required`, index, plus `shops.deposit_notes/percentage/require_id_upload`.
+2. ✅ **Webhook idempotency** — `webhook_logs` di `payments.ts` sekarang pakai `RETURNING id` + filter `WHERE id=logId`.
+3. ✅ **Fase 2 seed** — 11 `business_categories`, 3 `plans` + 12 `plan_features`, 4 `features` master, role `super_admin` + `owner` untuk owner pertama, 12 `platform_settings` default.
+4. ✅ **Booking reschedule mandiri** (`booking.reschedule.$token.tsx`).
+5. ✅ **Plan-billing webhook + checkout** (`api/public/webhooks/plan-billing.$provider.ts`).
+6. ✅ **Subscriptions / recurring billing** (`pos-app.subscriptions.tsx`).
+7. ✅ Infra role multi-UMKM (pelayan/gudang/koki/helper/supervisor), `has_role` RPC, `/kurir` portal, audit helpers, realtime order toast, `SetupChecklist` widget.
 
-## 2.2 `plans` + `plan_features` — 3 paket SaaS
+**Bug/gap yang masih open (belum di PRD):**
+- B5: `markDepositPaid` masih trust client — webhook harus jadi truth source.
+- B6: dualism config deposit (`shops.booking_config.deposit_*` jsonb vs `shops.deposit_*` kolom) — perlu deprecate JSON path.
+- Cron auto-cancel booking pending DP > 24 jam — belum ada.
+- F-16 client gateway init (Midtrans Snap) — belum ada.
+- Hardening: RLS policies `USING (true)`, `search_path` mutable, public bucket listing, extensions di schema `public`.
+- Item PRIORITAS SEDANG yang masih ❌: SF-04 Portfolio publik, SF-03 Lokasi sesi, SF-09 Review foto, BE-03 Skin type tag, KL-03 Rekam medis, JU-05 Deliver hasil kerja, SA-05 Booking config per kategori.
 
-| Code | Nama | Harga/bln | Sort |
-|---|---|---|---|
-| free | Free Starter | Rp 0 | 1 |
-| pro | Pro Bisnis | Rp 99.000 | 2 |
-| enterprise | Enterprise | Rp 499.000 | 3 |
+## Aksi (dieksekusi pada turn berikutnya)
 
-`duration_days` = 30 untuk semua. `features` jsonb ringkas; detail kuantitatif masuk ke `plan_features` (`limit_value`):
+### A. Hapus file rencana ganda
+- `rm .lovable/plan.md` (isinya sudah obsolete; Fase 2 sudah dieksekusi).
 
-- Free: max 1 outlet, 50 produk, 100 order/bln, 1 staff
-- Pro: 3 outlet, 1000 produk, unlimited order, 10 staff, marketplace, booking, KDS
-- Enterprise: unlimited semua + API + multi-admin + dedicated support
+### B. Update PRD_MARKETPLACE.md (in-place, surgical)
+1. **Header versi** → `Versi 6.2 | Diperbarui: 17 Mei 2026`.
+2. **Banner audit (baris 23-28)** → ganti tanggal jadi "17 Mei 2026", angka route 271, catatan: status Fase Cloud + F-16 diselaraskan.
+3. **Sisip seksi baru** sebelum "BAGIAN 0" (di atas baris 215), judul:
+   **`BAGIAN F: STATUS FASE INTEGRASI CLOUD & F-16`**
+   Isi:
+   - F-16 Fase 1: code align ✅
+   - F-16 Fase 2: seed inti ✅ (tabel 11 kategori, 3 plan, super_admin, 12 settings — copy ringkas dari plan.md)
+   - F-16 Fase 3: konsolidasi config deposit ❌ (deprecate `booking_config.deposit_*`, jadikan kolom `shops.deposit_*` satu-satunya truth)
+   - F-16 Fase 4: cron auto-cancel + e2e + audit log eskalasi ❌
+   - F-16 Fase 5: hardening RLS / search_path / bucket / extension ❌
+   - F-16 Fase 6 (baru): Midtrans Snap client init + redirect handler ❌
+4. **Update tabel ⚠️ Sebagian Selesai (baris 76-84)** → tambah baris:
+   - B5 markDepositPaid (perlu pindah ke webhook-only)
+   - B6 Dualism deposit config (perlu satu sumber)
+5. **Update tabel P3 (baris 105-121)** → tandai F-16 sebagai "🔧 Sebagian — gateway init belum, infra DB ✅".
+6. **Update Backlog Aktual (baris 2950-2962)** → isi tabel "Belum diimplementasi" dengan list gap di atas; tambah seksi "Sprint 17 Mei 2026 — Selesai ✅" dengan item Fase 1 & 2.
+7. **Penyelarasan tujuan marketplace** → tambah sub-bagian singkat di RINGKASAN EKSEKUTIF (baris 198-213) yang nyatakan:
+   - Marketplace = etalase multi-kategori (F&B, retail, jasa, rental, kursus, salon, klinik, studio foto, travel, custom, lainnya — 11 kategori sesuai seed).
+   - Booking gateway-ready (DP via Midtrans) jadi syarat go-live Tipe 3/4 dengan deposit > 0.
+   - Single source config: kolom kanonik di `shops` & `bookings`, JSON `booking_config` deprecated.
 
-## 2.3 `user_roles` — super admin pertama
+### C. Tidak mengubah
+- Konten BAGIAN 0–17 (alur tipe, kategori, tema, POS panel, layout publik) — sudah akurat, hanya status angka yang lewat di seksi audit.
+- Tidak menyentuh kode aplikasi pada turn ini (cuma dokumen).
 
-Owner `toko pertama` (user_id `305a3d88-8596-4e04-97ec-98844d8063f6`) dapat role `super_admin` (shop_id NULL, is_active true). Owner role-nya untuk shop sudah diasumsikan ada — kalau belum, kita tambahkan juga `owner` role agar /pos-app tetap bisa diakses.
-
-Cek dulu: kalau row sudah ada (super_admin atau owner untuk user_id ini), skip via `ON CONFLICT (user_id, role) DO NOTHING`.
-
-## 2.4 `platform_settings` — default
-
-Key/value sebagai text (sesuai schema). Kategori grouping:
-
-| Key | Value | Category | Deskripsi |
-|---|---|---|---|
-| platform_name | UMKMgo | branding | Nama platform |
-| default_currency | IDR | general | Mata uang default |
-| platform_fee_percent | 2.5 | billing | Komisi platform (%) |
-| max_voucher_discount_percent | 50 | promo | Cap diskon voucher (%) |
-| min_withdrawal_idr | 50000 | billing | Minimal tarik saldo |
-| booking_default_min_hours_before | 2 | booking | Default min jam booking |
-| booking_default_max_advance_days | 60 | booking | Default maksimal hari ke depan |
-| booking_default_deposit_percentage | 30 | booking | Default DP (%) |
-| booking_auto_cancel_hours | 24 | booking | Auto-cancel booking pending DP |
-| default_tax_percent | 11 | tax | PPN default (%) |
-| default_service_charge_percent | 0 | tax | Service charge default |
-| pwa_install_prompt | true | general | Aktifkan PWA install prompt |
-
-Semua pakai `ON CONFLICT (key) DO NOTHING` agar idempoten.
-
----
-
-## Strategi Aman
-
-1. **Cek constraint dulu** sebelum insert (unique key di setiap tabel — `slug`, `code`, `key`, `(user_id, role)`).
-2. **ON CONFLICT DO NOTHING** di semua INSERT → bisa dijalankan ulang tanpa duplikat.
-3. **Tidak ada migrasi skema** — pure data insert via tool `insert`.
-4. **Verifikasi setelah insert**: `SELECT COUNT(*)` per tabel + sample row.
-5. **Owner shop "toko pertama"**: shop_id-nya dipakai untuk `user_roles.owner` (kalau belum ada) — bukan shop ID lain.
-6. **plan_features** insert via SELECT dari plans by code (agar UUID resolve otomatis).
-7. **Tidak menyentuh** auth.users, storage, realtime, supabase_functions, vault.
-
-## Verifikasi Akhir
-
-Query verifikasi: jumlah row per tabel + sample dari masing-masing. Setelah seed:
-- `business_categories` ≥ 11
-- `plans` = 3 + `plan_features` ≥ 12 rows
-- `user_roles` ≥ 1 row super_admin untuk user 305a3d88
-- `platform_settings` ≥ 12 keys
-
-Lanjut? Setelah ini Fase 3 (konsolidasi config + owner UI badge filter).
+## Hasil Akhir
+- 1 file rencana saja: `PRD_MARKETPLACE.md` (v6.2).
+- `.lovable/plan.md` tidak ada lagi.
+- Status F-16 + Fase Cloud terbaca jelas di PRD.
+- Backlog "Belum diimplementasi" terisi konkret → siap dipakai sebagai antrian sprint berikut (Fase 3 F-16 jadi kandidat #1).
 

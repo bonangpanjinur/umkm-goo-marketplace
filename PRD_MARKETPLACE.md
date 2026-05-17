@@ -1,6 +1,6 @@
 # PRD — UMKMgo / KopiHub
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
-**Versi:** 6.1 | **Diperbarui:** 14 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
+**Versi:** 6.2 | **Diperbarui:** 17 Mei 2026 | **Status:** Living Document — **Satu-satunya sumber kebenaran** (file `plan.md` dihapus, semua roadmap masuk sini)
 
 ---
 
@@ -20,9 +20,11 @@
 
 ---
 
-## 📊 RINGKASAN STATUS FITUR — AUDIT CODEBASE (15 Mei 2026)
+## 📊 RINGKASAN STATUS FITUR — AUDIT CODEBASE (17 Mei 2026)
 
-> Cross-check langsung antara PRD dan 226+ file route di `artifacts/kopihub/src/routes/`. ✅ = route/komponen ada · ⚠️ = parsial / DB belum migrate · ❌ = belum dibangun
+> Cross-check langsung antara PRD dan **271 file route** di `artifacts/kopihub/src/routes/` (naik dari 226 sejak audit 15 Mei). ✅ = route/komponen ada · ⚠️ = parsial / DB belum migrate · 🔧 = sebagian (infra ada, integrasi belum) · ❌ = belum dibangun.
+>
+> **Fokus audit 17 Mei:** progres Fase Cloud (seed inti) + Fase F-16 (deposit booking via payment gateway). Detail di **BAGIAN F** di bawah.
 
 ### ✅ SUDAH SELESAI (P1 & P2 — Semua Lengkap)
 
