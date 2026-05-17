@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
    Loader2, Store, ChevronRight, ChevronLeft,
   Check, Upload, FileImage, ShoppingBag, Shirt, Laptop,
-  Sparkles, Hammer, Zap, Package, ArrowRight
+  Sparkles, Hammer, Zap, Package, ArrowRight,
+  Wrench, Car, GraduationCap, Stethoscope, Camera, Plane, Scissors,
+  type LucideIcon
 } from "lucide-react";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
@@ -18,16 +20,30 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const CATEGORIES = [
-  { id: "fnb",       label: "F&B / Kuliner",      icon: Store,       desc: "Kafe, restoran, katering, cloud kitchen" },
-  { id: "fashion",   label: "Fashion & Pakaian",   icon: Shirt,       desc: "Baju, celana, aksesoris, tas" },
-  { id: "digital",   label: "Produk Digital",      icon: Laptop,      desc: "Template, e-book, kursus, software" },
-  { id: "beauty",    label: "Kecantikan",           icon: Sparkles,    desc: "Skincare, makeup, perawatan diri" },
-  { id: "craft",     label: "Kerajinan Tangan",     icon: Hammer,      desc: "Handmade, dekorasi, seni" },
-  { id: "electronics", label: "Elektronik & Gadget", icon: Zap,       desc: "Aksesoris HP, elektronik, spare part" },
-  { id: "general",   label: "Toko Umum",            icon: ShoppingBag, desc: "Barang campuran / belum yakin" },
-  { id: "other",     label: "Lainnya",              icon: Package,     desc: "Jasa, langganan, atau kategori lain" },
-];
+// Icon mapping by category slug (slug = business_categories.slug di DB)
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  fnb: Store,
+  retail: ShoppingBag,
+  jasa: Wrench,
+  rental: Car,
+  kursus: GraduationCap,
+  salon: Scissors,
+  klinik: Stethoscope,
+  "studio-foto": Camera,
+  travel: Plane,
+  "custom-order": Hammer,
+  lainnya: Package,
+  // legacy / fallback
+  fashion: Shirt,
+  digital: Laptop,
+  beauty: Sparkles,
+  craft: Hammer,
+  electronics: Zap,
+  general: ShoppingBag,
+  other: Package,
+};
+
+type CategoryRow = { id: string; slug: string; name: string; description: string | null };
 
 const STEPS = [
   { id: 1, label: "Profil Toko" },
