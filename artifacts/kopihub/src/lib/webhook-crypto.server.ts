@@ -1,40 +1,46 @@
 /**
  * Server-only crypto helpers for webhook signature verification.
  *
- * The `.server.ts` suffix + the `block-server-only-imports` plugin in
- * vite.config.ts guarantee this file never lands in the client bundle.
- * Any client-side `import` of this module — direct or transitive —
- * fails the Vite build immediately.
+ * Uses Web Crypto API (globalThis.crypto.subtle) instead of `node:crypto`
+ * so the module is safe to bundle in any runtime (Cloudflare Workers,
+ * Node 20+, browser). The `.server.ts` suffix is kept as a convention
+ * marker — these helpers are only ever invoked from server route handlers.
  */
-import { createHash, timingSafeEqual } from "node:crypto";
 
-export function verifyMidtrans(
+function toBytes(s: string): Uint8Array {
+  return new TextEncoder().encode(s);
+}
+
+function toHex(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+
+function timingSafeEqualBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
+
+export async function verifyMidtrans(
   orderId: string,
   statusCode: string,
   grossAmount: string,
   signatureKey: string,
   serverKey: string,
-): boolean {
+): Promise<boolean> {
   const concat = `${orderId}${statusCode}${grossAmount}${serverKey}`;
-  const exp = createHash("sha512").update(concat).digest("hex");
-  try {
-    const a = Buffer.from(signatureKey);
-    const b = Buffer.from(exp);
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
+  const digest = await globalThis.crypto.subtle.digest("SHA-512", toBytes(concat));
+  const expected = toHex(digest);
+  return timingSafeEqualBytes(toBytes(signatureKey), toBytes(expected));
 }
 
 export function verifyXendit(rawToken: string | null, callbackToken: string): boolean {
   if (!rawToken) return false;
-  try {
-    const a = Buffer.from(rawToken);
-    const b = Buffer.from(callbackToken);
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
+  return timingSafeEqualBytes(toBytes(rawToken), toBytes(callbackToken));
 }
