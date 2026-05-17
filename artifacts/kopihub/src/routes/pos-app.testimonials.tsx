@@ -15,7 +15,7 @@ export const Route = createFileRoute("/pos-app/testimonials")({
         { key: "quote", label: "Testimoni", type: "textarea", required: true },
         { key: "role_or_trip", label: "Peran / Paket / Perjalanan" },
         { key: "rating", label: "Rating (1-5)", type: "number" },
-        { key: "photo_url", label: "URL Foto" },
+        { key: "photo_url", label: "Foto", type: "image" },
       ]}
       renderItem={(r) => (
         <div>

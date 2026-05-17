@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { Crown, Plus, Pencil, Trash2, Loader2, RefreshCw, Minus, Tag } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/pos-app/limited-editions")({
   head: () => ({ meta: [{ title: "Edisi Terbatas" }] }),
@@ -194,7 +195,7 @@ export default function LimitedEditionsPage() {
               <div className="space-y-1.5"><Label>Tanggal Rilis</Label><Input type="date" value={form.launch_date} onChange={e => setForm(f => ({ ...f, launch_date: e.target.value }))} /></div>
               <div className="space-y-1.5"><Label>Berakhir</Label><Input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} /></div>
             </div>
-            <div className="space-y-1.5"><Label>URL Foto</Label><Input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." /></div>
+            <div className="space-y-1.5"><Label>Foto Edisi</Label><UploadableImage value={form.image_url || null} onChange={url => setForm(f => ({ ...f, image_url: url ?? "" }))} bucket="shop-images" pathPrefix={`${shop?.id ?? ""}/limited-editions`} /></div>
             <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
             <div className="flex items-center gap-2"><Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} /><Label>Aktif & tampil</Label></div>
           </div>

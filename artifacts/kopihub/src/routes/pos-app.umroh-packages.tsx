@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plane, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
@@ -157,7 +158,7 @@ function Page() {
               <div><Label>Harga Double</Label><Input type="number" value={form.price_double} onChange={(e) => setForm({ ...form, price_double: e.target.value })} /></div>
               <div><Label>Kuota Total</Label><Input type="number" value={form.quota_total} onChange={(e) => setForm({ ...form, quota_total: e.target.value })} /></div>
             </div>
-            <div><Label>URL Gambar Cover</Label><Input value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} placeholder="https://..." /></div>
+            <div><Label>Foto Cover Paket</Label><UploadableImage value={form.cover_image_url || null} onChange={(url) => setForm({ ...form, cover_image_url: url ?? "" })} bucket="umroh-covers" pathPrefix={`${shop?.id ?? ""}/packages`} /></div>
             <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /><span className="text-sm">Aktif (tampilkan di storefront)</span></label>
           </div>
           <DialogFooter>

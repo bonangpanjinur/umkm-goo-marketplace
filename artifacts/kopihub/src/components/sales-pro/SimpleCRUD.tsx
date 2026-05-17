@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export type FieldDef = {
   key: string;
@@ -124,6 +125,13 @@ export function SimpleCRUD({
                 <Label>{fd.label}{fd.required && <span className="text-destructive"> *</span>}</Label>
                 {fd.type === "textarea" ? (
                   <Textarea value={form[fd.key] ?? ""} onChange={(e) => setForm({ ...form, [fd.key]: e.target.value })} />
+                ) : fd.type === "image" ? (
+                  <UploadableImage
+                    value={form[fd.key] || null}
+                    onChange={(url) => setForm({ ...form, [fd.key]: url ?? "" })}
+                    bucket="shop-images"
+                    pathPrefix={`${shop?.id ?? ""}/${table}`}
+                  />
                 ) : (
                   <Input type={fd.type === "number" ? "number" : "text"} value={form[fd.key] ?? ""} onChange={(e) => setForm({ ...form, [fd.key]: e.target.value })} />
                 )}

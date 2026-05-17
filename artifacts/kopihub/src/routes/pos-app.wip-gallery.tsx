@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Palette, Plus, Trash2, Loader2, Eye, EyeOff, RefreshCw, Clock } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/pos-app/wip-gallery")({
   head: () => ({ meta: [{ title: "Galeri Proses Pembuatan" }] }),
@@ -178,9 +179,8 @@ export default function WipGalleryPage() {
               <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Proses sketsa, pewarnaan natural, dll." />
             </div>
             <div className="space-y-1.5">
-              <Label>URL Foto *</Label>
-              <Input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." />
-              {form.image_url && <img src={form.image_url} alt="" className="mt-1.5 h-28 w-full object-cover rounded-lg" onError={e => (e.currentTarget.style.display = "none")} />}
+              <Label>Foto Proses *</Label>
+              <UploadableImage value={form.image_url || null} onChange={url => setForm(f => ({ ...f, image_url: url ?? "" }))} bucket="shop-images" pathPrefix={`${shop?.id ?? ""}/wip`} />
             </div>
             <div className="space-y-1.5">
               <Label>Tahap Proses</Label>

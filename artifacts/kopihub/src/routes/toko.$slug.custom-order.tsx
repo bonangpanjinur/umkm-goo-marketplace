@@ -156,7 +156,7 @@ function CustomOrderForm() {
 
             <div className="grid sm:grid-cols-2 gap-3">
               <div><Label>Deadline (opsional)</Label><Input className="mt-1" type="date" value={deadline} onChange={e => setDeadline(e.target.value)} /></div>
-              <div><Label>URL gambar referensi (opsional)</Label><Input className="mt-1" value={refUrl} onChange={e => setRefUrl(e.target.value)} placeholder="https://…" /></div>
+              <div><Label>Link referensi (opsional)</Label><Input className="mt-1" value={refUrl} onChange={e => setRefUrl(e.target.value)} placeholder="https://pinterest.com/…" /></div>
             </div>
 
             <div>

@@ -9,6 +9,7 @@ import {
   Image, Plus, Trash2, Edit3, Save, X, ToggleLeft, ToggleRight,
   GripVertical, ExternalLink, Eye, EyeOff, RefreshCw, Upload,
 } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/admin/banners")({
   component: AdminBannersPage,
@@ -196,12 +197,9 @@ export default function AdminBannersPage() {
               <Input className="mt-1.5" value={editing.cta_link ?? ""} onChange={e => setEditing(p => ({ ...p!, cta_link: e.target.value }))} placeholder="/search atau https://..." />
             </div>
             <div>
-              <Label>URL Gambar Latar (opsional)</Label>
-              <div className="mt-1.5 flex gap-2">
-                <Input value={editing.image_url ?? ""} onChange={e => setEditing(p => ({ ...p!, image_url: e.target.value }))} placeholder="https://..." />
-                <Button variant="outline" size="icon" className="shrink-0" title="Upload gambar (segera hadir)">
-                  <Upload className="h-4 w-4" />
-                </Button>
+              <Label>Gambar Latar Banner (opsional)</Label>
+              <div className="mt-1.5">
+                <UploadableImage value={editing.image_url || null} onChange={(url) => setEditing(p => ({ ...p!, image_url: url }))} bucket="admin-banners" pathPrefix={`banners/${editing.id || "new"}`} />
               </div>
             </div>
             <div>
