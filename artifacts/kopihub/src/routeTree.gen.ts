@@ -120,6 +120,7 @@ import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppLookbookRouteImport } from './routes/pos-app.lookbook'
 import { Route as PosAppLimitedEditionsRouteImport } from './routes/pos-app.limited-editions'
+import { Route as PosAppLessonProgressRouteImport } from './routes/pos-app.lesson-progress'
 import { Route as PosAppLeadsRouteImport } from './routes/pos-app.leads'
 import { Route as PosAppLaporanHarianRouteImport } from './routes/pos-app.laporan-harian'
 import { Route as PosAppKycRouteImport } from './routes/pos-app.kyc'
@@ -853,6 +854,11 @@ const PosAppLookbookRoute = PosAppLookbookRouteImport.update({
 const PosAppLimitedEditionsRoute = PosAppLimitedEditionsRouteImport.update({
   id: '/limited-editions',
   path: '/limited-editions',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppLessonProgressRoute = PosAppLessonProgressRouteImport.update({
+  id: '/lesson-progress',
+  path: '/lesson-progress',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppLeadsRoute = PosAppLeadsRouteImport.update({
@@ -1889,6 +1895,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/leads': typeof PosAppLeadsRoute
+  '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -2171,6 +2178,7 @@ export interface FileRoutesByTo {
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/leads': typeof PosAppLeadsRoute
+  '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -2458,6 +2466,7 @@ export interface FileRoutesById {
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/leads': typeof PosAppLeadsRoute
+  '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -2747,6 +2756,7 @@ export interface FileRouteTypes {
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/leads'
+    | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -3029,6 +3039,7 @@ export interface FileRouteTypes {
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/leads'
+    | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -3315,6 +3326,7 @@ export interface FileRouteTypes {
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/leads'
+    | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -4265,6 +4277,13 @@ declare module '@tanstack/react-router' {
       path: '/limited-editions'
       fullPath: '/pos-app/limited-editions'
       preLoaderRoute: typeof PosAppLimitedEditionsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/lesson-progress': {
+      id: '/pos-app/lesson-progress'
+      path: '/lesson-progress'
+      fullPath: '/pos-app/lesson-progress'
+      preLoaderRoute: typeof PosAppLessonProgressRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/leads': {
@@ -5841,6 +5860,7 @@ interface PosAppRouteChildren {
   PosAppKycRoute: typeof PosAppKycRoute
   PosAppLaporanHarianRoute: typeof PosAppLaporanHarianRoute
   PosAppLeadsRoute: typeof PosAppLeadsRoute
+  PosAppLessonProgressRoute: typeof PosAppLessonProgressRoute
   PosAppLimitedEditionsRoute: typeof PosAppLimitedEditionsRoute
   PosAppLookbookRoute: typeof PosAppLookbookRoute
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
@@ -5982,6 +6002,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppKycRoute: PosAppKycRoute,
   PosAppLaporanHarianRoute: PosAppLaporanHarianRoute,
   PosAppLeadsRoute: PosAppLeadsRoute,
+  PosAppLessonProgressRoute: PosAppLessonProgressRoute,
   PosAppLimitedEditionsRoute: PosAppLimitedEditionsRoute,
   PosAppLookbookRoute: PosAppLookbookRoute,
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
