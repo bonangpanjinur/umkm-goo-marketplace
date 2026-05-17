@@ -702,8 +702,16 @@ function KursusPage() {
                           <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs text-muted-foreground">{mod.lesson_count} pelajaran</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-muted-foreground mr-1">{mod.lesson_count} pelajaran</span>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === 0}
+                          onClick={(e) => { e.stopPropagation(); moveModule(idx, -1); }}>
+                          <ArrowUp className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === modules.length - 1}
+                          onClick={(e) => { e.stopPropagation(); moveModule(idx, 1); }}>
+                          <ArrowDown className="h-3 w-3" />
+                        </Button>
                         <Button size="icon" variant="ghost" className="h-7 w-7"
                           onClick={(e) => { e.stopPropagation(); openEditModule(mod); }}>
                           <Pencil className="h-3 w-3" />
@@ -712,7 +720,7 @@ function KursusPage() {
                           onClick={(e) => { e.stopPropagation(); deleteModule(mod); }}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
-                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />}
                       </div>
                     </div>
 
