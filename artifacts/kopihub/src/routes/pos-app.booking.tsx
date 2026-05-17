@@ -885,6 +885,10 @@ function BookingPage() {
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setRecurringOpen(true)}>
+            <CalendarClock className="h-4 w-4 mr-1.5" />
+            Generate Mingguan
+          </Button>
           <Button size="sm" onClick={() => {
             setSlotForm({
               service_name: "",
