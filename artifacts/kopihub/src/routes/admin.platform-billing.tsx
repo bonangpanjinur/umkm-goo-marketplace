@@ -13,6 +13,7 @@ import {
   Loader2, Save, CreditCard, Eye, EyeOff, CheckCircle2, AlertCircle,
   Wallet, QrCode, Banknote, Receipt, ExternalLink, Settings2,
 } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/admin/platform-billing")({
   component: AdminPlatformBilling,
