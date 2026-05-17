@@ -5,6 +5,7 @@ import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/M
 import { User, ShoppingBag, MapPin, LogOut, Loader2, Heart, Bell, History, Gift, Star, CalendarCheck, PackageX, Wallet, Download, GraduationCap, MessageCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const Route = createFileRoute("/akun")({
   head: () => ({ meta: [{ title: "Akun Saya" }] }),
@@ -70,7 +71,7 @@ function AkunLayout() {
               <LogOut className="h-4 w-4" />Keluar
             </button>
           </aside>
-          <div><Outlet /></div>
+          <div><ErrorBoundary withFallback><Outlet /></ErrorBoundary></div>
         </div>
       </main>
       <MarketplaceFooter />

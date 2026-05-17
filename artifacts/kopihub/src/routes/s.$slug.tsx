@@ -5,6 +5,7 @@ import { readCart, cartCount } from "@/lib/customer-cart";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 async function fetchShopForStorefront(slug: string) {
   const { data: shop } = await supabase
@@ -159,7 +160,7 @@ function ShopLayout() {
       )}
 
       <main className="mx-auto max-w-3xl px-4 py-4">
-        <Outlet />
+        <ErrorBoundary withFallback><Outlet /></ErrorBoundary>
       </main>
     </div>
   );
