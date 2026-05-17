@@ -137,21 +137,81 @@ export async function waitForPrint(
 }
 
 
-export async function login(page: Page, email = DEMO_EMAIL, password = DEMO_PASSWORD) {
-  await page.goto("/login");
-  await page.locator("input#email").fill(email);
-  await page.locator("input#password").fill(password);
-  await page.getByRole("button", { name: /masuk|login|sign in/i }).first().click();
-  // tunggu redirect ke /app atau /pos-app
-  await page.waitForURL(/\/(app|pos-app)/, { timeout: 20_000 });
+/**
+ * Pola yang di-ignore (warning umum dari ekstensi, HMR, lovable.js, dsb).
+ * Tambahkan di sini kalau ada noise baru yang bukan bug aplikasi.
+ */
+export const FATAL_IGNORE_PATTERNS: RegExp[] = [
+  /RESET_BLANK_CHECK/i,
+  /Unknown message type/i,
+  /\[vite\]/i,
+  /\[HMR\]/i,
+  /Download the React DevTools/i,
+  /ResizeObserver loop/i,
+  /Non-Error promise rejection captured/i,
+  /Failed to load resource.*manifest\.webmanifest/i,
+  // Sonner / toast info tidak boleh mem-fail test
+  /sonner/i,
+];
+
+export function isFatalMessage(msg: string): boolean {
+  if (!msg) return false;
+  return !FATAL_IGNORE_PATTERNS.some((re) => re.test(msg));
+}
+
+/** Pasang capture console.error + pageerror + unhandledrejection ke page. */
+export function installErrorCapture(page: Page): { errors: string[] } {
+  const errors: string[] = [];
+
+  page.on("console", (msg) => {
+    if (msg.type() !== "error") return;
+    const text = msg.text();
+    if (isFatalMessage(text)) errors.push(`[console.error] ${text}`);
+  });
+
+  // Uncaught exceptions di halaman
+  page.on("pageerror", (err) => {
+    const text = `${err.name}: ${err.message}`;
+    if (isFatalMessage(text)) errors.push(`[pageerror] ${text}`);
+  });
+
+  // Hook unhandledrejection di dalam page agar selalu terbaca oleh `pageerror`
+  page.addInitScript(() => {
+    window.addEventListener("unhandledrejection", (ev) => {
+      const reason: any = (ev as PromiseRejectionEvent).reason;
+      const msg = reason?.stack ?? reason?.message ?? String(reason);
+      // Throw sintetis agar tertangkap oleh Playwright 'pageerror'
+      // (tapi jangan ganggu app — schedule async dengan label jelas)
+      setTimeout(() => {
+        throw new Error(`[unhandledrejection] ${msg}`);
+      }, 0);
+    });
+  });
+
+  return { errors };
 }
 
 type Fixtures = {
   authedPage: Page;
+  consoleErrors: string[];
 };
 
 export const test = base.extend<Fixtures>({
-  authedPage: async ({ page }, use) => {
+  // Per-test array; auto-fail kalau ada error fatal saat test selesai.
+  consoleErrors: async ({ page }, use, testInfo) => {
+    const { errors } = installErrorCapture(page);
+    await use(errors);
+    if (errors.length > 0) {
+      testInfo.attach("console-errors.txt", {
+        body: errors.join("\n"),
+        contentType: "text/plain",
+      });
+      throw new Error(
+        `Test menghasilkan ${errors.length} error fatal:\n${errors.join("\n")}`,
+      );
+    }
+  },
+  authedPage: async ({ page, consoleErrors: _ }, use) => {
     await installPrintMock(page);
     await login(page);
     await use(page);
@@ -159,3 +219,4 @@ export const test = base.extend<Fixtures>({
 });
 
 export { expect };
+
