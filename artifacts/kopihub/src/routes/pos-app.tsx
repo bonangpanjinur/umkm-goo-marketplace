@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStaffRole, isModuleAllowed } from "@/lib/use-staff";
 import {
-  Coffee,
+  
   LayoutDashboard,
   ShoppingBag,
   ListOrdered,
@@ -596,7 +596,7 @@ function AppLayoutInner() {
           {shop?.logo_url ? (
             <img src={shop.logo_url} alt="" className="h-full w-full object-cover" />
           ) : (
-            <Coffee className="h-4 w-4" />
+            <Store className="h-4 w-4" />
           )}
         </div>
         <span className="text-sm font-semibold">UMKMgo</span>
@@ -742,7 +742,7 @@ function AppLayoutInner() {
               {shop?.logo_url ? (
                 <img src={shop.logo_url} alt="" className="h-full w-full object-cover" />
               ) : (
-                <Coffee className="h-3.5 w-3.5" />
+                <Store className="h-3.5 w-3.5" />
               )}
             </div>
             <span className="truncate text-sm font-semibold">{shop?.name ?? "UMKMgo"}</span>

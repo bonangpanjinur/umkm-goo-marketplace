@@ -817,7 +817,7 @@ function SearchPage() {
               <Search className="h-8 w-8" />
             </div>
             <p className="text-muted-foreground">Ketik di kolom pencarian atau pilih kategori di atas untuk memulai</p>
-            <p className="text-xs text-muted-foreground">Contoh: "kopi susu", "kaos", "kue ulang tahun"</p>
+            <p className="text-xs text-muted-foreground">Contoh: "kaos polos", "kue ulang tahun", "jasa cuci"</p>
           </div>
         )}
 

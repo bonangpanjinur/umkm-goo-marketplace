@@ -6573,6 +6573,7 @@ export type Database = {
           average_rating: number | null
           business_category_id: string | null
           business_subtype: string | null
+          city: string | null
           commission_rate_override: number | null
           created_at: string
           currency: string
@@ -6595,7 +6596,9 @@ export type Database = {
           kyc_status: string | null
           kyc_submitted_at: string | null
           last_dns_check_at: string | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           marketplace_visible: boolean
           name: string
           open_hours: Json
@@ -6636,6 +6639,7 @@ export type Database = {
           average_rating?: number | null
           business_category_id?: string | null
           business_subtype?: string | null
+          city?: string | null
           commission_rate_override?: number | null
           created_at?: string
           currency?: string
@@ -6658,7 +6662,9 @@ export type Database = {
           kyc_status?: string | null
           kyc_submitted_at?: string | null
           last_dns_check_at?: string | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           marketplace_visible?: boolean
           name: string
           open_hours?: Json
@@ -6699,6 +6705,7 @@ export type Database = {
           average_rating?: number | null
           business_category_id?: string | null
           business_subtype?: string | null
+          city?: string | null
           commission_rate_override?: number | null
           created_at?: string
           currency?: string
@@ -6721,7 +6728,9 @@ export type Database = {
           kyc_status?: string | null
           kyc_submitted_at?: string | null
           last_dns_check_at?: string | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           marketplace_visible?: boolean
           name?: string
           open_hours?: Json

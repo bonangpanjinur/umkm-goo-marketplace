@@ -339,7 +339,7 @@ function FavoritPage() {
           <Input
             value={editName}
             onChange={e => setEditName(e.target.value)}
-            placeholder="Mis. Kopi susu biasa + snack"
+            placeholder="Mis. Pesanan favoritku"
             maxLength={80}
             autoFocus
           />

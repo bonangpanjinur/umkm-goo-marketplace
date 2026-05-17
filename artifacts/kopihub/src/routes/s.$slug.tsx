@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useParams, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Coffee, ShoppingBag, User as UserIcon } from "lucide-react";
+import { Store, ShoppingBag, User as UserIcon } from "lucide-react";
 import { readCart, cartCount } from "@/lib/customer-cart";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -106,7 +106,7 @@ function ShopLayout() {
               {shop.logo_url ? (
                 <img src={shop.logo_url} alt="" className="h-full w-full object-cover" />
               ) : (
-                <Coffee className="h-4 w-4" />
+                <Store className="h-4 w-4" />
               )}
             </div>
             <div className="min-w-0">

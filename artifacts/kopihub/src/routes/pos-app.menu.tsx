@@ -727,7 +727,7 @@ function MenuPage() {
                         rows={3}
                         value={desc}
                         onChange={(e) => setDesc(e.target.value)}
-                        placeholder="Espresso + susu steam, ringan."
+                        placeholder="Deskripsi singkat produk…"
                       />
                       {aiTags.length > 0 && (
                         <div className="rounded-md border border-violet-200 bg-violet-50/60 p-2.5 dark:border-violet-800 dark:bg-violet-950/30">
