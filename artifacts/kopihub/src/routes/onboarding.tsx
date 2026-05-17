@@ -43,7 +43,14 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   other: Package,
 };
 
-type CategoryRow = { id: string; slug: string; name: string; description: string | null };
+type CategoryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  enabled_features?: string[] | null;
+  flow_types?: string[] | null;
+};
 
 const STEPS = [
   { id: 1, label: "Profil Toko" },
