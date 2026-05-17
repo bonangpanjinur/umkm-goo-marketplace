@@ -338,6 +338,7 @@ function OrdersPage() {
 
 function DetailDialog({
   order,
+  shopId,
   shopName,
   outletName,
   outletId,
@@ -348,6 +349,7 @@ function DetailDialog({
   onVoided,
 }: {
   order: OrderDetail;
+  shopId: string;
   shopName: string;
   outletName: string;
   outletId: string;
