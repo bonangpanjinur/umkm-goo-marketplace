@@ -167,11 +167,27 @@ export type SeverityRules = {
   ignoreNetwork?: RegExp[];
   /** Pola pesan tambahan yang di-ignore di console.warn/error. */
   ignoreMessages?: RegExp[];
+  /**
+   * Pola pesan console.warn yang DI-ESKALASI menjadi fatal,
+   * walau base `consoleWarn` di-set 'off' atau 'warn'.
+   * Contoh: [/React does not recognize/i, /Each child in a list should have a unique "key"/i]
+   */
+  consoleWarnFatalPatterns?: RegExp[];
+  /** Sama untuk console.error — paksa jadi fatal hanya kalau match. */
+  consoleErrorFatalPatterns?: RegExp[];
+  /** Sama untuk network — paksa jadi fatal hanya kalau URL match. */
+  networkFatalPatterns?: RegExp[];
 };
 
-export const DEFAULT_SEVERITY: Required<Omit<SeverityRules, "ignoreNetwork" | "ignoreMessages">> & {
+export const DEFAULT_SEVERITY: Required<Omit<SeverityRules,
+  "ignoreNetwork" | "ignoreMessages" |
+  "consoleWarnFatalPatterns" | "consoleErrorFatalPatterns" | "networkFatalPatterns"
+>> & {
   ignoreNetwork: RegExp[];
   ignoreMessages: RegExp[];
+  consoleWarnFatalPatterns: RegExp[];
+  consoleErrorFatalPatterns: RegExp[];
+  networkFatalPatterns: RegExp[];
 } = {
   consoleError: "fatal",
   consoleWarn: "off",
@@ -185,6 +201,9 @@ export const DEFAULT_SEVERITY: Required<Omit<SeverityRules, "ignoreNetwork" | "i
     /\.map(\?|$)/i,
   ],
   ignoreMessages: [],
+  consoleWarnFatalPatterns: [],
+  consoleErrorFatalPatterns: [],
+  networkFatalPatterns: [],
 };
 
 /**
