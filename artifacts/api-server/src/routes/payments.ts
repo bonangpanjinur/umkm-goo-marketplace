@@ -417,12 +417,16 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
 
   const payload = req.body as XenditWebhookPayload;
 
-  await db.insert(webhookLogs).values({
-    gateway: "xendit",
-    event: payload.status,
-    payload: payload as unknown as Record<string, unknown>,
-    status: "received",
-  });
+  const [insertedLog] = await db
+    .insert(webhookLogs)
+    .values({
+      gateway: "xendit",
+      event: payload.status,
+      payload: payload as unknown as Record<string, unknown>,
+      status: "received",
+    })
+    .returning({ id: webhookLogs.id });
+  const logId = insertedLog?.id;
 
   if (settings.xendit_webhook_token && callbackToken) {
     const valid = verifyXenditWebhookToken(callbackToken, settings.xendit_webhook_token);
