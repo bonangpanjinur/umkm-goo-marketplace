@@ -1,6 +1,6 @@
 # PRD — UMKMgo / KopiHub
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
-**Versi:** 6.1 | **Diperbarui:** 14 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
+**Versi:** 6.2 | **Diperbarui:** 17 Mei 2026 | **Status:** Living Document — **Satu-satunya sumber kebenaran** (file `plan.md` dihapus, semua roadmap masuk sini)
 
 ---
 
@@ -20,9 +20,11 @@
 
 ---
 
-## 📊 RINGKASAN STATUS FITUR — AUDIT CODEBASE (15 Mei 2026)
+## 📊 RINGKASAN STATUS FITUR — AUDIT CODEBASE (17 Mei 2026)
 
-> Cross-check langsung antara PRD dan 226+ file route di `artifacts/kopihub/src/routes/`. ✅ = route/komponen ada · ⚠️ = parsial / DB belum migrate · ❌ = belum dibangun
+> Cross-check langsung antara PRD dan **271 file route** di `artifacts/kopihub/src/routes/` (naik dari 226 sejak audit 15 Mei). ✅ = route/komponen ada · ⚠️ = parsial / DB belum migrate · 🔧 = sebagian (infra ada, integrasi belum) · ❌ = belum dibangun.
+>
+> **Fokus audit 17 Mei:** progres Fase Cloud (seed inti) + Fase F-16 (deposit booking via payment gateway). Detail di **BAGIAN F** di bawah.
 
 ### ✅ SUDAH SELESAI (P1 & P2 — Semua Lengkap)
 
@@ -81,6 +83,8 @@
 | SB-03 | Durasi layanan berbeda per jenis | Dasar ada, belum per-service granular | Tambah field `duration_minutes` per service item di booking |
 | SB-09 | Konfirmasi booking via WA | Hanya tombol manual, belum otomatis | Integrasi WhatsApp Business API / webhook |
 | RT-02 | Manajemen armada/unit rental | Dasar ada, belum manajemen kondisi & dokumen unit | Tambah field kondisi unit, log servis, dokumen per unit |
+| B5 (F-16) | Konfirmasi DP via webhook | `markDepositPaid` masih trust client | Pindahkan ke webhook-only (Midtrans/Xendit) sebagai truth source |
+| B6 (F-16) | Dualism config deposit | `shops.booking_config.deposit_*` (jsonb) vs `shops.deposit_*` (kolom) jalan paralel | Deprecate JSON path, jadikan kolom satu-satunya source |
 
 ---
 
@@ -106,9 +110,9 @@
 
 | # | Kode | Fitur | Estimasi | Catatan |
 |---|---|---|---|---|
-| 1 | F-16 | Deposit via Payment Gateway (booking) | 3 hari | Konfirmasi manual ✅ sudah ada |
-| 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada |
-| 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada |
+| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-2 ✅ (code align + seed + DB schema) · Fase 3-6 ❌ (konsolidasi config, cron auto-cancel, hardening, Midtrans Snap init) — lihat **BAGIAN F** |
+| 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada; akan ikut Fase 6 F-16 |
+| 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
 | 5 | F-02 | Subscription / Langganan Produk Rutin | 3 hari | Recurring billing & auto-debit |
 | 6 | F-06 | Affiliate Program per Toko | 3 hari | Tracking klik, komisi, dashboard afiliator per toko |
@@ -209,6 +213,89 @@ Platform ini sudah sangat kuat dari sisi infrastruktur. **~90% fitur inti (P1 & 
    - Portofolio/galeri karya terintegrasi di halaman toko publik
    - Reschedule mandiri oleh pelanggan (hanya batal mandiri yang ada)
    - Preview watermarked produk digital
+
+**Penyelarasan tujuan marketplace (17 Mei 2026):**
+- **Marketplace = etalase multi-kategori UMKM** dengan 11 kategori aktif sesuai seed `business_categories`: F&B, Retail, Jasa, Rental, Kursus, Salon, Klinik, Studio Foto, Travel/Umroh, Custom Order, Lainnya.
+- **Booking gateway-ready** (DP via Midtrans) jadi syarat go-live untuk Tipe 3 & Tipe 4 dengan `deposit_required = true`.
+- **Single source of truth config**: kolom kanonik `shops.deposit_*`, `shops.open_hours`, `shops.payment_methods_enabled`, dan `bookings.deposit_status` (`none|pending|paid|failed|expired|refunded`). Path JSON `shops.booking_config.deposit_*` dideprek.
+- **Role check** wajib via RPC `has_role(_user_id, _role)` — tidak baca `user_roles` langsung dari client.
+
+---
+
+## BAGIAN F: STATUS FASE INTEGRASI CLOUD & F-16 (Deposit Booking via Payment Gateway)
+
+> Status per 17 Mei 2026. Fase 1 & 2 sudah dieksekusi; Fase 3-6 jadi backlog prioritas.
+
+### F.1 Fase 1 — Code Align ✅ Selesai
+
+Rename agar code match schema DB hasil migrasi `20260517105717`:
+- `require_deposit` → `deposit_required`
+- `deposit_percent` → `deposit_percentage`
+- `cancellation_token` → `cancel_token`
+- Status DP: `waiting_payment`/`submitted` → `pending`; `verified` → `paid`
+
+File terdampak: `toko.$slug.booking.tsx`, `pos-app.booking.tsx`, `pos-app.booking-analytics.tsx`, `booking.cancel.$token.tsx`, `checkout.tsx`, `pos-app.settings.tsx`, `types/stage4.ts`, `api-server/src/routes/payments.ts`.
+
+Bonus: **webhook idempotency** — `webhook_logs` insert pakai `RETURNING id`, update filter `WHERE id = logId` (sebelumnya filter `status='received'` rawan double-process).
+
+Migrasi DB yang menyertai:
+- `bookings`: tambah `deposit_required` (bool), `deposit_status` (text + CHECK `none|pending|paid|failed|expired|refunded`), index `idx_bookings_shop_deposit_status`. Backfill `deposit_status` dari `deposit_paid`/`deposit_amount`.
+- `shops`: tambah `deposit_notes`, `deposit_percentage` (0–100), `require_id_upload`.
+
+### F.2 Fase 2 — Seed Data Inti ✅ Selesai
+
+Idempoten via `ON CONFLICT DO NOTHING`. Verifikasi: semua count sesuai target.
+
+| Tabel | Isi | Jumlah |
+|---|---|---|
+| `business_categories` | 11 kategori (fnb, retail, jasa, rental, kursus, salon, klinik, studio-foto, travel, custom-order, lainnya) | 11 |
+| `plans` | free (Rp 0) · pro (Rp 99rb) · enterprise (Rp 499rb), `duration_days=30` | 3 |
+| `features` (master) | `max_outlets`, `max_products`, `max_orders_month`, `max_staff` | 4 |
+| `plan_features` | limit per (plan, feature) — `-1` = unlimited | 12 |
+| `user_roles` | `super_admin` (shop_id NULL) + `owner` (shop terikat) untuk owner pertama `305a3d88-…` | 2 |
+| `platform_settings` | `platform_name`, `default_currency`, `platform_fee_percent` (2.5), `max_voucher_discount_percent` (50), `min_withdrawal_idr` (50000), `booking_default_min_hours_before` (2), `booking_default_max_advance_days` (60), `booking_default_deposit_percentage` (30), `booking_auto_cancel_hours` (24), `default_tax_percent` (11), `default_service_charge_percent` (0), `pwa_install_prompt` (true) | 12 |
+
+Catatan kompat skema:
+- `business_categories.booking_type` CHECK hanya menerima `session|rental|both` — mapping: jasa/kursus/salon/klinik/travel → `session`; rental → `rental`; studio-foto → `both`.
+- `user_roles` unique index pada `(user_id, role, shop_id, outlet_id)`.
+
+### F.3 Fase 3 — Konsolidasi Sumber Config ❌ Belum
+
+- Deprecate `shops.booking_config.deposit_*` (jsonb) → satu-satunya truth: kolom `shops.deposit_required`, `shops.deposit_percentage`, `shops.deposit_notes`, `shops.require_id_upload`.
+- `admin.booking-config.tsx` diubah: jadi UI default platform (tulis ke `platform_settings.booking_default_*`), bukan per-shop.
+- Backfill terakhir: copy nilai dari JSON ke kolom (jika ada perbedaan), lalu hapus path JSON dari semua reader.
+
+### F.4 Fase 4 — Operasional ❌ Belum
+
+- Cron `auto_cancel_pending_deposit_bookings()` — jalan harian, cancel booking dengan `deposit_status='pending'` & `created_at < now() - interval '24 hours'` (ambil window dari `platform_settings.booking_auto_cancel_hours`).
+- Audit log eskalasi: catat aksi auto-cancel ke `staff_audit_logs` dengan `actor_id = NULL` + `action='auto_cancel_pending_dp'`.
+- E2E test happy path: booking → init DP → webhook paid → status `paid`; + unhappy: webhook signature invalid, double-callback, timeout > window.
+
+### F.5 Fase 5 — Hardening ❌ Belum
+
+- Audit semua RLS policy `USING (true)` (linter flag); ganti dengan scope `shop_id` / `auth.uid()`.
+- Set `SECURITY DEFINER` functions ke `SET search_path = public` (saat ini banyak yang mutable).
+- Tutup public bucket listing storage (`avatars`, `menu-photos`, `documents`) — hanya `SELECT by path`, tanpa list.
+- Pindahkan extensions dari schema `public` ke `extensions` (pgcrypto, pg_net, dll).
+
+### F.6 Fase 6 — Midtrans Snap Client Init ❌ Belum
+
+- Server fn `initBookingDeposit({ bookingId })` (auth-protected) → buat `payment_intents` row + panggil Midtrans `charge` API → return `snap_token`.
+- Client `toko.$slug.booking.tsx` setelah submit booking dengan `deposit_required=true`: load `snap.js`, `snap.pay(token, { onSuccess, onPending, onError })`.
+- Redirect handler `/booking/$id/payment-callback` → tampilkan status saja; **truth tetap webhook** (`api-server/src/routes/payments.ts`).
+- Hapus `markDepositPaid` dari client (B5 fix). Hanya owner POS yang bisa override manual via tombol "Tandai DP Lunas (manual)" dengan log audit.
+
+### F.7 Backlog Berikutnya (Prioritas Sedang yang masih ❌)
+
+| Kode | Fitur | Estimasi |
+|---|---|---|
+| SA-05 | Konfigurasi Booking per Kategori (toggle T3/T4 default per kategori) | 1 hari |
+| SF-04 | Portfolio publik studio foto di halaman toko | 1 hari |
+| SF-03 | Pilih lokasi sesi (studio/outdoor/lokasi klien) | 0.5 hari |
+| SF-09 | Review post-booking dengan foto hasil klien | 1 hari |
+| BE-03 | Tag skin type per produk skincare | 0.5 hari |
+| KL-03 | Rekam medis sederhana per pasien | 2 hari |
+| JU-05 | Deliver hasil kerja (file) via platform | 1 hari |
 
 ---
 
@@ -2947,18 +3034,42 @@ WHERE s.shop_id = :shop_id
 | Shop Count | Jumlah toko aktif per kategori — menentukan apakah kategori tampil di homepage |
 
 
-## 📋 Backlog Aktual (Audit 15 Mei 2026)
+## 📋 Backlog Aktual (Audit 17 Mei 2026)
 
-Daftar item yang teridentifikasi belum diimplementasi pada audit otomatis 15 Mei 2026.
+Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 file route.
 
-### Sudah ditandai ✅ pada audit ini
-
-### Belum diimplementasi (kandidat sprint berikutnya)
-
-Catatan: list ini fokus pada item yang punya keyword spesifik di PRD tapi tidak ada file route padanannya. Item lain yang masih ❌ tapi belum punya keyword kandidat (mis. recurring billing F-02) tetap di tabel asalnya.
+### Belum diimplementasi (kandidat sprint berikutnya — urut prioritas)
 
 | Item | Modul | Estimasi |
 |------|-------|----------|
+| F-16 Fase 3: Konsolidasi config deposit (deprecate `shops.booking_config.deposit_*` JSON) | Booking / Owner | 0.5 hari |
+| F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log | Backend | 0.5 hari |
+| F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
+| F-16 Fase 5: Hardening RLS `USING(true)`, `search_path`, public bucket listing, extensions schema | Security | 1 hari |
+| SA-05 Konfigurasi Booking per Kategori (toggle T3/T4 default) | Super Admin | 1 hari |
+| SF-04 Portfolio publik studio foto | Studio Foto | 1 hari |
+| SF-03 Pilih lokasi sesi (studio/outdoor/lokasi klien) | Studio Foto | 0.5 hari |
+| SF-09 Review post-booking + foto hasil klien | Studio Foto | 1 hari |
+| BE-03 Tag skin type per produk skincare | Skincare | 0.5 hari |
+| KL-03 Rekam medis sederhana per pasien | Klinik | 2 hari |
+| JU-05 Deliver hasil kerja (file) via platform | Jasa Digital | 1 hari |
+| F-01 Group Buy / Patungan | Marketplace | 3 hari |
+| F-06 Affiliate Program per Toko | Marketplace | 3 hari |
+| F-07 Google Analytics & Meta Pixel + consent | Tracking | 2 hari |
+| F-09 Live Streaming Commerce | Marketplace | 7+ hari |
+| F-10 BNPL (Kredivo/Akulaku) | Payments | 5 hari |
+| KL-06 Telemedicine / Konsultasi Video | Klinik | 5+ hari |
+| SA-10 A/B Testing Manager | Super Admin | 3 hari |
+
+### Sprint 17 Mei 2026 — Selesai ✅
+
+| Item | Modul | File / Migrasi |
+|------|-------|----------------|
+| F-16 Fase 1: Code align rename (`deposit_required`, `deposit_percentage`, `cancel_token`, status `pending`/`paid`) | Booking / Checkout / Payments | `toko.$slug.booking.tsx`, `pos-app.booking.tsx`, `pos-app.booking-analytics.tsx`, `booking.cancel.$token.tsx`, `checkout.tsx`, `pos-app.settings.tsx`, `types/stage4.ts`, `api-server/src/routes/payments.ts` |
+| F-16 Webhook idempotency fix | Payments | `payments.ts` (RETURNING id + filter `WHERE id=logId`) |
+| F-16 Migrasi DB: kolom `bookings.deposit_status/deposit_required` + index, `shops.deposit_*` | Backend | Migration `20260517105717` |
+| F-16 Fase 2: Seed `business_categories` (11), `plans` (3) + `plan_features` (12), `features` master (4), `user_roles` super_admin + owner, `platform_settings` (12 keys) | Cloud / Seed | Insert idempoten dengan `ON CONFLICT DO NOTHING` |
+| Konsolidasi rencana → satu file `PRD_MARKETPLACE.md` v6.2; `.lovable/plan.md` dihapus | Dokumentasi | PRD diperbarui dengan **BAGIAN F** |
 
 ### Sprint 15 Mei 2026 — Selesai ✅
 
