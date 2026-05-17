@@ -18,6 +18,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MasukRouteImport } from './routes/masuk'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as KurirRouteImport } from './routes/kurir'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DaftarRouteImport } from './routes/daftar'
@@ -27,6 +28,7 @@ import { Route as AkunRouteImport } from './routes/akun'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PosAppIndexRouteImport } from './routes/pos-app.index'
+import { Route as KurirIndexRouteImport } from './routes/kurir.index'
 import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
 import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -159,6 +161,9 @@ import { Route as PosAppAnamnesisRouteImport } from './routes/pos-app.anamnesis'
 import { Route as PosAppAboutPageRouteImport } from './routes/pos-app.about-page'
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as OrderSlugRouteImport } from './routes/order.$slug'
+import { Route as KurirProfileRouteImport } from './routes/kurir.profile'
+import { Route as KurirHistoryRouteImport } from './routes/kurir.history'
+import { Route as KurirEarningsRouteImport } from './routes/kurir.earnings'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as KatalogSlugRouteImport } from './routes/katalog.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -319,6 +324,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KurirRoute = KurirRouteImport.update({
+  id: '/kurir',
+  path: '/kurir',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KeranjangRoute = KeranjangRouteImport.update({
   id: '/keranjang',
   path: '/keranjang',
@@ -363,6 +373,11 @@ const PosAppIndexRoute = PosAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PosAppRoute,
+} as any)
+const KurirIndexRoute = KurirIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => KurirRoute,
 } as any)
 const KategoriIndexRoute = KategoriIndexRouteImport.update({
   id: '/kategori/',
@@ -1028,6 +1043,21 @@ const OrderSlugRoute = OrderSlugRouteImport.update({
   path: '/order/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KurirProfileRoute = KurirProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => KurirRoute,
+} as any)
+const KurirHistoryRoute = KurirHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => KurirRoute,
+} as any)
+const KurirEarningsRoute = KurirEarningsRouteImport.update({
+  id: '/earnings',
+  path: '/earnings',
+  getParentRoute: () => KurirRoute,
+} as any)
 const KategoriSlugRoute = KategoriSlugRouteImport.update({
   id: '/kategori/$slug',
   path: '/kategori/$slug',
@@ -1616,6 +1646,7 @@ export interface FileRoutesByFullPath {
   '/daftar': typeof DaftarRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
+  '/kurir': typeof KurirRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/masuk': typeof MasukRoute
@@ -1700,6 +1731,9 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/kurir/earnings': typeof KurirEarningsRoute
+  '/kurir/history': typeof KurirHistoryRoute
+  '/kurir/profile': typeof KurirProfileRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
@@ -1832,6 +1866,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/akun/': typeof AkunIndexRoute
   '/kategori/': typeof KategoriIndexRoute
+  '/kurir/': typeof KurirIndexRoute
   '/pos-app/': typeof PosAppIndexRoute
   '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
@@ -1963,6 +1998,9 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/kurir/earnings': typeof KurirEarningsRoute
+  '/kurir/history': typeof KurirHistoryRoute
+  '/kurir/profile': typeof KurirProfileRoute
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
   '/pos-app/anamnesis': typeof PosAppAnamnesisRoute
@@ -2093,6 +2131,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/akun': typeof AkunIndexRoute
   '/kategori': typeof KategoriIndexRoute
+  '/kurir': typeof KurirIndexRoute
   '/pos-app': typeof PosAppIndexRoute
   '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
@@ -2144,6 +2183,7 @@ export interface FileRoutesById {
   '/daftar': typeof DaftarRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/keranjang': typeof KeranjangRoute
+  '/kurir': typeof KurirRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/masuk': typeof MasukRoute
@@ -2228,6 +2268,9 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/kurir/earnings': typeof KurirEarningsRoute
+  '/kurir/history': typeof KurirHistoryRoute
+  '/kurir/profile': typeof KurirProfileRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
@@ -2360,6 +2403,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/akun/': typeof AkunIndexRoute
   '/kategori/': typeof KategoriIndexRoute
+  '/kurir/': typeof KurirIndexRoute
   '/pos-app/': typeof PosAppIndexRoute
   '/admin/health-score/$shopId': typeof AdminHealthScoreShopIdRoute
   '/admin/shops/$id': typeof AdminShopsIdRoute
@@ -2412,6 +2456,7 @@ export interface FileRouteTypes {
     | '/daftar'
     | '/forgot-password'
     | '/keranjang'
+    | '/kurir'
     | '/leaderboard'
     | '/login'
     | '/masuk'
@@ -2496,6 +2541,9 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/katalog/$slug'
     | '/kategori/$slug'
+    | '/kurir/earnings'
+    | '/kurir/history'
+    | '/kurir/profile'
     | '/order/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
@@ -2628,6 +2676,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/akun/'
     | '/kategori/'
+    | '/kurir/'
     | '/pos-app/'
     | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
@@ -2759,6 +2808,9 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/katalog/$slug'
     | '/kategori/$slug'
+    | '/kurir/earnings'
+    | '/kurir/history'
+    | '/kurir/profile'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
     | '/pos-app/anamnesis'
@@ -2889,6 +2941,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/akun'
     | '/kategori'
+    | '/kurir'
     | '/pos-app'
     | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
@@ -2939,6 +2992,7 @@ export interface FileRouteTypes {
     | '/daftar'
     | '/forgot-password'
     | '/keranjang'
+    | '/kurir'
     | '/leaderboard'
     | '/login'
     | '/masuk'
@@ -3023,6 +3077,9 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/katalog/$slug'
     | '/kategori/$slug'
+    | '/kurir/earnings'
+    | '/kurir/history'
+    | '/kurir/profile'
     | '/order/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
@@ -3155,6 +3212,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/akun/'
     | '/kategori/'
+    | '/kurir/'
     | '/pos-app/'
     | '/admin/health-score/$shopId'
     | '/admin/shops/$id'
@@ -3206,6 +3264,7 @@ export interface RootRouteChildren {
   DaftarRoute: typeof DaftarRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   KeranjangRoute: typeof KeranjangRoute
+  KurirRoute: typeof KurirRouteWithChildren
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MasukRoute: typeof MasukRoute
@@ -3298,6 +3357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kurir': {
+      id: '/kurir'
+      path: '/kurir'
+      fullPath: '/kurir'
+      preLoaderRoute: typeof KurirRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/keranjang': {
       id: '/keranjang'
       path: '/keranjang'
@@ -3360,6 +3426,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pos-app/'
       preLoaderRoute: typeof PosAppIndexRouteImport
       parentRoute: typeof PosAppRoute
+    }
+    '/kurir/': {
+      id: '/kurir/'
+      path: '/'
+      fullPath: '/kurir/'
+      preLoaderRoute: typeof KurirIndexRouteImport
+      parentRoute: typeof KurirRoute
     }
     '/kategori/': {
       id: '/kategori/'
@@ -4284,6 +4357,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/order/$slug'
       preLoaderRoute: typeof OrderSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/kurir/profile': {
+      id: '/kurir/profile'
+      path: '/profile'
+      fullPath: '/kurir/profile'
+      preLoaderRoute: typeof KurirProfileRouteImport
+      parentRoute: typeof KurirRoute
+    }
+    '/kurir/history': {
+      id: '/kurir/history'
+      path: '/history'
+      fullPath: '/kurir/history'
+      preLoaderRoute: typeof KurirHistoryRouteImport
+      parentRoute: typeof KurirRoute
+    }
+    '/kurir/earnings': {
+      id: '/kurir/earnings'
+      path: '/earnings'
+      fullPath: '/kurir/earnings'
+      preLoaderRoute: typeof KurirEarningsRouteImport
+      parentRoute: typeof KurirRoute
     }
     '/kategori/$slug': {
       id: '/kategori/$slug'
@@ -5309,6 +5403,22 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
   CheckoutRouteChildren,
 )
 
+interface KurirRouteChildren {
+  KurirEarningsRoute: typeof KurirEarningsRoute
+  KurirHistoryRoute: typeof KurirHistoryRoute
+  KurirProfileRoute: typeof KurirProfileRoute
+  KurirIndexRoute: typeof KurirIndexRoute
+}
+
+const KurirRouteChildren: KurirRouteChildren = {
+  KurirEarningsRoute: KurirEarningsRoute,
+  KurirHistoryRoute: KurirHistoryRoute,
+  KurirProfileRoute: KurirProfileRoute,
+  KurirIndexRoute: KurirIndexRoute,
+}
+
+const KurirRouteWithChildren = KurirRoute._addFileChildren(KurirRouteChildren)
+
 interface PosAppKeuanganRouteChildren {
   PosAppKeuanganTarikRoute: typeof PosAppKeuanganTarikRoute
 }
@@ -5726,6 +5836,7 @@ const rootRouteChildren: RootRouteChildren = {
   DaftarRoute: DaftarRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   KeranjangRoute: KeranjangRoute,
+  KurirRoute: KurirRouteWithChildren,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MasukRoute: MasukRoute,

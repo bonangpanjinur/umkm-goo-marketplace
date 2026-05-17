@@ -30,13 +30,11 @@ export function usePlan(): PlanInfo {
       // Super admin & toko miliknya selalu Pro tanpa kadaluarsa
       let ownerIsSuperAdmin = false;
       if (data?.owner_id) {
-        const { data: roleRow } = await supabase
-          .from("user_roles")
-          .select("id")
-          .eq("user_id", data.owner_id)
-          .eq("role", "super_admin")
-          .maybeSingle();
-        ownerIsSuperAdmin = !!roleRow;
+        const { data: ok } = await supabase.rpc("has_role", {
+          _user_id: data.owner_id,
+          _role: "super_admin",
+        });
+        ownerIsSuperAdmin = !!ok;
       }
       const exp = data?.plan_expires_at ? new Date(data.plan_expires_at) : null;
       const active = data?.plan === "pro" && (!exp || exp.getTime() > Date.now());
@@ -60,12 +58,10 @@ export function useIsSuperAdmin() {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", u.user.id)
-        .eq("role", "super_admin")
-        .maybeSingle();
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: u.user.id,
+        _role: "super_admin",
+      });
       setIsAdmin(!!data);
       setLoading(false);
     })();
