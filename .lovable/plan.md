@@ -51,7 +51,7 @@ Tujuan: turunkan bug rate sebelum menambah fitur baru.
 1. ✅ **F&B**: kolom `allergens[]` + `is_halal` + `available_modes[]` + `nutrition_info` di form menu (advanced tab), badge Halal/mode di halaman produk storefront, modifier `is_required` (sudah ada). _Sisa_: `min_select` modifier (perlu migration).
 2. ✅ **Retail (sebagian)**: kolom `barcode` di `menu_items` + `menu_item_variants` (+ index sku/barcode per shop), input SKU/Barcode di form menu, scanner `@zxing/browser` (`BarcodeScannerDialog`) terintegrasi di POS — lookup barcode/SKU → menu_items dulu lalu fallback ke varian, auto add-to-cart. _Sisa_: UI CRUD varian (matrix size × color) dan stok per varian di POS.
 3. ✅ **Jasa/Salon/Klinik (slot generator)**: dialog `RecurringSlotDialog` di `/pos-app/booking` — generate slot mingguan berdasarkan template (rentang tanggal, weekdays, jam mulai/akhir, interval, durasi, kapasitas, harga, DP%) dengan skip-existing, batch insert chunked 200 baris. Mode `service` & `table`.
-4. **Travel**: form alternatif untuk subtype `wisata-*` (tanpa field umroh), batch + quota terstruktur di `umroh-packages`.
+4. ✅ **Travel (form alternatif)**: `/pos-app/umroh-packages` sekarang men-fork field berdasarkan `package_type` (umroh/hajj vs tour-domestic/tour-international/event). Subtype shop dipakai untuk default tipe. Field hotel Mekkah/Madinah & harga Quad/Triple/Double hanya untuk umroh/hajj; tour pakai "Transportasi" + "Harga per Orang". Tambah filter tipe, badge tipe di kartu, dan textarea includes/excludes per baris.
 4. **Custom Order**: e-sign kontrak (HTML canvas signature) + simpan ke storage.
 5. **Klinik**: lookup ICD-10 + cetak template BPJS.
 6. **Studio**: watermark editor (logo upload + posisi + opacity).
