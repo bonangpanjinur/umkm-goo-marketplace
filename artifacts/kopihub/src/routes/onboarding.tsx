@@ -298,12 +298,12 @@ function OnboardingPage() {
             <div className="grid grid-cols-2 gap-3">
               {categories.map(cat => {
                 const Icon = CATEGORY_ICON[cat.slug] ?? Package;
-                const active = categoryId === cat.id;
+                const active = categoryId === cat.slug;
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => setCategoryId(cat.id)}
-                    className={`flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
+                    onClick={() => setCategoryId(cat.slug)}
+                    className={`relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
                       active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-accent"
                     }`}
                   >
@@ -311,8 +311,8 @@ function OnboardingPage() {
                       <Icon className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold">{cat.label}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{cat.desc}</p>
+                      <p className="text-sm font-semibold">{cat.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{cat.description ?? ""}</p>
                     </div>
                     {active && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
                   </button>
