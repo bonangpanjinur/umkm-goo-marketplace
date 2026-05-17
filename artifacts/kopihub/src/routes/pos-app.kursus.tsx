@@ -428,11 +428,7 @@ function KursusPage() {
   const openNewLesson = (moduleId: string) => {
     setEditingLesson(null);
     setLessonForModule(moduleId);
-    const currentLessons = lessons[moduleId] ?? [];
-    setLessonForm({
-      ...EMPTY_LESSON,
-      sort_order: String(currentLessons.length),
-    });
+    setLessonForm({ ...EMPTY_LESSON });
     setLessonDialog(true);
   };
 
@@ -444,8 +440,8 @@ function KursusPage() {
       description: l.description ?? "",
       video_url: l.video_url ?? "",
       duration_minutes: String(l.duration_minutes),
-      sort_order: String(l.sort_order),
       is_free_preview: l.is_free_preview,
+      status: l.status,
     });
     setLessonDialog(true);
   };
@@ -454,15 +450,17 @@ function KursusPage() {
     if (!lessonForModule) return;
     if (!lessonForm.title.trim()) { toast.error("Judul pelajaran wajib diisi"); return; }
     setSavingLesson(true);
-    const payload = {
+    const currentLessons = lessons[lessonForModule] ?? [];
+    const payload: any = {
       module_id: lessonForModule,
       title: lessonForm.title.trim(),
       description: lessonForm.description?.trim() || null,
       video_url: lessonForm.video_url?.trim() || null,
       duration_minutes: Number(lessonForm.duration_minutes) || 0,
-      sort_order: Number(lessonForm.sort_order) || 0,
       is_free_preview: lessonForm.is_free_preview,
+      status: lessonForm.status,
     };
+    if (!editingLesson) payload.sort_order = currentLessons.length;
     let error: any;
     if (editingLesson) {
       ({ error } = await (supabase as any).from("course_lessons").update(payload).eq("id", editingLesson.id));
