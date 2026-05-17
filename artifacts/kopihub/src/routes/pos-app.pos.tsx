@@ -743,6 +743,7 @@ function POSPage() {
         onClose={() => setModPickerItem(null)}
         menuItemId={modPickerItem?.id ?? ""}
         menuItemName={modPickerItem?.name ?? ""}
+        menuItemPrice={modPickerItem?.price ?? 0}
         shopId={shop?.id ?? ""}
         onConfirm={(options) => {
           if (modPickerItem) addToCart(modPickerItem, options);

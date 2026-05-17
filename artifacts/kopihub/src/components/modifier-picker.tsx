@@ -26,16 +26,30 @@ export type OptionChoice = {
   sort_order: number;
 };
 
+type VariantRow = {
+  id: string;
+  name: string;
+  price: number;
+  stock: number | null;
+  is_available: boolean;
+  attributes: Record<string, string> | null;
+  sort_order: number | null;
+};
+
 type Props = {
   open: boolean;
   onClose: () => void;
   menuItemId: string;
   menuItemName: string;
+  /** Base price of parent menu item (used to compute variant price_adjustment) */
+  menuItemPrice?: number;
   shopId: string;
   onConfirm: (selected: SelectedOption[]) => void;
 };
 
-export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId, onConfirm }: Props) {
+export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuItemPrice = 0, shopId, onConfirm }: Props) {
+  const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [variantId, setVariantId] = useState<string>("");
   const [groups, setGroups] = useState<OptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
@@ -52,38 +66,57 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
     setLoading(true);
     setReady(false);
     (async () => {
-      const { data: grps } = await supabase
-        .from("menu_item_option_groups")
-        .select("id, name, is_required, max_select, sort_order")
-        .eq("menu_item_id", menuItemId)
-        .eq("shop_id", shopId)
-        .order("sort_order", { ascending: true });
+      const [{ data: grps }, { data: vRows }] = await Promise.all([
+        supabase
+          .from("menu_item_option_groups")
+          .select("id, name, is_required, max_select, sort_order")
+          .eq("menu_item_id", menuItemId)
+          .eq("shop_id", shopId)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("menu_item_variants")
+          .select("id, name, price, stock, is_available, attributes, sort_order")
+          .eq("menu_item_id", menuItemId)
+          .eq("shop_id", shopId)
+          .order("sort_order", { ascending: true }),
+      ]);
 
-      if (!grps || grps.length === 0) {
+      const variantList = (vRows ?? []) as VariantRow[];
+      setVariants(variantList);
+      // Pilih varian default pertama yang tersedia (stok > 0 atau stok null)
+      const firstOk = variantList.find(
+        (v) => v.is_available && (v.stock === null || (v.stock ?? 0) > 0),
+      );
+      setVariantId(firstOk?.id ?? "");
+
+      if ((!grps || grps.length === 0) && variantList.length === 0) {
         setGroups([]);
         setLoading(false);
-        // No options — add to cart silently, never show the dialog
+        // Tidak ada opsi & tidak ada varian — masuk ke cart langsung
         onConfirm([]);
         onClose();
         return;
       }
 
-      const groupIds = grps.map((g) => g.id);
-      const { data: opts } = await supabase
-        .from("menu_item_options")
-        .select("id, group_id, name, price_adjustment, is_available, sort_order")
-        .in("group_id", groupIds)
-        .eq("is_available", true)
-        .order("sort_order", { ascending: true });
+      const groupIds = (grps ?? []).map((g) => g.id);
+      const optsRes = groupIds.length
+        ? await supabase
+            .from("menu_item_options")
+            .select("id, group_id, name, price_adjustment, is_available, sort_order")
+            .in("group_id", groupIds)
+            .eq("is_available", true)
+            .order("sort_order", { ascending: true })
+        : { data: [] as Array<OptionChoice & { group_id: string }> };
+      const opts = optsRes.data;
 
       const optMap = new Map<string, OptionChoice[]>();
-      for (const o of opts ?? []) {
+      for (const o of (opts as any[]) ?? []) {
         const list = optMap.get(o.group_id) ?? [];
         list.push(o as OptionChoice);
         optMap.set(o.group_id, list);
       }
 
-      const fullGroups: OptionGroup[] = grps.map((g) => ({
+      const fullGroups: OptionGroup[] = (grps ?? []).map((g) => ({
         ...g,
         options: optMap.get(g.id) ?? [],
       }));
@@ -115,6 +148,8 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
   }
 
   function handleConfirm() {
+    // Wajib pilih varian jika ada
+    if (variants.length > 0 && !variantId) return;
     // Validate required groups
     for (const g of groups) {
       if (g.is_required && (selections[g.id] ?? []).length === 0) {
@@ -122,6 +157,18 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
       }
     }
     const selected: SelectedOption[] = [];
+    if (variants.length > 0 && variantId) {
+      const v = variants.find((x) => x.id === variantId);
+      if (v) {
+        selected.push({
+          group_id: "variant",
+          group_name: "Varian",
+          option_id: v.id,
+          option_name: v.name,
+          price_adjustment: Number(v.price) - Number(menuItemPrice ?? 0),
+        });
+      }
+    }
     for (const g of groups) {
       for (const optId of selections[g.id] ?? []) {
         const opt = g.options.find((o) => o.id === optId);
@@ -140,9 +187,9 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
     onClose();
   }
 
-  const allValid = groups.every(
-    (g) => !g.is_required || (selections[g.id] ?? []).length > 0,
-  );
+  const allValid =
+    (variants.length === 0 || !!variantId) &&
+    groups.every((g) => !g.is_required || (selections[g.id] ?? []).length > 0);
 
   return (
     <Dialog open={open && ready} onOpenChange={(o) => !o && onClose()}>
@@ -156,6 +203,44 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId
           </div>
         ) : (
           <div className="space-y-5">
+            {variants.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-semibold">Varian</span>
+                  <span className="text-[10px] font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">Wajib</span>
+                </div>
+                <RadioGroup value={variantId} onValueChange={setVariantId}>
+                  {variants.map((v) => {
+                    const oos =
+                      !v.is_available || (v.stock !== null && (v.stock ?? 0) <= 0);
+                    const delta = Number(v.price) - Number(menuItemPrice ?? 0);
+                    return (
+                      <div
+                        key={v.id}
+                        className={`flex items-center justify-between py-1.5 ${oos ? "opacity-50" : ""}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value={v.id} id={`var-${v.id}`} disabled={oos} />
+                          <Label htmlFor={`var-${v.id}`} className="text-sm cursor-pointer flex items-center gap-2">
+                            <span>{v.name}</span>
+                            {v.stock !== null && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${oos ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                                {oos ? "Habis" : `Stok ${v.stock}`}
+                              </span>
+                            )}
+                          </Label>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {delta !== 0
+                            ? `${delta > 0 ? "+" : ""}${formatIDR(delta)}`
+                            : formatIDR(v.price)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              </div>
+            )}
             {groups.map((g) => (
               <div key={g.id}>
                 <div className="flex items-center gap-2 mb-2">
