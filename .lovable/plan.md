@@ -59,7 +59,7 @@ Tujuan: turunkan bug rate sebelum menambah fitur baru.
 8. ✅ **Sample data seeding** H.9 — `src/lib/seed-sample-data.ts` berisi template per kategori (fnb/retail/jasa/rental/kursus/salon/klinik/studio-foto/travel/custom-order/lainnya) → insert ke `categories`+`menu_items` dan/atau `service_bundles`. Tombol "Tambahkan" di Step 5 onboarding (`onboarding.tsx`) memicu seeding sekali pakai dengan feedback jumlah item.
 
 ### Fase I — Reporting & Marketplace polish
-1. **Reporting per kategori** di `pos-app.reports.tsx`: tab tambahan sesuai kategori (occupancy rental, batch-fill travel, course-completion kursus, capacity-fill klinik, lead-to-booking jasa/salon).
+1. ✅ **Reporting per kategori** I.1 — `pos-app.reports.tsx` sekarang pakai Tabs (Penjualan + tab kategori). Komponen di `src/components/reports/CategoryReports.tsx`: `RentalReport` (occupancy unit-hari + ranking per unit), `TravelReport` (% terisi per `umroh_packages`), `KursusReport` (enroll vs `course_certificates`), `KlinikReport` (kunjungan harian, top ICD-10, breakdown penjamin), `LeadConversionReport` (jasa/salon/studio: leads→won, booking→confirmed, sumber leads). Tabs tampil otomatis via `useShopSubtype().category`.
 2. **Marketplace filter** kategori + subtype + lokasi di `index.tsx` & `katalog.$slug.tsx`.
 3. **Owner observability**: gabung webhook log + audit log + error boundary catches ke 1 halaman `admin.observability` (sudah ada `admin.activity.tsx` — perluas).
 
