@@ -974,26 +974,15 @@ function KursusPage() {
                 YouTube, Vimeo, Loom, atau URL video langsung
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Durasi (menit)</Label>
-                <Input
-                  type="number" min={0}
-                  value={lessonForm.duration_minutes}
-                  onChange={(e) => setLessonForm((f) => ({ ...f, duration_minutes: e.target.value }))}
-                  placeholder="0"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Urutan</Label>
-                <Input
-                  type="number" min={0}
-                  value={lessonForm.sort_order}
-                  onChange={(e) => setLessonForm((f) => ({ ...f, sort_order: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label>Durasi (menit)</Label>
+              <Input
+                type="number" min={0}
+                value={lessonForm.duration_minutes}
+                onChange={(e) => setLessonForm((f) => ({ ...f, duration_minutes: e.target.value }))}
+                placeholder="0"
+                className="mt-1"
+              />
             </div>
             <div className="flex items-center gap-2">
               <Switch
