@@ -94,6 +94,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { NotificationBell } from "@/components/NotificationBell";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useShopCapabilities } from "@/lib/use-shop-capabilities";
+import { FEATURE_LABEL, type FeatureKey } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
@@ -158,7 +159,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Utama",
     items: [
       { to: "/pos-app",     label: "Dashboard",  icon: LayoutDashboard, exact: true },
-      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag, onlyFor: HAS_POS },
+      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag, onlyFor: HAS_POS, requires: ["POS"] },
     ],
   },
   {
@@ -180,9 +181,9 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Pesanan",
     items: [
       { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
-      { to: "/pos-app/kds",          label: "Kitchen (KDS)",       icon: ChefHat, onlyFor: FNB },
-      { to: "/pos-app/kitchen-load", label: "Beban Dapur (KLM)",  icon: Stethoscope, hint: "Pantau estimasi waktu tunggu & beban per slot waktu secara realtime", onlyFor: FNB },
-      { to: "/pos-app/open-bills",   label: "Open Bills",          icon: ShoppingBag, hint: "Tagihan terbuka real-time, sinkron antar perangkat kasir" },
+      { to: "/pos-app/kds",          label: "Kitchen (KDS)",       icon: ChefHat, onlyFor: FNB, requires: ["KDS"] },
+      { to: "/pos-app/kitchen-load", label: "Beban Dapur (KLM)",  icon: Stethoscope, hint: "Pantau estimasi waktu tunggu & beban per slot waktu secara realtime", onlyFor: FNB, requires: ["KDS"] },
+      { to: "/pos-app/open-bills",   label: "Open Bills",          icon: ShoppingBag, hint: "Tagihan terbuka real-time, sinkron antar perangkat kasir", requires: ["POS"] },
       { to: "/pos-app/order-audit",  label: "Audit Pesanan",       icon: ScrollText, hint: "Riwayat VOID/CANCEL/REFUND lengkap dengan alasan & user pelaku" },
     ],
   },
@@ -190,28 +191,28 @@ const NAV_GROUPS: NavGroup[] = [
     id: "catalog",
     label: "Katalog & Stok",
     items: [
-      { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed, onlyFor: HAS_POS },
-      { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal, onlyFor: HAS_POS },
-      { to: "/pos-app/categories",     label: "Kategori",        icon: Tags, onlyFor: HAS_POS },
-      { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/digital-licenses", label: "Lisensi Digital", icon: ShieldCheck, hint: "Lacak unduhan pembeli & kelola lisensi per produk digital — anti-sharing", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/digital-version",  label: "Update Versi",    icon: History, hint: "Rilis versi baru produk digital — pembeli lama dapat notifikasi otomatis", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/kursus",           label: "Kursus Online",   icon: GraduationCap, hint: "Kelola kursus video online: modul, pelajaran, dan pantau progress pembeli", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag, onlyFor: HAS_POS },
-      { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers, onlyFor: HAS_POS },
-      { to: "/pos-app/inventory",      label: "Inventori",       icon: Package, onlyFor: HAS_POS },
-      { to: "/pos-app/bundles",          label: "Bundle / Paket",       icon: Layers, onlyFor: HAS_POS },
-      { to: "/pos-app/combo-builder",    label: "Paket & Combo F&B",    icon: UtensilsCrossed, hint: "Buat set hemat dari beberapa menu dengan harga bundel & diskon otomatis", onlyFor: FNB },
-      { to: "/pos-app/recipes",          label: "Resep",                icon: ChefHat, onlyFor: FNB },
-      { to: "/pos-app/size-guide",       label: "Panduan Ukuran",       icon: SlidersHorizontal, hint: "Kalkulator ukuran interaktif: Tinggi 165cm → pilih M — tampil di halaman produk", onlyFor: FASHION },
-      { to: "/pos-app/lookbook",         label: "Lookbook / Foto Model",icon: ImageIcon, hint: "Upload foto model pakai produkmu — tampil di halaman toko & produk", onlyFor: FASHION },
+      { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed, onlyFor: HAS_POS, requires: ["MENU"] },
+      { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal, onlyFor: HAS_POS, requires: ["VARIANTS"] },
+      { to: "/pos-app/categories",     label: "Kategori",        icon: Tags, onlyFor: HAS_POS, requires: ["MENU"] },
+      { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC, requires: ["DIGITAL"] },
+      { to: "/pos-app/digital-licenses", label: "Lisensi Digital", icon: ShieldCheck, hint: "Lacak unduhan pembeli & kelola lisensi per produk digital — anti-sharing", onlyFor: DIGITAL_SVC, requires: ["DIGITAL_LICENSES"] },
+      { to: "/pos-app/digital-version",  label: "Update Versi",    icon: History, hint: "Rilis versi baru produk digital — pembeli lama dapat notifikasi otomatis", onlyFor: DIGITAL_SVC, requires: ["DIGITAL_VERSION"] },
+      { to: "/pos-app/kursus",           label: "Kursus Online",   icon: GraduationCap, hint: "Kelola kursus video online: modul, pelajaran, dan pantau progress pembeli", onlyFor: DIGITAL_SVC, requires: ["KURSUS"] },
+      { to: "/pos-app/atribut",        label: "Atribut Produk",  icon: Tag, onlyFor: HAS_POS, requires: ["MENU"] },
+      { to: "/pos-app/stok",           label: "Stok Terpadu",    icon: Layers, onlyFor: HAS_POS, requires: ["INVENTORY"] },
+      { to: "/pos-app/inventory",      label: "Inventori",       icon: Package, onlyFor: HAS_POS, requires: ["INVENTORY"] },
+      { to: "/pos-app/bundles",          label: "Bundle / Paket",       icon: Layers, onlyFor: HAS_POS, requires: ["BUNDLES"] },
+      { to: "/pos-app/combo-builder",    label: "Paket & Combo F&B",    icon: UtensilsCrossed, hint: "Buat set hemat dari beberapa menu dengan harga bundel & diskon otomatis", onlyFor: FNB, requires: ["COMBO_BUILDER"] },
+      { to: "/pos-app/recipes",          label: "Resep",                icon: ChefHat, onlyFor: FNB, requires: ["RECIPES"] },
+      { to: "/pos-app/size-guide",       label: "Panduan Ukuran",       icon: SlidersHorizontal, hint: "Kalkulator ukuran interaktif: Tinggi 165cm → pilih M — tampil di halaman produk", onlyFor: FASHION, requires: ["SIZE_GUIDE"] },
+      { to: "/pos-app/lookbook",         label: "Lookbook / Foto Model",icon: ImageIcon, hint: "Upload foto model pakai produkmu — tampil di halaman toko & produk", onlyFor: FASHION, requires: ["LOOKBOOK"] },
       { to: "/pos-app/skin-quiz",        label: "Quiz Rekomendasi Produk", icon: HelpCircle, hint: "Quiz jenis kulit → rekomendasi produk otomatis untuk pembeli", onlyFor: FASHION_SVC },
       { to: "/pos-app/verified-claims",  label: "Klaim Terverifikasi",  icon: BadgeCheck, hint: "Label klaim uji klinis: 'Dermatologically Tested', 'Hypoallergenic', dll", onlyFor: FASHION_SVC },
-      { to: "/pos-app/limited-editions", label: "Edisi Terbatas",       icon: Zap, hint: "Produk limited dengan counter stok visible — ciptakan urgensi pembelian", onlyFor: [...FASHION, ...CRAFT] },
+      { to: "/pos-app/limited-editions", label: "Edisi Terbatas",       icon: Zap, hint: "Produk limited dengan counter stok visible — ciptakan urgensi pembelian", onlyFor: [...FASHION, ...CRAFT], requires: ["LIMITED_EDITIONS"] },
       { to: "/pos-app/wip-gallery",      label: "Galeri Proses Buat",   icon: Layers, hint: "Tampilkan proses pembuatan karya — bangun kepercayaan pembeli", onlyFor: CRAFT },
       { to: "/pos-app/certificates",     label: "Sertifikat Keaslian",  icon: Award, hint: "Certificate of Authenticity digital — dikirim otomatis ke pembeli", onlyFor: CRAFT },
-      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2, onlyFor: HAS_POS },
-      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText, onlyFor: HAS_POS },
+      { to: "/pos-app/suppliers",        label: "Supplier",             icon: Building2, onlyFor: HAS_POS, requires: ["SUPPLIERS"] },
+      { to: "/pos-app/purchase-orders",  label: "Purchase Order",       icon: FileText, onlyFor: HAS_POS, requires: ["INVENTORY"] },
     ],
   },
   {
@@ -222,9 +223,9 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/permissions", label: "Hak Akses Staf", icon: ShieldCheck, ownerOnly: true },
       { to: "/pos-app/audit-logs", label: "Log Audit", icon: ShieldCheck, ownerOnly: true },
       { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
-      { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
+      { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC, requires: ["BOOKING"] },
       { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
-      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet, onlyFor: HAS_POS },
+      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet, onlyFor: HAS_POS, requires: ["SHIFTS"] },
     ],
   },
   {
@@ -258,46 +259,46 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/reviews",              label: "Ulasan Pembeli",     icon: Award, hint: "Balas ulasan, analisis sentimen, moderasi konten tidak relevan" },
       { to: "/pos-app/qa",                 label: "Q&A Produk",        icon: HelpCircle, hint: "Jawab pertanyaan calon pembeli dari halaman produk" },
       { to: "/pos-app/iklan",              label: "Iklan & Promosi",   icon: Megaphone },
-      { to: "/pos-app/antrian",            label: "Antrean Digital",   icon: Hash, hint: "Nomor antrian otomatis + estimasi tunggu — cocok untuk klinik, salon, dan loket", onlyFor: FNB_SVC },
-      { to: "/pos-app/waitlist",           label: "Antrian Waitlist",  icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh", onlyFor: FNB_SVC },
-      { to: "/pos-app/rental-availability",label: "Ketersediaan Rental",icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal", onlyFor: SVC },
-      { to: "/pos-app/rental-checklist",   label: "Checklist Kondisi",  icon: ClipboardCheck, hint: "Dokumentasi kondisi unit sebelum & sesudah sewa + tanda tangan digital", onlyFor: SVC },
-      { to: "/pos-app/rental-tnc",            label: "Syarat & Ketentuan",  icon: ScrollText, hint: "Kelola T&C sewa: deposit %, denda keterlambatan, dan teks syarat penuh", onlyFor: SVC },
-      { to: "/pos-app/rental-deposit-config", label: "Konfigurasi Deposit", icon: Banknote, hint: "Atur deposit otomatis per unit rental — harga × durasi × % — RT-04", onlyFor: SVC },
-      { to: "/pos-app/rental-extend",         label: "Perpanjangan Sewa",   icon: CalendarDays, hint: "Kelola permintaan perpanjangan sewa mandiri dari penyewa — RT-05", onlyFor: SVC },
-      { to: "/pos-app/rental-fines",          label: "Denda Keterlambatan", icon: Clock, hint: "Hitung & tagih denda keterlambatan pengembalian unit rental — RT-07", onlyFor: SVC },
-      { to: "/pos-app/rental-unit-ready",     label: "Notif Unit Siap",     icon: BellRing, hint: "Kirim notifikasi WhatsApp ke penyewa bahwa unit sudah siap diambil — RT-10", onlyFor: SVC },
-      { to: "/pos-app/anamnesis",             label: "Anamnesis Digital",   icon: FileText, hint: "Form keluhan & riwayat medis pre-konsultasi — diisi oleh pasien — KL-02", onlyFor: SVC },
-      { to: "/pos-app/medical-invoice",       label: "Tagihan & Resep",     icon: Receipt, hint: "Buat tagihan & resep digital per pasien dengan tanda tangan dokter — KL-05", onlyFor: SVC },
-      { to: "/pos-app/followup-reminders",    label: "Reminder Kunjungan",  icon: Scissors, hint: "Reminder potong rambut (4 minggu) atau kontrol ulang klinik otomatis — SB-06/KL-07", onlyFor: FNB_SVC },
-      { to: "/pos-app/milestones",            label: "Milestone & Escrow",  icon: Target, hint: "Kelola milestone proyek & escrow bayar bertahap untuk jasa digital — JU-06/JU-07", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/contracts",             label: "Kontrak Digital",     icon: ScrollText, hint: "Buat & tanda tangani kontrak freelance digital per order — JU-08", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/booking-reminders",     label: "Reminder Booking",    icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC },
-      { to: "/pos-app/booking-reviews",   label: "Ulasan Booking",    icon: Star, hint: "Monitor ulasan & kirim pengingat WhatsApp minta ulasan ke pelanggan", onlyFor: FNB_SVC },
-      { to: "/pos-app/booking-analytics", label: "Analitik Booking",  icon: BarChart3, hint: "Pantau pendapatan deposit, tingkat pembatalan, jam slot terpopuler & tren booking", onlyFor: FNB_SVC },
-      { to: "/pos-app/studio-packages",      label: "Paket Sesi Foto",      icon: Camera, hint: "Buat paket sesi foto (Basic/Standard/Premium) — tampil di halaman booking klien", onlyFor: SVC },
-      { to: "/pos-app/studio-addons",        label: "Add-on Sesi Foto",     icon: Sparkles, hint: "Layanan tambahan yang bisa dipilih klien saat booking: editing ekstra, album cetak, video recap — SF-08", onlyFor: SVC },
-      { to: "/pos-app/studio-brief",         label: "Brief Form Klien",     icon: ClipboardList, hint: "Kirim link form brief ke klien sebelum sesi — mood, lokasi, outfit, referensi", onlyFor: SVC },
-      { to: "/pos-app/studio-delivery",      label: "Kirim Hasil Foto",     icon: FolderOpen, hint: "Kirim link Google Drive/WeTransfer ke klien via WhatsApp setelah sesi selesai", onlyFor: SVC },
-      { to: "/pos-app/studio-photo-reviews", label: "Ulasan Foto Klien",    icon: Star, hint: "Minta klien upload foto hasil sesi & tulis ulasan — tampil sebagai social proof di toko", onlyFor: SVC },
-      { to: "/pos-app/studio-locations",      label: "Lokasi Sesi Foto",     icon: Navigation, hint: "Kelola opsi lokasi sesi: studio, outdoor, atau lokasi klien — dengan biaya tambahan — SF-03", onlyFor: SVC },
-      { to: "/pos-app/patient-records",       label: "Rekam Medis Pasien",   icon: Stethoscope, hint: "Riwayat kunjungan, diagnosis, dan tindakan per pasien — KL-03", onlyFor: SVC },
-      { to: "/pos-app/job-deliverables",      label: "Kirim Hasil Kerja",    icon: FolderOpen, hint: "Kirim file hasil pekerjaan ke klien lewat link aman — JU-05", onlyFor: DIGITAL_SVC },
-      { to: "/pos-app/service-bundles",       label: "Paket Layanan",        icon: Package, hint: "Bundle beberapa layanan jasa dalam 1 paket dengan harga lebih murah", onlyFor: SVC },
+      { to: "/pos-app/antrian",            label: "Antrean Digital",   icon: Hash, hint: "Nomor antrian otomatis + estimasi tunggu — cocok untuk klinik, salon, dan loket", onlyFor: FNB_SVC, requires: ["ANTRIAN"] },
+      { to: "/pos-app/waitlist",           label: "Antrian Waitlist",  icon: ListOrdered, hint: "Kelola daftar tunggu pelanggan untuk slot booking penuh", onlyFor: FNB_SVC, requires: ["WAITLIST"] },
+      { to: "/pos-app/rental-availability",label: "Ketersediaan Rental",icon: CalendarDays, hint: "Kelola armada unit rental dan cek ketersediaan berdasarkan tanggal", onlyFor: SVC, requires: ["RENTAL_AVAILABILITY"] },
+      { to: "/pos-app/rental-checklist",   label: "Checklist Kondisi",  icon: ClipboardCheck, hint: "Dokumentasi kondisi unit sebelum & sesudah sewa + tanda tangan digital", onlyFor: SVC, requires: ["RENTAL_CHECKLIST"] },
+      { to: "/pos-app/rental-tnc",            label: "Syarat & Ketentuan",  icon: ScrollText, hint: "Kelola T&C sewa: deposit %, denda keterlambatan, dan teks syarat penuh", onlyFor: SVC, requires: ["RENTAL_TNC"] },
+      { to: "/pos-app/rental-deposit-config", label: "Konfigurasi Deposit", icon: Banknote, hint: "Atur deposit otomatis per unit rental — harga × durasi × % — RT-04", onlyFor: SVC, requires: ["RENTAL_DEPOSIT"] },
+      { to: "/pos-app/rental-extend",         label: "Perpanjangan Sewa",   icon: CalendarDays, hint: "Kelola permintaan perpanjangan sewa mandiri dari penyewa — RT-05", onlyFor: SVC, requires: ["RENTAL_EXTEND"] },
+      { to: "/pos-app/rental-fines",          label: "Denda Keterlambatan", icon: Clock, hint: "Hitung & tagih denda keterlambatan pengembalian unit rental — RT-07", onlyFor: SVC, requires: ["RENTAL_FINES"] },
+      { to: "/pos-app/rental-unit-ready",     label: "Notif Unit Siap",     icon: BellRing, hint: "Kirim notifikasi WhatsApp ke penyewa bahwa unit sudah siap diambil — RT-10", onlyFor: SVC, requires: ["RENTAL_UNIT_READY"] },
+      { to: "/pos-app/anamnesis",             label: "Anamnesis Digital",   icon: FileText, hint: "Form keluhan & riwayat medis pre-konsultasi — diisi oleh pasien — KL-02", onlyFor: SVC, requires: ["ANAMNESIS"] },
+      { to: "/pos-app/medical-invoice",       label: "Tagihan & Resep",     icon: Receipt, hint: "Buat tagihan & resep digital per pasien dengan tanda tangan dokter — KL-05", onlyFor: SVC, requires: ["MEDICAL_INVOICE"] },
+      { to: "/pos-app/followup-reminders",    label: "Reminder Kunjungan",  icon: Scissors, hint: "Reminder potong rambut (4 minggu) atau kontrol ulang klinik otomatis — SB-06/KL-07", onlyFor: FNB_SVC, requires: ["FOLLOWUP_REMINDERS"] },
+      { to: "/pos-app/milestones",            label: "Milestone & Escrow",  icon: Target, hint: "Kelola milestone proyek & escrow bayar bertahap untuk jasa digital — JU-06/JU-07", onlyFor: DIGITAL_SVC, requires: ["MILESTONES"] },
+      { to: "/pos-app/contracts",             label: "Kontrak Digital",     icon: ScrollText, hint: "Buat & tanda tangani kontrak freelance digital per order — JU-08", onlyFor: DIGITAL_SVC, requires: ["CONTRACTS"] },
+      { to: "/pos-app/booking-reminders",     label: "Reminder Booking",    icon: Bell, hint: "Kirim pengingat H-1 & H-3 via WhatsApp ke pelanggan", onlyFor: FNB_SVC, requires: ["BOOKING"] },
+      { to: "/pos-app/booking-reviews",   label: "Ulasan Booking",    icon: Star, hint: "Monitor ulasan & kirim pengingat WhatsApp minta ulasan ke pelanggan", onlyFor: FNB_SVC, requires: ["BOOKING"] },
+      { to: "/pos-app/booking-analytics", label: "Analitik Booking",  icon: BarChart3, hint: "Pantau pendapatan deposit, tingkat pembatalan, jam slot terpopuler & tren booking", onlyFor: FNB_SVC, requires: ["BOOKING"] },
+      { to: "/pos-app/studio-packages",      label: "Paket Sesi Foto",      icon: Camera, hint: "Buat paket sesi foto (Basic/Standard/Premium) — tampil di halaman booking klien", onlyFor: SVC, requires: ["STUDIO_PACKAGES"] },
+      { to: "/pos-app/studio-addons",        label: "Add-on Sesi Foto",     icon: Sparkles, hint: "Layanan tambahan yang bisa dipilih klien saat booking: editing ekstra, album cetak, video recap — SF-08", onlyFor: SVC, requires: ["STUDIO_ADDONS"] },
+      { to: "/pos-app/studio-brief",         label: "Brief Form Klien",     icon: ClipboardList, hint: "Kirim link form brief ke klien sebelum sesi — mood, lokasi, outfit, referensi", onlyFor: SVC, requires: ["STUDIO_BRIEF"] },
+      { to: "/pos-app/studio-delivery",      label: "Kirim Hasil Foto",     icon: FolderOpen, hint: "Kirim link Google Drive/WeTransfer ke klien via WhatsApp setelah sesi selesai", onlyFor: SVC, requires: ["STUDIO_DELIVERY"] },
+      { to: "/pos-app/studio-photo-reviews", label: "Ulasan Foto Klien",    icon: Star, hint: "Minta klien upload foto hasil sesi & tulis ulasan — tampil sebagai social proof di toko", onlyFor: SVC, requires: ["STUDIO_PACKAGES"] },
+      { to: "/pos-app/studio-locations",      label: "Lokasi Sesi Foto",     icon: Navigation, hint: "Kelola opsi lokasi sesi: studio, outdoor, atau lokasi klien — dengan biaya tambahan — SF-03", onlyFor: SVC, requires: ["STUDIO_PACKAGES"] },
+      { to: "/pos-app/patient-records",       label: "Rekam Medis Pasien",   icon: Stethoscope, hint: "Riwayat kunjungan, diagnosis, dan tindakan per pasien — KL-03", onlyFor: SVC, requires: ["PATIENT_RECORDS"] },
+      { to: "/pos-app/job-deliverables",      label: "Kirim Hasil Kerja",    icon: FolderOpen, hint: "Kirim file hasil pekerjaan ke klien lewat link aman — JU-05", onlyFor: DIGITAL_SVC, requires: ["JOB_DELIVERABLES"] },
+      { to: "/pos-app/service-bundles",       label: "Paket Layanan",        icon: Package, hint: "Bundle beberapa layanan jasa dalam 1 paket dengan harga lebih murah", onlyFor: SVC, requires: ["SERVICE_BUNDLES"] },
     ],
   },
   {
     id: "storefront",
     label: "Tampilan Toko",
     items: [
-      { to: "/pos-app/portfolio",     label: "Portofolio / Galeri",    icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli", onlyFor: SVC_CRAFT },
+      { to: "/pos-app/portfolio",     label: "Portofolio / Galeri",    icon: SlidersHorizontal, hint: "Tampilkan foto karya terbaikmu kepada calon pembeli", onlyFor: SVC_CRAFT, requires: ["PORTFOLIO"] },
       { to: "/pos-app/flash-sale",    label: "Flash Sale Terjadwal",   icon: Zap, hint: "Atur diskon kilat dengan countdown timer otomatis di marketplace" },
       { to: "/pos-app/happy-hour",    label: "Happy Hour",             icon: Clock, hint: "Atur diskon otomatis berdasarkan hari dan jam", onlyFor: FNB },
       { to: "/pos-app/bulk-pricing",  label: "Harga Grosir / Bulk",    icon: Layers, hint: "Harga bertingkat otomatis: beli lebih banyak, harga lebih murah" },
       { to: "/pos-app/upsell",        label: "Sering Dibeli Bersama",  icon: Layers, hint: "Atur produk rekomendasi 'sering dibeli bersama' — tingkatkan AOV" },
-      { to: "/pos-app/pre-orders",    label: "Pre-Order Mode",         icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch", onlyFor: [...FNB, "craft"] },
-      { to: "/pos-app/custom-orders", label: "Permintaan Custom",      icon: FileText, hint: "Kelola permintaan custom order dari pembeli", onlyFor: [...SVC_CRAFT, "fnb"] },
-      { to: "/pos-app/custom-order-quotes", label: "Estimasi Biaya Custom", icon: Calculator, hint: "Kirim estimasi biaya ke pembeli untuk custom order — pembeli setujui/tolak via WhatsApp", onlyFor: [...SVC_CRAFT, "fnb"] },
+      { to: "/pos-app/pre-orders",    label: "Pre-Order Mode",         icon: CalendarDays, hint: "Buka pesanan di muka — limited drop, catering, custom batch", onlyFor: [...FNB, "craft"], requires: ["PRE_ORDERS"] },
+      { to: "/pos-app/custom-orders", label: "Permintaan Custom",      icon: FileText, hint: "Kelola permintaan custom order dari pembeli", onlyFor: [...SVC_CRAFT, "fnb"], requires: ["CUSTOM_ORDER"] },
+      { to: "/pos-app/custom-order-quotes", label: "Estimasi Biaya Custom", icon: Calculator, hint: "Kirim estimasi biaya ke pembeli untuk custom order — pembeli setujui/tolak via WhatsApp", onlyFor: [...SVC_CRAFT, "fnb"], requires: ["CUSTOM_ORDER_QUOTES"] },
     ],
   },
   {
@@ -336,7 +337,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "settings",
     label: "Pengaturan Toko",
     items: [
-      { to: "/pos-app/table-qr",          label: "QR Code Meja",    icon: QrCode, onlyFor: FNB },
+      { to: "/pos-app/table-qr",          label: "QR Code Meja",    icon: QrCode, onlyFor: FNB, requires: ["TABLES"] },
       { to: "/pos-app/printers",          label: "Printer",          icon: Printer },
       { to: "/pos-app/appearance",        label: "Tampilan Toko",    icon: Palette },
       { to: "/pos-app/storefront-builder",label: "Storefront Builder",icon: LayoutDashboard },
@@ -588,6 +589,23 @@ function AppLayoutInner() {
     return visibleGroups[0]?.id ?? null;
   }, [visibleGroups, location.pathname]);
 
+  // Route-level guard: if user deep-links to a route whose `requires` is not
+  // satisfied by the shop's capabilities, render a friendly fallback instead of
+  // the page. Items without `requires` always pass.
+  const blockedItem = useMemo(() => {
+    if (!capabilities.ready || !capabilities.data) return null;
+    for (const g of NAV_GROUPS) {
+      for (const it of g.items) {
+        if (!it.requires || it.requires.length === 0) continue;
+        if (!matchItem(it, location.pathname)) continue;
+        if (!capabilities.hasAll(it.requires)) {
+          return { label: it.label, requires: it.requires };
+        }
+      }
+    }
+    return null;
+  }, [location.pathname, capabilities.ready, capabilities.data, capabilities]);
+
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   useEffect(() => {
@@ -783,7 +801,17 @@ function AppLayoutInner() {
           <ErrorBoundary>
             <OwnerReminderBanner />
           </ErrorBoundary>
-          <Outlet />
+          {blockedItem ? (
+            <div className="p-6">
+              <FeatureBlocked
+                label={blockedItem.label}
+                requires={blockedItem.requires}
+                categoryName={capabilities.data?.categoryName ?? null}
+              />
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
       <CommandPaletteOwner />
@@ -794,6 +822,41 @@ function AppLayoutInner() {
 function CommandPaletteOwner() {
   const { open, setOpen } = useCommandPalette();
   return <CommandPalette open={open} onClose={() => setOpen(false)} role="owner" />;
+}
+
+function FeatureBlocked({
+  label,
+  requires,
+  categoryName,
+}: {
+  label: string;
+  requires: FeatureKey[];
+  categoryName: string | null;
+}) {
+  const featLabel = requires.map((k) => FEATURE_LABEL[k] ?? k).join(" / ");
+  return (
+    <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-xl border border-dashed bg-card p-8 text-center">
+      <div className="rounded-full bg-muted p-3">
+        <Lock className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold">{label} tidak tersedia</h2>
+        <p className="text-sm text-muted-foreground">
+          Fitur <strong>{featLabel}</strong> tidak aktif untuk kategori
+          {categoryName ? <> <em>{categoryName}</em></> : " toko Anda"}.
+          Owner dapat mengaktifkannya lewat pengaturan toko jika diperlukan.
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/pos-app">Kembali ke Dashboard</Link>
+        </Button>
+        <Button asChild size="sm">
+          <Link to="/pos-app/settings">Pengaturan Toko</Link>
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function OutletSwitcher({ shopName }: { shopName?: string }) {

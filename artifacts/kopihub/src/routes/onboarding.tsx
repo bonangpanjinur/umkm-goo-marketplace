@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
+import { FEATURE_LABEL, FLOW_TYPE_LABEL, type FeatureKey, type FlowType } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
@@ -43,7 +44,14 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   other: Package,
 };
 
-type CategoryRow = { id: string; slug: string; name: string; description: string | null };
+type CategoryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  enabled_features?: string[] | null;
+  flow_types?: string[] | null;
+};
 
 const STEPS = [
   { id: 1, label: "Profil Toko" },
@@ -90,7 +98,7 @@ function OnboardingPage() {
     setCategoriesError(null);
     const { data, error } = await supabase
       .from("business_categories")
-      .select("id, slug, name, description")
+      .select("id, slug, name, description, enabled_features, flow_types")
       .eq("is_active", true)
       .order("sort_order");
     if (error) {
@@ -372,6 +380,49 @@ function OnboardingPage() {
                 })}
               </div>
             )}
+            {(() => {
+              const selected = categories.find((c) => c.slug === categoryId);
+              if (!selected) return null;
+              const feats = (selected.enabled_features ?? []) as FeatureKey[];
+              const flows = (selected.flow_types ?? []) as FlowType[];
+              if (feats.length === 0 && flows.length === 0) return null;
+              const labeled = feats
+                .map((k) => FEATURE_LABEL[k])
+                .filter(Boolean) as string[];
+              const previewFeats = labeled.slice(0, 10);
+              const more = labeled.length - previewFeats.length;
+              return (
+                <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <Check className="h-4 w-4 text-primary" />
+                    Fitur yang akan aktif untuk {selected.name}
+                  </div>
+                  {flows.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {flows.map((f) => (
+                        <span key={f} className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                          {FLOW_TYPE_LABEL[f]}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {previewFeats.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {previewFeats.map((label) => (
+                        <span key={label} className="rounded-md bg-background px-2 py-0.5 text-xs text-muted-foreground border">
+                          ✓ {label}
+                        </span>
+                      ))}
+                      {more > 0 && (
+                        <span className="rounded-md bg-background px-2 py-0.5 text-xs text-muted-foreground border">
+                          +{more} lainnya
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <div className="flex gap-3">
               <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setStep(1)}>
                 <ChevronLeft className="h-4 w-4" /> Kembali
