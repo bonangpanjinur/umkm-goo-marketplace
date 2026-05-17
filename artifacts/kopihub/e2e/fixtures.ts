@@ -167,11 +167,27 @@ export type SeverityRules = {
   ignoreNetwork?: RegExp[];
   /** Pola pesan tambahan yang di-ignore di console.warn/error. */
   ignoreMessages?: RegExp[];
+  /**
+   * Pola pesan console.warn yang DI-ESKALASI menjadi fatal,
+   * walau base `consoleWarn` di-set 'off' atau 'warn'.
+   * Contoh: [/React does not recognize/i, /Each child in a list should have a unique "key"/i]
+   */
+  consoleWarnFatalPatterns?: RegExp[];
+  /** Sama untuk console.error — paksa jadi fatal hanya kalau match. */
+  consoleErrorFatalPatterns?: RegExp[];
+  /** Sama untuk network — paksa jadi fatal hanya kalau URL match. */
+  networkFatalPatterns?: RegExp[];
 };
 
-export const DEFAULT_SEVERITY: Required<Omit<SeverityRules, "ignoreNetwork" | "ignoreMessages">> & {
+export const DEFAULT_SEVERITY: Required<Omit<SeverityRules,
+  "ignoreNetwork" | "ignoreMessages" |
+  "consoleWarnFatalPatterns" | "consoleErrorFatalPatterns" | "networkFatalPatterns"
+>> & {
   ignoreNetwork: RegExp[];
   ignoreMessages: RegExp[];
+  consoleWarnFatalPatterns: RegExp[];
+  consoleErrorFatalPatterns: RegExp[];
+  networkFatalPatterns: RegExp[];
 } = {
   consoleError: "fatal",
   consoleWarn: "off",
@@ -185,6 +201,9 @@ export const DEFAULT_SEVERITY: Required<Omit<SeverityRules, "ignoreNetwork" | "i
     /\.map(\?|$)/i,
   ],
   ignoreMessages: [],
+  consoleWarnFatalPatterns: [],
+  consoleErrorFatalPatterns: [],
+  networkFatalPatterns: [],
 };
 
 /**
@@ -228,9 +247,21 @@ export function installErrorCapture(
     network: rules.network ?? DEFAULT_SEVERITY.network,
     ignoreNetwork: [...DEFAULT_SEVERITY.ignoreNetwork, ...(rules.ignoreNetwork ?? [])],
     ignoreMessages: [...(rules.ignoreMessages ?? [])],
+    consoleWarnFatalPatterns: [...(rules.consoleWarnFatalPatterns ?? [])],
+    consoleErrorFatalPatterns: [...(rules.consoleErrorFatalPatterns ?? [])],
+    networkFatalPatterns: [...(rules.networkFatalPatterns ?? [])],
   };
 
   const entries: CaptureEntry[] = [];
+
+  /**
+   * Tentukan severity efektif: kalau pesan match `fatalPatterns`,
+   * paksa jadi 'fatal' tanpa peduli base severity (termasuk 'off').
+   */
+  function resolveSeverity(base: Severity, message: string, fatalPatterns: RegExp[]): Severity {
+    if (fatalPatterns.some((re) => re.test(message))) return "fatal";
+    return base;
+  }
 
   function push(kind: CaptureEntry["kind"], sev: Severity, message: string) {
     if (sev === "off") return;
@@ -242,14 +273,17 @@ export function installErrorCapture(
     if (type !== "error" && type !== "warning") return;
     const text = msg.text();
     if (!isFatalMessage(text, cfg.ignoreMessages)) return;
-    if (type === "error") push("console.error", cfg.consoleError, text);
-    else push("console.warn", cfg.consoleWarn, text);
+    if (type === "error") {
+      push("console.error", resolveSeverity(cfg.consoleError, text, cfg.consoleErrorFatalPatterns), text);
+    } else {
+      push("console.warn", resolveSeverity(cfg.consoleWarn, text, cfg.consoleWarnFatalPatterns), text);
+    }
   });
 
   page.on("pageerror", (err) => {
     const text = `${err.name}: ${err.message}`;
     if (isFatalMessage(text, cfg.ignoreMessages)) {
-      push("pageerror", cfg.consoleError, text);
+      push("pageerror", resolveSeverity(cfg.consoleError, text, cfg.consoleErrorFatalPatterns), text);
     }
   });
 
@@ -258,7 +292,8 @@ export function installErrorCapture(
     const url = req.url();
     if (cfg.ignoreNetwork.some((re) => re.test(url))) return;
     const reason = req.failure()?.errorText ?? "unknown";
-    push("network", cfg.network, `${req.method()} ${url} failed: ${reason}`);
+    const msg = `${req.method()} ${url} failed: ${reason}`;
+    push("network", resolveSeverity(cfg.network, url, cfg.networkFatalPatterns), msg);
   });
 
   page.on("response", (res) => {
@@ -266,7 +301,8 @@ export function installErrorCapture(
     if (cfg.ignoreNetwork.some((re) => re.test(url))) return;
     const status = res.status();
     if (status >= 500) {
-      push("network", cfg.network, `${res.request().method()} ${url} → ${status}`);
+      const msg = `${res.request().method()} ${url} → ${status}`;
+      push("network", resolveSeverity(cfg.network, url, cfg.networkFatalPatterns), msg);
     }
   });
 
