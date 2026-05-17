@@ -653,20 +653,7 @@ function ProductDetailPage() {
         )}
       </div>
       <MarketplaceFooter />
-      {shop && (
-        <Link
-          to="/toko/$slug/chat"
-          params={{ slug: shop.slug }}
-          aria-label="Chat dengan toko"
-          className="fixed bottom-6 right-6 z-40 group flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-2xl shadow-primary/40 ring-4 ring-primary/15 transition-all hover:scale-105 hover:shadow-primary/60 active:scale-95"
-        >
-          <span className="relative flex h-6 w-6 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-primary-foreground/30 animate-ping" />
-            <MessageCircle className="relative h-6 w-6" />
-          </span>
-          <span className="hidden sm:inline text-sm font-semibold pr-1">Chat Toko</span>
-        </Link>
-      )}
+      {shop && product && <StickyActionBar product={product} shop={shop} qty={cartQty} />}
     </div>
   );
 }
