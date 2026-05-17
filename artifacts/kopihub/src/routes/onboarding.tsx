@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
+import { FEATURE_LABEL, FLOW_TYPE_LABEL, type FeatureKey, type FlowType } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
