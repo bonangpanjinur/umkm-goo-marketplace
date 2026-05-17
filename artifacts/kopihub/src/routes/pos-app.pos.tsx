@@ -396,7 +396,7 @@ function POSPage() {
     toast.error(`Barcode "${trimmed}" tidak ditemukan`);
   }
 
-
+  const addCartTab = () => {
     if (carts.length >= MAX_CARTS) {
       toast.error(`Maksimal ${MAX_CARTS} tab cart aktif`);
       return;
