@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type OrderStatus = Database["public"]["Enums"]["order_status"];
 import { useCurrentShop } from "@/lib/use-shop";
 import { logStaffAction } from "@/lib/staff-audit";
 import { useAuth } from "@/lib/auth";
@@ -155,7 +158,7 @@ function OrdersPage() {
     const ids = Array.from(checkedIds);
     const { error } = await supabase
       .from("orders")
-      .update({ status } as any)
+      .update({ status: status as OrderStatus })
       .in("id", ids);
     if (error) { toast.error(error.message); } else {
       toast.success(`${checkedIds.size} pesanan diperbarui ke status "${status}"`);
@@ -485,7 +488,7 @@ function DetailDialog({
     try {
       const { error } = await supabase
         .from("orders")
-        .update({ status: "cancelled" } as any)
+        .update({ status: "cancelled" satisfies OrderStatus })
         .eq("id", order.id);
       if (error) { toast.error(error.message); throw error; }
       logStaffAction({

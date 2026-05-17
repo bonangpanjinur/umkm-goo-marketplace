@@ -77,6 +77,8 @@ type LocalCart = {
   label: string;
   items: CartItem[];
   discount: number;
+  /** Stable idempotency key for the current checkout attempt. */
+  idemKey?: string | null;
 };
 
 const MAX_CARTS = 6;
@@ -458,11 +460,11 @@ function POSPage() {
 
     try {
       // Stable idempotency key per cart attempt — survives retries.
-      const idemKey = (cart as any).idemKey
+      const idemKey = cart.idemKey
         ?? (typeof crypto !== "undefined" && crypto.randomUUID
               ? crypto.randomUUID()
               : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-      if (!(cart as any).idemKey) updateCart((c) => ({ ...(c as any), idemKey } as any));
+      if (!cart.idemKey) updateCart((c) => ({ ...c, idemKey }));
 
       const result = await submitCheckout({
         shop_id: shop!.id,

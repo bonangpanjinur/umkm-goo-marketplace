@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -227,16 +228,16 @@ function MenuPage() {
     setFlashStarts(toLocalInput(it.flash_starts_at));
     setFlashEnds(toLocalInput(it.flash_ends_at));
     setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
-    setSkinTypeTags((it as any).skin_type_tags ?? []);
+    setSkinTypeTags(it.skin_type_tags ?? []);
     setRestockDeadline(it.restock_deadline ?? "");
-    const ni = (it as any).nutrition_info ?? {};
+    const ni = it.nutrition_info ?? {};
     setNutritionCal(ni.calories != null ? String(ni.calories) : "");
     setNutritionProtein(ni.protein != null ? String(ni.protein) : "");
     setNutritionCarbs(ni.carbs != null ? String(ni.carbs) : "");
     setNutritionFat(ni.fat != null ? String(ni.fat) : "");
     setNutritionFiber(ni.fiber != null ? String(ni.fiber) : "");
-    setProductionDays((it as any).production_days != null ? String((it as any).production_days) : "");
-    setConditionGrade((it as any).condition_grade ?? "");
+    setProductionDays(it.production_days != null ? String(it.production_days) : "");
+    setConditionGrade(it.condition_grade ?? "");
     setAiTags([]);
     setOpen(true);
   }
@@ -465,7 +466,7 @@ function MenuPage() {
       } : null,
       production_days: productionDays ? Number(productionDays) : null,
       condition_grade: conditionGrade || null,
-    } as any;
+    } as unknown as TablesInsert<"menu_items">;
     if (editing) {
       const oldPrice = editing.price;
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
@@ -1133,10 +1134,10 @@ function MenuPage() {
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <span className="text-sm font-medium">{formatIDR(it.price)}</span>
-                    {(it as any).condition_grade && (
+                    {it.condition_grade && (
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                        title={`Pre-loved Kondisi ${(it as any).condition_grade}`}>
-                        ♻️ Kond. {(it as any).condition_grade}
+                        title={`Pre-loved Kondisi ${it.condition_grade}`}>
+                        ♻️ Kond. {it.condition_grade}
                       </span>
                     )}
                     {hasHpp && (
