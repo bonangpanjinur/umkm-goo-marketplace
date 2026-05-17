@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Palette, Plus, Trash2, Loader2, Eye, EyeOff, RefreshCw, Clock } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/pos-app/wip-gallery")({
   head: () => ({ meta: [{ title: "Galeri Proses Pembuatan" }] }),
