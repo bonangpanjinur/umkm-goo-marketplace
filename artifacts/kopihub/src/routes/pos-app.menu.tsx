@@ -263,6 +263,8 @@ function MenuPage() {
     setAllergens(it.allergens ?? []);
     setIsHalal(Boolean(it.is_halal));
     setAvailableModes(it.available_modes ?? []);
+    setSku(it.sku ?? "");
+    setBarcode(it.barcode ?? "");
     setAiTags([]);
     setOpen(true);
   }
