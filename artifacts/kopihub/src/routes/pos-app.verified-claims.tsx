@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ShieldCheck, Plus, Pencil, Trash2, Loader2, CheckCircle2, Upload, Info, RefreshCw, Award, X } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/pos-app/verified-claims")({
   head: () => ({ meta: [{ title: "Klaim Verifikasi Produk" }] }),
