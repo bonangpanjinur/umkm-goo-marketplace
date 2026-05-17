@@ -123,6 +123,9 @@ function PatientRecordsPage() {
       allergies: p.allergies ?? "",
       medical_history: p.medical_history ?? "",
       notes: p.notes ?? "",
+      nik: p.nik ?? "",
+      bpjs_number: p.bpjs_number ?? "",
+      payer_type: p.payer_type ?? "",
     });
     setPOpen(true);
   };
@@ -140,6 +143,9 @@ function PatientRecordsPage() {
       allergies: pForm.allergies.trim() || null,
       medical_history: pForm.medical_history.trim() || null,
       notes: pForm.notes.trim() || null,
+      nik: pForm.nik.trim() || null,
+      bpjs_number: pForm.bpjs_number.trim() || null,
+      payer_type: pForm.payer_type || null,
     };
     try {
       if (editingP) {
@@ -176,6 +182,8 @@ function PatientRecordsPage() {
       treatment: v.treatment ?? "",
       prescription: v.prescription ?? "",
       notes: v.notes ?? "",
+      icd10_code: v.icd10_code ?? "",
+      icd10_label: v.icd10_label ?? "",
     });
     setVOpen(true);
   };
@@ -192,6 +200,8 @@ function PatientRecordsPage() {
       treatment: vForm.treatment.trim() || null,
       prescription: vForm.prescription.trim() || null,
       notes: vForm.notes.trim() || null,
+      icd10_code: vForm.icd10_code || null,
+      icd10_label: vForm.icd10_label || null,
     };
     try {
       if (editingV) {
