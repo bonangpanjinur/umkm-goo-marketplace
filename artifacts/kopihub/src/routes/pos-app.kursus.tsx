@@ -618,10 +618,16 @@ function KursusPage() {
             </>
           )}
           {view === "modules" && (
-            <Button size="sm" onClick={openNewModule}>
-              <Plus className="h-4 w-4 mr-1.5" />
-              Tambah Modul
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={openPreview} disabled={modules.length === 0}>
+                <PlayCircle className="h-4 w-4 mr-1.5" />
+                Preview
+              </Button>
+              <Button size="sm" onClick={openNewModule}>
+                <Plus className="h-4 w-4 mr-1.5" />
+                Tambah Modul
+              </Button>
+            </>
           )}
         </div>
       </div>
