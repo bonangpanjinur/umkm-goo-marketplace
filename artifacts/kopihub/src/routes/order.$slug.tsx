@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useParams, notFound, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Coffee, ShoppingBag, ScanQrCode } from "lucide-react";
+import { Store, ShoppingBag, ScanQrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { readCart, cartCount } from "@/lib/customer-cart";
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ function DineInLayout() {
               {shop.logo_url ? (
                 <img src={shop.logo_url} alt="" className="h-full w-full object-cover" />
               ) : (
-                <Coffee className="h-4 w-4" />
+                <Store className="h-4 w-4" />
               )}
             </div>
             <div className="min-w-0">

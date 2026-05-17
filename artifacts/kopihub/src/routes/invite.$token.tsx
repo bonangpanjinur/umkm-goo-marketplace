@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Coffee, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Store, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({
@@ -83,7 +83,7 @@ function AcceptInvitationPage() {
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
         <div className="mb-6 flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Coffee className="h-5 w-5" />
+            <Store className="h-5 w-5" />
           </div>
           <span className="text-sm font-semibold">UMKMgo</span>
         </div>

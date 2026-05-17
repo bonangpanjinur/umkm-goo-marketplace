@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Coffee, ScanQrCode, BellRing, CheckCircle2 } from "lucide-react";
+import { Search, Plus, Store, ScanQrCode, BellRing, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/order/$slug/")({
   component: DineInMenuPage,
@@ -227,7 +227,7 @@ function DineInMenuPage() {
       {/* Menu Grid */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Coffee className="h-12 w-12 text-muted-foreground mb-3" />
+          <Store className="h-12 w-12 text-muted-foreground mb-3" />
           <p className="text-muted-foreground text-sm">
             {q ? `Tidak ada menu yang cocok dengan "${q}"` : "Menu belum tersedia"}
           </p>
@@ -249,7 +249,7 @@ function DineInMenuPage() {
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
-                    <Coffee className="h-8 w-8 text-muted-foreground/30" />
+                    <Store className="h-8 w-8 text-muted-foreground/30" />
                   </div>
                 )}
               </div>

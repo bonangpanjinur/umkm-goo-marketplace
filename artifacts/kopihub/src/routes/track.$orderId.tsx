@@ -2,7 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatIDR } from "@/lib/format";
-import { Coffee, Check, Loader2, Phone, MapPin } from "lucide-react";
+import { Store, Check, Loader2, Phone, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/track/$orderId")({
   component: TrackPage,
@@ -105,7 +105,7 @@ function TrackPage() {
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Coffee className="h-4 w-4" />
+            <Store className="h-4 w-4" />
           </div>
           <div>
             <p className="text-sm font-semibold">{data.shop_name}</p>
