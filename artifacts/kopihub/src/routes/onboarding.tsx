@@ -288,6 +288,22 @@ function OnboardingPage() {
     navigate({ to: "/pos-app" });
   };
 
+  const handleSeed = async () => {
+    if (!shopId || !categoryId || seeding || seeded) return;
+    setSeeding(true);
+    try {
+      const res = await seedSampleData(shopId, categoryId);
+      setSeeded(res);
+      const total = res.items + res.bundles;
+      if (total > 0) toast.success(`Contoh data ditambahkan (${total} item)`);
+      else toast.info("Tidak ada contoh data untuk kategori ini");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Gagal menambahkan contoh data");
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   if (loading || checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
