@@ -122,7 +122,17 @@ function OnboardingPage() {
   };
 
   const submitStep2 = () => {
+    if (categories.length === 0) {
+      toast.error("Daftar kategori belum siap, mohon tunggu sebentar");
+      return;
+    }
     if (!categoryId) { toast.error("Pilih kategori bisnis"); return; }
+    const valid = categories.some(c => c.slug === categoryId);
+    if (!valid) {
+      toast.error("Kategori tidak valid, pilih dari daftar yang tersedia");
+      setCategoryId("");
+      return;
+    }
     setStep(3);
   };
 
@@ -138,7 +148,15 @@ function OnboardingPage() {
         .from("business_categories")
         .select("id")
         .eq("slug", categoryId)
+        .eq("is_active", true)
         .maybeSingle();
+      if (!cat?.id) {
+        setBusy(false);
+        setStep(2);
+        setCategoryId("");
+        toast.error("Kategori tidak ditemukan, silakan pilih ulang");
+        return;
+      }
 
       const { data: shop, error: shopErr } = await supabase
         .from("shops")
@@ -147,7 +165,7 @@ function OnboardingPage() {
           name: shopName.trim(),
           slug,
           description: description.trim() || null,
-          business_category_id: cat?.id ?? null,
+          business_category_id: cat.id,
         } as any)
         .select("id")
         .single();
