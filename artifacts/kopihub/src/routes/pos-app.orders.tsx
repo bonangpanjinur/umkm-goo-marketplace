@@ -144,14 +144,12 @@ function OrdersPage() {
     }
   }
 
-  async function bulkUpdateStatus(status: string) {
+  async function bulkUpdateStatus(status: string, reason = "") {
     if (checkedIds.size === 0) { toast.error("Pilih pesanan terlebih dahulu"); return; }
     const isSensitive = status === "voided" || status === "cancelled" || status === "refunded";
-    let reason = "";
-    if (isSensitive) {
-      const input = prompt(`Alasan ${status} (wajib untuk audit):`)?.trim() ?? "";
-      if (!input) { toast.error("Alasan wajib diisi untuk aksi sensitif"); return; }
-      reason = input;
+    if (isSensitive && !reason) {
+      setBulkReasonFor(status as "voided" | "cancelled" | "refunded");
+      return;
     }
     setBulkUpdating(true);
     const ids = Array.from(checkedIds);
