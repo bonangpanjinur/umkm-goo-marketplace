@@ -165,7 +165,7 @@ function OnboardingPage() {
           name: shopName.trim(),
           slug,
           description: description.trim() || null,
-          business_category_id: cat?.id ?? null,
+          business_category_id: cat.id,
         } as any)
         .select("id")
         .single();
