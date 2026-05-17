@@ -3050,7 +3050,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 | ~~F-16 Fase 3: Konsolidasi config deposit~~ | ✅ Selesai 17 Mei 2026 | — |
 | ~~F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log~~ | ✅ Selesai 17 Mei 2026 (E2E test menunggu Fase 6) | — |
 | F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
-| F-16 Fase 5: Hardening RLS `USING(true)`, `search_path`, public bucket listing, extensions schema | Security | 1 hari |
+| ~~F-16 Fase 5: Hardening RLS, search_path, public bucket listing~~ | ✅ Selesai 17 Mei 2026 (linter 221→208). Backlog: pg_net schema move + REVOKE EXECUTE SECURITY DEFINER | — |
 | SA-05 Konfigurasi Booking per Kategori (toggle T3/T4 default) | Super Admin | 1 hari |
 | SF-04 Portfolio publik studio foto | Studio Foto | 1 hari |
 | SF-03 Pilih lokasi sesi (studio/outdoor/lokasi klien) | Studio Foto | 0.5 hari |
