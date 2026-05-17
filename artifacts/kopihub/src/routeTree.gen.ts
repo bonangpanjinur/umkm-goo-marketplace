@@ -127,6 +127,7 @@ import { Route as PosAppKitchenLoadRouteImport } from './routes/pos-app.kitchen-
 import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
 import { Route as PosAppJobDeliverablesRouteImport } from './routes/pos-app.job-deliverables'
+import { Route as PosAppJamaahDocumentsRouteImport } from './routes/pos-app.jamaah-documents'
 import { Route as PosAppInvoiceRouteImport } from './routes/pos-app.invoice'
 import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
 import { Route as PosAppInboxRouteImport } from './routes/pos-app.inbox'
@@ -886,6 +887,11 @@ const PosAppKdsRoute = PosAppKdsRouteImport.update({
 const PosAppJobDeliverablesRoute = PosAppJobDeliverablesRouteImport.update({
   id: '/job-deliverables',
   path: '/job-deliverables',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppJamaahDocumentsRoute = PosAppJamaahDocumentsRouteImport.update({
+  id: '/jamaah-documents',
+  path: '/jamaah-documents',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppInvoiceRoute = PosAppInvoiceRouteImport.update({
@@ -1868,6 +1874,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
+  '/pos-app/jamaah-documents': typeof PosAppJamaahDocumentsRoute
   '/pos-app/job-deliverables': typeof PosAppJobDeliverablesRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
@@ -2148,6 +2155,7 @@ export interface FileRoutesByTo {
   '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
+  '/pos-app/jamaah-documents': typeof PosAppJamaahDocumentsRoute
   '/pos-app/job-deliverables': typeof PosAppJobDeliverablesRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
@@ -2433,6 +2441,7 @@ export interface FileRoutesById {
   '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
+  '/pos-app/jamaah-documents': typeof PosAppJamaahDocumentsRoute
   '/pos-app/job-deliverables': typeof PosAppJobDeliverablesRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
@@ -2720,6 +2729,7 @@ export interface FileRouteTypes {
     | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
+    | '/pos-app/jamaah-documents'
     | '/pos-app/job-deliverables'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
@@ -3000,6 +3010,7 @@ export interface FileRouteTypes {
     | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
+    | '/pos-app/jamaah-documents'
     | '/pos-app/job-deliverables'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
@@ -3284,6 +3295,7 @@ export interface FileRouteTypes {
     | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
+    | '/pos-app/jamaah-documents'
     | '/pos-app/job-deliverables'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
@@ -4290,6 +4302,13 @@ declare module '@tanstack/react-router' {
       path: '/job-deliverables'
       fullPath: '/pos-app/job-deliverables'
       preLoaderRoute: typeof PosAppJobDeliverablesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/jamaah-documents': {
+      id: '/pos-app/jamaah-documents'
+      path: '/jamaah-documents'
+      fullPath: '/pos-app/jamaah-documents'
+      preLoaderRoute: typeof PosAppJamaahDocumentsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/invoice': {
@@ -5794,6 +5813,7 @@ interface PosAppRouteChildren {
   PosAppInboxRoute: typeof PosAppInboxRoute
   PosAppInventoryRoute: typeof PosAppInventoryRoute
   PosAppInvoiceRoute: typeof PosAppInvoiceRoute
+  PosAppJamaahDocumentsRoute: typeof PosAppJamaahDocumentsRoute
   PosAppJobDeliverablesRoute: typeof PosAppJobDeliverablesRoute
   PosAppKdsRoute: typeof PosAppKdsRoute
   PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
@@ -5933,6 +5953,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppInboxRoute: PosAppInboxRoute,
   PosAppInventoryRoute: PosAppInventoryRoute,
   PosAppInvoiceRoute: PosAppInvoiceRoute,
+  PosAppJamaahDocumentsRoute: PosAppJamaahDocumentsRoute,
   PosAppJobDeliverablesRoute: PosAppJobDeliverablesRoute,
   PosAppKdsRoute: PosAppKdsRoute,
   PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
