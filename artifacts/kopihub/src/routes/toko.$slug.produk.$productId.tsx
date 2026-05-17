@@ -8,7 +8,7 @@ import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingD
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-import { addToCart, cartCount as fetchCartCount } from "@/lib/marketplace-cart";
+import { addToCart, cartQuantitySum } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ProductReviews } from "@/components/marketplace/ProductReviews";
@@ -1396,7 +1396,8 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
 
   const refreshCount = async () => {
     try {
-      const n = await fetchCartCount();
+      // Hanya hitung item dari toko yang sedang dilihat (cart aktif untuk shop ini)
+      const n = await cartQuantitySum(product.shop_id);
       setCartTotal(n);
     } catch {
       setCartTotal(null);
@@ -1417,7 +1418,7 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
       window.removeEventListener("kh-cart-change", onLocal);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, product.shop_id]);
 
   const effectivePrice = (() => {
     const now = Date.now();

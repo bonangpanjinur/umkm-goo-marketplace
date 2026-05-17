@@ -94,13 +94,26 @@ export function getLastCartActivity(): number | null {
 }
 
 export async function cartCount(): Promise<number> {
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) return 0;
-  const { count } = await supabase
+  return cartQuantitySum();
+}
+
+/**
+ * Jumlah total qty di cart aktif user (sum quantity, bukan jumlah baris).
+ * Filter `shopId` opsional — gunakan untuk badge per-toko agar tidak
+ * mengakumulasi item dari toko lain pada satu user (multi-shop di satu cart).
+ */
+export async function cartQuantitySum(shopId?: string): Promise<number> {
+  const { data: session } = await supabase.auth.getSession();
+  if (!session.session) return 0;
+  const cart_id = await getOrCreateCartId();
+  let q = supabase
     .from("marketplace_cart_items")
-    .select("id", { count: "exact", head: true })
-    .eq("cart_id", await getOrCreateCartId());
-  return count ?? 0;
+    .select("quantity, shop_id")
+    .eq("cart_id", cart_id);
+  if (shopId) q = q.eq("shop_id", shopId);
+  const { data, error } = await q;
+  if (error || !data) return 0;
+  return (data as { quantity: number }[]).reduce((s, r) => s + Number(r.quantity ?? 0), 0);
 }
 
 export type DeliveryZone = {
