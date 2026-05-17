@@ -647,13 +647,12 @@ export default function PublicBookingPage() {
     }
   };
 
+  // Truth source = webhook (api-server `/api/payments/webhook/midtrans`).
+  // Client TIDAK lagi menulis `deposit_status='paid'` langsung — hanya update UI lokal.
+  // Server status dipanggil via `getPaymentStatus` di polling untuk konfirmasi.
   const markDepositPaid = async (txId?: string) => {
     if (!bookingId || bookingId === "ok") { setStep("success"); return; }
     try {
-      await supabase
-        .from("bookings" as any)
-        .update({ deposit_status: "paid" } as any)
-        .eq("id" as any, bookingId);
       if (shop?.id) {
         await supabase.from("owner_notifications" as any).insert({
           shop_id: shop.id,
@@ -694,8 +693,8 @@ export default function PublicBookingPage() {
           price: depositAmount,
           quantity: 1,
         }],
-        success_redirect_url: window.location.href,
-        failure_redirect_url: window.location.href,
+        success_redirect_url: `${window.location.origin}/booking/${bookingId}/payment-callback`,
+        failure_redirect_url: `${window.location.origin}/booking/${bookingId}/payment-callback`,
       });
 
       if (result.gateway === "midtrans" && result.snap_token) {

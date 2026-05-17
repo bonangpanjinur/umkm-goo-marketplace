@@ -110,7 +110,7 @@
 
 | # | Kode | Fitur | Estimasi | Catatan |
 |---|---|---|---|---|
-| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-5 ✅ (code align + seed + konsolidasi config + cron auto-cancel + hardening RLS/storage) · Fase 6 ❌ (Midtrans Snap init) — lihat **BAGIAN F** |
+| 1 | F-16 | Deposit via Payment Gateway (booking) | ✅ Selesai 17 Mei 2026 (Fase 1-6 lengkap) — lihat **BAGIAN F** |
 | 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
@@ -283,12 +283,14 @@ Catatan kompat skema:
 - 🔧 Hasil linter turun **221 → 208 warning** (-13).
 - ❌ Backlog Fase 5 lanjutan: (a) pindahkan `pg_net` dari schema `public` ke `extensions` (perlu update semua cron command `net.http_post` → `extensions.net.http_post`); (b) audit `SECURITY DEFINER` functions yang executable oleh `anon` — `REVOKE EXECUTE ... FROM anon, authenticated` untuk yang hanya dipanggil dari server.
 
-### F.6 Fase 6 — Midtrans Snap Client Init ❌ Belum
+### F.6 Fase 6 — Midtrans Snap Client Init ✅ Selesai 17 Mei 2026
 
-- Server fn `initBookingDeposit({ bookingId })` (auth-protected) → buat `payment_intents` row + panggil Midtrans `charge` API → return `snap_token`.
-- Client `toko.$slug.booking.tsx` setelah submit booking dengan `deposit_required=true`: load `snap.js`, `snap.pay(token, { onSuccess, onPending, onError })`.
-- Redirect handler `/booking/$id/payment-callback` → tampilkan status saja; **truth tetap webhook** (`api-server/src/routes/payments.ts`).
-- Hapus `markDepositPaid` dari client (B5 fix). Hanya owner POS yang bisa override manual via tombol "Tandai DP Lunas (manual)" dengan log audit.
+- ✅ Snap.js client di-load otomatis di `toko.$slug.booking.tsx` (script tag `https://app.sandbox.midtrans.com/snap/snap.js` atau production) saat config `/api/payments/gateway-config` mengembalikan `midtrans_enabled=true`.
+- ✅ Server fn / route `/api/payments/initiate` (api-server) sudah berfungsi: membuat `payment_intents`, memanggil Midtrans `charge` Snap API, mengembalikan `snap_token` + `transaction_id`. Client memanggil `snap.pay(token, { onSuccess, onPending, onError, onClose })` via helper `openMidtransSnap`.
+- ✅ Redirect handler baru: `src/routes/booking.$id.payment-callback.tsx` — halaman status-only yang polling `/api/payments/:orderId/status` (interval 3 dtk, maks 60 dtk) lalu menampilkan paid / pending / failed. TIDAK menulis ke DB.
+- ✅ Client `markDepositPaid` di `toko.$slug.booking.tsx` di-refactor: tidak lagi `UPDATE bookings SET deposit_status='paid'` dari client. Truth source = webhook `/api/payments/webhook/midtrans` (api-server). Client hanya update UI state + insert `owner_notifications` (best-effort).
+- ✅ Owner manual override di `pos-app.booking.tsx` (tombol "Verifikasi") sekarang: (a) tampilkan confirm dialog, (b) tulis `staff_audit_logs` action `booking.deposit.mark_paid_manual` dengan meta `{ booking_id, deposit_amount }` via helper `logStaffAction`.
+- ❌ E2E test (happy path Midtrans sandbox + signature invalid + double-callback + timeout > 24 jam) masih masuk backlog — butuh credential sandbox dari merchant.
 
 ### F.7 Backlog Berikutnya (Prioritas Sedang yang masih ❌)
 
@@ -3049,7 +3051,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 |------|-------|----------|
 | ~~F-16 Fase 3: Konsolidasi config deposit~~ | ✅ Selesai 17 Mei 2026 | — |
 | ~~F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log~~ | ✅ Selesai 17 Mei 2026 (E2E test menunggu Fase 6) | — |
-| F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
+| ~~F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid`~~ | ✅ Selesai 17 Mei 2026 | — |
 | ~~F-16 Fase 5: Hardening RLS, search_path, public bucket listing~~ | ✅ Selesai 17 Mei 2026 (linter 221→208). Backlog: pg_net schema move + REVOKE EXECUTE SECURITY DEFINER | — |
 | SA-05 Konfigurasi Booking per Kategori (toggle T3/T4 default) | Super Admin | 1 hari |
 | SF-04 Portfolio publik studio foto | Studio Foto | 1 hari |
@@ -3074,6 +3076,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 | F-16 Webhook idempotency fix | Payments | `payments.ts` (RETURNING id + filter `WHERE id=logId`) |
 | F-16 Migrasi DB: kolom `bookings.deposit_status/deposit_required` + index, `shops.deposit_*` | Backend | Migration `20260517105717` |
 | F-16 Fase 2: Seed `business_categories` (11), `plans` (3) + `plan_features` (12), `features` master (4), `user_roles` super_admin + owner, `platform_settings` (12 keys) | Cloud / Seed | Insert idempoten dengan `ON CONFLICT DO NOTHING` |
+| F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` + audit log manual override | Booking / Checkout / Owner | `toko.$slug.booking.tsx` (refactor `markDepositPaid` no-DB-write + redirect URL), `booking.$id.payment-callback.tsx` (baru), `pos-app.booking.tsx` (confirm + `logStaffAction`), `staff-audit.ts` (action baru) |
 | Konsolidasi rencana → satu file `PRD_MARKETPLACE.md` v6.2; `.lovable/plan.md` dihapus | Dokumentasi | PRD diperbarui dengan **BAGIAN F** |
 
 ### Sprint 15 Mei 2026 — Selesai ✅

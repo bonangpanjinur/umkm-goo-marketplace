@@ -25,7 +25,9 @@ export type AuditAction =
   | "finance.withdraw"
   | "shift.close"
   | "inventory.adjust"
-  | "staff.permissions_update";
+  | "staff.permissions_update"
+  | "booking.deposit.mark_paid_manual"
+  | "booking.deposit.mark_refunded_manual";
 
 export async function logStaffAction(params: {
   shopId: string;

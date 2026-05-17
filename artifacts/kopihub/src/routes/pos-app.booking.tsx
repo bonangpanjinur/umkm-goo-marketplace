@@ -56,6 +56,7 @@ import {
   Download,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+import { logStaffAction } from "@/lib/staff-audit";
 
 export const Route = createFileRoute("/pos-app/booking")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -1622,8 +1623,20 @@ function BookingPage() {
                             <button
                               className="text-[10px] text-emerald-600 hover:underline font-medium"
                               onClick={async () => {
+                                if (!confirm("Tandai DP ini LUNAS secara manual? Aksi ini akan tercatat di audit log.")) return;
                                 await (supabase as any).from("bookings").update({ deposit_status: "paid" }).eq("id", bk.id);
-                                toast.success("DP terverifikasi");
+                                if (shop?.id) {
+                                  await logStaffAction({
+                                    shopId: shop.id,
+                                    action: "booking.deposit.mark_paid_manual",
+                                    targetName: bk.customer_name,
+                                    meta: {
+                                      booking_id: bk.id,
+                                      deposit_amount: bk.deposit_amount,
+                                    },
+                                  });
+                                }
+                                toast.success("DP terverifikasi (manual)");
                                 load();
                               }}
                             >
