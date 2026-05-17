@@ -29,10 +29,13 @@ export const FEATURE_KEYS = [
   "PORTFOLIO","STUDIO_PACKAGES","STUDIO_DELIVERY","STUDIO_BRIEF","STUDIO_ADDONS",
   // Travel / Sales-pro
   "UMROH_PACKAGES","UMROH_FACILITIES","UMROH_FAQ","FLYERS","TESTIMONIALS",
-  "LEADS","ABOUT_PAGE",
+  "LEADS","ABOUT_PAGE","TRAVEL_MANIFEST","TRAVEL_INSTALLMENTS",
   // Custom order (T5) & jasa digital
   "CUSTOM_ORDER","CUSTOM_ORDER_QUOTES","MILESTONES","CONTRACTS",
   "JOB_DELIVERABLES","PRE_ORDERS",
+  // Fase A/B baru
+  "RENTAL_KYC","RENTAL_INSPECTIONS","MEDICATIONS","PRESCRIPTIONS",
+  "PRODUCT_RETURNS","CUSTOMER_TREATMENTS","SESSION_MEMBERSHIP","STUDIO_GALLERY",
 ] as const;
 
 export type FeatureKey = typeof FEATURE_KEYS[number];
@@ -80,4 +83,14 @@ export const FEATURE_LABEL: Partial<Record<FeatureKey, string>> = {
   CUSTOM_ORDER: "Custom Order",
   MILESTONES: "Milestone Proyek",
   CONTRACTS: "Kontrak Digital",
+  TRAVEL_MANIFEST: "Manifest Jamaah",
+  TRAVEL_INSTALLMENTS: "Cicilan Travel",
+  RENTAL_KYC: "Verifikasi Penyewa",
+  RENTAL_INSPECTIONS: "Inspeksi Unit",
+  MEDICATIONS: "Stok Obat",
+  PRESCRIPTIONS: "Resep Digital",
+  PRODUCT_RETURNS: "Retur Barang",
+  CUSTOMER_TREATMENTS: "Riwayat Treatment",
+  SESSION_MEMBERSHIP: "Paket Sesi",
+  STUDIO_GALLERY: "Galeri Klien",
 };

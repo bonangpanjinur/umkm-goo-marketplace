@@ -1620,6 +1620,8 @@ export type Database = {
           id: string
           paid_amount: number
           payment_method: string | null
+          sessions_remaining: number | null
+          sessions_total: number | null
           shop_id: string
           started_at: string
           status: string
@@ -1634,6 +1636,8 @@ export type Database = {
           id?: string
           paid_amount?: number
           payment_method?: string | null
+          sessions_remaining?: number | null
+          sessions_total?: number | null
           shop_id: string
           started_at?: string
           status?: string
@@ -1648,6 +1652,8 @@ export type Database = {
           id?: string
           paid_amount?: number
           payment_method?: string | null
+          sessions_remaining?: number | null
+          sessions_total?: number | null
           shop_id?: string
           started_at?: string
           status?: string
@@ -1759,6 +1765,79 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      customer_treatments: {
+        Row: {
+          after_photos: Json
+          allergies_noted: string | null
+          before_photos: Json
+          created_at: string
+          customer_name: string
+          customer_phone: string | null
+          customer_user_id: string | null
+          formula: string | null
+          id: string
+          notes: string | null
+          performed_at: string
+          service_name: string
+          shop_id: string
+          staff_name: string | null
+        }
+        Insert: {
+          after_photos?: Json
+          allergies_noted?: string | null
+          before_photos?: Json
+          created_at?: string
+          customer_name: string
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          formula?: string | null
+          id?: string
+          notes?: string | null
+          performed_at?: string
+          service_name: string
+          shop_id: string
+          staff_name?: string | null
+        }
+        Update: {
+          after_photos?: Json
+          allergies_noted?: string | null
+          before_photos?: Json
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string | null
+          customer_user_id?: string | null
+          formula?: string | null
+          id?: string
+          notes?: string | null
+          performed_at?: string
+          service_name?: string
+          shop_id?: string
+          staff_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_treatments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "customer_treatments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_treatments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
       }
       customer_wallet_transactions: {
         Row: {
@@ -3066,6 +3145,85 @@ export type Database = {
         }
         Relationships: []
       }
+      medications: {
+        Row: {
+          created_at: string
+          dose: string | null
+          expiry_date: string | null
+          form: string | null
+          generic_name: string | null
+          id: string
+          is_active: boolean
+          low_stock_threshold: number
+          manufacturer: string | null
+          name: string
+          notes: string | null
+          price: number | null
+          shop_id: string
+          stock: number
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dose?: string | null
+          expiry_date?: string | null
+          form?: string | null
+          generic_name?: string | null
+          id?: string
+          is_active?: boolean
+          low_stock_threshold?: number
+          manufacturer?: string | null
+          name: string
+          notes?: string | null
+          price?: number | null
+          shop_id: string
+          stock?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dose?: string | null
+          expiry_date?: string | null
+          form?: string | null
+          generic_name?: string | null
+          id?: string
+          is_active?: boolean
+          low_stock_threshold?: number
+          manufacturer?: string | null
+          name?: string
+          notes?: string | null
+          price?: number | null
+          shop_id?: string
+          stock?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "medications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       menu_item_option_groups: {
         Row: {
           created_at: string
@@ -3234,8 +3392,10 @@ export type Database = {
       menu_items: {
         Row: {
           accepts_custom_order: boolean
+          allergens: string[]
           attributes: Json
           auto_disable_on_empty: boolean
+          available_modes: string[]
           average_rating: number | null
           category_id: string | null
           compare_price: number | null
@@ -3255,11 +3415,13 @@ export type Database = {
           is_available: boolean
           is_digital: boolean
           is_featured: boolean
+          is_halal: boolean | null
           is_pre_order: boolean
           item_type: string
           length_cm: number | null
           low_stock_threshold: number | null
           name: string
+          nutrition: Json
           nutrition_info: Json | null
           pre_order_close_at: string | null
           pre_order_current_qty: number
@@ -3291,8 +3453,10 @@ export type Database = {
         }
         Insert: {
           accepts_custom_order?: boolean
+          allergens?: string[]
           attributes?: Json
           auto_disable_on_empty?: boolean
+          available_modes?: string[]
           average_rating?: number | null
           category_id?: string | null
           compare_price?: number | null
@@ -3312,11 +3476,13 @@ export type Database = {
           is_available?: boolean
           is_digital?: boolean
           is_featured?: boolean
+          is_halal?: boolean | null
           is_pre_order?: boolean
           item_type?: string
           length_cm?: number | null
           low_stock_threshold?: number | null
           name: string
+          nutrition?: Json
           nutrition_info?: Json | null
           pre_order_close_at?: string | null
           pre_order_current_qty?: number
@@ -3348,8 +3514,10 @@ export type Database = {
         }
         Update: {
           accepts_custom_order?: boolean
+          allergens?: string[]
           attributes?: Json
           auto_disable_on_empty?: boolean
+          available_modes?: string[]
           average_rating?: number | null
           category_id?: string | null
           compare_price?: number | null
@@ -3369,11 +3537,13 @@ export type Database = {
           is_available?: boolean
           is_digital?: boolean
           is_featured?: boolean
+          is_halal?: boolean | null
           is_pre_order?: boolean
           item_type?: string
           length_cm?: number | null
           low_stock_threshold?: number | null
           name?: string
+          nutrition?: Json
           nutrition_info?: Json | null
           pre_order_close_at?: string | null
           pre_order_current_qty?: number
@@ -5111,6 +5281,138 @@ export type Database = {
           },
         ]
       }
+      prescription_items: {
+        Row: {
+          created_at: string
+          dose: string | null
+          duration: string | null
+          frequency: string | null
+          id: string
+          instructions: string | null
+          medication_id: string | null
+          name_snapshot: string
+          prescription_id: string
+          qty: number
+        }
+        Insert: {
+          created_at?: string
+          dose?: string | null
+          duration?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          medication_id?: string | null
+          name_snapshot: string
+          prescription_id: string
+          qty?: number
+        }
+        Update: {
+          created_at?: string
+          dose?: string | null
+          duration?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          medication_id?: string | null
+          name_snapshot?: string
+          prescription_id?: string
+          qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_items_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_items_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          doctor_name: string | null
+          id: string
+          issued_at: string
+          notes: string | null
+          patient_id: string | null
+          shop_id: string
+          status: string
+          updated_at: string
+          visit_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          doctor_name?: string | null
+          id?: string
+          issued_at?: string
+          notes?: string | null
+          patient_id?: string | null
+          shop_id: string
+          status?: string
+          updated_at?: string
+          visit_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          doctor_name?: string | null
+          id?: string
+          issued_at?: string
+          notes?: string | null
+          patient_id?: string | null
+          shop_id?: string
+          status?: string
+          updated_at?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "prescriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "prescriptions_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "patient_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       printers: {
         Row: {
           address: string | null
@@ -5340,6 +5642,89 @@ export type Database = {
           },
           {
             foreignKeyName: "product_qa_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      product_returns: {
+        Row: {
+          created_at: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          items: Json
+          notes: string | null
+          order_id: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string
+          refund_amount: number | null
+          refund_method: string | null
+          restock: boolean
+          shop_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason: string
+          refund_amount?: number | null
+          refund_method?: string | null
+          restock?: boolean
+          shop_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string
+          refund_amount?: number | null
+          refund_method?: string | null
+          restock?: boolean
+          shop_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_returns_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_returns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "product_returns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_returns_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "v_shop_capabilities"
@@ -5867,41 +6252,65 @@ export type Database = {
       }
       rental_bookings: {
         Row: {
+          addons: Json
           created_at: string
           customer_name: string
           customer_phone: string | null
+          deposit_paid: number | null
           end_date: string
           id: string
+          kyc_drivers_license_url: string | null
+          kyc_id_url: string | null
+          kyc_selfie_url: string | null
+          kyc_status: string
+          kyc_verified_at: string | null
           notes: string | null
           shop_id: string
           start_date: string
           status: string
+          total_amount: number | null
           total_days: number | null
           unit_id: string
         }
         Insert: {
+          addons?: Json
           created_at?: string
           customer_name: string
           customer_phone?: string | null
+          deposit_paid?: number | null
           end_date: string
           id?: string
+          kyc_drivers_license_url?: string | null
+          kyc_id_url?: string | null
+          kyc_selfie_url?: string | null
+          kyc_status?: string
+          kyc_verified_at?: string | null
           notes?: string | null
           shop_id: string
           start_date: string
           status?: string
+          total_amount?: number | null
           total_days?: number | null
           unit_id: string
         }
         Update: {
+          addons?: Json
           created_at?: string
           customer_name?: string
           customer_phone?: string | null
+          deposit_paid?: number | null
           end_date?: string
           id?: string
+          kyc_drivers_license_url?: string | null
+          kyc_id_url?: string | null
+          kyc_selfie_url?: string | null
+          kyc_status?: string
+          kyc_verified_at?: string | null
           notes?: string | null
           shop_id?: string
           start_date?: string
           status?: string
+          total_amount?: number | null
           total_days?: number | null
           unit_id?: string
         }
@@ -5936,50 +6345,145 @@ export type Database = {
           },
         ]
       }
+      rental_inspections: {
+        Row: {
+          booking_id: string
+          checklist: Json
+          condition_score: number | null
+          id: string
+          kind: string
+          notes: string | null
+          photos: Json
+          recorded_at: string
+          recorded_by: string | null
+          shop_id: string
+        }
+        Insert: {
+          booking_id: string
+          checklist?: Json
+          condition_score?: number | null
+          id?: string
+          kind: string
+          notes?: string | null
+          photos?: Json
+          recorded_at?: string
+          recorded_by?: string | null
+          shop_id: string
+        }
+        Update: {
+          booking_id?: string
+          checklist?: Json
+          condition_score?: number | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          photos?: Json
+          recorded_at?: string
+          recorded_by?: string | null
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_inspections_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "rental_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_inspections_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "rental_inspections_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_inspections_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       rental_units: {
         Row: {
+          capacity: number | null
           category: string | null
+          color: string | null
           condition: string
           created_at: string
           daily_price: number | null
           deposit_amount: number | null
           description: string | null
+          fuel_type: string | null
           id: string
           image_url: string | null
           is_active: boolean
           name: string
+          next_service_at: string | null
+          odometer: number | null
+          plate_number: string | null
+          production_year: number | null
           shop_id: string
           sort_order: number
+          subtype: string | null
+          transmission: string | null
           unit_code: string | null
         }
         Insert: {
+          capacity?: number | null
           category?: string | null
+          color?: string | null
           condition?: string
           created_at?: string
           daily_price?: number | null
           deposit_amount?: number | null
           description?: string | null
+          fuel_type?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
           name: string
+          next_service_at?: string | null
+          odometer?: number | null
+          plate_number?: string | null
+          production_year?: number | null
           shop_id: string
           sort_order?: number
+          subtype?: string | null
+          transmission?: string | null
           unit_code?: string | null
         }
         Update: {
+          capacity?: number | null
           category?: string | null
+          color?: string | null
           condition?: string
           created_at?: string
           daily_price?: number | null
           deposit_amount?: number | null
           description?: string | null
+          fuel_type?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
           name?: string
+          next_service_at?: string | null
+          odometer?: number | null
+          plate_number?: string | null
+          production_year?: number | null
           shop_id?: string
           sort_order?: number
+          subtype?: string | null
+          transmission?: string | null
           unit_code?: string | null
         }
         Relationships: [
@@ -7536,6 +8040,114 @@ export type Database = {
         }
         Relationships: []
       }
+      studio_galleries: {
+        Row: {
+          client_email: string | null
+          client_name: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          max_selections: number | null
+          share_token: string
+          shop_id: string
+          status: string
+          title: string
+          updated_at: string
+          watermark_enabled: boolean
+        }
+        Insert: {
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          max_selections?: number | null
+          share_token?: string
+          shop_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          watermark_enabled?: boolean
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          max_selections?: number | null
+          share_token?: string
+          shop_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          watermark_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_galleries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "studio_galleries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_galleries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      studio_gallery_photos: {
+        Row: {
+          created_at: string
+          customer_note: string | null
+          gallery_id: string
+          id: string
+          is_selected: boolean
+          photo_url: string
+          sort_order: number
+          thumbnail_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_note?: string | null
+          gallery_id: string
+          id?: string
+          is_selected?: boolean
+          photo_url: string
+          sort_order?: number
+          thumbnail_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_note?: string | null
+          gallery_id?: string
+          id?: string
+          is_selected?: boolean
+          photo_url?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_gallery_photos_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "studio_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       studio_locations: {
         Row: {
           address: string | null
@@ -7848,6 +8460,191 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_installments: {
+        Row: {
+          created_at: string
+          currency: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          jamaah_id: string | null
+          notes: string | null
+          package_id: string | null
+          paid_amount: number
+          schedule: Json
+          shop_id: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          jamaah_id?: string | null
+          notes?: string | null
+          package_id?: string | null
+          paid_amount?: number
+          schedule?: Json
+          shop_id: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          jamaah_id?: string | null
+          notes?: string | null
+          package_id?: string | null
+          paid_amount?: number
+          schedule?: Json
+          shop_id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_installments_jamaah_id_fkey"
+            columns: ["jamaah_id"]
+            isOneToOne: false
+            referencedRelation: "travel_jamaah_manifest"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_installments_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "umroh_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_installments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "travel_installments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_installments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      travel_jamaah_manifest: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          created_at: string
+          document_urls: Json
+          email: string | null
+          emergency_contact: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          nik: string | null
+          notes: string | null
+          package_id: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          phone: string | null
+          room_assignment: string | null
+          shop_id: string
+          special_needs: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          document_urls?: Json
+          email?: string | null
+          emergency_contact?: string | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          nik?: string | null
+          notes?: string | null
+          package_id?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          room_assignment?: string | null
+          shop_id: string
+          special_needs?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          document_urls?: Json
+          email?: string | null
+          emergency_contact?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          nik?: string | null
+          notes?: string | null
+          package_id?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          room_assignment?: string | null
+          shop_id?: string
+          special_needs?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_jamaah_manifest_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "umroh_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_manifest_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_manifest_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_manifest_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       umroh_facilities: {
         Row: {
           created_at: string
@@ -7974,9 +8771,12 @@ export type Database = {
           id: string
           includes: string[] | null
           is_active: boolean
+          itinerary: Json
           name: string
+          package_type: string
           price_double: number | null
           price_quad: number | null
+          price_single: number | null
           price_triple: number | null
           quota_filled: number
           quota_total: number | null
@@ -8001,9 +8801,12 @@ export type Database = {
           id?: string
           includes?: string[] | null
           is_active?: boolean
+          itinerary?: Json
           name: string
+          package_type?: string
           price_double?: number | null
           price_quad?: number | null
+          price_single?: number | null
           price_triple?: number | null
           quota_filled?: number
           quota_total?: number | null
@@ -8028,9 +8831,12 @@ export type Database = {
           id?: string
           includes?: string[] | null
           is_active?: boolean
+          itinerary?: Json
           name?: string
+          package_type?: string
           price_double?: number | null
           price_quad?: number | null
+          price_single?: number | null
           price_triple?: number | null
           quota_filled?: number
           quota_total?: number | null
