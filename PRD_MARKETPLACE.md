@@ -110,7 +110,7 @@
 
 | # | Kode | Fitur | Estimasi | Catatan |
 |---|---|---|---|---|
-| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-5 ✅ (code align + seed + konsolidasi config + cron auto-cancel + hardening RLS/storage) · Fase 6 ❌ (Midtrans Snap init) — lihat **BAGIAN F** |
+| 1 | F-16 | Deposit via Payment Gateway (booking) | ✅ Selesai 17 Mei 2026 (Fase 1-6 lengkap) — lihat **BAGIAN F** |
 | 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
