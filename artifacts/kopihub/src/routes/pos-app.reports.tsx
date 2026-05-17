@@ -27,6 +27,11 @@ import {
 import { Loader2, Download, TrendingUp, Receipt, Coins, ShoppingBag, FileSpreadsheet } from "lucide-react";
 import { downloadXLSX } from "@/lib/export";
 import { formatIDR } from "@/lib/format";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useShopSubtype } from "@/lib/use-shop-subtype";
+import {
+  RentalReport, TravelReport, KursusReport, KlinikReport, LeadConversionReport,
+} from "@/components/reports/CategoryReports";
 
 export const Route = createFileRoute("/pos-app/reports")({
   component: ReportsPage,
