@@ -239,8 +239,8 @@ export default function StorefrontBuilderPage() {
                 {sel.type === "hero_banner" && (
                   <>
                     <div>
-                      <Label className="text-xs">URL Gambar Banner</Label>
-                      <Input className="mt-1" value={sel.image_url ?? ""} placeholder="https://..." onChange={e => updateSection(sel.id, { image_url: e.target.value })} />
+                      <Label className="text-xs">Gambar Banner</Label>
+                      <UploadableImage value={sel.image_url || null} onChange={(url) => updateSection(sel.id, { image_url: url ?? "" })} bucket="shop-images" pathPrefix={`${shop?.id ?? ""}/storefront`} />
                     </div>
                     <div>
                       <Label className="text-xs">Label Tombol CTA</Label>
