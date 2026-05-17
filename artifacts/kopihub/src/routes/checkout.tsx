@@ -106,12 +106,46 @@ function CheckoutPage() {
       }
     }
 
-    const allItems = await listCart();
-    const selectedRaw = sessionStorage.getItem("checkout_selected_ids");
-    const selectedIds = selectedRaw ? new Set(JSON.parse(selectedRaw) as string[]) : null;
-    const d = selectedIds && selectedIds.size > 0 && selectedIds.size < allItems.length
-      ? allItems.filter(i => selectedIds.has(i.id))
-      : allItems;
+    // Mode "Beli Sekarang": hanya checkout 1 item dari sessionStorage.kh_buy_now.
+    // Item dipastikan ada di cart (di-insert / update qty bila perlu) lalu items difilter.
+    let allItems = await listCart();
+    let d: CartItem[];
+    let activeBuyNow: { product_id: string; shop_id: string; quantity: number; product_name?: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem("kh_buy_now");
+      const bn = raw ? JSON.parse(raw) as { product_id: string; shop_id: string; quantity: number; unit_price: number; ts: number } : null;
+      const fresh = bn && typeof bn.ts === "number" && (Date.now() - bn.ts) < 30 * 60 * 1000;
+      if (bn && fresh && bn.product_id && bn.shop_id && bn.quantity > 0) {
+        let row = allItems.find((it) => it.product_id === bn.product_id && it.shop_id === bn.shop_id && it.variant_id == null);
+        if (!row) {
+          // Item belum ada di cart (mis. sessionStorage di-set lalu cart dibersihkan) — tambahkan.
+          await addToCart({ shop_id: bn.shop_id, product_id: bn.product_id, unit_price: bn.unit_price, quantity: bn.quantity });
+          allItems = await listCart();
+          row = allItems.find((it) => it.product_id === bn.product_id && it.shop_id === bn.shop_id && it.variant_id == null) ?? null as any;
+        } else if (row.quantity !== bn.quantity) {
+          // Sinkronkan qty agar sama dengan permintaan Beli Sekarang.
+          await updateCartItem(row.id, bn.quantity);
+          row = { ...row, quantity: bn.quantity };
+        }
+        if (row) {
+          d = [row];
+          activeBuyNow = { product_id: bn.product_id, shop_id: bn.shop_id, quantity: bn.quantity, product_name: row.product?.name };
+        } else {
+          d = allItems;
+        }
+      } else {
+        d = null as any;
+      }
+    } catch { d = null as any; }
+
+    if (!d) {
+      const selectedRaw = sessionStorage.getItem("checkout_selected_ids");
+      const selectedIds = selectedRaw ? new Set(JSON.parse(selectedRaw) as string[]) : null;
+      d = selectedIds && selectedIds.size > 0 && selectedIds.size < allItems.length
+        ? allItems.filter(i => selectedIds.has(i.id))
+        : allItems;
+    }
+    setBuyNowMode(activeBuyNow);
     setItems(d);
     if (d.length === 0) {
       navigate({ to: "/keranjang" });
