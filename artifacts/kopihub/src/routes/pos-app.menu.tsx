@@ -466,7 +466,7 @@ function MenuPage() {
       } : null,
       production_days: productionDays ? Number(productionDays) : null,
       condition_grade: conditionGrade || null,
-    } as any;
+    } as unknown as TablesInsert<"menu_items">;
     if (editing) {
       const oldPrice = editing.price;
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
