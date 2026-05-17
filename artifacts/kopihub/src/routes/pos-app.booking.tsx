@@ -630,7 +630,7 @@ function BookingPage() {
     const { error } = await (supabase as any)
       .from("shops")
       .update({
-        deposit_required: depositEnabled,
+        deposit_enabled: depositEnabled,
         deposit_percentage: Number(depositPercent),
         deposit_notes: depositNotes.trim() || null,
       })
