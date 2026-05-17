@@ -652,6 +652,26 @@ function DetailDialog({
           <Button onClick={onClose}>Tutup</Button>
         </DialogFooter>
 
+        <ReasonDialog
+          open={voidReasonOpen}
+          onClose={() => setVoidReasonOpen(false)}
+          onConfirm={(reason) => handleVoid(reason)}
+          title={`Void order #${order.order_no}`}
+          description="Stok & poin akan dibalik. Alasan akan tercatat di log audit."
+          confirmLabel="Konfirmasi void"
+          presets={["Salah input kasir", "Duplikat order", "Pelanggan batal", "Mesin error"]}
+        />
+
+        <ReasonDialog
+          open={cancelReasonOpen}
+          onClose={() => setCancelReasonOpen(false)}
+          onConfirm={(reason) => handleCancel(reason)}
+          title={`Cancel order #${order.order_no}`}
+          description="Order ditandai dibatalkan tanpa membalik stok/poin. Gunakan Void jika perlu rollback."
+          confirmLabel="Konfirmasi cancel"
+          presets={["Pelanggan batal", "Tidak diambil", "Stok habis", "Lewat waktu pickup"]}
+        />
+
         {/* Refund dialog */}
         <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
           <DialogContent>
