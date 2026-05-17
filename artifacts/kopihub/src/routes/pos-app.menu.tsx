@@ -504,6 +504,13 @@ function MenuPage() {
     if (error) toast.error(error.message);
     else {
       toast.success("Menu dihapus");
+      if (shop) {
+        logStaffAction({
+          shopId: shop.id,
+          action: "menu.delete",
+          meta: { menu_item_id: it.id, menu_name: it.name, price: it.price },
+        });
+      }
       load();
     }
   }
