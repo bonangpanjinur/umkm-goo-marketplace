@@ -51,8 +51,8 @@ export interface ReservationSettings {
   opening_time: string;
   closing_time: string;
   allow_online_booking: boolean;
-  require_deposit: boolean;
-  deposit_percent: number;
+  deposit_required: boolean;
+  deposit_percentage: number;
   auto_confirm_booking: boolean;
   cancellation_policy_hours: number;
   created_at: string;

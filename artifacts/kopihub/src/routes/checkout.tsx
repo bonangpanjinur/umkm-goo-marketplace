@@ -256,14 +256,14 @@ function CheckoutPage() {
     try {
       const { data: shopRows } = await supabase
         .from("shops")
-        .select("id, deposit_enabled, deposit_percent, deposit_min_total")
+        .select("id, deposit_enabled, deposit_percentage, deposit_min_total")
         .in("id", shopIds);
       if (shopRows) {
         const map: Record<string, { enabled: boolean; percent: number; min_total: number }> = {};
         for (const s of shopRows as any[]) {
           map[s.id] = {
             enabled: Boolean(s.deposit_enabled),
-            percent: Number(s.deposit_percent ?? 30),
+            percent: Number(s.deposit_percentage ?? 30),
             min_total: Number(s.deposit_min_total ?? 0),
           };
         }

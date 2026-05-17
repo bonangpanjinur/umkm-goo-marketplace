@@ -612,12 +612,12 @@ function BookingPage() {
     (async () => {
       const { data } = await (supabase as any)
         .from("shops")
-        .select("require_deposit, deposit_percent, deposit_notes")
+        .select("deposit_required, deposit_percentage, deposit_notes")
         .eq("id", shop.id)
         .maybeSingle();
       if (data) {
-        setDepositEnabled(!!data.require_deposit);
-        setDepositPercent(String(data.deposit_percent ?? 50));
+        setDepositEnabled(!!data.deposit_required);
+        setDepositPercent(String(data.deposit_percentage ?? 50));
         setDepositNotes(data.deposit_notes ?? "");
       }
       setDepositLoaded(true);
@@ -630,8 +630,8 @@ function BookingPage() {
     const { error } = await (supabase as any)
       .from("shops")
       .update({
-        require_deposit: depositEnabled,
-        deposit_percent: Number(depositPercent),
+        deposit_required: depositEnabled,
+        deposit_percentage: Number(depositPercent),
         deposit_notes: depositNotes.trim() || null,
       })
       .eq("id", shop.id);
@@ -1597,7 +1597,7 @@ function BookingPage() {
                         <div className="flex items-center gap-1.5">
                           <Banknote className="h-3 w-3 text-amber-500" />
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                            bk.deposit_status === "submitted"
+                            bk.deposit_status === "pending"
                               ? "bg-amber-100 text-amber-700"
                               : bk.deposit_status === "paid"
                                 ? "bg-emerald-100 text-emerald-700"
@@ -1608,7 +1608,7 @@ function BookingPage() {
                                     : "bg-red-100 text-red-700"
                           }`}>
                             DP {bk.deposit_amount ? `Rp ${Number(bk.deposit_amount).toLocaleString("id-ID")}` : ""} ·{" "}
-                            {bk.deposit_status === "submitted"
+                            {bk.deposit_status === "pending"
                               ? "Menunggu Verifikasi"
                               : bk.deposit_status === "paid"
                                 ? "Lunas (Gateway)"
@@ -1618,7 +1618,7 @@ function BookingPage() {
                                     ? "Refunded"
                                     : "Belum Bayar"}
                           </span>
-                          {bk.deposit_status === "submitted" && (
+                          {bk.deposit_status === "pending" && (
                             <button
                               className="text-[10px] text-emerald-600 hover:underline font-medium"
                               onClick={async () => {
