@@ -110,7 +110,7 @@
 
 | # | Kode | Fitur | Estimasi | Catatan |
 |---|---|---|---|---|
-| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-4 ✅ (code align + seed + konsolidasi config + cron auto-cancel) · Fase 5-6 ❌ (hardening, Midtrans Snap init) — lihat **BAGIAN F** |
+| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-5 ✅ (code align + seed + konsolidasi config + cron auto-cancel + hardening RLS/storage) · Fase 6 ❌ (Midtrans Snap init) — lihat **BAGIAN F** |
 | 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
@@ -274,12 +274,14 @@ Catatan kompat skema:
 - ✅ pg_cron schedule `auto-cancel-pending-deposit-bookings` aktif — jalan setiap jam pada menit ke-15 (`15 * * * *`).
 - ❌ E2E test (happy path + signature invalid + double-callback + timeout > window) belum ditulis — masuk backlog setelah F.6 (Midtrans Snap init) selesai supaya path lengkap.
 
-### F.5 Fase 5 — Hardening ❌ Belum
+### F.5 Fase 5 — Hardening 🔧 Sebagian (17 Mei 2026)
 
-- Audit semua RLS policy `USING (true)` (linter flag); ganti dengan scope `shop_id` / `auth.uid()`.
-- Set `SECURITY DEFINER` functions ke `SET search_path = public` (saat ini banyak yang mutable).
-- Tutup public bucket listing storage (`avatars`, `menu-photos`, `documents`) — hanya `SELECT by path`, tanpa list.
-- Pindahkan extensions dari schema `public` ke `extensions` (pgcrypto, pg_net, dll).
+- ✅ `touch_updated_at` di-set `search_path = public` (1 fungsi terakhir yang masih mutable).
+- ✅ RLS dipertajam: `booking_reviews INSERT` wajib `auth.uid() = user_id`; `booking_review_requests UPDATE` dibatasi customer terkait, owner toko, atau super admin.
+- ✅ Listing storage ditutup untuk 10 bucket publik (menu-images, shop-logos, staff-avatars, builder-assets, chat-attachments, flyers, umroh-brochures, delivery-proofs, review-photos, custom-order-attachments) — direct file URL via CDN tetap berfungsi karena bucket masih `public`.
+- ✅ 5 policy publik (`leads`, `custom_order_requests`, `rental_bookings`, `restock_subscribers`, `booking_review_requests rrq_insert`) didokumentasikan sebagai intentional public form via `COMMENT ON POLICY`.
+- 🔧 Hasil linter turun **221 → 208 warning** (-13).
+- ❌ Backlog Fase 5 lanjutan: (a) pindahkan `pg_net` dari schema `public` ke `extensions` (perlu update semua cron command `net.http_post` → `extensions.net.http_post`); (b) audit `SECURITY DEFINER` functions yang executable oleh `anon` — `REVOKE EXECUTE ... FROM anon, authenticated` untuk yang hanya dipanggil dari server.
 
 ### F.6 Fase 6 — Midtrans Snap Client Init ❌ Belum
 
@@ -3048,7 +3050,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 | ~~F-16 Fase 3: Konsolidasi config deposit~~ | ✅ Selesai 17 Mei 2026 | — |
 | ~~F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log~~ | ✅ Selesai 17 Mei 2026 (E2E test menunggu Fase 6) | — |
 | F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
-| F-16 Fase 5: Hardening RLS `USING(true)`, `search_path`, public bucket listing, extensions schema | Security | 1 hari |
+| ~~F-16 Fase 5: Hardening RLS, search_path, public bucket listing~~ | ✅ Selesai 17 Mei 2026 (linter 221→208). Backlog: pg_net schema move + REVOKE EXECUTE SECURITY DEFINER | — |
 | SA-05 Konfigurasi Booking per Kategori (toggle T3/T4 default) | Super Admin | 1 hari |
 | SF-04 Portfolio publik studio foto | Studio Foto | 1 hari |
 | SF-03 Pilih lokasi sesi (studio/outdoor/lokasi klien) | Studio Foto | 0.5 hari |
