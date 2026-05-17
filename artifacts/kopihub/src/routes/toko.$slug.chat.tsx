@@ -700,7 +700,7 @@ function ShopChatPage() {
                           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/50 backdrop-blur-[1px]">
                             <button
                               type="button"
-                              onClick={() => cancelSend(msg._tempId!)}
+                              onClick={() => setCancelConfirmId(msg._tempId!)}
                               className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition"
                               title="Batalkan unggahan"
                             >
