@@ -222,6 +222,8 @@ function MenuPage() {
     setAllergens([]);
     setIsHalal(false);
     setAvailableModes([]);
+    setSku("");
+    setBarcode("");
     setAiTags([]);
     setOpen(true);
   }
