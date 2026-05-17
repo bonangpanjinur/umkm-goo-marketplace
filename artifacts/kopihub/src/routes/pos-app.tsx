@@ -222,9 +222,9 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/permissions", label: "Hak Akses Staf", icon: ShieldCheck, ownerOnly: true },
       { to: "/pos-app/audit-logs", label: "Log Audit", icon: ShieldCheck, ownerOnly: true },
       { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
-      { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
+      { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC, requires: ["BOOKING"] },
       { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
-      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet, onlyFor: HAS_POS },
+      { to: "/pos-app/shifts",     label: "Shift Kasir",   icon: Wallet, onlyFor: HAS_POS, requires: ["SHIFTS"] },
     ],
   },
   {
