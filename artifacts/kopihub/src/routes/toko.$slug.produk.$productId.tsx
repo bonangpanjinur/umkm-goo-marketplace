@@ -8,7 +8,7 @@ import { Store, ShoppingCart, Plus, Minus, Heart, Share2, Check, Bell, TrendingD
 import { addToCompare, removeFromCompare, isInCompare } from "@/lib/compare";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-import { addToCart } from "@/lib/marketplace-cart";
+import { addToCart, cartCount as fetchCartCount } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ProductReviews } from "@/components/marketplace/ProductReviews";
