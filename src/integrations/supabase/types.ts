@@ -1158,6 +1158,82 @@ export type Database = {
         }
         Relationships: []
       }
+      course_certificates: {
+        Row: {
+          certificate_number: string
+          course_id: string
+          id: string
+          issued_at: string
+          metadata: Json
+          pdf_url: string | null
+          shop_id: string
+          user_id: string
+        }
+        Insert: {
+          certificate_number?: string
+          course_id: string
+          id?: string
+          issued_at?: string
+          metadata?: Json
+          pdf_url?: string | null
+          shop_id: string
+          user_id: string
+        }
+        Update: {
+          certificate_number?: string
+          course_id?: string
+          id?: string
+          issued_at?: string
+          metadata?: Json
+          pdf_url?: string | null
+          shop_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "menu_hpp_view"
+            referencedColumns: ["menu_item_id"]
+          },
+          {
+            foreignKeyName: "course_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_certificates_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "course_certificates_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_certificates_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       course_enrollments: {
         Row: {
           enrolled_at: string
@@ -3309,6 +3385,7 @@ export type Database = {
       }
       menu_item_variants: {
         Row: {
+          attributes: Json
           created_at: string
           id: string
           is_available: boolean
@@ -3322,6 +3399,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attributes?: Json
           created_at?: string
           id?: string
           is_available?: boolean
@@ -3335,6 +3413,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attributes?: Json
           created_at?: string
           id?: string
           is_available?: boolean
@@ -4035,6 +4114,7 @@ export type Database = {
           membership_tier_id: string | null
           net_to_shop: number | null
           note: string | null
+          order_mode: string | null
           order_no: string
           order_source: string | null
           outlet_id: string
@@ -4107,6 +4187,7 @@ export type Database = {
           membership_tier_id?: string | null
           net_to_shop?: number | null
           note?: string | null
+          order_mode?: string | null
           order_no: string
           order_source?: string | null
           outlet_id: string
@@ -4179,6 +4260,7 @@ export type Database = {
           membership_tier_id?: string | null
           net_to_shop?: number | null
           note?: string | null
+          order_mode?: string | null
           order_no?: string
           order_source?: string | null
           outlet_id?: string
@@ -8546,6 +8628,154 @@ export type Database = {
           },
           {
             foreignKeyName: "travel_installments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      travel_itineraries: {
+        Row: {
+          created_at: string
+          day_number: number
+          description: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          package_id: string
+          shop_id: string
+          sort_order: number
+          time_label: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          package_id: string
+          shop_id: string
+          sort_order?: number
+          time_label?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          package_id?: string
+          shop_id?: string
+          sort_order?: number
+          time_label?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_itineraries_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "umroh_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_itineraries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "travel_itineraries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_itineraries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      travel_jamaah_documents: {
+        Row: {
+          created_at: string
+          doc_number: string | null
+          doc_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          issued_at: string | null
+          jamaah_id: string
+          notes: string | null
+          shop_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doc_number?: string | null
+          doc_type: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          issued_at?: string | null
+          jamaah_id: string
+          notes?: string | null
+          shop_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doc_number?: string | null
+          doc_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          issued_at?: string | null
+          jamaah_id?: string
+          notes?: string | null
+          shop_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_jamaah_documents_jamaah_id_fkey"
+            columns: ["jamaah_id"]
+            isOneToOne: false
+            referencedRelation: "travel_jamaah_manifest"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_documents_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_documents_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_documents_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "v_shop_capabilities"
