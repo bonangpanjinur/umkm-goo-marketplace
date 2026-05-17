@@ -54,7 +54,17 @@ type MenuItem = {
   condition_grade?: string | null;
   nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
   production_days?: number | null;
+  allergens?: string[] | null;
+  is_halal?: boolean | null;
+  available_modes?: string[] | null;
 };
+
+const COMMON_ALLERGENS = ["Gluten", "Susu", "Telur", "Kacang Tanah", "Kacang Pohon", "Kedelai", "Ikan", "Udang/Kerang", "Wijen"];
+const ORDER_MODES: { v: string; l: string }[] = [
+  { v: "dine_in", l: "Dine-in" },
+  { v: "takeaway", l: "Takeaway" },
+  { v: "delivery", l: "Delivery" },
+];
 
 type HPPRow = {
   menu_item_id: string;
