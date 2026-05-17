@@ -180,9 +180,9 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Pesanan",
     items: [
       { to: "/pos-app/orders", label: "Semua Pesanan", icon: ListOrdered, hint: "Kasir, Web Toko, & Marketplace dalam satu halaman dengan tab kategori", aliases: ["/pos-app/online-orders", "/pos-app/marketplace-orders"] },
-      { to: "/pos-app/kds",          label: "Kitchen (KDS)",       icon: ChefHat, onlyFor: FNB },
-      { to: "/pos-app/kitchen-load", label: "Beban Dapur (KLM)",  icon: Stethoscope, hint: "Pantau estimasi waktu tunggu & beban per slot waktu secara realtime", onlyFor: FNB },
-      { to: "/pos-app/open-bills",   label: "Open Bills",          icon: ShoppingBag, hint: "Tagihan terbuka real-time, sinkron antar perangkat kasir" },
+      { to: "/pos-app/kds",          label: "Kitchen (KDS)",       icon: ChefHat, onlyFor: FNB, requires: ["KDS"] },
+      { to: "/pos-app/kitchen-load", label: "Beban Dapur (KLM)",  icon: Stethoscope, hint: "Pantau estimasi waktu tunggu & beban per slot waktu secara realtime", onlyFor: FNB, requires: ["KDS"] },
+      { to: "/pos-app/open-bills",   label: "Open Bills",          icon: ShoppingBag, hint: "Tagihan terbuka real-time, sinkron antar perangkat kasir", requires: ["POS"] },
       { to: "/pos-app/order-audit",  label: "Audit Pesanan",       icon: ScrollText, hint: "Riwayat VOID/CANCEL/REFUND lengkap dengan alasan & user pelaku" },
     ],
   },
