@@ -93,6 +93,7 @@ function OrdersPage() {
   const [selected, setSelected] = useState<OrderDetail | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkReasonFor, setBulkReasonFor] = useState<null | "voided" | "cancelled" | "refunded">(null);
 
   async function load() {
     if (!outlet) return;
