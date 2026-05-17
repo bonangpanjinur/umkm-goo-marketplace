@@ -82,6 +82,9 @@ import {
   Briefcase,
   Info,
   Calculator,
+  Pill,
+  Undo2,
+  Images,
 } from "lucide-react";
 import { usePlan, useIsSuperAdmin } from "@/lib/use-plan";
 import { Button } from "@/components/ui/button";
@@ -169,6 +172,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/umroh-packages",   label: "Paket Umroh",       icon: Plane,     onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_PACKAGES"] },
       { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FACILITIES"] },
       { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FAQ"] },
+      { to: "/pos-app/travel-manifest",     label: "Manifest Jamaah",   icon: Users,     hint: "Data jamaah: paspor, kamar, status keberangkatan", onlyFor: ["sales-pro"], requires: ["TRAVEL_MANIFEST"] },
+      { to: "/pos-app/travel-installments", label: "Cicilan Travel",    icon: Wallet,    hint: "Jadwal pembayaran bertahap pelanggan", onlyFor: ["sales-pro"], requires: ["TRAVEL_INSTALLMENTS"] },
       { to: "/pos-app/sales-offerings",  label: "Katalog Layanan",   icon: Briefcase, onlyFor: ["sales-pro"], subtypeOnly: ["sales"] },
       { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"], requires: ["FLYERS"] },
       { to: "/pos-app/testimonials",     label: "Testimoni",         icon: Quote,     onlyFor: ["sales-pro"], requires: ["TESTIMONIALS"] },
@@ -270,6 +275,12 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/rental-unit-ready",     label: "Notif Unit Siap",     icon: BellRing, hint: "Kirim notifikasi WhatsApp ke penyewa bahwa unit sudah siap diambil — RT-10", onlyFor: SVC, requires: ["RENTAL_UNIT_READY"] },
       { to: "/pos-app/anamnesis",             label: "Anamnesis Digital",   icon: FileText, hint: "Form keluhan & riwayat medis pre-konsultasi — diisi oleh pasien — KL-02", onlyFor: SVC, requires: ["ANAMNESIS"] },
       { to: "/pos-app/medical-invoice",       label: "Tagihan & Resep",     icon: Receipt, hint: "Buat tagihan & resep digital per pasien dengan tanda tangan dokter — KL-05", onlyFor: SVC, requires: ["MEDICAL_INVOICE"] },
+      { to: "/pos-app/medications",           label: "Stok Obat",           icon: Pill,    hint: "Inventori obat dengan peringatan stok rendah & kedaluwarsa", onlyFor: SVC, requires: ["MEDICATIONS"] },
+      { to: "/pos-app/prescriptions",         label: "Resep Digital",       icon: FileText, hint: "Resep dokter terhubung ke stok obat — print/share ke pasien", onlyFor: SVC, requires: ["PRESCRIPTIONS"] },
+      { to: "/pos-app/rental-inspections",    label: "Inspeksi Unit",       icon: ClipboardCheck, hint: "Foto kondisi unit sebelum & sesudah disewa", onlyFor: SVC, requires: ["RENTAL_INSPECTIONS"] },
+      { to: "/pos-app/customer-treatments",   label: "Riwayat Treatment",   icon: Sparkles, hint: "Catat formula, alergi, before/after photo treatment salon", onlyFor: SVC, requires: ["CUSTOMER_TREATMENTS"] },
+      { to: "/pos-app/studio-gallery",        label: "Galeri Klien",        icon: Images,  hint: "Bagikan link galeri ke klien — mereka pilih foto favorit", onlyFor: SVC, requires: ["STUDIO_GALLERY"] },
+      { to: "/pos-app/product-returns",       label: "Retur Barang",        icon: Undo2,   hint: "Kelola permintaan retur & pengembalian dana pembeli", onlyFor: HAS_POS, requires: ["PRODUCT_RETURNS"] },
       { to: "/pos-app/followup-reminders",    label: "Reminder Kunjungan",  icon: Scissors, hint: "Reminder potong rambut (4 minggu) atau kontrol ulang klinik otomatis — SB-06/KL-07", onlyFor: FNB_SVC, requires: ["FOLLOWUP_REMINDERS"] },
       { to: "/pos-app/milestones",            label: "Milestone & Escrow",  icon: Target, hint: "Kelola milestone proyek & escrow bayar bertahap untuk jasa digital — JU-06/JU-07", onlyFor: DIGITAL_SVC, requires: ["MILESTONES"] },
       { to: "/pos-app/contracts",             label: "Kontrak Digital",     icon: ScrollText, hint: "Buat & tanda tangani kontrak freelance digital per order — JU-08", onlyFor: DIGITAL_SVC, requires: ["CONTRACTS"] },
