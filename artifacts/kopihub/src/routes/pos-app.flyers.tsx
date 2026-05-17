@@ -12,7 +12,7 @@ export const Route = createFileRoute("/pos-app/flyers")({
       icon={<ImageIcon className="h-6 w-6" />}
       fields={[
         { key: "title", label: "Judul", required: true },
-        { key: "image_url", label: "URL Gambar", required: true },
+        { key: "image_url", label: "Gambar Flyer", type: "image", required: true },
         { key: "description", label: "Deskripsi", type: "textarea" },
         { key: "file_url", label: "URL PDF (opsional)" },
       ]}
