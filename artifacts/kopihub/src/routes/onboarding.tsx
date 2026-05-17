@@ -296,8 +296,8 @@ function OnboardingPage() {
               <p className="mt-1.5 text-sm text-muted-foreground">Ini membantu kami menyesuaikan fitur dan tampilan toko Anda.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon;
+              {categories.map(cat => {
+                const Icon = CATEGORY_ICON[cat.slug] ?? Package;
                 const active = categoryId === cat.id;
                 return (
                   <button
