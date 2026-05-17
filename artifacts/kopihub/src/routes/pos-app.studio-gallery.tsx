@@ -22,14 +22,17 @@ type Gal = {
   id: string; title: string; client_name: string | null; client_email: string | null;
   share_token: string; expires_at: string | null; watermark_enabled: boolean;
   max_selections: number | null; status: string; created_at: string;
+  photographer_id: string | null;
 };
 type Photo = { id: string; gallery_id: string; photo_url: string; is_selected: boolean; customer_note: string | null; sort_order: number };
+type Photographer = { id: string; name: string; color: string; role: string; is_active: boolean };
 
 const STATUS = ["draft","sent","reviewed","closed"];
 
 function Page() {
   const { shop, loading } = useCurrentShop();
   const [items, setItems] = useState<Gal[]>([]);
+  const [photographers, setPhotographers] = useState<Photographer[]>([]);
   const [openForm, setOpenForm] = useState(false);
   const [editing, setEditing] = useState<Gal | null>(null);
   const [saving, setSaving] = useState(false);
@@ -38,12 +41,17 @@ function Page() {
   const [form, setForm] = useState({
     title: "", client_name: "", client_email: "", expires_at: "",
     watermark_enabled: true, max_selections: "", status: "draft",
+    photographer_id: "",
   });
 
   async function load() {
     if (!shop) return;
-    const { data } = await supabase.from("studio_galleries").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false });
-    setItems((data ?? []) as Gal[]);
+    const [g, p] = await Promise.all([
+      supabase.from("studio_galleries").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false }),
+      supabase.from("studio_photographers" as never).select("id,name,color,role,is_active").eq("shop_id", shop.id).order("name"),
+    ]);
+    setItems((g.data ?? []) as Gal[]);
+    setPhotographers(((p.data ?? []) as Photographer[]).filter(x => x.is_active));
   }
   useEffect(() => { void load(); }, [shop?.id]);
 
@@ -54,7 +62,7 @@ function Page() {
 
   function startNew() {
     setEditing(null);
-    setForm({ title: "", client_name: "", client_email: "", expires_at: "", watermark_enabled: true, max_selections: "", status: "draft" });
+    setForm({ title: "", client_name: "", client_email: "", expires_at: "", watermark_enabled: true, max_selections: "", status: "draft", photographer_id: "" });
     setOpenForm(true);
   }
   function startEdit(g: Gal) {
@@ -64,6 +72,7 @@ function Page() {
       expires_at: g.expires_at ? g.expires_at.slice(0, 10) : "",
       watermark_enabled: g.watermark_enabled, max_selections: g.max_selections?.toString() ?? "",
       status: g.status,
+      photographer_id: g.photographer_id ?? "",
     });
     setOpenForm(true);
   }
@@ -78,10 +87,15 @@ function Page() {
       expires_at: form.expires_at || null, watermark_enabled: form.watermark_enabled,
       max_selections: form.max_selections ? Number(form.max_selections) : null,
       status: form.status,
+      photographer_id: form.photographer_id || null,
     };
     const { error } = editing
       ? await supabase.from("studio_galleries").update(payload).eq("id", editing.id)
       : await supabase.from("studio_galleries").insert(payload);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Tersimpan"); setOpenForm(false); void load();
+  }
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Tersimpan"); setOpenForm(false); void load();
@@ -139,6 +153,15 @@ function Page() {
                 </div>
                 <Badge>{g.status}</Badge>
               </div>
+              {(() => {
+                const p = photographers.find(x => x.id === g.photographer_id);
+                return p ? (
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+                    <span className="text-xs">{p.name}</span>
+                  </div>
+                ) : null;
+              })()}
               {g.expires_at && <p className="text-xs mt-1">Berakhir: {g.expires_at.slice(0, 10)}</p>}
               {g.max_selections && <p className="text-xs">Maks pilih: {g.max_selections}</p>}
               <div className="flex gap-1 mt-3 flex-wrap">
@@ -167,6 +190,15 @@ function Page() {
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{STATUS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+              <div>
+                <Label>Fotografer</Label>
+                <Select value={form.photographer_id || "_none"} onValueChange={(v) => setForm({ ...form, photographer_id: v === "_none" ? "" : v })}>
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">— Belum ditugaskan —</SelectItem>
+                    {photographers.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
             </div>

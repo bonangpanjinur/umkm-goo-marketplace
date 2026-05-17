@@ -59,6 +59,8 @@ import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
 import { Route as PosAppSuppliersRouteImport } from './routes/pos-app.suppliers'
 import { Route as PosAppSubscriptionsRouteImport } from './routes/pos-app.subscriptions'
+import { Route as PosAppStudioWatermarkRouteImport } from './routes/pos-app.studio-watermark'
+import { Route as PosAppStudioPhotographersRouteImport } from './routes/pos-app.studio-photographers'
 import { Route as PosAppStudioPhotoReviewsRouteImport } from './routes/pos-app.studio-photo-reviews'
 import { Route as PosAppStudioPackagesRouteImport } from './routes/pos-app.studio-packages'
 import { Route as PosAppStudioLocationsRouteImport } from './routes/pos-app.studio-locations'
@@ -549,6 +551,17 @@ const PosAppSubscriptionsRoute = PosAppSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppStudioWatermarkRoute = PosAppStudioWatermarkRouteImport.update({
+  id: '/studio-watermark',
+  path: '/studio-watermark',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppStudioPhotographersRoute =
+  PosAppStudioPhotographersRouteImport.update({
+    id: '/studio-photographers',
+    path: '/studio-photographers',
+    getParentRoute: () => PosAppRoute,
+  } as any)
 const PosAppStudioPhotoReviewsRoute =
   PosAppStudioPhotoReviewsRouteImport.update({
     id: '/studio-photo-reviews',
@@ -1970,6 +1983,8 @@ export interface FileRoutesByFullPath {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/studio-photographers': typeof PosAppStudioPhotographersRoute
+  '/pos-app/studio-watermark': typeof PosAppStudioWatermarkRoute
   '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
@@ -2255,6 +2270,8 @@ export interface FileRoutesByTo {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/studio-photographers': typeof PosAppStudioPhotographersRoute
+  '/pos-app/studio-watermark': typeof PosAppStudioWatermarkRoute
   '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
@@ -2545,6 +2562,8 @@ export interface FileRoutesById {
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
+  '/pos-app/studio-photographers': typeof PosAppStudioPhotographersRoute
+  '/pos-app/studio-watermark': typeof PosAppStudioWatermarkRoute
   '/pos-app/subscriptions': typeof PosAppSubscriptionsRoute
   '/pos-app/suppliers': typeof PosAppSuppliersRoute
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
@@ -2837,6 +2856,8 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/studio-photographers'
+    | '/pos-app/studio-watermark'
     | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
@@ -3122,6 +3143,8 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/studio-photographers'
+    | '/pos-app/studio-watermark'
     | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
@@ -3411,6 +3434,8 @@ export interface FileRouteTypes {
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
+    | '/pos-app/studio-photographers'
+    | '/pos-app/studio-watermark'
     | '/pos-app/subscriptions'
     | '/pos-app/suppliers'
     | '/pos-app/table-maps'
@@ -3876,6 +3901,20 @@ declare module '@tanstack/react-router' {
       path: '/subscriptions'
       fullPath: '/pos-app/subscriptions'
       preLoaderRoute: typeof PosAppSubscriptionsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/studio-watermark': {
+      id: '/pos-app/studio-watermark'
+      path: '/studio-watermark'
+      fullPath: '/pos-app/studio-watermark'
+      preLoaderRoute: typeof PosAppStudioWatermarkRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/studio-photographers': {
+      id: '/pos-app/studio-photographers'
+      path: '/studio-photographers'
+      fullPath: '/pos-app/studio-photographers'
+      preLoaderRoute: typeof PosAppStudioPhotographersRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/studio-photo-reviews': {
@@ -5962,6 +6001,8 @@ interface PosAppRouteChildren {
   PosAppStudioLocationsRoute: typeof PosAppStudioLocationsRoute
   PosAppStudioPackagesRoute: typeof PosAppStudioPackagesRoute
   PosAppStudioPhotoReviewsRoute: typeof PosAppStudioPhotoReviewsRoute
+  PosAppStudioPhotographersRoute: typeof PosAppStudioPhotographersRoute
+  PosAppStudioWatermarkRoute: typeof PosAppStudioWatermarkRoute
   PosAppSubscriptionsRoute: typeof PosAppSubscriptionsRoute
   PosAppSuppliersRoute: typeof PosAppSuppliersRoute
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
@@ -6104,6 +6145,8 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppStudioLocationsRoute: PosAppStudioLocationsRoute,
   PosAppStudioPackagesRoute: PosAppStudioPackagesRoute,
   PosAppStudioPhotoReviewsRoute: PosAppStudioPhotoReviewsRoute,
+  PosAppStudioPhotographersRoute: PosAppStudioPhotographersRoute,
+  PosAppStudioWatermarkRoute: PosAppStudioWatermarkRoute,
   PosAppSubscriptionsRoute: PosAppSubscriptionsRoute,
   PosAppSuppliersRoute: PosAppSuppliersRoute,
   PosAppTableMapsRoute: PosAppTableMapsRoute,
