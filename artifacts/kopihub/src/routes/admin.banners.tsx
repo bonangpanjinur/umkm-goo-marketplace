@@ -9,6 +9,7 @@ import {
   Image, Plus, Trash2, Edit3, Save, X, ToggleLeft, ToggleRight,
   GripVertical, ExternalLink, Eye, EyeOff, RefreshCw, Upload,
 } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/admin/banners")({
   component: AdminBannersPage,
