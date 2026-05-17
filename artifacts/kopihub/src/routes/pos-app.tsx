@@ -94,6 +94,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { NotificationBell } from "@/components/NotificationBell";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useShopCapabilities } from "@/lib/use-shop-capabilities";
+import { FEATURE_LABEL, type FeatureKey } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
