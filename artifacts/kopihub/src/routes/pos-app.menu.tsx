@@ -254,6 +254,9 @@ function MenuPage() {
     setNutritionFiber(ni.fiber != null ? String(ni.fiber) : "");
     setProductionDays(it.production_days != null ? String(it.production_days) : "");
     setConditionGrade(it.condition_grade ?? "");
+    setAllergens(it.allergens ?? []);
+    setIsHalal(Boolean(it.is_halal));
+    setAvailableModes(it.available_modes ?? []);
     setAiTags([]);
     setOpen(true);
   }
