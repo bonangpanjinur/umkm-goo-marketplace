@@ -90,6 +90,8 @@ function ShopChatPage() {
   const pendingFilesRef = useRef<Map<string, { file: File; caption: string }>>(new Map());
   /** Blob URLs we created so we can revoke them on unmount. */
   const blobUrlsRef = useRef<Set<string>>(new Set());
+  /** Active XHR uploads keyed by tempId so we can abort them. */
+  const activeUploadsRef = useRef<Map<string, XMLHttpRequest>>(new Map());
 
   useEffect(() => () => {
     blobUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
