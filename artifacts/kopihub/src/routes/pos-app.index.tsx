@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LowStockDialog } from "@/components/inventory/low-stock-dialog";
+import { SetupChecklist } from "@/components/owner/SetupChecklist";
+import { useRealtimeOrders } from "@/hooks/use-realtime-orders";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
@@ -186,6 +188,9 @@ function Dashboard() {
           Ringkasan hari ini · {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </p>
       </div>
+
+      {shop && <SetupChecklist shopId={shop.id} />}
+      <RealtimeOrdersToast shopId={shop?.id ?? null} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Coins} label="Omzet hari ini" value={formatIDR(todayTotal)} />
@@ -394,6 +399,11 @@ function Shortcut({ to, icon: Icon, label }: { to: string; icon: React.ElementTy
       <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
+}
+
+function RealtimeOrdersToast({ shopId }: { shopId: string | null }) {
+  useRealtimeOrders(shopId, { label: "Order baru masuk", playSound: true });
+  return null;
 }
 
 function Empty({ text }: { text: string }) {
