@@ -65,6 +65,10 @@ function CustomOrdersPage() {
   const [uploadingDelivery, setUploadingDelivery] = useState<string | null>(null);
   const deliveryFileRef = useRef<HTMLInputElement>(null);
 
+  // Contracts linked to custom orders
+  const [contracts, setContracts] = useState<Record<string, ContractLite>>({});
+  const [creatingContract, setCreatingContract] = useState<string | null>(null);
+
   // Search & filter
   const [q, setQ] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
@@ -128,8 +132,75 @@ function CustomOrdersPage() {
       .eq("shop_id", shop.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setItems((data ?? []) as Req[]);
+    const rows = (data ?? []) as Req[];
+    setItems(rows);
     setLoading(false);
+    const ids = rows.map(r => r.contract_id).filter(Boolean) as string[];
+    if (ids.length) {
+      const { data: cs } = await (supabase as any)
+        .from("freelance_contracts")
+        .select("id,status,sign_token,signature_url,signed_by_name,signed_at,total_value,project_name")
+        .in("id", ids);
+      const map: Record<string, ContractLite> = {};
+      (cs ?? []).forEach((c: ContractLite) => { map[c.id] = c; });
+      setContracts(map);
+    }
+  }
+
+  async function createContractFor(r: Req) {
+    if (!shop) return;
+    setCreatingContract(r.id);
+    try {
+      const totalValue = r.budget_max ?? r.budget_min ?? 0;
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = r.deadline ? r.deadline.slice(0, 10) : new Date(Date.now() + 30 * 86400_000).toISOString().slice(0, 10);
+      const { data, error } = await (supabase as any)
+        .from("freelance_contracts")
+        .insert({
+          shop_id: shop.id,
+          client_name: r.customer_name,
+          client_phone: r.customer_contact,
+          project_name: `Custom Order — ${r.customer_name}`,
+          project_description: r.description,
+          total_value: totalValue,
+          start_date: startDate,
+          end_date: endDate,
+          deliverables: "Sesuai brief custom order pelanggan",
+          revision_count: 2,
+          payment_terms: "Sesuai kesepakatan",
+          status: "draft",
+        })
+        .select("id,status,sign_token,signature_url,signed_by_name,signed_at,total_value,project_name")
+        .single();
+      if (error) throw error;
+      const { error: linkErr } = await supabase
+        .from("custom_order_requests")
+        .update({ contract_id: data.id })
+        .eq("id", r.id);
+      if (linkErr) throw linkErr;
+      setItems(prev => prev.map(p => p.id === r.id ? { ...p, contract_id: data.id } : p));
+      setContracts(prev => ({ ...prev, [data.id]: data as ContractLite }));
+      toast.success("Kontrak dibuat & ditautkan");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal membuat kontrak");
+    } finally {
+      setCreatingContract(null);
+    }
+  }
+
+  async function copySignLink(c: ContractLite) {
+    if (!c.sign_token) { toast.error("Token belum tersedia"); return; }
+    const url = `${window.location.origin}/kontrak/${c.sign_token}`;
+    try { await navigator.clipboard.writeText(url); toast.success("Link tanda tangan disalin"); }
+    catch { toast.error("Gagal menyalin"); }
+  }
+
+  async function refreshContract(id: string) {
+    const { data } = await (supabase as any)
+      .from("freelance_contracts")
+      .select("id,status,sign_token,signature_url,signed_by_name,signed_at,total_value,project_name")
+      .eq("id", id).maybeSingle();
+    if (data) setContracts(prev => ({ ...prev, [data.id]: data as ContractLite }));
   }
 
   async function loadHistory(requestId: string) {
