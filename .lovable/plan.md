@@ -1,58 +1,51 @@
-## Bug yang ditemukan
+## Tujuan
 
-Alur pesan dari marketplace (`/checkout`) putus total karena ketidaksesuaian antara client dan database. Storefront per-toko (`/s/$slug/checkout`) tidak terdampak.
+Rombak `toko/$slug/produk/$productId` agar terasa seperti marketplace besar: tombol Keranjang, Beli Sekarang, dan Chat Toko selalu terjangkau, info toko menonjol di sisi kanan, dan tata letak rapi di mobile maupun desktop.
 
-### 1. Parameter `_payment_method` tidak ada di RPC
+## Yang akan ditambah / dirombak
 
-`src/lib/marketplace-cart.ts` mengirim `_payment_method` saat memanggil `supabase.rpc("marketplace_checkout", ...)`, tetapi signature fungsi DB hanya menerima:
+**1. Kartu Info Toko (kolom kanan, di bawah harga)**
+- Logo + nama toko + lokasi (kota/area) + rating toko + jumlah produk
+- Tombol kembar: **Chat Toko** (warna outline) dan **Kunjungi Toko** (filled)
+- Badge tipis: "Aktif baru saja", "Tepat waktu", dsb. (kalau datanya ada di tabel `shops`)
+- Mengganti link kecil di atas judul yang sekarang terasa tipis
 
-```
-_recipient_name, _phone, _address, _fulfillment,
-_notes, _shipping, _shop_voucher_codes, _platform_voucher_code
-```
+**2. Sticky Action Bar (bottom)**
+- Mobile: bar penuh lebar di bawah berisi ikon Chat + Wishlist + tombol **+ Keranjang** + **Beli Sekarang**
+- Desktop (≥ md): bar tetap menempel di bawah konten produk dengan ringkasan harga + tombol-tombol yang sama; tidak menutupi konten footer
+- Memakai `position: fixed` di mobile dan `sticky` di desktop, padding bawah body disesuaikan agar konten tidak ketutup
+- Tombol **Chat Toko** mengambang yang sekarang dihapus karena sudah ada di sticky bar (menghindari duplikasi)
 
-PostgREST → 404 "Could not find the function `public.marketplace_checkout(...)`". Tombol "Bayar" di `/checkout` selalu gagal sebelum apapun terjadi.
+**3. AddToCartBlock dirapikan**
+- Selector qty + harga total di-stack lebih jelas
+- Tombol Wishlist / Compare / Price Alert / Share dipindah jadi ikon kecil di header info produk (bukan deretan tombol besar) — lebih mirip marketplace
+- Tombol primer (Keranjang / Beli Sekarang) hanya di sticky bar di mobile; di desktop tetap muncul di blok detail + di sticky bar
 
-### 2. Body fungsi me-cast nilai yang tidak ada di enum
+**4. Mini perapian visual**
+- Galeri gambar utama dengan thumbnail kecil di bawah (kalau hanya 1 image, tetap satu — tidak break)
+- Breadcrumb sedikit lebih kompak
+- Section "Tanya & Jawab" dan "Ulasan" diberi heading + divider lebih kuat
 
-Di dalam body `marketplace_checkout`, baris INSERT order memakai:
+## File yang disentuh
 
-```sql
-'manual_transfer'::payment_method
-```
+- `artifacts/kopihub/src/routes/toko.$slug.produk.$productId.tsx`
+  - Tambah komponen `ShopInfoCard` (inline)
+  - Tambah komponen `StickyActionBar` (inline)
+  - Refactor `AddToCartBlock` untuk membaca callback "Beli Sekarang" dan "Tambah" agar bisa dipanggil dari sticky bar
+  - Hapus FAB "Chat Toko" lama (digantikan tombol di sticky bar)
+  - Tambah `pb-24 md:pb-28` di kontainer agar sticky bar tidak menutup konten
 
-Padahal enum `public.payment_method` hanya berisi `{cash, qris}`. Bahkan jika masalah #1 diperbaiki, INSERT tetap akan gagal dengan "invalid input value for enum payment_method".
+## Yang TIDAK diubah
 
-### 3. Enum tidak mencakup metode yang ditawarkan UI
+- Logika data (query Supabase) — semua field sudah tersedia
+- Schema database & RLS — tidak ada migrasi
+- Halaman `/keranjang`, `/toko/$slug/chat`, dan rute lain — hanya halaman produk yang dirombak
+- Komponen lain (Reviews, QA, FrequentlyBoughtTogether, dsb.) tetap di posisi yang sama
 
-Halaman `/checkout` menampilkan tiga opsi: `transfer`, `cod`, `qris`. Hanya `qris` yang ada di enum DB.
+## Verifikasi setelah implement
 
-> Storefront `/s/$slug/checkout` aman: hanya pakai `cash`/`qris` yang valid, dan memetakan `transfer → qris` sebelum insert.
-
-## Rencana perbaikan
-
-### A. Migrasi DB (1 file)
-
-1. `ALTER TYPE public.payment_method ADD VALUE IF NOT EXISTS 'manual_transfer';`
-2. `ALTER TYPE public.payment_method ADD VALUE IF NOT EXISTS 'cod';`
-3. `DROP FUNCTION public.marketplace_checkout(...)` (signature lama) lalu `CREATE OR REPLACE` dengan:
-   - Tambah parameter `_payment_method text DEFAULT 'manual_transfer'` (diletakkan SEBELUM `_notes` agar urutan param sesuai dengan apa yang dikirim client di `marketplace-cart.ts`).
-   - Di awal body, normalisasi: `transfer` / `manual_transfer` → `manual_transfer`, `qris` → `qris`, `cod` → `cod`, `cash` → `cash`, lainnya → `manual_transfer`.
-   - Ganti `'manual_transfer'::payment_method` di INSERT dengan variable yang sudah dinormalisasi.
-   - Selebihnya body fungsi dipertahankan utuh (logika voucher, komisi, dsb).
-4. `GRANT EXECUTE` ke `authenticated`.
-
-### B. Tidak ada perubahan client
-
-`marketplace-cart.ts` sudah mengirim `_payment_method` dengan urutan yang benar. Setelah migrasi, RPC akan menerima dan menggunakannya.
-
-## Verifikasi
-
-1. Login sebagai pembeli → tambah produk dari `/s/toko-berkah` ke marketplace cart (lewat `/toko/toko-berkah`) → buka `/checkout` → pilih metode `transfer` / `cod` / `qris` → submit.
-2. Pastikan toast "X pesanan berhasil dibuat" muncul dan redirect ke `/checkout/sukses/{id}`.
-3. Cek baris baru di tabel `orders` (`payment_method` terisi sesuai pilihan, `channel = marketplace`).
-4. Verifikasi storefront `/s/$slug/checkout` masih berfungsi (regresi).
-
-## File yang berubah
-
-- `supabase/migrations/<timestamp>_fix_marketplace_checkout.sql` — migrasi baru (enum + drop/recreate fungsi).
+- Buka `/toko/toko-berkah/produk/<id>` di viewport mobile (375px) → sticky bar bawah muncul, tombol Chat & Keranjang bisa ditekan
+- Viewport desktop (≥ md) → kartu toko muncul di kanan, sticky bar tetap dapat dilihat saat scroll
+- Klik **Chat Toko** → navigasi ke `/toko/$slug/chat`
+- Klik **+ Keranjang** → toast sukses, badge bottom-nav update
+- Klik **Beli Sekarang** → masuk ke `/keranjang`
