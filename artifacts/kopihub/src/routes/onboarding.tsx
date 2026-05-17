@@ -275,7 +275,15 @@ function OnboardingPage() {
     }
   };
 
-  const goToDashboard = () => navigate({ to: "/pos-app" });
+  const goToDashboard = async () => {
+    if (shopId) {
+      await (supabase as any)
+        .from("shops")
+        .update({ onboarded_at: new Date().toISOString() })
+        .eq("id", shopId);
+    }
+    navigate({ to: "/pos-app" });
+  };
 
   if (loading || checking) {
     return (
