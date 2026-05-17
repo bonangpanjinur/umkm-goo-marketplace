@@ -385,6 +385,7 @@ function ProductDetailPage() {
               <div className="h-8 w-3/4 rounded bg-muted/40 animate-pulse" />
               <div className="h-6 w-1/2 rounded bg-muted/40 animate-pulse" />
               <div className="h-24 rounded bg-muted/40 animate-pulse" />
+              <ShopInfoCard shop={null} loading />
             </div>
           </div>
         ) : product && shop ? (
