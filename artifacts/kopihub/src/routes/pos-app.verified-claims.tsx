@@ -200,8 +200,8 @@ export default function VerifiedClaimsPage() {
               <Input value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} placeholder="Misal: Clinically Tested" />
             </div>
             <div className="space-y-1.5">
-              <Label>URL Bukti / Sertifikat (opsional)</Label>
-              <Input value={form.evidence_url} onChange={e => setForm(f => ({ ...f, evidence_url: e.target.value }))} placeholder="https://..." />
+              <Label>Bukti / Sertifikat (opsional)</Label>
+              <UploadableImage value={form.evidence_url || null} onChange={(url) => setForm(f => ({ ...f, evidence_url: url ?? "" }))} bucket="shop-images" pathPrefix={`${shop?.id ?? ""}/claims`} hint="Foto sertifikat/bukti, JPG/PNG/WebP maks 5 MB" />
             </div>
             <div className="space-y-1.5">
               <Label>Keterangan Tambahan (opsional)</Label>
