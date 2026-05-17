@@ -496,6 +496,8 @@ function MenuPage() {
       allergens: allergens,
       is_halal: isHalal,
       available_modes: availableModes,
+      sku: sku.trim() || null,
+      barcode: barcode.trim() || null,
     } as unknown as TablesInsert<"menu_items">;
     if (editing) {
       const oldPrice = editing.price;
