@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
+import { resolvePostLoginRoute } from "@/lib/post-login-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,26 +22,34 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/pos-app" });
+    if (!loading && user) {
+      resolvePostLoginRoute(user.id).then((to) => navigate({ to: to as never }));
+    }
   }, [user, loading, navigate]);
+
+  const goAfterLogin = async (uid: string) => {
+    const to = await resolvePostLoginRoute(uid);
+    navigate({ to: to as never });
+  };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
     toast.success("Selamat datang kembali!");
-    navigate({ to: "/pos-app" });
+    if (data.user) await goAfterLogin(data.user.id);
+    else navigate({ to: "/pos-app" });
   };
 
   const onGoogle = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/pos-app",
+      redirect_uri: window.location.origin + "/login",
     });
     if (result.error) {
       setBusy(false);
@@ -48,7 +57,7 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/pos-app" });
+    // Callback OAuth → useEffect akan jalankan resolvePostLoginRoute
   };
 
   return <AuthShell title="Masuk ke UMKMgo" subtitle="Kelola toko Anda dari mana saja.">
