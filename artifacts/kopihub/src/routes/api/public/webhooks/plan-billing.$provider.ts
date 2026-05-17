@@ -72,6 +72,27 @@ export const Route = createFileRoute("/api/public/webhooks/plan-billing/$provide
           if (!invoiceRef) return new Response("Missing invoice ref", { status: 400 });
 
           const admin = getAdminClient();
+
+          // Idempotency: catat event sebelum proses. providerRef (atau invoiceRef
+          // sebagai fallback) jadi event_id unik. Jika sudah ada → skip.
+          const eventId = providerRef ?? invoiceRef;
+          const { error: dupErr } = await admin
+            .from("webhook_events")
+            .insert({
+              provider,
+              event_id: eventId,
+              payload_summary: { invoice_ref: invoiceRef, paid },
+              status: "processing",
+            });
+          if (dupErr && dupErr.code === "23505") {
+            // Duplicate — sudah pernah diproses, balas 200 supaya provider tidak retry.
+            return new Response(JSON.stringify({ ok: true, duplicate: true }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          if (dupErr) console.error("webhook_events insert:", dupErr);
+
           const { data: inv } = await admin
             .from("plan_invoices")
             .select("id, status, shop_id, plan_id")
@@ -80,7 +101,7 @@ export const Route = createFileRoute("/api/public/webhooks/plan-billing/$provide
           if (!inv) return new Response("Invoice not found", { status: 404 });
 
           if (paid && inv.status !== "paid") {
-            await admin.rpc("approve_invoice" as any, { _invoice_id: inv.id });
+            await admin.rpc("approve_invoice" as never, { _invoice_id: inv.id });
             await admin.from("plan_invoices").update({
               provider_ref: providerRef,
               payment_method: provider,
@@ -90,6 +111,12 @@ export const Route = createFileRoute("/api/public/webhooks/plan-billing/$provide
               provider_ref: providerRef,
             }).eq("id", inv.id);
           }
+
+          await admin
+            .from("webhook_events")
+            .update({ status: "done" })
+            .eq("provider", provider)
+            .eq("event_id", eventId);
 
           return new Response(JSON.stringify({ ok: true, paid }), {
             status: 200,

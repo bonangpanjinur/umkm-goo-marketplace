@@ -292,6 +292,7 @@ import { Route as TokoSlugProdukProductIdRouteImport } from './routes/toko.$slug
 import { Route as TokoSlugCustomOrderStatusRouteImport } from './routes/toko.$slug.custom-order.status'
 import { Route as SSlugPayOrderIdRouteImport } from './routes/s.$slug.pay.$orderId'
 import { Route as SSlugMenuMenuIdRouteImport } from './routes/s.$slug.menu.$menuId'
+import { Route as ApiPublicHooksSchedulerRouteImport } from './routes/api/public/hooks/scheduler'
 import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api/public/hooks/booking-reminders'
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
 import { Route as ApiPublicWebhooksPlanBillingProviderRouteImport } from './routes/api/public/webhooks/plan-billing.$provider'
@@ -1724,6 +1725,11 @@ const SSlugMenuMenuIdRoute = SSlugMenuMenuIdRouteImport.update({
   path: '/menu/$menuId',
   getParentRoute: () => SSlugRoute,
 } as any)
+const ApiPublicHooksSchedulerRoute = ApiPublicHooksSchedulerRouteImport.update({
+  id: '/api/public/hooks/scheduler',
+  path: '/api/public/hooks/scheduler',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksBookingRemindersRoute =
   ApiPublicHooksBookingRemindersRouteImport.update({
     id: '/api/public/hooks/booking-reminders',
@@ -2024,6 +2030,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
+  '/api/public/hooks/scheduler': typeof ApiPublicHooksSchedulerRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
@@ -2306,6 +2313,7 @@ export interface FileRoutesByTo {
   '/s/$slug': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
+  '/api/public/hooks/scheduler': typeof ApiPublicHooksSchedulerRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
@@ -2595,6 +2603,7 @@ export interface FileRoutesById {
   '/s/$slug/': typeof SSlugIndexRoute
   '/admin/plans/$id/matrix': typeof AdminPlansIdMatrixRoute
   '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
+  '/api/public/hooks/scheduler': typeof ApiPublicHooksSchedulerRoute
   '/s/$slug/menu/$menuId': typeof SSlugMenuMenuIdRoute
   '/s/$slug/pay/$orderId': typeof SSlugPayOrderIdRoute
   '/toko/$slug/custom-order/status': typeof TokoSlugCustomOrderStatusRoute
@@ -2885,6 +2894,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
     | '/api/public/hooks/booking-reminders'
+    | '/api/public/hooks/scheduler'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
@@ -3167,6 +3177,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/admin/plans/$id/matrix'
     | '/api/public/hooks/booking-reminders'
+    | '/api/public/hooks/scheduler'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
@@ -3455,6 +3466,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/admin/plans/$id/matrix'
     | '/api/public/hooks/booking-reminders'
+    | '/api/public/hooks/scheduler'
     | '/s/$slug/menu/$menuId'
     | '/s/$slug/pay/$orderId'
     | '/toko/$slug/custom-order/status'
@@ -3497,6 +3509,7 @@ export interface RootRouteChildren {
   BookingCancelTokenRoute: typeof BookingCancelTokenRoute
   BookingRescheduleTokenRoute: typeof BookingRescheduleTokenRoute
   ApiPublicHooksBookingRemindersRoute: typeof ApiPublicHooksBookingRemindersRoute
+  ApiPublicHooksSchedulerRoute: typeof ApiPublicHooksSchedulerRoute
   ApiPublicWebhooksPlanBillingProviderRoute: typeof ApiPublicWebhooksPlanBillingProviderRoute
 }
 
@@ -5483,6 +5496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugMenuMenuIdRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/api/public/hooks/scheduler': {
+      id: '/api/public/hooks/scheduler'
+      path: '/api/public/hooks/scheduler'
+      fullPath: '/api/public/hooks/scheduler'
+      preLoaderRoute: typeof ApiPublicHooksSchedulerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/booking-reminders': {
       id: '/api/public/hooks/booking-reminders'
       path: '/api/public/hooks/booking-reminders'
@@ -6221,6 +6241,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookingCancelTokenRoute: BookingCancelTokenRoute,
   BookingRescheduleTokenRoute: BookingRescheduleTokenRoute,
   ApiPublicHooksBookingRemindersRoute: ApiPublicHooksBookingRemindersRoute,
+  ApiPublicHooksSchedulerRoute: ApiPublicHooksSchedulerRoute,
   ApiPublicWebhooksPlanBillingProviderRoute:
     ApiPublicWebhooksPlanBillingProviderRoute,
 }

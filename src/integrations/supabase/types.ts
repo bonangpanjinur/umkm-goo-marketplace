@@ -9380,6 +9380,33 @@ export type Database = {
           },
         ]
       }
+      webhook_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          payload_summary: Json | null
+          provider: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          payload_summary?: Json | null
+          provider: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          payload_summary?: Json | null
+          provider?: string
+          status?: string
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
