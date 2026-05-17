@@ -1,0 +1,1 @@
+ALTER VIEW public.v_shop_capabilities SET (security_invoker = true);
