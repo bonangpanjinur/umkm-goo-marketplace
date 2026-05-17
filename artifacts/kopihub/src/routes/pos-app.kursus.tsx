@@ -778,123 +778,54 @@ function KursusPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {modules.map((mod, idx) => {
-                const isExpanded = expandedModule === mod.id;
-                const modLessons = lessons[mod.id] ?? [];
-                return (
-                  <Card key={mod.id} className="overflow-hidden">
-                    {/* Module header */}
-                    <div
-                      className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-                      onClick={() => toggleModule(mod.id)}
-                    >
-                      <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold shrink-0">
-                        {idx + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{mod.title}</p>
-                        {mod.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs text-muted-foreground mr-1">{mod.lesson_count} pelajaran</span>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === 0}
-                          onClick={(e) => { e.stopPropagation(); moveModule(idx, -1); }}>
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === modules.length - 1}
-                          onClick={(e) => { e.stopPropagation(); moveModule(idx, 1); }}>
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7"
-                          onClick={(e) => { e.stopPropagation(); openEditModule(mod); }}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={(e) => { e.stopPropagation(); deleteModule(mod); }}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />}
-                      </div>
-                    </div>
-
-                    {/* Lessons */}
-                    {isExpanded && (
-                      <div className="border-t border-border bg-muted/20">
-                        {modLessons.map((lesson, li) => (
-                          <div key={lesson.id} className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-b-0">
-                            <div className="pl-6 shrink-0">
-                              <Video className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-medium">{li + 1}. {lesson.title}</span>
-                                {lesson.is_free_preview && (
-                                  <Badge variant="secondary" className="text-[10px]">
-                                    <Eye className="h-2.5 w-2.5 mr-1" />
-                                    Pratinjau Gratis
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-2.5 w-2.5" />
-                                  {fmtDuration(lesson.duration_minutes)}
-                                </span>
-                                {lesson.video_url && (
-                                  <a
-                                    href={lesson.video_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline truncate max-w-[180px]"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {lesson.video_url}
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === 0}
-                                onClick={() => moveLesson(mod.id, li, -1)}>
-                                <ArrowUp className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === modLessons.length - 1}
-                                onClick={() => moveLesson(mod.id, li, 1)}>
-                                <ArrowDown className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7"
-                                onClick={() => openEditLesson(lesson)}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
-                                onClick={() => deleteLesson(lesson)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                        <div className="px-4 py-3">
-                          <Button
-                            size="sm" variant="outline" className="gap-1.5"
-                            onClick={() => openNewLesson(mod.id)}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            Tambah Pelajaran
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e: DragEndEvent) => {
+                const { active, over } = e;
+                if (!over || active.id === over.id) return;
+                const oldIdx = modules.findIndex((m) => m.id === active.id);
+                const newIdx = modules.findIndex((m) => m.id === over.id);
+                if (oldIdx >= 0 && newIdx >= 0) reorderModules(oldIdx, newIdx);
+              }}
+            >
+              <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {modules.map((mod, idx) => (
+                    <SortableModuleCard
+                      key={mod.id}
+                      mod={mod}
+                      idx={idx}
+                      isExpanded={expandedModule === mod.id}
+                      lessons={lessons[mod.id] ?? []}
+                      sensors={sensors}
+                      onToggle={() => toggleModule(mod.id)}
+                      onEdit={() => openEditModule(mod)}
+                      onDelete={() => deleteModule(mod)}
+                      onToggleStatus={() => toggleModuleStatus(mod)}
+                      onNewLesson={() => openNewLesson(mod.id)}
+                      onEditLesson={(l) => openEditLesson(l)}
+                      onDeleteLesson={(l) => deleteLesson(l)}
+                      onToggleLessonStatus={(l) => toggleLessonStatus(l)}
+                      onReorderLessons={(o, n) => reorderLessons(mod.id, o, n)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </>
       )}
+
+      {/* Preview dialog (modul → pelajaran berurutan) */}
+      <CoursePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        course={selectedCourse}
+        sequence={previewSequence}
+        index={previewLessonIdx}
+        setIndex={setPreviewLessonIdx}
+      />
 
       {/* ═══════════════════════════════════════════════════════════
            DIALOGS
