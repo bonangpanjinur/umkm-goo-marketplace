@@ -6598,7 +6598,6 @@ export type Database = {
           deposit_enabled: boolean
           deposit_min_total: number
           deposit_notes: string | null
-          deposit_percent: number
           deposit_percentage: number
           description: string | null
           email: string | null
@@ -6667,7 +6666,6 @@ export type Database = {
           deposit_enabled?: boolean
           deposit_min_total?: number
           deposit_notes?: string | null
-          deposit_percent?: number
           deposit_percentage?: number
           description?: string | null
           email?: string | null
@@ -6736,7 +6734,6 @@ export type Database = {
           deposit_enabled?: boolean
           deposit_min_total?: number
           deposit_notes?: string | null
-          deposit_percent?: number
           deposit_percentage?: number
           description?: string | null
           email?: string | null
