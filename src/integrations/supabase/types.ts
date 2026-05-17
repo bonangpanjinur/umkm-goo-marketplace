@@ -2748,6 +2748,24 @@ export type Database = {
           },
         ]
       }
+      icd10_codes: {
+        Row: {
+          category: string | null
+          code: string
+          label_id: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          label_id: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          label_id?: string
+        }
+        Relationships: []
+      }
       ingredients: {
         Row: {
           category: string | null
@@ -4736,13 +4754,16 @@ export type Database = {
           allergies: string | null
           birth_date: string | null
           blood_type: string | null
+          bpjs_number: string | null
           created_at: string
           gender: string | null
           id: string
           medical_history: string | null
+          nik: string | null
           notes: string | null
           patient_contact: string | null
           patient_name: string
+          payer_type: string | null
           shop_id: string
           updated_at: string
         }
@@ -4750,13 +4771,16 @@ export type Database = {
           allergies?: string | null
           birth_date?: string | null
           blood_type?: string | null
+          bpjs_number?: string | null
           created_at?: string
           gender?: string | null
           id?: string
           medical_history?: string | null
+          nik?: string | null
           notes?: string | null
           patient_contact?: string | null
           patient_name: string
+          payer_type?: string | null
           shop_id: string
           updated_at?: string
         }
@@ -4764,13 +4788,16 @@ export type Database = {
           allergies?: string | null
           birth_date?: string | null
           blood_type?: string | null
+          bpjs_number?: string | null
           created_at?: string
           gender?: string | null
           id?: string
           medical_history?: string | null
+          nik?: string | null
           notes?: string | null
           patient_contact?: string | null
           patient_name?: string
+          payer_type?: string | null
           shop_id?: string
           updated_at?: string
         }
@@ -4803,6 +4830,9 @@ export type Database = {
           complaint: string | null
           created_at: string
           diagnosis: string | null
+          icd10_code: string | null
+          icd10_label: string | null
+          icd10_secondary: Json
           id: string
           notes: string | null
           patient_id: string
@@ -4815,6 +4845,9 @@ export type Database = {
           complaint?: string | null
           created_at?: string
           diagnosis?: string | null
+          icd10_code?: string | null
+          icd10_label?: string | null
+          icd10_secondary?: Json
           id?: string
           notes?: string | null
           patient_id: string
@@ -4827,6 +4860,9 @@ export type Database = {
           complaint?: string | null
           created_at?: string
           diagnosis?: string | null
+          icd10_code?: string | null
+          icd10_label?: string | null
+          icd10_secondary?: Json
           id?: string
           notes?: string | null
           patient_id?: string
