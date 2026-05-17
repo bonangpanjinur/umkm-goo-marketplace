@@ -200,6 +200,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed, onlyFor: HAS_POS, requires: ["MENU"] },
       { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal, onlyFor: HAS_POS, requires: ["VARIANTS"] },
+      { to: "/pos-app/variant-matrix", label: "Matrix Varian",   icon: SlidersHorizontal, hint: "Generate kombinasi Size × Color × Material dengan SKU & stok per kombinasi", onlyFor: HAS_POS, requires: ["VARIANT_MATRIX","VARIANTS"] },
       { to: "/pos-app/categories",     label: "Kategori",        icon: Tags, onlyFor: HAS_POS, requires: ["MENU"] },
       { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC, requires: ["DIGITAL"] },
       { to: "/pos-app/digital-licenses", label: "Lisensi Digital", icon: ShieldCheck, hint: "Lacak unduhan pembeli & kelola lisensi per produk digital — anti-sharing", onlyFor: DIGITAL_SVC, requires: ["DIGITAL_LICENSES"] },
