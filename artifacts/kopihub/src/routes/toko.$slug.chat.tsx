@@ -336,12 +336,16 @@ function ShopChatPage() {
 
     let publicUrl: string;
     try {
-      publicUrl = await uploadFileWithProgress(file, (pct) => {
+      publicUrl = await uploadFileWithProgress(file, tempId, (pct) => {
         setMessages((m) => m.map((x) =>
           x._tempId === tempId ? { ...x, _uploadProgress: pct } : x,
         ));
       });
     } catch {
+      // If it was a user abort, remove the bubble entirely rather than showing failed.
+      if (activeUploadsRef.current.has(tempId) === false && !pendingFilesRef.current.has(tempId)) {
+        return; // already cleaned up by cancelSend
+      }
       // Keep file in ref so user can retry without re-picking it.
       setMessages((m) => m.map((x) =>
         x._tempId === tempId ? { ...x, _status: "failed", _uploadProgress: undefined } : x,
