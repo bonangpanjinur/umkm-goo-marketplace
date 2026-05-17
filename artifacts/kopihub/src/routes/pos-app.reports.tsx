@@ -103,6 +103,8 @@ const CHANNEL_LABELS: Record<Channel, string> = {
 
 function ReportsPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
+  const st = useShopSubtype();
+  const [tab, setTab] = useState<string>("sales");
   const [range,   setRange]   = useState<Range>("today");
   const [channel, setChannel] = useState<Channel>("all");
   const [orders, setOrders] = useState<Order[]>([]);
