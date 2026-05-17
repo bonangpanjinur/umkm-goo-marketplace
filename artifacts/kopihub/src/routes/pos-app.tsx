@@ -20,6 +20,7 @@ import {
   Package,
   ChefHat,
   Users,
+  Stamp,
   CalendarDays,
   Clock,
   Truck,
