@@ -693,8 +693,8 @@ export default function PublicBookingPage() {
           price: depositAmount,
           quantity: 1,
         }],
-        success_redirect_url: window.location.href,
-        failure_redirect_url: window.location.href,
+        success_redirect_url: `${window.location.origin}/booking/${bookingId}/payment-callback`,
+        failure_redirect_url: `${window.location.origin}/booking/${bookingId}/payment-callback`,
       });
 
       if (result.gateway === "midtrans" && result.snap_token) {
