@@ -104,7 +104,7 @@ function CustomOrderForm() {
         user_id: user?.id ?? null,
       } as never);
       if (error) { toast.error(error.message); return; }
-      try { localStorage.setItem(`kopihub:custom-order-contact:${slug}`, contact.trim()); } catch { /* ignore */ }
+      try { localStorage.setItem(`umkmgo:custom-order-contact:${slug}`, contact.trim()); } catch { /* ignore */ }
       setSubmitted(true);
     } finally { setSaving(false); }
   }

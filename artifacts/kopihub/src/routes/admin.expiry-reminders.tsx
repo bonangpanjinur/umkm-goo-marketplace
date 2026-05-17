@@ -67,7 +67,7 @@ const SAMPLE_DATA: Record<string, string> = {
   "{{plan_name}}": "Pro Bulanan",
   "{{days_left}}": "3",
   "{{expires_at}}": "18 Mei 2026",
-  "{{renewal_url}}": "https://app.kopihub.id/pos-app/billing",
+  "{{renewal_url}}": "https://app.umkmgo.id/pos-app/billing",
 };
 
 function renderTemplate(text: string): string {

@@ -205,9 +205,9 @@ function SearchEmptyState({
 
 // ===== Cache persistence (per-tab, with TTL) =====
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 menit
-const PRODUCT_CACHE_KEY = "kopihub:search:productCache:v1";
-const SHOP_CACHE_KEY    = "kopihub:search:shopCache:v1";
-const FILTERS_KEY       = "kopihub:search:filters:v1";
+const PRODUCT_CACHE_KEY = "umkmgo:search:productCache:v1";
+const SHOP_CACHE_KEY    = "umkmgo:search:shopCache:v1";
+const FILTERS_KEY       = "umkmgo:search:filters:v1";
 
 type ProductCacheEntry = { products: any[]; productTotal: number; productPage: number; ts: number };
 type ShopCacheEntry    = { shops: any[];    shopTotal: number;    shopPage: number;    ts: number };

@@ -490,12 +490,12 @@ function downloadICS(b: Booking) {
   const dtEnd   = `${dateStr}T${pad(h + 1)}${pad(m)}00`;
   const shopName = b.slot.shop?.name ?? "";
   const summary  = `${b.slot.service_name}${shopName ? ` — ${shopName}` : ""}`;
-  const uid      = `${b.id}@kopihub`;
+  const uid      = `${b.id}@umkmgo`;
   const now      = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//KopiHub//Booking//EN",
+    "PRODID:-//UMKMgo//Booking//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
