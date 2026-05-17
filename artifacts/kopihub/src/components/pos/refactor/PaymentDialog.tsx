@@ -194,6 +194,7 @@ export function PaymentDialog({
         <DialogFooter>
           <Button
             className="w-full h-12 text-lg"
+            data-testid="confirm-payment"
             disabled={loading || (method === "cash" && amount < total)}
             onClick={handleConfirm}
           >
