@@ -9,6 +9,10 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Send, ChevronLeft, Store, Loader2, AlertCircle, MessageCircle,
   Paperclip, ImageIcon, X, ShoppingBag, Check, CheckCheck, Clock, RefreshCw, Wifi, WifiOff,
 } from "lucide-react";
