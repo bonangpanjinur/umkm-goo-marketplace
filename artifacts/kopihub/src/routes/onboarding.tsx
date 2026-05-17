@@ -83,14 +83,29 @@ function OnboardingPage() {
 
   // Kategori bisnis dari DB
   const [categories, setCategories] = useState<CategoryRow[]>([]);
-  useEffect(() => {
-    supabase
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const loadCategories = async () => {
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    const { data, error } = await supabase
       .from("business_categories")
       .select("id, slug, name, description")
       .eq("is_active", true)
-      .order("sort_order")
-      .then(({ data }) => setCategories((data as CategoryRow[]) ?? []));
-  }, []);
+      .order("sort_order");
+    if (error) {
+      setCategoriesError(error.message || "Gagal memuat kategori");
+      setCategories([]);
+    } else {
+      const rows = (data as CategoryRow[]) ?? [];
+      setCategories(rows);
+      if (rows.length === 0) {
+        setCategoriesError("Daftar kategori kosong. Hubungi admin.");
+      }
+    }
+    setCategoriesLoading(false);
+  };
+  useEffect(() => { loadCategories(); }, []);
 
   useEffect(() => {
     if (loading) return;
