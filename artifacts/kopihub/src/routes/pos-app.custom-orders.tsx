@@ -506,6 +506,76 @@ function CustomOrdersPage() {
                   </div>
                 )}
 
+                {(() => {
+                  const c = r.contract_id ? contracts[r.contract_id] : null;
+                  if (!r.contract_id) {
+                    return (
+                      <div className="border-t border-border pt-3">
+                        <Button size="sm" variant="outline" className="gap-1.5"
+                          disabled={creatingContract === r.id}
+                          onClick={() => createContractFor(r)}>
+                          {creatingContract === r.id
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <ScrollText className="h-3.5 w-3.5" />}
+                          Buat kontrak & link tanda tangan
+                        </Button>
+                      </div>
+                    );
+                  }
+                  if (!c) return null;
+                  const signed = c.status === "signed" || !!c.signature_url;
+                  return (
+                    <div className="border-t border-border pt-3 space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <ScrollText className="h-4 w-4 text-primary" />
+                        Kontrak Tertaut
+                        <span className={`ml-1 text-[10px] px-2 py-0.5 rounded-full ${signed ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                          {signed ? "Ditandatangani" : (c.status === "sent" ? "Dikirim" : "Draft")}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {c.sign_token && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => copySignLink(c)}>
+                            <LinkIcon className="h-3 w-3" /> Salin link TTD
+                          </Button>
+                        )}
+                        {c.sign_token && !signed && (
+                          <a href={waLink(r.customer_contact,
+                            `Halo ${r.customer_name}, silakan tanda tangan kontrak untuk custom order kamu di tautan berikut:\n${window.location.origin}/kontrak/${c.sign_token}`)}
+                            target="_blank" rel="noreferrer">
+                            <Button size="sm" className="h-7 text-xs">Kirim WA</Button>
+                          </a>
+                        )}
+                        <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => refreshContract(c.id)}>
+                          Refresh
+                        </Button>
+                      </div>
+                      {signed && c.signature_url && (
+                        <div className="rounded-lg border bg-muted/30 p-2">
+                          <div className="flex items-center gap-3">
+                            <PenLine className="h-3.5 w-3.5 text-green-700 shrink-0" />
+                            <img src={c.signature_url} alt="Tanda tangan" className="h-12 max-w-[160px] rounded bg-white" />
+                            <div className="text-xs text-muted-foreground flex-1 min-w-0">
+                              <div className="truncate font-medium text-foreground">{c.signed_by_name ?? r.customer_name}</div>
+                              {c.signed_at && <div>{new Date(c.signed_at).toLocaleString("id-ID")}</div>}
+                            </div>
+                          </div>
+                          <div className="mt-2 flex gap-2">
+                            <a href={c.signature_url} target="_blank" rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                              <ExternalLink className="h-3 w-3" /> Buka
+                            </a>
+                            <a href={c.signature_url} download={`ttd-${r.customer_name.replace(/\s+/g, "_")}.png`}
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                              <Download className="h-3 w-3" /> Unduh PNG
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <div className="border-t border-border pt-2">
                   <button onClick={() => toggleTimeline(r.id)} className="text-xs flex items-center gap-1 text-primary hover:underline">
                     <History className="h-3 w-3" />
