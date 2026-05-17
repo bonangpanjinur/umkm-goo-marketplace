@@ -647,13 +647,12 @@ export default function PublicBookingPage() {
     }
   };
 
+  // Truth source = webhook (api-server `/api/payments/webhook/midtrans`).
+  // Client TIDAK lagi menulis `deposit_status='paid'` langsung — hanya update UI lokal.
+  // Server status dipanggil via `getPaymentStatus` di polling untuk konfirmasi.
   const markDepositPaid = async (txId?: string) => {
     if (!bookingId || bookingId === "ok") { setStep("success"); return; }
     try {
-      await supabase
-        .from("bookings" as any)
-        .update({ deposit_status: "paid" } as any)
-        .eq("id" as any, bookingId);
       if (shop?.id) {
         await supabase.from("owner_notifications" as any).insert({
           shop_id: shop.id,
