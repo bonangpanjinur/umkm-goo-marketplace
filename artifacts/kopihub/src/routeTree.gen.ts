@@ -49,6 +49,8 @@ import { Route as PosAppUpsellRouteImport } from './routes/pos-app.upsell'
 import { Route as PosAppUmrohPackagesRouteImport } from './routes/pos-app.umroh-packages'
 import { Route as PosAppUmrohFaqRouteImport } from './routes/pos-app.umroh-faq'
 import { Route as PosAppUmrohFacilitiesRouteImport } from './routes/pos-app.umroh-facilities'
+import { Route as PosAppTravelManifestRouteImport } from './routes/pos-app.travel-manifest'
+import { Route as PosAppTravelInstallmentsRouteImport } from './routes/pos-app.travel-installments'
 import { Route as PosAppTestimonialsRouteImport } from './routes/pos-app.testimonials'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
@@ -58,6 +60,7 @@ import { Route as PosAppSubscriptionsRouteImport } from './routes/pos-app.subscr
 import { Route as PosAppStudioPhotoReviewsRouteImport } from './routes/pos-app.studio-photo-reviews'
 import { Route as PosAppStudioPackagesRouteImport } from './routes/pos-app.studio-packages'
 import { Route as PosAppStudioLocationsRouteImport } from './routes/pos-app.studio-locations'
+import { Route as PosAppStudioGalleryRouteImport } from './routes/pos-app.studio-gallery'
 import { Route as PosAppStudioDeliveryRouteImport } from './routes/pos-app.studio-delivery'
 import { Route as PosAppStudioBriefRouteImport } from './routes/pos-app.studio-brief'
 import { Route as PosAppStudioAddonsRouteImport } from './routes/pos-app.studio-addons'
@@ -77,6 +80,7 @@ import { Route as PosAppReservasiRouteImport } from './routes/pos-app.reservasi'
 import { Route as PosAppReportsRouteImport } from './routes/pos-app.reports'
 import { Route as PosAppRentalUnitReadyRouteImport } from './routes/pos-app.rental-unit-ready'
 import { Route as PosAppRentalTncRouteImport } from './routes/pos-app.rental-tnc'
+import { Route as PosAppRentalInspectionsRouteImport } from './routes/pos-app.rental-inspections'
 import { Route as PosAppRentalFinesRouteImport } from './routes/pos-app.rental-fines'
 import { Route as PosAppRentalExtendRouteImport } from './routes/pos-app.rental-extend'
 import { Route as PosAppRentalDepositConfigRouteImport } from './routes/pos-app.rental-deposit-config'
@@ -89,7 +93,9 @@ import { Route as PosAppQaRouteImport } from './routes/pos-app.qa'
 import { Route as PosAppPurchaseOrdersRouteImport } from './routes/pos-app.purchase-orders'
 import { Route as PosAppPromosRouteImport } from './routes/pos-app.promos'
 import { Route as PosAppPromoCalendarRouteImport } from './routes/pos-app.promo-calendar'
+import { Route as PosAppProductReturnsRouteImport } from './routes/pos-app.product-returns'
 import { Route as PosAppPrintersRouteImport } from './routes/pos-app.printers'
+import { Route as PosAppPrescriptionsRouteImport } from './routes/pos-app.prescriptions'
 import { Route as PosAppPreOrdersRouteImport } from './routes/pos-app.pre-orders'
 import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
 import { Route as PosAppPortfolioRouteImport } from './routes/pos-app.portfolio'
@@ -105,6 +111,7 @@ import { Route as PosAppNotifikasiRouteImport } from './routes/pos-app.notifikas
 import { Route as PosAppMilestonesRouteImport } from './routes/pos-app.milestones'
 import { Route as PosAppMenuRouteImport } from './routes/pos-app.menu'
 import { Route as PosAppMembershipRouteImport } from './routes/pos-app.membership'
+import { Route as PosAppMedicationsRouteImport } from './routes/pos-app.medications'
 import { Route as PosAppMedicalInvoiceRouteImport } from './routes/pos-app.medical-invoice'
 import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.marketplace-orders'
 import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
@@ -135,6 +142,7 @@ import { Route as PosAppDigitalLicensesRouteImport } from './routes/pos-app.digi
 import { Route as PosAppDigitalRouteImport } from './routes/pos-app.digital'
 import { Route as PosAppDeliveryRouteImport } from './routes/pos-app.delivery'
 import { Route as PosAppCustomersRouteImport } from './routes/pos-app.customers'
+import { Route as PosAppCustomerTreatmentsRouteImport } from './routes/pos-app.customer-treatments'
 import { Route as PosAppCustomerAnalyticsRouteImport } from './routes/pos-app.customer-analytics'
 import { Route as PosAppCustomOrdersRouteImport } from './routes/pos-app.custom-orders'
 import { Route as PosAppCustomOrderQuotesRouteImport } from './routes/pos-app.custom-order-quotes'
@@ -483,6 +491,17 @@ const PosAppUmrohFacilitiesRoute = PosAppUmrohFacilitiesRouteImport.update({
   path: '/umroh-facilities',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppTravelManifestRoute = PosAppTravelManifestRouteImport.update({
+  id: '/travel-manifest',
+  path: '/travel-manifest',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppTravelInstallmentsRoute =
+  PosAppTravelInstallmentsRouteImport.update({
+    id: '/travel-installments',
+    path: '/travel-installments',
+    getParentRoute: () => PosAppRoute,
+  } as any)
 const PosAppTestimonialsRoute = PosAppTestimonialsRouteImport.update({
   id: '/testimonials',
   path: '/testimonials',
@@ -527,6 +546,11 @@ const PosAppStudioPackagesRoute = PosAppStudioPackagesRouteImport.update({
 const PosAppStudioLocationsRoute = PosAppStudioLocationsRouteImport.update({
   id: '/studio-locations',
   path: '/studio-locations',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppStudioGalleryRoute = PosAppStudioGalleryRouteImport.update({
+  id: '/studio-gallery',
+  path: '/studio-gallery',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppStudioDeliveryRoute = PosAppStudioDeliveryRouteImport.update({
@@ -624,6 +648,11 @@ const PosAppRentalTncRoute = PosAppRentalTncRouteImport.update({
   path: '/rental-tnc',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppRentalInspectionsRoute = PosAppRentalInspectionsRouteImport.update({
+  id: '/rental-inspections',
+  path: '/rental-inspections',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppRentalFinesRoute = PosAppRentalFinesRouteImport.update({
   id: '/rental-fines',
   path: '/rental-fines',
@@ -686,9 +715,19 @@ const PosAppPromoCalendarRoute = PosAppPromoCalendarRouteImport.update({
   path: '/promo-calendar',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppProductReturnsRoute = PosAppProductReturnsRouteImport.update({
+  id: '/product-returns',
+  path: '/product-returns',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppPrintersRoute = PosAppPrintersRouteImport.update({
   id: '/printers',
   path: '/printers',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPrescriptionsRoute = PosAppPrescriptionsRouteImport.update({
+  id: '/prescriptions',
+  path: '/prescriptions',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppPreOrdersRoute = PosAppPreOrdersRouteImport.update({
@@ -764,6 +803,11 @@ const PosAppMenuRoute = PosAppMenuRouteImport.update({
 const PosAppMembershipRoute = PosAppMembershipRouteImport.update({
   id: '/membership',
   path: '/membership',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppMedicationsRoute = PosAppMedicationsRouteImport.update({
+  id: '/medications',
+  path: '/medications',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppMedicalInvoiceRoute = PosAppMedicalInvoiceRouteImport.update({
@@ -917,6 +961,12 @@ const PosAppCustomersRoute = PosAppCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppCustomerTreatmentsRoute =
+  PosAppCustomerTreatmentsRouteImport.update({
+    id: '/customer-treatments',
+    path: '/customer-treatments',
+    getParentRoute: () => PosAppRoute,
+  } as any)
 const PosAppCustomerAnalyticsRoute = PosAppCustomerAnalyticsRouteImport.update({
   id: '/customer-analytics',
   path: '/customer-analytics',
@@ -1788,6 +1838,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/custom-order-quotes': typeof PosAppCustomOrderQuotesRoute
   '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
   '/pos-app/customer-analytics': typeof PosAppCustomerAnalyticsRoute
+  '/pos-app/customer-treatments': typeof PosAppCustomerTreatmentsRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -1818,6 +1869,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/medical-invoice': typeof PosAppMedicalInvoiceRoute
+  '/pos-app/medications': typeof PosAppMedicationsRoute
   '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/milestones': typeof PosAppMilestonesRoute
@@ -1833,7 +1885,9 @@ export interface FileRoutesByFullPath {
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
   '/pos-app/pre-orders': typeof PosAppPreOrdersRoute
+  '/pos-app/prescriptions': typeof PosAppPrescriptionsRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/product-returns': typeof PosAppProductReturnsRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
@@ -1846,6 +1900,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/rental-deposit-config': typeof PosAppRentalDepositConfigRoute
   '/pos-app/rental-extend': typeof PosAppRentalExtendRoute
   '/pos-app/rental-fines': typeof PosAppRentalFinesRoute
+  '/pos-app/rental-inspections': typeof PosAppRentalInspectionsRoute
   '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/rental-unit-ready': typeof PosAppRentalUnitReadyRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
@@ -1865,6 +1920,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
+  '/pos-app/studio-gallery': typeof PosAppStudioGalleryRoute
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
@@ -1874,6 +1930,8 @@ export interface FileRoutesByFullPath {
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
+  '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
@@ -2058,6 +2116,7 @@ export interface FileRoutesByTo {
   '/pos-app/custom-order-quotes': typeof PosAppCustomOrderQuotesRoute
   '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
   '/pos-app/customer-analytics': typeof PosAppCustomerAnalyticsRoute
+  '/pos-app/customer-treatments': typeof PosAppCustomerTreatmentsRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -2088,6 +2147,7 @@ export interface FileRoutesByTo {
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/medical-invoice': typeof PosAppMedicalInvoiceRoute
+  '/pos-app/medications': typeof PosAppMedicationsRoute
   '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/milestones': typeof PosAppMilestonesRoute
@@ -2103,7 +2163,9 @@ export interface FileRoutesByTo {
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
   '/pos-app/pre-orders': typeof PosAppPreOrdersRoute
+  '/pos-app/prescriptions': typeof PosAppPrescriptionsRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/product-returns': typeof PosAppProductReturnsRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
@@ -2116,6 +2178,7 @@ export interface FileRoutesByTo {
   '/pos-app/rental-deposit-config': typeof PosAppRentalDepositConfigRoute
   '/pos-app/rental-extend': typeof PosAppRentalExtendRoute
   '/pos-app/rental-fines': typeof PosAppRentalFinesRoute
+  '/pos-app/rental-inspections': typeof PosAppRentalInspectionsRoute
   '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/rental-unit-ready': typeof PosAppRentalUnitReadyRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
@@ -2135,6 +2198,7 @@ export interface FileRoutesByTo {
   '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
+  '/pos-app/studio-gallery': typeof PosAppStudioGalleryRoute
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
@@ -2144,6 +2208,8 @@ export interface FileRoutesByTo {
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
+  '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
@@ -2333,6 +2399,7 @@ export interface FileRoutesById {
   '/pos-app/custom-order-quotes': typeof PosAppCustomOrderQuotesRoute
   '/pos-app/custom-orders': typeof PosAppCustomOrdersRoute
   '/pos-app/customer-analytics': typeof PosAppCustomerAnalyticsRoute
+  '/pos-app/customer-treatments': typeof PosAppCustomerTreatmentsRoute
   '/pos-app/customers': typeof PosAppCustomersRoute
   '/pos-app/delivery': typeof PosAppDeliveryRoute
   '/pos-app/digital': typeof PosAppDigitalRoute
@@ -2363,6 +2430,7 @@ export interface FileRoutesById {
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/medical-invoice': typeof PosAppMedicalInvoiceRoute
+  '/pos-app/medications': typeof PosAppMedicationsRoute
   '/pos-app/membership': typeof PosAppMembershipRoute
   '/pos-app/menu': typeof PosAppMenuRouteWithChildren
   '/pos-app/milestones': typeof PosAppMilestonesRoute
@@ -2378,7 +2446,9 @@ export interface FileRoutesById {
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
   '/pos-app/pre-orders': typeof PosAppPreOrdersRoute
+  '/pos-app/prescriptions': typeof PosAppPrescriptionsRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
+  '/pos-app/product-returns': typeof PosAppProductReturnsRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
@@ -2391,6 +2461,7 @@ export interface FileRoutesById {
   '/pos-app/rental-deposit-config': typeof PosAppRentalDepositConfigRoute
   '/pos-app/rental-extend': typeof PosAppRentalExtendRoute
   '/pos-app/rental-fines': typeof PosAppRentalFinesRoute
+  '/pos-app/rental-inspections': typeof PosAppRentalInspectionsRoute
   '/pos-app/rental-tnc': typeof PosAppRentalTncRoute
   '/pos-app/rental-unit-ready': typeof PosAppRentalUnitReadyRoute
   '/pos-app/reports': typeof PosAppReportsRouteWithChildren
@@ -2410,6 +2481,7 @@ export interface FileRoutesById {
   '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
   '/pos-app/studio-brief': typeof PosAppStudioBriefRoute
   '/pos-app/studio-delivery': typeof PosAppStudioDeliveryRoute
+  '/pos-app/studio-gallery': typeof PosAppStudioGalleryRoute
   '/pos-app/studio-locations': typeof PosAppStudioLocationsRoute
   '/pos-app/studio-packages': typeof PosAppStudioPackagesRoute
   '/pos-app/studio-photo-reviews': typeof PosAppStudioPhotoReviewsRoute
@@ -2419,6 +2491,8 @@ export interface FileRoutesById {
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
+  '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
@@ -2610,6 +2684,7 @@ export interface FileRouteTypes {
     | '/pos-app/custom-order-quotes'
     | '/pos-app/custom-orders'
     | '/pos-app/customer-analytics'
+    | '/pos-app/customer-treatments'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -2640,6 +2715,7 @@ export interface FileRouteTypes {
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/medical-invoice'
+    | '/pos-app/medications'
     | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/milestones'
@@ -2655,7 +2731,9 @@ export interface FileRouteTypes {
     | '/pos-app/portfolio'
     | '/pos-app/pos'
     | '/pos-app/pre-orders'
+    | '/pos-app/prescriptions'
     | '/pos-app/printers'
+    | '/pos-app/product-returns'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
@@ -2668,6 +2746,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-deposit-config'
     | '/pos-app/rental-extend'
     | '/pos-app/rental-fines'
+    | '/pos-app/rental-inspections'
     | '/pos-app/rental-tnc'
     | '/pos-app/rental-unit-ready'
     | '/pos-app/reports'
@@ -2687,6 +2766,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-addons'
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
+    | '/pos-app/studio-gallery'
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
@@ -2696,6 +2776,8 @@ export interface FileRouteTypes {
     | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/testimonials'
+    | '/pos-app/travel-installments'
+    | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
@@ -2880,6 +2962,7 @@ export interface FileRouteTypes {
     | '/pos-app/custom-order-quotes'
     | '/pos-app/custom-orders'
     | '/pos-app/customer-analytics'
+    | '/pos-app/customer-treatments'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -2910,6 +2993,7 @@ export interface FileRouteTypes {
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/medical-invoice'
+    | '/pos-app/medications'
     | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/milestones'
@@ -2925,7 +3009,9 @@ export interface FileRouteTypes {
     | '/pos-app/portfolio'
     | '/pos-app/pos'
     | '/pos-app/pre-orders'
+    | '/pos-app/prescriptions'
     | '/pos-app/printers'
+    | '/pos-app/product-returns'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
@@ -2938,6 +3024,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-deposit-config'
     | '/pos-app/rental-extend'
     | '/pos-app/rental-fines'
+    | '/pos-app/rental-inspections'
     | '/pos-app/rental-tnc'
     | '/pos-app/rental-unit-ready'
     | '/pos-app/reports'
@@ -2957,6 +3044,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-addons'
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
+    | '/pos-app/studio-gallery'
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
@@ -2966,6 +3054,8 @@ export interface FileRouteTypes {
     | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/testimonials'
+    | '/pos-app/travel-installments'
+    | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
@@ -3154,6 +3244,7 @@ export interface FileRouteTypes {
     | '/pos-app/custom-order-quotes'
     | '/pos-app/custom-orders'
     | '/pos-app/customer-analytics'
+    | '/pos-app/customer-treatments'
     | '/pos-app/customers'
     | '/pos-app/delivery'
     | '/pos-app/digital'
@@ -3184,6 +3275,7 @@ export interface FileRouteTypes {
     | '/pos-app/marketplace-analytics'
     | '/pos-app/marketplace-orders'
     | '/pos-app/medical-invoice'
+    | '/pos-app/medications'
     | '/pos-app/membership'
     | '/pos-app/menu'
     | '/pos-app/milestones'
@@ -3199,7 +3291,9 @@ export interface FileRouteTypes {
     | '/pos-app/portfolio'
     | '/pos-app/pos'
     | '/pos-app/pre-orders'
+    | '/pos-app/prescriptions'
     | '/pos-app/printers'
+    | '/pos-app/product-returns'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
@@ -3212,6 +3306,7 @@ export interface FileRouteTypes {
     | '/pos-app/rental-deposit-config'
     | '/pos-app/rental-extend'
     | '/pos-app/rental-fines'
+    | '/pos-app/rental-inspections'
     | '/pos-app/rental-tnc'
     | '/pos-app/rental-unit-ready'
     | '/pos-app/reports'
@@ -3231,6 +3326,7 @@ export interface FileRouteTypes {
     | '/pos-app/studio-addons'
     | '/pos-app/studio-brief'
     | '/pos-app/studio-delivery'
+    | '/pos-app/studio-gallery'
     | '/pos-app/studio-locations'
     | '/pos-app/studio-packages'
     | '/pos-app/studio-photo-reviews'
@@ -3240,6 +3336,8 @@ export interface FileRouteTypes {
     | '/pos-app/table-qr'
     | '/pos-app/tables'
     | '/pos-app/testimonials'
+    | '/pos-app/travel-installments'
+    | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
@@ -3624,6 +3722,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppUmrohFacilitiesRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/travel-manifest': {
+      id: '/pos-app/travel-manifest'
+      path: '/travel-manifest'
+      fullPath: '/pos-app/travel-manifest'
+      preLoaderRoute: typeof PosAppTravelManifestRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/travel-installments': {
+      id: '/pos-app/travel-installments'
+      path: '/travel-installments'
+      fullPath: '/pos-app/travel-installments'
+      preLoaderRoute: typeof PosAppTravelInstallmentsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/testimonials': {
       id: '/pos-app/testimonials'
       path: '/testimonials'
@@ -3685,6 +3797,13 @@ declare module '@tanstack/react-router' {
       path: '/studio-locations'
       fullPath: '/pos-app/studio-locations'
       preLoaderRoute: typeof PosAppStudioLocationsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/studio-gallery': {
+      id: '/pos-app/studio-gallery'
+      path: '/studio-gallery'
+      fullPath: '/pos-app/studio-gallery'
+      preLoaderRoute: typeof PosAppStudioGalleryRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/studio-delivery': {
@@ -3820,6 +3939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppRentalTncRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/rental-inspections': {
+      id: '/pos-app/rental-inspections'
+      path: '/rental-inspections'
+      fullPath: '/pos-app/rental-inspections'
+      preLoaderRoute: typeof PosAppRentalInspectionsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/rental-fines': {
       id: '/pos-app/rental-fines'
       path: '/rental-fines'
@@ -3904,11 +4030,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppPromoCalendarRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/product-returns': {
+      id: '/pos-app/product-returns'
+      path: '/product-returns'
+      fullPath: '/pos-app/product-returns'
+      preLoaderRoute: typeof PosAppProductReturnsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/printers': {
       id: '/pos-app/printers'
       path: '/printers'
       fullPath: '/pos-app/printers'
       preLoaderRoute: typeof PosAppPrintersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/prescriptions': {
+      id: '/pos-app/prescriptions'
+      path: '/prescriptions'
+      fullPath: '/pos-app/prescriptions'
+      preLoaderRoute: typeof PosAppPrescriptionsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/pre-orders': {
@@ -4014,6 +4154,13 @@ declare module '@tanstack/react-router' {
       path: '/membership'
       fullPath: '/pos-app/membership'
       preLoaderRoute: typeof PosAppMembershipRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/medications': {
+      id: '/pos-app/medications'
+      path: '/medications'
+      fullPath: '/pos-app/medications'
+      preLoaderRoute: typeof PosAppMedicationsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/medical-invoice': {
@@ -4224,6 +4371,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/pos-app/customers'
       preLoaderRoute: typeof PosAppCustomersRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/customer-treatments': {
+      id: '/pos-app/customer-treatments'
+      path: '/customer-treatments'
+      fullPath: '/pos-app/customer-treatments'
+      preLoaderRoute: typeof PosAppCustomerTreatmentsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/customer-analytics': {
@@ -5583,6 +5737,7 @@ interface PosAppRouteChildren {
   PosAppCustomOrderQuotesRoute: typeof PosAppCustomOrderQuotesRoute
   PosAppCustomOrdersRoute: typeof PosAppCustomOrdersRoute
   PosAppCustomerAnalyticsRoute: typeof PosAppCustomerAnalyticsRoute
+  PosAppCustomerTreatmentsRoute: typeof PosAppCustomerTreatmentsRoute
   PosAppCustomersRoute: typeof PosAppCustomersRoute
   PosAppDeliveryRoute: typeof PosAppDeliveryRoute
   PosAppDigitalRoute: typeof PosAppDigitalRoute
@@ -5613,6 +5768,7 @@ interface PosAppRouteChildren {
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
   PosAppMedicalInvoiceRoute: typeof PosAppMedicalInvoiceRoute
+  PosAppMedicationsRoute: typeof PosAppMedicationsRoute
   PosAppMembershipRoute: typeof PosAppMembershipRoute
   PosAppMenuRoute: typeof PosAppMenuRouteWithChildren
   PosAppMilestonesRoute: typeof PosAppMilestonesRoute
@@ -5628,7 +5784,9 @@ interface PosAppRouteChildren {
   PosAppPortfolioRoute: typeof PosAppPortfolioRoute
   PosAppPosRoute: typeof PosAppPosRoute
   PosAppPreOrdersRoute: typeof PosAppPreOrdersRoute
+  PosAppPrescriptionsRoute: typeof PosAppPrescriptionsRoute
   PosAppPrintersRoute: typeof PosAppPrintersRoute
+  PosAppProductReturnsRoute: typeof PosAppProductReturnsRoute
   PosAppPromoCalendarRoute: typeof PosAppPromoCalendarRoute
   PosAppPromosRoute: typeof PosAppPromosRoute
   PosAppPurchaseOrdersRoute: typeof PosAppPurchaseOrdersRouteWithChildren
@@ -5641,6 +5799,7 @@ interface PosAppRouteChildren {
   PosAppRentalDepositConfigRoute: typeof PosAppRentalDepositConfigRoute
   PosAppRentalExtendRoute: typeof PosAppRentalExtendRoute
   PosAppRentalFinesRoute: typeof PosAppRentalFinesRoute
+  PosAppRentalInspectionsRoute: typeof PosAppRentalInspectionsRoute
   PosAppRentalTncRoute: typeof PosAppRentalTncRoute
   PosAppRentalUnitReadyRoute: typeof PosAppRentalUnitReadyRoute
   PosAppReportsRoute: typeof PosAppReportsRouteWithChildren
@@ -5660,6 +5819,7 @@ interface PosAppRouteChildren {
   PosAppStudioAddonsRoute: typeof PosAppStudioAddonsRoute
   PosAppStudioBriefRoute: typeof PosAppStudioBriefRoute
   PosAppStudioDeliveryRoute: typeof PosAppStudioDeliveryRoute
+  PosAppStudioGalleryRoute: typeof PosAppStudioGalleryRoute
   PosAppStudioLocationsRoute: typeof PosAppStudioLocationsRoute
   PosAppStudioPackagesRoute: typeof PosAppStudioPackagesRoute
   PosAppStudioPhotoReviewsRoute: typeof PosAppStudioPhotoReviewsRoute
@@ -5669,6 +5829,8 @@ interface PosAppRouteChildren {
   PosAppTableQrRoute: typeof PosAppTableQrRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
   PosAppTestimonialsRoute: typeof PosAppTestimonialsRoute
+  PosAppTravelInstallmentsRoute: typeof PosAppTravelInstallmentsRoute
+  PosAppTravelManifestRoute: typeof PosAppTravelManifestRoute
   PosAppUmrohFacilitiesRoute: typeof PosAppUmrohFacilitiesRoute
   PosAppUmrohFaqRoute: typeof PosAppUmrohFaqRoute
   PosAppUmrohPackagesRoute: typeof PosAppUmrohPackagesRoute
@@ -5713,6 +5875,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppCustomOrderQuotesRoute: PosAppCustomOrderQuotesRoute,
   PosAppCustomOrdersRoute: PosAppCustomOrdersRoute,
   PosAppCustomerAnalyticsRoute: PosAppCustomerAnalyticsRoute,
+  PosAppCustomerTreatmentsRoute: PosAppCustomerTreatmentsRoute,
   PosAppCustomersRoute: PosAppCustomersRoute,
   PosAppDeliveryRoute: PosAppDeliveryRoute,
   PosAppDigitalRoute: PosAppDigitalRoute,
@@ -5743,6 +5906,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
   PosAppMedicalInvoiceRoute: PosAppMedicalInvoiceRoute,
+  PosAppMedicationsRoute: PosAppMedicationsRoute,
   PosAppMembershipRoute: PosAppMembershipRoute,
   PosAppMenuRoute: PosAppMenuRouteWithChildren,
   PosAppMilestonesRoute: PosAppMilestonesRoute,
@@ -5758,7 +5922,9 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppPortfolioRoute: PosAppPortfolioRoute,
   PosAppPosRoute: PosAppPosRoute,
   PosAppPreOrdersRoute: PosAppPreOrdersRoute,
+  PosAppPrescriptionsRoute: PosAppPrescriptionsRoute,
   PosAppPrintersRoute: PosAppPrintersRoute,
+  PosAppProductReturnsRoute: PosAppProductReturnsRoute,
   PosAppPromoCalendarRoute: PosAppPromoCalendarRoute,
   PosAppPromosRoute: PosAppPromosRoute,
   PosAppPurchaseOrdersRoute: PosAppPurchaseOrdersRouteWithChildren,
@@ -5771,6 +5937,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppRentalDepositConfigRoute: PosAppRentalDepositConfigRoute,
   PosAppRentalExtendRoute: PosAppRentalExtendRoute,
   PosAppRentalFinesRoute: PosAppRentalFinesRoute,
+  PosAppRentalInspectionsRoute: PosAppRentalInspectionsRoute,
   PosAppRentalTncRoute: PosAppRentalTncRoute,
   PosAppRentalUnitReadyRoute: PosAppRentalUnitReadyRoute,
   PosAppReportsRoute: PosAppReportsRouteWithChildren,
@@ -5790,6 +5957,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppStudioAddonsRoute: PosAppStudioAddonsRoute,
   PosAppStudioBriefRoute: PosAppStudioBriefRoute,
   PosAppStudioDeliveryRoute: PosAppStudioDeliveryRoute,
+  PosAppStudioGalleryRoute: PosAppStudioGalleryRoute,
   PosAppStudioLocationsRoute: PosAppStudioLocationsRoute,
   PosAppStudioPackagesRoute: PosAppStudioPackagesRoute,
   PosAppStudioPhotoReviewsRoute: PosAppStudioPhotoReviewsRoute,
@@ -5799,6 +5967,8 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTableQrRoute: PosAppTableQrRoute,
   PosAppTablesRoute: PosAppTablesRoute,
   PosAppTestimonialsRoute: PosAppTestimonialsRoute,
+  PosAppTravelInstallmentsRoute: PosAppTravelInstallmentsRoute,
+  PosAppTravelManifestRoute: PosAppTravelManifestRoute,
   PosAppUmrohFacilitiesRoute: PosAppUmrohFacilitiesRoute,
   PosAppUmrohFaqRoute: PosAppUmrohFaqRoute,
   PosAppUmrohPackagesRoute: PosAppUmrohPackagesRoute,
