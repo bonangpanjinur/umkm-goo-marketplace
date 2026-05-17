@@ -46,8 +46,12 @@ function Page() {
 
   async function load() {
     if (!shop) return;
-    const { data } = await supabase.from("studio_galleries").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false });
-    setItems((data ?? []) as Gal[]);
+    const [g, p] = await Promise.all([
+      supabase.from("studio_galleries").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false }),
+      supabase.from("studio_photographers" as never).select("id,name,color,role,is_active").eq("shop_id", shop.id).order("name"),
+    ]);
+    setItems((g.data ?? []) as Gal[]);
+    setPhotographers(((p.data ?? []) as Photographer[]).filter(x => x.is_active));
   }
   useEffect(() => { void load(); }, [shop?.id]);
 
