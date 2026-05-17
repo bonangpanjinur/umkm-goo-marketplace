@@ -27,6 +27,7 @@ function AppearancePage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [recommendedKey, setRecommendedKey] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!shop?.id) return;
