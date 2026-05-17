@@ -29,6 +29,9 @@ type Patient = {
   allergies: string | null;
   medical_history: string | null;
   notes: string | null;
+  nik: string | null;
+  bpjs_number: string | null;
+  payer_type: "umum" | "bpjs" | "asuransi" | null;
   created_at: string;
 };
 
@@ -40,10 +43,21 @@ type Visit = {
   treatment: string | null;
   prescription: string | null;
   notes: string | null;
+  icd10_code: string | null;
+  icd10_label: string | null;
 };
 
-const EMPTY_PATIENT = { patient_name: "", patient_contact: "", birth_date: "", gender: "" as "" | "L" | "P" | "other", blood_type: "", allergies: "", medical_history: "", notes: "" };
-const EMPTY_VISIT = { visit_date: new Date().toISOString().slice(0, 16), complaint: "", diagnosis: "", treatment: "", prescription: "", notes: "" };
+const EMPTY_PATIENT = {
+  patient_name: "", patient_contact: "", birth_date: "",
+  gender: "" as "" | "L" | "P" | "other", blood_type: "",
+  allergies: "", medical_history: "", notes: "",
+  nik: "", bpjs_number: "", payer_type: "" as "" | "umum" | "bpjs" | "asuransi",
+};
+const EMPTY_VISIT = {
+  visit_date: new Date().toISOString().slice(0, 16),
+  complaint: "", diagnosis: "", treatment: "", prescription: "", notes: "",
+  icd10_code: "", icd10_label: "",
+};
 
 function PatientRecordsPage() {
   const { shop } = useCurrentShop();
