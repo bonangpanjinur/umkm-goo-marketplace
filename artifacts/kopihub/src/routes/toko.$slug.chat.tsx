@@ -922,6 +922,29 @@ function ShopChatPage() {
           Pesan langsung ke pemilik toko
         </p>
       </div>
+
+      <AlertDialog open={!!cancelConfirmId} onOpenChange={(open) => { if (!open) setCancelConfirmId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Batalkan unggahan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Gambar yang sedang diunggah akan dihapus dan tidak bisa dikirim ulang.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelConfirmId(null)}>Tetap unggah</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (cancelConfirmId) cancelSend(cancelConfirmId);
+                setCancelConfirmId(null);
+              }}
+            >
+              Batalkan unggahan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
