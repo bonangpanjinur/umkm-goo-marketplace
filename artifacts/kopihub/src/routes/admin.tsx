@@ -6,6 +6,7 @@ import { Loader2, ShieldCheck, LayoutDashboard, Store, FileText, Package, Globe,
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { useAdminPendingAdCount } from "@/hooks/useAdNotifications";
 
 export const Route = createFileRoute("/admin")({
@@ -155,7 +156,7 @@ function AdminLayout() {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-auto"><Outlet /></main>
+        <main className="flex-1 overflow-auto"><ErrorBoundary withFallback><Outlet /></ErrorBoundary></main>
       </div>
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} role="admin" />
     </div>
