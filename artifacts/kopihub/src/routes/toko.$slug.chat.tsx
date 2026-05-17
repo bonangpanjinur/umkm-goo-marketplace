@@ -751,6 +751,7 @@ function ShopChatPage() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={handleFileSelect}
         />
