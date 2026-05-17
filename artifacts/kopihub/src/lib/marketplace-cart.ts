@@ -78,11 +78,13 @@ export async function updateCartItem(id: string, quantity: number): Promise<void
     .update({ quantity })
     .eq("id", id);
   if (error) throw error;
+  notifyCartChange();
 }
 
 export async function removeCartItem(id: string): Promise<void> {
   const { error } = await supabase.from("marketplace_cart_items").delete().eq("id", id);
   if (error) throw error;
+  notifyCartChange();
 }
 
 export function markCartActivity(): void {
