@@ -416,6 +416,7 @@ function POSPage() {
     setCarts((prev) => [...prev, restored]);
     setActiveIdx(carts.length);
     setParkedListOpen(false);
+    notifyParkedCartChange(outlet?.id);
     toast.success(`Memuat cart: ${p.label}`);
   };
 
