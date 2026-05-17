@@ -13,6 +13,17 @@ import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib
 import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift, Crown, Zap, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const BuyNowSchema = z.object({
+  product_id: z.string().regex(UUID_RE, "product_id tidak valid"),
+  shop_id: z.string().regex(UUID_RE, "shop_id tidak valid"),
+  quantity: z.number().int().min(1).max(999),
+  unit_price: z.number().min(0).max(1_000_000_000),
+  ts: z.number().int().positive(),
+});
+const BUY_NOW_TTL_MS = 30 * 60 * 1000;
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Marketplace" }] }),
