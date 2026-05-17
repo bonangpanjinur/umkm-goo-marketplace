@@ -256,7 +256,7 @@ function KursusPage() {
     try {
       const { data: mods, error } = await (supabase as any)
         .from("course_modules")
-        .select("id, menu_item_id, title, description, sort_order")
+        .select("id, menu_item_id, title, description, sort_order, status")
         .eq("menu_item_id", courseId)
         .order("sort_order", { ascending: true });
       if (error) throw error;
