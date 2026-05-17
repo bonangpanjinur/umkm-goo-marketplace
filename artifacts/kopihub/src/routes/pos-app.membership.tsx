@@ -298,7 +298,7 @@ function MembershipPage() {
                   rows={3}
                   value={perkText}
                   onChange={e => setPerkText(e.target.value)}
-                  placeholder={"Free delivery\nPrioritas antrian\nGratis 1 kopi tiap bulan"}
+                  placeholder={"Free delivery\nPrioritas antrian\nGratis 1 produk tiap bulan"}
                 />
                 <p className="text-xs text-muted-foreground">Satu baris = satu perk. Akan tampil sebagai badge.</p>
                 {perkText.split("\n").map(s => s.trim()).filter(Boolean).length > 0 && (

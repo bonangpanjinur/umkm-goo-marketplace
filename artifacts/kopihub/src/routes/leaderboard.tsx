@@ -175,7 +175,7 @@ function LeaderboardPage() {
           </div>
           <h1 className="text-3xl font-black tracking-tight">Leaderboard Toko Terbaik</h1>
           <p className="mt-2 text-amber-100 text-sm">
-            Ranking toko kopi berdasarkan rating, pesanan, dan popularitas di UMKMgo
+            Ranking toko berdasarkan rating, pesanan, dan popularitas di UMKMgo
           </p>
           {certCount > 0 && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium">

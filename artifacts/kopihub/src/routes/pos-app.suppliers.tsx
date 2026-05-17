@@ -223,7 +223,7 @@ function SuppliersPage() {
                     id="sup-name"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Mis. CV Bahan Kopi Nusantara"
+                    placeholder="Mis. CV Supplier Nusantara"
                     autoFocus
                     className={!form.name.trim() && form.name !== "" ? "border-destructive" : ""}
                   />

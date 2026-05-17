@@ -443,7 +443,7 @@ function PortfolioPage() {
                 className="mt-1"
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                placeholder="Contoh: Kopi, Makanan, Suasana…"
+                placeholder="Contoh: Produk, Layanan, Suasana…"
               />
             </div>
           </div>

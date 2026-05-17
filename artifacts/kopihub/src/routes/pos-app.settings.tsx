@@ -306,7 +306,7 @@ function SettingsPage() {
             </div>
             <div>
               <Label htmlFor="tagline">Tagline</Label>
-              <Input id="tagline" placeholder="Mis. Kopi nikmat, harga sahabat" value={form.tagline ?? ""}
+              <Input id="tagline" placeholder="Mis. Produk berkualitas, harga sahabat" value={form.tagline ?? ""}
                 onChange={(e) => update("tagline", e.target.value)} />
             </div>
             <div>
@@ -474,7 +474,7 @@ function SettingsPage() {
                 <div className="space-y-2">
                   <div>
                     <Label>Nama merchant</Label>
-                    <Input placeholder="Mis. Toko Kopi Sahabat" value={form.qris_merchant_name ?? ""}
+                    <Input placeholder="Mis. Toko Berkah Sahabat" value={form.qris_merchant_name ?? ""}
                       onChange={(e) => update("qris_merchant_name", e.target.value)} />
                     <p className="mt-1 text-xs text-muted-foreground">Tampil di halaman pembayaran pelanggan.</p>
                   </div>

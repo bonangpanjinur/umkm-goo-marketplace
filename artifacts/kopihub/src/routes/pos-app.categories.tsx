@@ -176,7 +176,7 @@ function CategoriesPage() {
                   id="cat-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Mis. Kopi, Non-kopi, Pastry"
+                  placeholder="Mis. Minuman, Makanan, Snack"
                   autoFocus
                 />
               </div>
