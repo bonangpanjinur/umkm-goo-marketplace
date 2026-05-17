@@ -96,10 +96,6 @@ function Page() {
     if (error) { toast.error(error.message); return; }
     toast.success("Tersimpan"); setOpenForm(false); void load();
   }
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Tersimpan"); setOpenForm(false); void load();
-  }
 
   async function del(g: Gal) {
     if (!confirm(`Hapus galeri "${g.title}"?`)) return;
