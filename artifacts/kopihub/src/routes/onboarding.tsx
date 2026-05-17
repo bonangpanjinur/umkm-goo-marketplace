@@ -200,6 +200,7 @@ function OnboardingPage() {
           slug,
           description: description.trim() || null,
           business_category_id: cat.id,
+          business_subtype: subtypeSlug || null,
         } as any)
         .select("id")
         .single();
