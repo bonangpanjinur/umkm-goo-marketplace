@@ -50,18 +50,24 @@ function ChatInboxButton({ userId }: { userId: string }) {
   );
 }
 
-export function MarketplaceHeader() {
+export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     let mounted = true;
-    const refresh = () => cartCount().then((c) => mounted && setCount(c)).catch(() => {});
+    const refresh = () => cartQuantitySum(shopId).then((c) => mounted && setCount(c)).catch(() => {});
     refresh();
+    const onCartChange = () => refresh();
+    window.addEventListener("kh-cart-change", onCartChange);
     const ch = supabase
-      .channel("mp-cart-header")
+      .channel(`mp-cart-header-${shopId ?? "all"}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_cart_items" }, refresh)
       .subscribe();
-    return () => { mounted = false; supabase.removeChannel(ch); };
-  }, []);
+    return () => {
+      mounted = false;
+      window.removeEventListener("kh-cart-change", onCartChange);
+      supabase.removeChannel(ch);
+    };
+  }, [shopId]);
 
   const [q, setQ] = useState("");
   const navigate = useNavigate();
