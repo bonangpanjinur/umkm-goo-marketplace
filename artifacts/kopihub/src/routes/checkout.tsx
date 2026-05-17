@@ -32,6 +32,7 @@ function CheckoutPage() {
   const [depositSettings, setDepositSettings] = useState<Record<string, { enabled: boolean; percent: number; min_total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [buyNowMode, setBuyNowMode] = useState<null | { product_id: string; shop_id: string; quantity: number; product_name?: string }>(null);
 
   const [recipientName, setRecipientName] = useState("");
   const [phone, setPhone] = useState("");
