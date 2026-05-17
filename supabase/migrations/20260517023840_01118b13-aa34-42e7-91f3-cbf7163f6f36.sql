@@ -1,0 +1,1 @@
+ALTER TABLE public.coffee_shops RENAME TO shops;
