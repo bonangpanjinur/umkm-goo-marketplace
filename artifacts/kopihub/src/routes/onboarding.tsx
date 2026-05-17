@@ -92,6 +92,8 @@ function OnboardingPage() {
 
   // Created IDs
   const [shopId, setShopId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seeded, setSeeded] = useState<null | { items: number; bundles: number }>(null);
 
   // Kategori bisnis dari DB
   const [categories, setCategories] = useState<CategoryRow[]>([]);
