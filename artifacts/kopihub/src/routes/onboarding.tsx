@@ -148,7 +148,15 @@ function OnboardingPage() {
         .from("business_categories")
         .select("id")
         .eq("slug", categoryId)
+        .eq("is_active", true)
         .maybeSingle();
+      if (!cat?.id) {
+        setBusy(false);
+        setStep(2);
+        setCategoryId("");
+        toast.error("Kategori tidak ditemukan, silakan pilih ulang");
+        return;
+      }
 
       const { data: shop, error: shopErr } = await supabase
         .from("shops")
