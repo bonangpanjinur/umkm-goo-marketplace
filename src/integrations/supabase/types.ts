@@ -2661,7 +2661,11 @@ export type Database = {
           project_name: string
           revision_count: number
           shop_id: string
+          sign_token: string | null
+          signature_url: string | null
           signed_at: string | null
+          signed_by_name: string | null
+          signed_ip: string | null
           start_date: string
           status: string
           total_value: number
@@ -2679,7 +2683,11 @@ export type Database = {
           project_name: string
           revision_count?: number
           shop_id: string
+          sign_token?: string | null
+          signature_url?: string | null
           signed_at?: string | null
+          signed_by_name?: string | null
+          signed_ip?: string | null
           start_date: string
           status?: string
           total_value: number
@@ -2697,7 +2705,11 @@ export type Database = {
           project_name?: string
           revision_count?: number
           shop_id?: string
+          sign_token?: string | null
+          signature_url?: string | null
           signed_at?: string | null
+          signed_by_name?: string | null
+          signed_ip?: string | null
           start_date?: string
           status?: string
           total_value?: number

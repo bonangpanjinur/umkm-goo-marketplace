@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import { ScrollText, Plus, Loader2, RefreshCw, Search, Printer, CheckCircle2, Clock, X, MessageSquare } from "lucide-react";
+import { ScrollText, Plus, Loader2, RefreshCw, Search, Printer, CheckCircle2, Clock, X, MessageSquare, Link as LinkIcon, PenLine } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/contracts")({
   head: () => ({ meta: [{ title: "Kontrak Freelance Digital" }] }),
@@ -34,6 +34,9 @@ type Contract = {
   payment_terms: string;
   status: "draft" | "sent" | "signed" | "completed" | "cancelled";
   signed_at: string | null;
+  signature_url: string | null;
+  signed_by_name: string | null;
+  sign_token: string | null;
   created_at: string;
 };
 
@@ -166,9 +169,17 @@ export default function ContractsPage() {
 
   const sendViaWA = (c: Contract) => {
     if (!c.client_phone) { toast.error("Nomor WA klien tidak tersedia"); return; }
-    const msg = `Halo ${c.client_name}, kontrak kerja untuk proyek "${c.project_name}" sudah siap. Nilai: ${formatIDR(c.total_value)}. Mohon ditinjau dan dikonfirmasi. Terima kasih!`;
+    const signUrl = c.sign_token ? `${window.location.origin}/kontrak/${c.sign_token}` : "";
+    const msg = `Halo ${c.client_name}, kontrak kerja untuk proyek "${c.project_name}" sudah siap. Nilai: ${formatIDR(c.total_value)}.${signUrl ? `\n\nSilakan tinjau & tanda tangan di tautan berikut:\n${signUrl}` : ""}\n\nTerima kasih!`;
     window.open(`https://wa.me/${c.client_phone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
     updateStatus(c.id, "sent");
+  };
+
+  const copySignLink = async (c: Contract) => {
+    if (!c.sign_token) { toast.error("Token tanda tangan belum tersedia"); return; }
+    const url = `${window.location.origin}/kontrak/${c.sign_token}`;
+    try { await navigator.clipboard.writeText(url); toast.success("Link tanda tangan disalin"); }
+    catch { toast.error("Gagal menyalin"); }
   };
 
   const filtered = contracts.filter(c =>
@@ -227,6 +238,11 @@ export default function ContractsPage() {
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setPreview(c)}>
                       <Printer className="h-3 w-3" />
                     </Button>
+                    {c.sign_token && c.status !== "signed" && c.status !== "completed" && (
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => copySignLink(c)}>
+                        <LinkIcon className="h-3 w-3" /> Salin Link
+                      </Button>
+                    )}
                     {c.status === "draft" && (
                       <Button size="sm" className="h-7 text-xs gap-1" onClick={() => sendViaWA(c)}>
                         <MessageSquare className="h-3 w-3" /> Kirim WA
@@ -234,7 +250,7 @@ export default function ContractsPage() {
                     )}
                     {c.status === "sent" && (
                       <Button size="sm" variant="outline" className="h-7 text-xs text-green-700 border-green-300" onClick={() => updateStatus(c.id, "signed")}>
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> Tandai Ditandatangani
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Tandai Manual
                       </Button>
                     )}
                     {c.status === "signed" && (
@@ -244,6 +260,16 @@ export default function ContractsPage() {
                     )}
                   </div>
                 </div>
+                {c.signature_url && (
+                  <div className="mt-3 flex items-center gap-3 rounded-lg border bg-muted/30 p-2 text-xs">
+                    <PenLine className="h-3.5 w-3.5 text-green-700 shrink-0" />
+                    <img src={c.signature_url} alt="ttd" className="h-10 max-w-[140px] rounded bg-white" />
+                    <div className="text-muted-foreground">
+                      Ditandatangani oleh <span className="font-medium text-foreground">{c.signed_by_name ?? c.client_name}</span>
+                      {c.signed_at && <> &middot; {new Date(c.signed_at).toLocaleString("id-ID")}</>}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
