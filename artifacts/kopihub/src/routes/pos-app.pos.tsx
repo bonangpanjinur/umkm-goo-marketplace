@@ -342,7 +342,61 @@ function POSPage() {
     });
   };
 
-  const addCartTab = () => {
+  async function handleBarcodeDetected(code: string) {
+    if (!shop) return;
+    const trimmed = code.trim();
+    if (!trimmed) return;
+    // Cek menu_items dulu (barcode atau sku)
+    const { data: miRows } = await supabase
+      .from("menu_items")
+      .select("id, name, price, image_url, category_id, is_available, item_type, barcode, sku")
+      .eq("shop_id", shop.id)
+      .or(`barcode.eq.${trimmed},sku.eq.${trimmed}`)
+      .limit(1);
+    const hit = miRows?.[0];
+    if (hit) {
+      if (!hit.is_available) {
+        toast.error(`${hit.name} sedang nonaktif`);
+        return;
+      }
+      addToCart(hit as MenuItem);
+      toast.success(`+ ${hit.name}`);
+      return;
+    }
+    // Cek varian
+    const { data: varRows } = await supabase
+      .from("menu_item_variants")
+      .select("id, menu_item_id, name, price, sku, barcode, is_available")
+      .eq("shop_id", shop.id)
+      .or(`barcode.eq.${trimmed},sku.eq.${trimmed}`)
+      .limit(1);
+    const v = varRows?.[0];
+    if (v) {
+      if (!v.is_available) {
+        toast.error(`Varian ${v.name} sedang nonaktif`);
+        return;
+      }
+      // Tambah sebagai item dengan opsi varian
+      const parent = items.find((i) => i.id === v.menu_item_id);
+      const displayName = parent ? `${parent.name} — ${v.name}` : v.name;
+      addToCart(
+        {
+          id: v.menu_item_id,
+          name: displayName,
+          price: v.price,
+          image_url: parent?.image_url ?? null,
+          category_id: parent?.category_id ?? null,
+          is_available: true,
+        } as MenuItem,
+        [{ group_id: "variant", option_id: v.id, name: v.name, price_adjustment: 0 }],
+      );
+      toast.success(`+ ${displayName}`);
+      return;
+    }
+    toast.error(`Barcode "${trimmed}" tidak ditemukan`);
+  }
+
+
     if (carts.length >= MAX_CARTS) {
       toast.error(`Maksimal ${MAX_CARTS} tab cart aktif`);
       return;
