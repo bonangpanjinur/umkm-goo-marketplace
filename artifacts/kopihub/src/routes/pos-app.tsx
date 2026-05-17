@@ -158,7 +158,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Utama",
     items: [
       { to: "/pos-app",     label: "Dashboard",  icon: LayoutDashboard, exact: true },
-      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag, onlyFor: HAS_POS },
+      { to: "/pos-app/pos", label: "POS Kasir",  icon: ShoppingBag, onlyFor: HAS_POS, requires: ["POS"] },
     ],
   },
   {
