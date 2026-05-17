@@ -33,6 +33,7 @@ import {
 } from "@/lib/receipt-printer";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
+import { ReasonDialog } from "@/components/reason-dialog";
 
 export const Route = createFileRoute("/pos-app/orders")({
   component: OrdersPage,
