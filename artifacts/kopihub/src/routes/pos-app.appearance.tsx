@@ -179,10 +179,20 @@ function AppearancePage() {
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pilih Tema</h2>
           {recommendedKey && recommendedKey !== activeThemeKey && (
-            <Button size="sm" variant="outline" onClick={() => apply(recommendedKey)} disabled={busy === recommendedKey}>
-              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-              Pakai Rekomendasi
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => { setPreviewThemeKey(recommendedKey); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              >
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                Pratinjau Rekomendasi
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => apply(recommendedKey)} disabled={busy === recommendedKey}>
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Pakai Rekomendasi
+              </Button>
+            </div>
           )}
         </div>
         {categoryName && recommendedKey && (
