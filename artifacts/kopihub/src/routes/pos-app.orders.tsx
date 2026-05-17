@@ -400,6 +400,9 @@ function DetailDialog({
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
   const [voiding, setVoiding] = useState(false);
+  const [voidReasonOpen, setVoidReasonOpen] = useState(false);
+  const [cancelReasonOpen, setCancelReasonOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [refundOpen, setRefundOpen] = useState(false);
   const [refundAmount, setRefundAmount] = useState<string>(String(order.total));
   const [refundReason, setRefundReason] = useState("");
