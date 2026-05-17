@@ -93,6 +93,20 @@ export function getLastCartActivity(): number | null {
   try { const v = localStorage.getItem("kh_cart_ts"); return v ? Number(v) : null; } catch { return null; }
 }
 
+/**
+ * Broadcast cart change ke seluruh tab/komponen agar badge & state cart
+ * langsung refresh tanpa nunggu realtime postgres_changes. Aman dipanggil
+ * dari SSR (no-op kalau window tidak ada).
+ */
+export function notifyCartChange(): void {
+  markCartActivity();
+  try {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("kh-cart-change"));
+    }
+  } catch {}
+}
+
 export async function cartCount(): Promise<number> {
   return cartQuantitySum();
 }
