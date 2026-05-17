@@ -771,13 +771,23 @@ function ShopChatPage() {
                   </div>
 
                   {isFailed && (
-                    <button
-                      type="button"
-                      onClick={() => retrySend(msg)}
-                      className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline px-1"
-                    >
-                      <RefreshCw className="h-3 w-3" /> Coba kirim ulang
-                    </button>
+                    <div className="flex items-center gap-2 px-1">
+                      <button
+                        type="button"
+                        onClick={() => retrySend(msg)}
+                        className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline"
+                      >
+                        <RefreshCw className="h-3 w-3" /> Coba kirim ulang
+                      </button>
+                      <span className="text-[10px] text-muted-foreground">·</span>
+                      <button
+                        type="button"
+                        onClick={() => cancelSend(msg._tempId!)}
+                        className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
+                      >
+                        <X className="h-3 w-3" /> Hapus
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
