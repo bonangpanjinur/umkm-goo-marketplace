@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LowStockDialog } from "@/components/inventory/low-stock-dialog";
+import { SetupChecklist } from "@/components/owner/SetupChecklist";
+import { useRealtimeOrders } from "@/hooks/use-realtime-orders";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
