@@ -408,6 +408,31 @@ function ShopChatPage() {
     });
   }
 
+  async function cancelSend(tempId: string) {
+    // Abort active XHR if any
+    const xhr = activeUploadsRef.current.get(tempId);
+    if (xhr) {
+      xhr.abort();
+      activeUploadsRef.current.delete(tempId);
+    }
+    // Remove from pending files
+    const entry = pendingFilesRef.current.get(tempId);
+    if (entry?.file) {
+      const previewUrl = URL.createObjectURL(entry.file);
+      URL.revokeObjectURL(previewUrl); // just in case; main cleanup below
+    }
+    pendingFilesRef.current.delete(tempId);
+    // Revoke blob URL and remove bubble
+    setMessages((m) => {
+      const bubble = m.find((x) => x._tempId === tempId);
+      if (bubble?._localPreview) {
+        blobUrlsRef.current.delete(bubble._localPreview);
+        URL.revokeObjectURL(bubble._localPreview);
+      }
+      return m.filter((x) => x._tempId !== tempId);
+    });
+  }
+
   async function sendMessage() {
     if (!text.trim() || sending) return;
     setSending(true);
