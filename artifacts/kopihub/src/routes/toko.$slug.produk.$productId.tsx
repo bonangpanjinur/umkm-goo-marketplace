@@ -1472,6 +1472,38 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.15)]">
+      {/* Indikator cart aktif — biar user nggak salah masuk cart toko lain */}
+      <div className="border-b border-primary/15 bg-primary/5">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-1.5 sm:px-4">
+          {shop.logo_url ? (
+            <img
+              src={shop.logo_url}
+              alt=""
+              className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-primary/30"
+            />
+          ) : (
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary ring-1 ring-primary/30">
+              {shop.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="text-[11px] text-muted-foreground shrink-0">Keranjang aktif:</span>
+          <Link
+            to="/toko/$slug"
+            params={{ slug: shop.slug }}
+            className="min-w-0 truncate text-[11px] font-semibold text-primary hover:underline"
+            title={shop.name}
+          >
+            {shop.name}
+          </Link>
+          <span
+            className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary"
+            aria-label={`${cartTotal ?? 0} item di keranjang toko ini`}
+          >
+            <ShoppingCart className="h-3 w-3" />
+            {cartTotal ?? 0} item
+          </span>
+        </div>
+      </div>
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
         <Link
           to="/toko/$slug/chat"
