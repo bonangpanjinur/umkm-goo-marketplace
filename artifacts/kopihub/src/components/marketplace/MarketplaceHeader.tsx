@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Search, ShoppingBag, ShoppingCart, Store, User, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { cartCount } from "@/lib/marketplace-cart";
+import { cartQuantitySum } from "@/lib/marketplace-cart";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MarketplaceBottomNav } from "./MarketplaceBottomNav";
