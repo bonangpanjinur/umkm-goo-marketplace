@@ -137,6 +137,14 @@ export async function waitForPrint(
 }
 
 
+export async function login(page: Page, email = DEMO_EMAIL, password = DEMO_PASSWORD) {
+  await page.goto("/login");
+  await page.locator("input#email").fill(email);
+  await page.locator("input#password").fill(password);
+  await page.getByRole("button", { name: /masuk|login|sign in/i }).first().click();
+  await page.waitForURL(/\/(app|pos-app)/, { timeout: 20_000 });
+}
+
 /**
  * Pola yang di-ignore (warning umum dari ekstensi, HMR, lovable.js, dsb).
  * Tambahkan di sini kalau ada noise baru yang bukan bug aplikasi.
