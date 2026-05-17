@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { logStaffAction } from "@/lib/staff-audit";
+import { RecurringSlotDialog } from "@/components/booking/RecurringSlotDialog";
 
 export const Route = createFileRoute("/pos-app/booking")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -285,6 +286,7 @@ function BookingPage() {
   const [slotOpen, setSlotOpen] = useState(false);
   const [slotForm, setSlotForm] = useState({ service_name: "", slot_date: isoDate(new Date()), slot_time: "09:00", duration_min: "60", max_capacity: "1", price: "0", notes: "" });
   const [savingSlot, setSavingSlot] = useState(false);
+  const [recurringOpen, setRecurringOpen] = useState(false);
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingSlot, setBookingSlot] = useState<Slot | null>(null);
@@ -882,6 +884,10 @@ function BookingPage() {
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setRecurringOpen(true)}>
+            <CalendarClock className="h-4 w-4 mr-1.5" />
+            Generate Mingguan
           </Button>
           <Button size="sm" onClick={() => {
             setSlotForm({
@@ -2276,6 +2282,17 @@ function BookingPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {shop && (
+        <RecurringSlotDialog
+          open={recurringOpen}
+          onOpenChange={setRecurringOpen}
+          shopId={shop.id}
+          bookingType={bookingType}
+          defaultDate={date}
+          onGenerated={load}
+        />
+      )}
     </div>
   );
 }
