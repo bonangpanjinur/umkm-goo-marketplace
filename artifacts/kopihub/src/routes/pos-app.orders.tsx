@@ -33,6 +33,7 @@ import {
 } from "@/lib/receipt-printer";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
+import { ReasonDialog } from "@/components/reason-dialog";
 
 export const Route = createFileRoute("/pos-app/orders")({
   component: OrdersPage,
@@ -92,6 +93,7 @@ function OrdersPage() {
   const [selected, setSelected] = useState<OrderDetail | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkReasonFor, setBulkReasonFor] = useState<null | "voided" | "cancelled" | "refunded">(null);
 
   async function load() {
     if (!outlet) return;
@@ -142,14 +144,12 @@ function OrdersPage() {
     }
   }
 
-  async function bulkUpdateStatus(status: string) {
+  async function bulkUpdateStatus(status: string, reason = "") {
     if (checkedIds.size === 0) { toast.error("Pilih pesanan terlebih dahulu"); return; }
     const isSensitive = status === "voided" || status === "cancelled" || status === "refunded";
-    let reason = "";
-    if (isSensitive) {
-      const input = prompt(`Alasan ${status} (wajib untuk audit):`)?.trim() ?? "";
-      if (!input) { toast.error("Alasan wajib diisi untuk aksi sensitif"); return; }
-      reason = input;
+    if (isSensitive && !reason) {
+      setBulkReasonFor(status as "voided" | "cancelled" | "refunded");
+      return;
     }
     setBulkUpdating(true);
     const ids = Array.from(checkedIds);
@@ -249,6 +249,9 @@ function OrdersPage() {
               <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 text-red-500" onClick={() => bulkUpdateStatus("voided")} disabled={bulkUpdating}>
                 <XCircle className="h-3.5 w-3.5" /> Void
               </Button>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 text-red-500" onClick={() => bulkUpdateStatus("cancelled")} disabled={bulkUpdating}>
+                Cancel
+              </Button>
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setCheckedIds(new Set())} disabled={bulkUpdating}>
                 Batal Pilih
               </Button>
@@ -338,6 +341,27 @@ function OrdersPage() {
           }}
         />
       )}
+
+      <ReasonDialog
+        open={bulkReasonFor !== null}
+        onClose={() => setBulkReasonFor(null)}
+        onConfirm={async (reason) => {
+          if (bulkReasonFor) await bulkUpdateStatus(bulkReasonFor, reason);
+        }}
+        title={
+          bulkReasonFor === "refunded"
+            ? `Refund ${checkedIds.size} order`
+            : bulkReasonFor === "cancelled"
+              ? `Cancel ${checkedIds.size} order`
+              : `Void ${checkedIds.size} order`
+        }
+        description="Alasan akan tercatat di log audit dan tidak dapat diubah."
+        confirmLabel={
+          bulkReasonFor === "refunded" ? "Konfirmasi refund" :
+          bulkReasonFor === "cancelled" ? "Konfirmasi cancel" : "Konfirmasi void"
+        }
+        presets={["Salah input", "Pelanggan batal", "Stok habis", "Duplikat order"]}
+      />
       </div>
     </>
   );
@@ -376,6 +400,9 @@ function DetailDialog({
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
   const [voiding, setVoiding] = useState(false);
+  const [voidReasonOpen, setVoidReasonOpen] = useState(false);
+  const [cancelReasonOpen, setCancelReasonOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [refundOpen, setRefundOpen] = useState(false);
   const [refundAmount, setRefundAmount] = useState<string>(String(order.total));
   const [refundReason, setRefundReason] = useState("");
@@ -415,13 +442,15 @@ function DetailDialog({
     const amt = Number(refundAmount || 0);
     if (amt <= 0) { toast.error("Jumlah refund harus > 0"); return; }
     if (amt > Number(order.total)) { toast.error("Tidak boleh melebihi total order"); return; }
+    const reason = refundReason.trim();
+    if (reason.length < 3) { toast.error("Alasan refund wajib (min. 3 karakter)"); return; }
     setRefunding(true);
     try {
-      await refundOrder(order.id, amt, refundReason || "Refund", refundMethod);
+      await refundOrder(order.id, amt, reason, refundMethod);
       logStaffAction({
         shopId,
         action: "order.refund",
-        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason: refundReason, method: refundMethod },
+        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason, method: refundMethod },
       });
       toast.success(`Refund ${formatIDR(amt)} dicatat`);
       setRefundOpen(false);
@@ -431,6 +460,43 @@ function DetailDialog({
       toast.error(msg);
     } finally {
       setRefunding(false);
+    }
+  }
+
+  async function handleVoid(reason: string) {
+    setVoiding(true);
+    try {
+      const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
+      if (error) { toast.error(error.message); throw error; }
+      logStaffAction({
+        shopId,
+        action: "order.void",
+        meta: { order_id: order.id, order_no: order.order_no, reason },
+      });
+      toast.success("Order di-void");
+      onVoided();
+    } finally {
+      setVoiding(false);
+    }
+  }
+
+  async function handleCancel(reason: string) {
+    setCancelling(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" } as any)
+        .eq("id", order.id);
+      if (error) { toast.error(error.message); throw error; }
+      logStaffAction({
+        shopId,
+        action: "order.void",
+        meta: { order_id: order.id, order_no: order.order_no, status: "cancelled", reason },
+      });
+      toast.success("Order dibatalkan");
+      onVoided();
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -534,24 +600,17 @@ function DetailDialog({
                 variant="outline"
                 className="text-destructive hover:text-destructive"
                 disabled={voiding}
-                onClick={async () => {
-                  const reason = prompt("Alasan void (wajib untuk audit):")?.trim() ?? "";
-                  if (!reason) { toast.error("Alasan wajib diisi"); return; }
-                  if (!confirm(`Void order #${order.order_no}? Stok & poin akan dibalik.`)) return;
-                  setVoiding(true);
-                  const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
-                  setVoiding(false);
-                  if (error) { toast.error(error.message); return; }
-                  logStaffAction({
-                    shopId,
-                    action: "order.void",
-                    meta: { order_id: order.id, order_no: order.order_no, reason },
-                  });
-                  toast.success("Order di-void");
-                  onVoided();
-                }}
+                onClick={() => setVoidReasonOpen(true)}
               >
                 <XCircle className="mr-2 h-4 w-4" /> {voiding ? "Memproses…" : "Void"}
+              </Button>
+              <Button
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                disabled={cancelling}
+                onClick={() => setCancelReasonOpen(true)}
+              >
+                {cancelling ? "Memproses…" : "Cancel"}
               </Button>
               <Button variant="outline" onClick={() => setRefundOpen(true)}>
                 <Undo2 className="mr-2 h-4 w-4" /> Refund
@@ -592,6 +651,26 @@ function DetailDialog({
           </Button>
           <Button onClick={onClose}>Tutup</Button>
         </DialogFooter>
+
+        <ReasonDialog
+          open={voidReasonOpen}
+          onClose={() => setVoidReasonOpen(false)}
+          onConfirm={(reason) => handleVoid(reason)}
+          title={`Void order #${order.order_no}`}
+          description="Stok & poin akan dibalik. Alasan akan tercatat di log audit."
+          confirmLabel="Konfirmasi void"
+          presets={["Salah input kasir", "Duplikat order", "Pelanggan batal", "Mesin error"]}
+        />
+
+        <ReasonDialog
+          open={cancelReasonOpen}
+          onClose={() => setCancelReasonOpen(false)}
+          onConfirm={(reason) => handleCancel(reason)}
+          title={`Cancel order #${order.order_no}`}
+          description="Order ditandai dibatalkan tanpa membalik stok/poin. Gunakan Void jika perlu rollback."
+          confirmLabel="Konfirmasi cancel"
+          presets={["Pelanggan batal", "Tidak diambil", "Stok habis", "Lewat waktu pickup"]}
+        />
 
         {/* Refund dialog */}
         <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
