@@ -137,6 +137,14 @@ function OnboardingPage() {
   };
 
   const submitStep2 = () => {
+    if (categoriesLoading) {
+      toast.error("Daftar kategori masih dimuat, mohon tunggu");
+      return;
+    }
+    if (categoriesError) {
+      toast.error(categoriesError);
+      return;
+    }
     if (categories.length === 0) {
       toast.error("Daftar kategori belum siap, mohon tunggu sebentar");
       return;
