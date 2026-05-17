@@ -365,7 +365,7 @@ function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <MarketplaceHeader />
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 pb-32 md:pb-28">
         <nav className="mb-4 text-xs text-muted-foreground">
           <Link to="/" className="hover:text-foreground">Beranda</Link>
           {" / "}
