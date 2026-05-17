@@ -536,6 +536,8 @@ function AppLayoutInner() {
   // Filter nav: by staff permissions AND by shop category type
   const visibleGroups = useMemo(() => {
     const allowed = (it: NavItem) => {
+      // Owner-only items hidden from staff
+      if (it.ownerOnly && !staff.isOwner) return false;
       // Staff permission check
       if (!staff.isOwner && staff.isStaff && !isModuleAllowed(it.to, staff.allowedModules)) return false;
       // Category type check — only filter if onlyFor is specified
