@@ -401,6 +401,11 @@ function Shortcut({ to, icon: Icon, label }: { to: string; icon: React.ElementTy
   );
 }
 
+function RealtimeOrdersToast({ shopId }: { shopId: string | null }) {
+  useRealtimeOrders(shopId, { label: "Order baru masuk", playSound: true });
+  return null;
+}
+
 function Empty({ text }: { text: string }) {
   return (
     <div className="flex h-24 items-center justify-center">
