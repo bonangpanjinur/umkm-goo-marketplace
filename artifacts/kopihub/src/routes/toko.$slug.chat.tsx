@@ -387,9 +387,14 @@ function ShopChatPage() {
       return;
     }
 
-    // Success → swap optimistic bubble with real row
+    // Success → swap optimistic bubble with real row, and revoke its blob URL.
     pendingFilesRef.current.delete(tempId);
     setMessages((m) => {
+      const bubble = m.find((x) => x._tempId === tempId);
+      if (bubble?._localPreview) {
+        blobUrlsRef.current.delete(bubble._localPreview);
+        URL.revokeObjectURL(bubble._localPreview);
+      }
       const without = m.filter((x) => x._tempId !== tempId);
       if (without.some((x) => x.id === data.id)) return without;
       return [...without, { ...(data as Message), _status: "sent" }];
