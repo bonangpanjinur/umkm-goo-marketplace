@@ -27,25 +27,33 @@ export function SetupChecklist({ shopId }: { shopId: string }) {
   useEffect(() => {
     if (!shopId) return;
     (async () => {
-      const [shop, outlets, hours, methods, menu, bank, category] = await Promise.all([
-        supabase.from("shops").select("name, logo_url, business_category_id").eq("id", shopId).maybeSingle(),
+      const [shop, outlets, menu] = await Promise.all([
+        supabase
+          .from("shops")
+          .select("name, logo_url, business_category_id, open_hours, payment_methods_enabled")
+          .eq("id", shopId)
+          .maybeSingle(),
         supabase.from("outlets").select("id", { count: "exact", head: true }).eq("shop_id", shopId),
-        supabase.from("shop_hours").select("id", { count: "exact", head: true }).eq("shop_id", shopId),
-        supabase.from("payment_methods").select("id", { count: "exact", head: true }).eq("shop_id", shopId).eq("is_active", true),
         supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("shop_id", shopId).limit(1),
-        supabase.from("withdrawal_accounts").select("id", { count: "exact", head: true }).eq("shop_id", shopId),
-        Promise.resolve(null), // placeholder
       ]);
-      void category;
-      const s = shop.data ?? {};
+      const s = (shop.data ?? {}) as {
+        name?: string;
+        logo_url?: string;
+        business_category_id?: string;
+        open_hours?: unknown;
+        payment_methods_enabled?: unknown[];
+      };
+      const hasHours = Boolean(
+        s.open_hours && typeof s.open_hours === "object" && Object.keys(s.open_hours as object).length > 0,
+      );
+      const hasPayment = Array.isArray(s.payment_methods_enabled) && s.payment_methods_enabled.length > 0;
       const list: Step[] = [
         { id: "shop", label: "Lengkapi info toko & logo", to: "/pos-app/settings", done: Boolean(s.name && s.logo_url), required: true },
         { id: "category", label: "Pilih kategori usaha", to: "/pos-app/settings", done: Boolean(s.business_category_id), required: true },
         { id: "outlet", label: "Tambahkan minimal 1 outlet", to: "/pos-app/outlets", done: (outlets.count ?? 0) > 0, required: true },
-        { id: "hours", label: "Atur jam buka", to: "/pos-app/settings", done: (hours.count ?? 0) > 0, required: true },
+        { id: "hours", label: "Atur jam buka", to: "/pos-app/settings", done: hasHours, required: true },
         { id: "menu", label: "Tambahkan produk/menu pertama", to: "/pos-app/menu", done: (menu.count ?? 0) > 0, required: true },
-        { id: "payment", label: "Aktifkan metode pembayaran", to: "/pos-app/settings", done: (methods.count ?? 0) > 0, required: true },
-        { id: "bank", label: "Daftarkan rekening tarik (opsional)", to: "/pos-app/keuangan/tarik", done: (bank.count ?? 0) > 0, required: false },
+        { id: "payment", label: "Aktifkan metode pembayaran", to: "/pos-app/settings", done: hasPayment, required: true },
       ];
       setSteps(list);
     })();
