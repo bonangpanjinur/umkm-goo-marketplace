@@ -537,7 +537,7 @@ export default function PublicBookingPage() {
 
       const staffId = selectedStaffId !== NO_PREF_STAFF_ID ? selectedStaffId : null;
       const staffName = selectedStaff?.name ?? null;
-      const needsDeposit = !!(shop.deposit_required && effectivePrice > 0);
+      const needsDeposit = !!(shop.deposit_enabled && effectivePrice > 0);
 
       const { data: bk, error } = await supabase
         .from("bookings" as any)
