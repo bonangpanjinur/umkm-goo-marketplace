@@ -750,6 +750,12 @@ function POSPage() {
         }}
       />
 
+      <BarcodeScannerDialog
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onDetected={handleBarcodeDetected}
+      />
+
       <PaymentDialog
         open={checkoutOpen}
         onOpenChange={setCheckoutOpen}
