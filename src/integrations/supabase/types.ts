@@ -1494,6 +1494,7 @@ export type Database = {
           attachment_urls: string[] | null
           budget_max: number | null
           budget_min: number | null
+          contract_id: string | null
           created_at: string
           customer_contact: string
           customer_name: string
@@ -1512,6 +1513,7 @@ export type Database = {
           attachment_urls?: string[] | null
           budget_max?: number | null
           budget_min?: number | null
+          contract_id?: string | null
           created_at?: string
           customer_contact: string
           customer_name: string
@@ -1530,6 +1532,7 @@ export type Database = {
           attachment_urls?: string[] | null
           budget_max?: number | null
           budget_min?: number | null
+          contract_id?: string | null
           created_at?: string
           customer_contact?: string
           customer_name?: string
@@ -1545,6 +1548,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "custom_order_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "freelance_contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "custom_order_requests_product_id_fkey"
             columns: ["product_id"]
