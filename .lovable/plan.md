@@ -43,14 +43,9 @@ Tujuan: turunkan bug rate sebelum menambah fitur baru.
 3. **Code splitting**: pisah `pos-app.pos.tsx` jadi `CartPanel`, `MenuGrid`, `PaymentDialog` lazy-loaded (sebagian sudah ada di `components/pos/refactor/` — tinggal wire).
 4. **Smoke test pack**: tambah Playwright spec untuk 5 alur kritis (login owner, buat order POS, checkout customer marketplace, login kurir + ambil order, admin lihat shops).
 
-### Fase G — Notifikasi & Automasi
-1. **Scheduler tunggal** (cron/pg_cron memanggil `/api/public/scheduler/$secret`) untuk:
-   - Obat hampir ED (≤30 hari) → notif owner klinik.
-   - Stok rendah lintas modul (medications, inventory, rental units).
-   - Maintenance rental due (odometer/jam pakai).
-   - Batch travel ≤7 hari + slot tersisa <20%.
-   - Auto-cancel order pending (sudah ada `admin.auto-cancel.tsx` — gabungkan logic-nya ke scheduler).
-2. **Idempotency log webhook** (`webhook_logs` table sudah ada via Drizzle) → tolak event_id duplikat.
+### Fase G — Notifikasi & Automasi ✅
+1. ✅ **Scheduler tunggal** `/api/public/hooks/scheduler` (pg_cron tiap 15 menit) — obat hampir ED (≤30 hari), stok rendah (ingredients + medications), maintenance rental (≤7 hari), batch travel ≤7 hari & terisi <80%, auto-cancel order pending lewat deadline `platform_settings`. Notifikasi pakai `owner_notifications.dedupe_key` agar idempotent.
+2. ✅ **Idempotency log webhook** — tabel `webhook_events` (unique provider+event_id). Webhook plan-billing memeriksa duplikat sebelum memproses; replay → 200 tanpa side-effect.
 
 ### Fase H — Penyelesaian fitur per kategori (high-ROI sisa)
 1. **F&B**: kolom `allergen[]` + `is_halal` + `nutrition` di `menu_items`, badge storefront, mode order eksplisit (dine-in/takeaway/delivery) di POS, modifier `is_required` + `min_select`.
