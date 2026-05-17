@@ -221,13 +221,28 @@ function AppearancePage() {
                 </div>
                 {t.description && <p className="text-xs text-muted-foreground mt-1">{t.description}</p>}
                 {!t.allowed && t.reason && <p className="text-xs text-amber-700 mt-2">{t.reason}</p>}
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   {t.allowed ? (
                     <Button size="sm" disabled={active || busy === t.key} onClick={() => apply(t.key)}>
                       {busy === t.key ? <Loader2 className="h-4 w-4 animate-spin" /> : active ? "Sedang dipakai" : "Pakai tema ini"}
                     </Button>
                   ) : (
                     <Link to="/pos-app/billing"><Button size="sm" variant="outline">Upgrade untuk akses</Button></Link>
+                  )}
+                  {!active && (
+                    previewThemeKey === t.key ? (
+                      <Button size="sm" variant="ghost" onClick={() => setPreviewThemeKey(null)}>
+                        <X className="h-3.5 w-3.5 mr-1" />Tutup pratinjau
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => { setPreviewThemeKey(t.key); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1" />Pratinjau
+                      </Button>
+                    )
                   )}
                 </div>
               </Card>
