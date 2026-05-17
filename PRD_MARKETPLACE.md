@@ -3034,18 +3034,42 @@ WHERE s.shop_id = :shop_id
 | Shop Count | Jumlah toko aktif per kategori — menentukan apakah kategori tampil di homepage |
 
 
-## 📋 Backlog Aktual (Audit 15 Mei 2026)
+## 📋 Backlog Aktual (Audit 17 Mei 2026)
 
-Daftar item yang teridentifikasi belum diimplementasi pada audit otomatis 15 Mei 2026.
+Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 file route.
 
-### Sudah ditandai ✅ pada audit ini
-
-### Belum diimplementasi (kandidat sprint berikutnya)
-
-Catatan: list ini fokus pada item yang punya keyword spesifik di PRD tapi tidak ada file route padanannya. Item lain yang masih ❌ tapi belum punya keyword kandidat (mis. recurring billing F-02) tetap di tabel asalnya.
+### Belum diimplementasi (kandidat sprint berikutnya — urut prioritas)
 
 | Item | Modul | Estimasi |
 |------|-------|----------|
+| F-16 Fase 3: Konsolidasi config deposit (deprecate `shops.booking_config.deposit_*` JSON) | Booking / Owner | 0.5 hari |
+| F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log | Backend | 0.5 hari |
+| F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
+| F-16 Fase 5: Hardening RLS `USING(true)`, `search_path`, public bucket listing, extensions schema | Security | 1 hari |
+| SA-05 Konfigurasi Booking per Kategori (toggle T3/T4 default) | Super Admin | 1 hari |
+| SF-04 Portfolio publik studio foto | Studio Foto | 1 hari |
+| SF-03 Pilih lokasi sesi (studio/outdoor/lokasi klien) | Studio Foto | 0.5 hari |
+| SF-09 Review post-booking + foto hasil klien | Studio Foto | 1 hari |
+| BE-03 Tag skin type per produk skincare | Skincare | 0.5 hari |
+| KL-03 Rekam medis sederhana per pasien | Klinik | 2 hari |
+| JU-05 Deliver hasil kerja (file) via platform | Jasa Digital | 1 hari |
+| F-01 Group Buy / Patungan | Marketplace | 3 hari |
+| F-06 Affiliate Program per Toko | Marketplace | 3 hari |
+| F-07 Google Analytics & Meta Pixel + consent | Tracking | 2 hari |
+| F-09 Live Streaming Commerce | Marketplace | 7+ hari |
+| F-10 BNPL (Kredivo/Akulaku) | Payments | 5 hari |
+| KL-06 Telemedicine / Konsultasi Video | Klinik | 5+ hari |
+| SA-10 A/B Testing Manager | Super Admin | 3 hari |
+
+### Sprint 17 Mei 2026 — Selesai ✅
+
+| Item | Modul | File / Migrasi |
+|------|-------|----------------|
+| F-16 Fase 1: Code align rename (`deposit_required`, `deposit_percentage`, `cancel_token`, status `pending`/`paid`) | Booking / Checkout / Payments | `toko.$slug.booking.tsx`, `pos-app.booking.tsx`, `pos-app.booking-analytics.tsx`, `booking.cancel.$token.tsx`, `checkout.tsx`, `pos-app.settings.tsx`, `types/stage4.ts`, `api-server/src/routes/payments.ts` |
+| F-16 Webhook idempotency fix | Payments | `payments.ts` (RETURNING id + filter `WHERE id=logId`) |
+| F-16 Migrasi DB: kolom `bookings.deposit_status/deposit_required` + index, `shops.deposit_*` | Backend | Migration `20260517105717` |
+| F-16 Fase 2: Seed `business_categories` (11), `plans` (3) + `plan_features` (12), `features` master (4), `user_roles` super_admin + owner, `platform_settings` (12 keys) | Cloud / Seed | Insert idempoten dengan `ON CONFLICT DO NOTHING` |
+| Konsolidasi rencana → satu file `PRD_MARKETPLACE.md` v6.2; `.lovable/plan.md` dihapus | Dokumentasi | PRD diperbarui dengan **BAGIAN F** |
 
 ### Sprint 15 Mei 2026 — Selesai ✅
 
