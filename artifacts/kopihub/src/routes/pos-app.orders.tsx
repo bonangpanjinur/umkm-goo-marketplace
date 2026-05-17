@@ -535,7 +535,8 @@ function DetailDialog({
                 className="text-destructive hover:text-destructive"
                 disabled={voiding}
                 onClick={async () => {
-                  const reason = prompt("Alasan void? (opsional)") ?? "";
+                  const reason = prompt("Alasan void (wajib untuk audit):")?.trim() ?? "";
+                  if (!reason) { toast.error("Alasan wajib diisi"); return; }
                   if (!confirm(`Void order #${order.order_no}? Stok & poin akan dibalik.`)) return;
                   setVoiding(true);
                   const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
