@@ -227,16 +227,16 @@ function MenuPage() {
     setFlashStarts(toLocalInput(it.flash_starts_at));
     setFlashEnds(toLocalInput(it.flash_ends_at));
     setAcceptsCustomOrder(Boolean(it.accepts_custom_order));
-    setSkinTypeTags((it as any).skin_type_tags ?? []);
+    setSkinTypeTags(it.skin_type_tags ?? []);
     setRestockDeadline(it.restock_deadline ?? "");
-    const ni = (it as any).nutrition_info ?? {};
+    const ni = it.nutrition_info ?? {};
     setNutritionCal(ni.calories != null ? String(ni.calories) : "");
     setNutritionProtein(ni.protein != null ? String(ni.protein) : "");
     setNutritionCarbs(ni.carbs != null ? String(ni.carbs) : "");
     setNutritionFat(ni.fat != null ? String(ni.fat) : "");
     setNutritionFiber(ni.fiber != null ? String(ni.fiber) : "");
-    setProductionDays((it as any).production_days != null ? String((it as any).production_days) : "");
-    setConditionGrade((it as any).condition_grade ?? "");
+    setProductionDays(it.production_days != null ? String(it.production_days) : "");
+    setConditionGrade(it.condition_grade ?? "");
     setAiTags([]);
     setOpen(true);
   }
