@@ -371,8 +371,8 @@ function AdminPlatformBilling() {
               <Input value={cfg.qris_merchant_name} onChange={e => set({ qris_merchant_name: e.target.value })} placeholder="UMKMGO INDONESIA" />
             </div>
             <div>
-              <Label>URL Gambar QRIS</Label>
-              <Input value={cfg.qris_image_url} onChange={e => set({ qris_image_url: e.target.value })} placeholder="https://.../qris.png" />
+              <Label>Gambar QRIS</Label>
+              <UploadableImage value={cfg.qris_image_url || null} onChange={(url) => set({ qris_image_url: url ?? "" })} bucket="platform-assets" pathPrefix="qris" />
             </div>
           </div>
         </Card>
