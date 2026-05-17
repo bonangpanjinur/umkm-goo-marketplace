@@ -53,6 +53,8 @@ type Product = {
   flash_ends_at?: string | null;
   restock_deadline?: string | null;
   nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
+  is_halal?: boolean | null;
+  available_modes?: string[] | null;
   production_days?: number | null;
 };
 
