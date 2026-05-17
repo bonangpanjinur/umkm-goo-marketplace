@@ -81,6 +81,17 @@ function OnboardingPage() {
   // Created IDs
   const [shopId, setShopId] = useState<string | null>(null);
 
+  // Kategori bisnis dari DB
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
+  useEffect(() => {
+    supabase
+      .from("business_categories")
+      .select("id, slug, name, description")
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => setCategories((data as CategoryRow[]) ?? []));
+  }, []);
+
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/login" }); return; }
