@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type OrderStatus = Database["public"]["Enums"]["order_status"];
 import { useCurrentShop } from "@/lib/use-shop";
 import { logStaffAction } from "@/lib/staff-audit";
 import { useAuth } from "@/lib/auth";
