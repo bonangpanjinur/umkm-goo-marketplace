@@ -406,50 +406,68 @@ function ShopChatPage() {
   }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !user || !chatId || !shopId) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length || !user || !chatId || !shopId) return;
     e.target.value = "";
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Hanya gambar yang didukung");
-      return;
+    // Validate all upfront; collect valid files
+    const valid: File[] = [];
+    for (const f of files) {
+      if (!f.type.startsWith("image/")) {
+        toast.error(`"${f.name}" dilewati: hanya gambar yang didukung`);
+        continue;
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`"${f.name}" dilewati: ukuran maksimal 5MB`);
+        continue;
+      }
+      valid.push(f);
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ukuran gambar maksimal 5MB");
-      return;
-    }
+    if (!valid.length) return;
 
-    // 1. Create optimistic bubble immediately with local preview + caption
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const localPreview = URL.createObjectURL(file);
-    blobUrlsRef.current.add(localPreview);
-    const caption = text.trim();
-    pendingFilesRef.current.set(tempId, { file, caption });
-
-    const optimistic: Message = {
-      id: tempId,
-      chat_id: chatId,
-      sender_id: user.id,
-      sender_role: "buyer",
-      body: caption,
-      attachment_url: null,
-      attachment_type: "image",
-      product_id: null,
-      read_at: null,
-      created_at: new Date().toISOString(),
-      _tempId: tempId,
-      _status: "sending",
-      _localPreview: localPreview,
-      _uploadProgress: 0,
-      _pendingUpload: true,
-    };
-    setMessages((m) => [...m, optimistic]);
+    // Caption hanya menempel ke bubble pertama, biar tidak duplikat.
+    const baseCaption = text.trim();
     setText("");
 
-    // 2. Kick off upload + insert (progress updates flow into the bubble)
+    const optimistics: Message[] = [];
+    const tempIds: string[] = [];
+
+    valid.forEach((file, idx) => {
+      const tempId = `temp-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}`;
+      const localPreview = URL.createObjectURL(file);
+      blobUrlsRef.current.add(localPreview);
+      const caption = idx === 0 ? baseCaption : "";
+      pendingFilesRef.current.set(tempId, { file, caption });
+      tempIds.push(tempId);
+
+      optimistics.push({
+        id: tempId,
+        chat_id: chatId,
+        sender_id: user.id,
+        sender_role: "buyer",
+        body: caption,
+        attachment_url: null,
+        attachment_type: "image",
+        product_id: null,
+        read_at: null,
+        created_at: new Date(Date.now() + idx).toISOString(),
+        _tempId: tempId,
+        _status: "sending",
+        _localPreview: localPreview,
+        _uploadProgress: 0,
+        _pendingUpload: true,
+      });
+    });
+
+    setMessages((m) => [...m, ...optimistics]);
+
+    // Kick off all uploads in parallel — masing-masing bubble update progress sendiri.
     setUploading(true);
-    await uploadAndInsertForBubble(tempId);
-    setUploading(false);
+    try {
+      await Promise.all(tempIds.map((id) => uploadAndInsertForBubble(id)));
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function sendProductRef(p: ProductLite) {
@@ -733,6 +751,7 @@ function ShopChatPage() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={handleFileSelect}
         />
