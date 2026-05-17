@@ -1316,3 +1316,140 @@ function AddToCartBlock({ product, shopSlug, shop, qty: qtyProp, onQtyChange }: 
     </div>
   );
 }
+
+function ShopInfoCard({ shop }: { shop: Shop }) {
+  const verified = shop.verification_status === "verified";
+  return (
+    <div className="mt-5 rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-start gap-3">
+        {shop.logo_url ? (
+          <img src={shop.logo_url} alt={shop.name} className="h-12 w-12 rounded-full object-cover border border-border" />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Store className="h-5 w-5 text-muted-foreground" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-semibold truncate">{shop.name}</span>
+            {verified && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 text-[10px] font-bold">
+                <Check className="h-2.5 w-2.5" /> Terverifikasi
+              </span>
+            )}
+          </div>
+          {shop.address && (
+            <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{shop.address}</p>
+          )}
+          <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
+            {shop.average_rating != null && Number(shop.average_rating) > 0 && (
+              <span>★ {Number(shop.average_rating).toFixed(1)} ({shop.review_count ?? 0})</span>
+            )}
+            {(shop.total_sales_count ?? 0) > 0 && (
+              <span>{shop.total_sales_count} terjual</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Link to="/toko/$slug/chat" params={{ slug: shop.slug }}>
+          <Button variant="outline" size="sm" className="w-full gap-1.5">
+            <MessageCircle className="h-4 w-4" /> Chat
+          </Button>
+        </Link>
+        <Link to="/toko/$slug" params={{ slug: shop.slug }}>
+          <Button size="sm" className="w-full gap-1.5">
+            <Store className="h-4 w-4" /> Kunjungi
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop; qty: number }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const outOfStock = product.track_stock && (product.stock ?? 0) <= 0;
+
+  const effectivePrice = (() => {
+    const now = Date.now();
+    const flashActive = !!(
+      product.flash_price != null &&
+      Number(product.flash_price) > 0 &&
+      Number(product.flash_price) < Number(product.price) &&
+      (!product.flash_starts_at || new Date(product.flash_starts_at).getTime() <= now) &&
+      (!product.flash_ends_at || new Date(product.flash_ends_at).getTime() > now)
+    );
+    return flashActive ? Number(product.flash_price) : Number(product.price);
+  })();
+
+  const handle = async (goCheckout: boolean) => {
+    if (!user) {
+      toast.info("Silakan masuk untuk berbelanja");
+      navigate({ to: "/login" });
+      return;
+    }
+    setBusy(true);
+    try {
+      await addToCart({
+        shop_id: product.shop_id,
+        product_id: product.id,
+        unit_price: effectivePrice,
+        quantity: qty,
+      });
+      toast.success(`${product.name} ditambahkan ke keranjang`);
+      if (goCheckout) navigate({ to: "/keranjang" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Gagal menambahkan ke keranjang");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.15)]">
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
+        <Link
+          to="/toko/$slug/chat"
+          params={{ slug: shop.slug }}
+          className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+          aria-label="Chat toko"
+        >
+          <MessageCircle className="h-5 w-5" />
+          <span className="text-[9px] leading-none mt-0.5 hidden sm:block">Chat</span>
+        </Link>
+        <Link
+          to="/keranjang"
+          className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+          aria-label="Keranjang"
+        >
+          <ShoppingCart className="h-5 w-5" />
+          <span className="text-[9px] leading-none mt-0.5 hidden sm:block">Keranjang</span>
+        </Link>
+        <div className="hidden md:flex flex-col flex-1 min-w-0 px-2">
+          <span className="text-[10px] text-muted-foreground">Total ({qty})</span>
+          <span className="text-base font-bold text-primary truncate">
+            Rp {(effectivePrice * qty).toLocaleString("id-ID")}
+          </span>
+        </div>
+        <Button
+          variant="outline"
+          className="flex-1 h-11 gap-1.5 border-primary/40 text-primary hover:bg-primary/5"
+          onClick={() => handle(false)}
+          disabled={busy || outOfStock}
+        >
+          <Plus className="h-4 w-4" /> Keranjang
+        </Button>
+        <Button
+          className="flex-1 h-11"
+          onClick={() => handle(true)}
+          disabled={busy || outOfStock}
+        >
+          {outOfStock ? "Stok Habis" : "Beli Sekarang"}
+        </Button>
+      </div>
+    </div>
+  );
+}
