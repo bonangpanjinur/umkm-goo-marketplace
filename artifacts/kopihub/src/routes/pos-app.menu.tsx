@@ -1133,10 +1133,10 @@ function MenuPage() {
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <span className="text-sm font-medium">{formatIDR(it.price)}</span>
-                    {(it as any).condition_grade && (
+                    {it.condition_grade && (
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                        title={`Pre-loved Kondisi ${(it as any).condition_grade}`}>
-                        ♻️ Kond. {(it as any).condition_grade}
+                        title={`Pre-loved Kondisi ${it.condition_grade}`}>
+                        ♻️ Kond. {it.condition_grade}
                       </span>
                     )}
                     {hasHpp && (
