@@ -158,7 +158,7 @@ function OrdersPage() {
     const ids = Array.from(checkedIds);
     const { error } = await supabase
       .from("orders")
-      .update({ status } as any)
+      .update({ status: status as OrderStatus })
       .in("id", ids);
     if (error) { toast.error(error.message); } else {
       toast.success(`${checkedIds.size} pesanan diperbarui ke status "${status}"`);
