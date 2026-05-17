@@ -11,7 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Stethoscope, Plus, Pencil, Trash2, Loader2, Search, FileText, Calendar, ChevronLeft } from "lucide-react";
+import { Stethoscope, Plus, Pencil, Trash2, Loader2, Search, FileText, Calendar, ChevronLeft, ShieldCheck } from "lucide-react";
+import { Icd10Picker } from "@/components/Icd10Picker";
 
 export const Route = createFileRoute("/pos-app/patient-records")({
   head: () => ({ meta: [{ title: "Rekam Medis Pasien" }] }),
@@ -28,6 +29,9 @@ type Patient = {
   allergies: string | null;
   medical_history: string | null;
   notes: string | null;
+  nik: string | null;
+  bpjs_number: string | null;
+  payer_type: "umum" | "bpjs" | "asuransi" | null;
   created_at: string;
 };
 
@@ -39,10 +43,21 @@ type Visit = {
   treatment: string | null;
   prescription: string | null;
   notes: string | null;
+  icd10_code: string | null;
+  icd10_label: string | null;
 };
 
-const EMPTY_PATIENT = { patient_name: "", patient_contact: "", birth_date: "", gender: "" as "" | "L" | "P" | "other", blood_type: "", allergies: "", medical_history: "", notes: "" };
-const EMPTY_VISIT = { visit_date: new Date().toISOString().slice(0, 16), complaint: "", diagnosis: "", treatment: "", prescription: "", notes: "" };
+const EMPTY_PATIENT = {
+  patient_name: "", patient_contact: "", birth_date: "",
+  gender: "" as "" | "L" | "P" | "other", blood_type: "",
+  allergies: "", medical_history: "", notes: "",
+  nik: "", bpjs_number: "", payer_type: "" as "" | "umum" | "bpjs" | "asuransi",
+};
+const EMPTY_VISIT = {
+  visit_date: new Date().toISOString().slice(0, 16),
+  complaint: "", diagnosis: "", treatment: "", prescription: "", notes: "",
+  icd10_code: "", icd10_label: "",
+};
 
 function PatientRecordsPage() {
   const { shop } = useCurrentShop();
@@ -108,6 +123,9 @@ function PatientRecordsPage() {
       allergies: p.allergies ?? "",
       medical_history: p.medical_history ?? "",
       notes: p.notes ?? "",
+      nik: p.nik ?? "",
+      bpjs_number: p.bpjs_number ?? "",
+      payer_type: p.payer_type ?? "",
     });
     setPOpen(true);
   };
@@ -125,6 +143,9 @@ function PatientRecordsPage() {
       allergies: pForm.allergies.trim() || null,
       medical_history: pForm.medical_history.trim() || null,
       notes: pForm.notes.trim() || null,
+      nik: pForm.nik.trim() || null,
+      bpjs_number: pForm.bpjs_number.trim() || null,
+      payer_type: pForm.payer_type || null,
     };
     try {
       if (editingP) {
@@ -161,6 +182,8 @@ function PatientRecordsPage() {
       treatment: v.treatment ?? "",
       prescription: v.prescription ?? "",
       notes: v.notes ?? "",
+      icd10_code: v.icd10_code ?? "",
+      icd10_label: v.icd10_label ?? "",
     });
     setVOpen(true);
   };
@@ -177,6 +200,8 @@ function PatientRecordsPage() {
       treatment: vForm.treatment.trim() || null,
       prescription: vForm.prescription.trim() || null,
       notes: vForm.notes.trim() || null,
+      icd10_code: vForm.icd10_code || null,
+      icd10_label: vForm.icd10_label || null,
     };
     try {
       if (editingV) {
@@ -218,6 +243,18 @@ function PatientRecordsPage() {
                 {selected.birth_date && <span>🎂 {new Date(selected.birth_date).toLocaleDateString("id-ID")}</span>}
                 {selected.gender && <span>{selected.gender === "L" ? "♂ Laki-laki" : selected.gender === "P" ? "♀ Perempuan" : "Lainnya"}</span>}
                 {selected.blood_type && <Badge variant="outline" className="text-xs">Gol. {selected.blood_type}</Badge>}
+                {selected.payer_type === "bpjs" && (
+                  <Badge className="bg-emerald-100 text-emerald-700 border-0 gap-1 text-xs">
+                    <ShieldCheck className="h-3 w-3" /> BPJS{selected.bpjs_number ? ` · ${selected.bpjs_number}` : ""}
+                  </Badge>
+                )}
+                {selected.payer_type === "asuransi" && (
+                  <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">Asuransi</Badge>
+                )}
+                {selected.payer_type === "umum" && (
+                  <Badge variant="outline" className="text-xs">Umum</Badge>
+                )}
+                {selected.nik && <span className="font-mono text-[10px]">NIK {selected.nik}</span>}
               </div>
             </div>
             <Button size="sm" variant="outline" onClick={() => openEditP(selected)} className="gap-1.5"><Pencil className="h-3.5 w-3.5" /> Edit Data</Button>
@@ -256,6 +293,13 @@ function PatientRecordsPage() {
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removeV(v)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
+                {v.icd10_code && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-1 text-xs">
+                    <Stethoscope className="h-3 w-3 text-primary" />
+                    <span className="font-mono font-semibold text-primary">{v.icd10_code}</span>
+                    <span className="text-muted-foreground">{v.icd10_label}</span>
+                  </div>
+                )}
                 <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   {v.complaint && <div><span className="font-medium">Keluhan:</span> <span className="text-muted-foreground">{v.complaint}</span></div>}
                   {v.diagnosis && <div><span className="font-medium">Diagnosis:</span> <span className="text-muted-foreground">{v.diagnosis}</span></div>}
@@ -287,8 +331,15 @@ function PatientRecordsPage() {
                 <Textarea rows={2} value={vForm.complaint} onChange={e => setVForm(f => ({ ...f, complaint: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label>Diagnosis</Label>
+                <Label>Diagnosis (Narasi)</Label>
                 <Textarea rows={2} value={vForm.diagnosis} onChange={e => setVForm(f => ({ ...f, diagnosis: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Diagnosis ICD-10</Label>
+                <Icd10Picker
+                  value={vForm.icd10_code ? { code: vForm.icd10_code, label: vForm.icd10_label } : null}
+                  onChange={(v) => setVForm(f => ({ ...f, icd10_code: v?.code ?? "", icd10_label: v?.label ?? "" }))}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Tindakan / Treatment</Label>
@@ -414,6 +465,37 @@ function PatientDialog({ form, setForm, editing, saving, onSave, onCancel }: {
             <Label>Gol. Darah</Label>
             <Input value={form.blood_type} onChange={e => setForm(f => ({ ...f, blood_type: e.target.value }))} placeholder="A / B / AB / O" />
           </div>
+        </div>
+
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Identitas & Penjamin</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>NIK</Label>
+              <Input inputMode="numeric" maxLength={16} value={form.nik}
+                onChange={e => setForm(f => ({ ...f, nik: e.target.value.replace(/\D/g, "") }))}
+                placeholder="16 digit NIK" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Jenis Penjamin</Label>
+              <select className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                value={form.payer_type}
+                onChange={e => setForm(f => ({ ...f, payer_type: e.target.value as any }))}>
+                <option value="">—</option>
+                <option value="umum">Umum</option>
+                <option value="bpjs">BPJS Kesehatan</option>
+                <option value="asuransi">Asuransi Swasta</option>
+              </select>
+            </div>
+          </div>
+          {form.payer_type === "bpjs" && (
+            <div className="space-y-1.5">
+              <Label>No. Kartu BPJS</Label>
+              <Input inputMode="numeric" maxLength={13} value={form.bpjs_number}
+                onChange={e => setForm(f => ({ ...f, bpjs_number: e.target.value.replace(/\D/g, "") }))}
+                placeholder="13 digit nomor BPJS" />
+            </div>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label>Alergi</Label>
