@@ -189,6 +189,9 @@ function Dashboard() {
         </p>
       </div>
 
+      {shop && <SetupChecklist shopId={shop.id} />}
+      <RealtimeOrdersToast shopId={shop?.id ?? null} />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={Coins} label="Omzet hari ini" value={formatIDR(todayTotal)} />
         <Kpi icon={Receipt} label="Transaksi" value={String(todayCount)} />
