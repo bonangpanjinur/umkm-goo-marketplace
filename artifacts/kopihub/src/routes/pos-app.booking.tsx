@@ -285,6 +285,7 @@ function BookingPage() {
   const [slotOpen, setSlotOpen] = useState(false);
   const [slotForm, setSlotForm] = useState({ service_name: "", slot_date: isoDate(new Date()), slot_time: "09:00", duration_min: "60", max_capacity: "1", price: "0", notes: "" });
   const [savingSlot, setSavingSlot] = useState(false);
+  const [recurringOpen, setRecurringOpen] = useState(false);
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingSlot, setBookingSlot] = useState<Slot | null>(null);
