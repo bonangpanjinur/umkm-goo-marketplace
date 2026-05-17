@@ -81,6 +81,7 @@ function ShopChatPage() {
   const [productSheetOpen, setProductSheetOpen] = useState(false);
   const [sellerTyping, setSellerTyping] = useState(false);
   const [rtStatus, setRtStatus] = useState<RtStatus>("connecting");
+  const [dragOver, setDragOver] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -409,6 +410,11 @@ function ShopChatPage() {
     const files = Array.from(e.target.files ?? []);
     if (!files.length || !user || !chatId || !shopId) return;
     e.target.value = "";
+    await processFiles(files);
+  }
+
+  async function processFiles(files: File[]) {
+    if (!files.length || !user || !chatId || !shopId) return;
 
     // Validate all upfront; collect valid files
     const valid: File[] = [];
@@ -541,7 +547,25 @@ function ShopChatPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div
+        className="relative flex-1 overflow-y-auto p-4 space-y-3"
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const files = Array.from(e.dataTransfer.files);
+          if (files.length) processFiles(files);
+        }}
+      >
+        {dragOver && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-primary/10 backdrop-blur-[1px] border-2 border-dashed border-primary/50 rounded-lg m-2">
+            <ImageIcon className="h-10 w-10 text-primary/60 mb-2" />
+            <p className="text-sm font-medium text-primary">Lepaskan gambar di sini</p>
+            <p className="text-xs text-primary/70 mt-0.5">Maksimal 5 MB tiap gambar</p>
+          </div>
+        )}
+
         {loading ? (
           <>
             {/* Skeleton seller */}
