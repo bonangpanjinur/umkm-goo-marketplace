@@ -310,12 +310,16 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
   const notification = req.body as MidtransNotification;
   const settings = mergeGatewaySettings(null);
 
-  await db.insert(webhookLogs).values({
-    gateway: "midtrans",
-    event: notification.transaction_status,
-    payload: notification as unknown as Record<string, unknown>,
-    status: "received",
-  });
+  const [insertedLog] = await db
+    .insert(webhookLogs)
+    .values({
+      gateway: "midtrans",
+      event: notification.transaction_status,
+      payload: notification as unknown as Record<string, unknown>,
+      status: "received",
+    })
+    .returning({ id: webhookLogs.id });
+  const logId = insertedLog?.id;
 
   if (!notification.order_id) {
     res.status(400).json({ error: "Missing order_id" });
