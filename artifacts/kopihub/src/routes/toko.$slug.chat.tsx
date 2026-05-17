@@ -90,6 +90,8 @@ function ShopChatPage() {
   const pendingFilesRef = useRef<Map<string, { file: File; caption: string }>>(new Map());
   /** Blob URLs we created so we can revoke them on unmount. */
   const blobUrlsRef = useRef<Set<string>>(new Set());
+  /** Active XHR uploads keyed by tempId so we can abort them. */
+  const activeUploadsRef = useRef<Map<string, XMLHttpRequest>>(new Map());
 
   useEffect(() => () => {
     blobUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
@@ -271,9 +273,11 @@ function ShopChatPage() {
   /**
    * Upload a file via signed URL using XHR so we get real progress events.
    * Returns the final public URL on success.
+   * The xhr is registered in activeUploadsRef under tempId so it can be aborted.
    */
   function uploadFileWithProgress(
     file: File,
+    tempId: string,
     onProgress: (pct: number) => void,
   ): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
@@ -290,6 +294,7 @@ function ShopChatPage() {
       }
 
       const xhr = new XMLHttpRequest();
+      activeUploadsRef.current.set(tempId, xhr);
       xhr.open("PUT", signed.signedUrl, true);
       xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
       xhr.setRequestHeader("x-upsert", "false");
@@ -297,6 +302,7 @@ function ShopChatPage() {
         if (ev.lengthComputable) onProgress(ev.loaded / ev.total);
       };
       xhr.onload = () => {
+        activeUploadsRef.current.delete(tempId);
         if (xhr.status >= 200 && xhr.status < 300) {
           const { data: pub } = supabase.storage.from("chat-attachments").getPublicUrl(path);
           onProgress(1);
@@ -305,8 +311,8 @@ function ShopChatPage() {
           reject(new Error(`upload-${xhr.status}`));
         }
       };
-      xhr.onerror = () => reject(new Error("network"));
-      xhr.onabort = () => reject(new Error("aborted"));
+      xhr.onerror = () => { activeUploadsRef.current.delete(tempId); reject(new Error("network")); };
+      xhr.onabort = () => { activeUploadsRef.current.delete(tempId); reject(new Error("aborted")); };
       xhr.send(file);
     });
   }
@@ -330,12 +336,16 @@ function ShopChatPage() {
 
     let publicUrl: string;
     try {
-      publicUrl = await uploadFileWithProgress(file, (pct) => {
+      publicUrl = await uploadFileWithProgress(file, tempId, (pct) => {
         setMessages((m) => m.map((x) =>
           x._tempId === tempId ? { ...x, _uploadProgress: pct } : x,
         ));
       });
     } catch {
+      // If it was a user abort, remove the bubble entirely rather than showing failed.
+      if (activeUploadsRef.current.has(tempId) === false && !pendingFilesRef.current.has(tempId)) {
+        return; // already cleaned up by cancelSend
+      }
       // Keep file in ref so user can retry without re-picking it.
       setMessages((m) => m.map((x) =>
         x._tempId === tempId ? { ...x, _status: "failed", _uploadProgress: undefined } : x,
@@ -395,6 +405,31 @@ function ShopChatPage() {
       attachment_url: msg.attachment_url,
       attachment_type: msg.attachment_type,
       product_id: msg.product_id,
+    });
+  }
+
+  async function cancelSend(tempId: string) {
+    // Abort active XHR if any
+    const xhr = activeUploadsRef.current.get(tempId);
+    if (xhr) {
+      xhr.abort();
+      activeUploadsRef.current.delete(tempId);
+    }
+    // Remove from pending files
+    const entry = pendingFilesRef.current.get(tempId);
+    if (entry?.file) {
+      const previewUrl = URL.createObjectURL(entry.file);
+      URL.revokeObjectURL(previewUrl); // just in case; main cleanup below
+    }
+    pendingFilesRef.current.delete(tempId);
+    // Revoke blob URL and remove bubble
+    setMessages((m) => {
+      const bubble = m.find((x) => x._tempId === tempId);
+      if (bubble?._localPreview) {
+        blobUrlsRef.current.delete(bubble._localPreview);
+        URL.revokeObjectURL(bubble._localPreview);
+      }
+      return m.filter((x) => x._tempId !== tempId);
     });
   }
 
@@ -657,11 +692,21 @@ function ShopChatPage() {
                         )}
                         {/* Upload progress overlay */}
                         {isSending && msg._pendingUpload && typeof msg._uploadProgress === "number" && (
-                          <div className="absolute inset-x-1.5 bottom-1.5 rounded-full bg-black/55 px-2 py-1 backdrop-blur-sm">
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-white">
-                              <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                              <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
-                              <div className="ml-auto h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/50 backdrop-blur-[1px]">
+                            <button
+                              type="button"
+                              onClick={() => cancelSend(msg._tempId!)}
+                              className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition"
+                              title="Batalkan unggahan"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            <div className="w-[80%] max-w-[200px]">
+                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-white mb-1">
+                                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
+                              </div>
+                              <div className="h-1.5 overflow-hidden rounded-full bg-white/25">
                                 <div
                                   className="h-full bg-white transition-[width] duration-150 ease-out"
                                   style={{ width: `${Math.round(msg._uploadProgress * 100)}%` }}
@@ -726,13 +771,23 @@ function ShopChatPage() {
                   </div>
 
                   {isFailed && (
-                    <button
-                      type="button"
-                      onClick={() => retrySend(msg)}
-                      className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline px-1"
-                    >
-                      <RefreshCw className="h-3 w-3" /> Coba kirim ulang
-                    </button>
+                    <div className="flex items-center gap-2 px-1">
+                      <button
+                        type="button"
+                        onClick={() => retrySend(msg)}
+                        className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline"
+                      >
+                        <RefreshCw className="h-3 w-3" /> Coba kirim ulang
+                      </button>
+                      <span className="text-[10px] text-muted-foreground">·</span>
+                      <button
+                        type="button"
+                        onClick={() => cancelSend(msg._tempId!)}
+                        className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
+                      >
+                        <X className="h-3 w-3" /> Hapus
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
