@@ -25,9 +25,35 @@ function AppearancePage() {
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [iframeKey, setIframeKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [recommendedKey, setRecommendedKey] = useState<string | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!shop?.id) return;
+    (async () => {
+      const { data } = await supabase
+        .from("shops")
+        .select("business_category_id, business_categories:business_category_id (name, recommended_theme_key)")
+        .eq("id", shop.id)
+        .maybeSingle();
+      const cat = (data as any)?.business_categories;
+      setRecommendedKey(cat?.recommended_theme_key ?? null);
+      setCategoryName(cat?.name ?? null);
+    })();
+  }, [shop?.id]);
+
+  const sortedThemes = useMemo(() => {
+    if (!recommendedKey) return themes;
+    return [...themes].sort((a, b) => {
+      if (a.key === recommendedKey) return -1;
+      if (b.key === recommendedKey) return 1;
+      return 0;
+    });
+  }, [themes, recommendedKey]);
 
   const storefrontUrl = shop?.slug ? `/s/${shop.slug}` : null;
   const previewUrl = storefrontUrl ? `${window.location.origin}${storefrontUrl}?preview=1` : null;
+
 
   const apply = async (key: string) => {
     setBusy(key);
