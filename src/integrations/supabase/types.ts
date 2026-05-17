@@ -871,6 +871,7 @@ export type Database = {
           recommended_theme_key: string | null
           slug: string
           sort_order: number
+          subtypes: Json
           updated_at: string
         }
         Insert: {
@@ -891,6 +892,7 @@ export type Database = {
           recommended_theme_key?: string | null
           slug: string
           sort_order?: number
+          subtypes?: Json
           updated_at?: string
         }
         Update: {
@@ -911,6 +913,7 @@ export type Database = {
           recommended_theme_key?: string | null
           slug?: string
           sort_order?: number
+          subtypes?: Json
           updated_at?: string
         }
         Relationships: []
