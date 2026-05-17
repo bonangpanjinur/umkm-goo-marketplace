@@ -1622,8 +1622,18 @@ function BookingPage() {
                             <button
                               className="text-[10px] text-emerald-600 hover:underline font-medium"
                               onClick={async () => {
+                                if (!confirm("Tandai DP ini LUNAS secara manual? Aksi ini akan tercatat di audit log.")) return;
                                 await (supabase as any).from("bookings").update({ deposit_status: "paid" }).eq("id", bk.id);
-                                toast.success("DP terverifikasi");
+                                await logStaffAction({
+                                  shopId: shop.id,
+                                  action: "booking.deposit.mark_paid_manual",
+                                  targetName: bk.customer_name,
+                                  meta: {
+                                    booking_id: bk.id,
+                                    deposit_amount: bk.deposit_amount,
+                                  },
+                                });
+                                toast.success("DP terverifikasi (manual)");
                                 load();
                               }}
                             >
