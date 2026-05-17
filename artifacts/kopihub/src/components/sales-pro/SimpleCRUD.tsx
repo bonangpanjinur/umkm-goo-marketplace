@@ -125,6 +125,13 @@ export function SimpleCRUD({
                 <Label>{fd.label}{fd.required && <span className="text-destructive"> *</span>}</Label>
                 {fd.type === "textarea" ? (
                   <Textarea value={form[fd.key] ?? ""} onChange={(e) => setForm({ ...form, [fd.key]: e.target.value })} />
+                ) : fd.type === "image" ? (
+                  <UploadableImage
+                    value={form[fd.key] || null}
+                    onChange={(url) => setForm({ ...form, [fd.key]: url ?? "" })}
+                    bucket="shop-images"
+                    pathPrefix={`${shop?.id ?? ""}/${table}`}
+                  />
                 ) : (
                   <Input type={fd.type === "number" ? "number" : "text"} value={form[fd.key] ?? ""} onChange={(e) => setForm({ ...form, [fd.key]: e.target.value })} />
                 )}
