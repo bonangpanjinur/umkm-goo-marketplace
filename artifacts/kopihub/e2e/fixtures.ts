@@ -247,9 +247,21 @@ export function installErrorCapture(
     network: rules.network ?? DEFAULT_SEVERITY.network,
     ignoreNetwork: [...DEFAULT_SEVERITY.ignoreNetwork, ...(rules.ignoreNetwork ?? [])],
     ignoreMessages: [...(rules.ignoreMessages ?? [])],
+    consoleWarnFatalPatterns: [...(rules.consoleWarnFatalPatterns ?? [])],
+    consoleErrorFatalPatterns: [...(rules.consoleErrorFatalPatterns ?? [])],
+    networkFatalPatterns: [...(rules.networkFatalPatterns ?? [])],
   };
 
   const entries: CaptureEntry[] = [];
+
+  /**
+   * Tentukan severity efektif: kalau pesan match `fatalPatterns`,
+   * paksa jadi 'fatal' tanpa peduli base severity (termasuk 'off').
+   */
+  function resolveSeverity(base: Severity, message: string, fatalPatterns: RegExp[]): Severity {
+    if (fatalPatterns.some((re) => re.test(message))) return "fatal";
+    return base;
+  }
 
   function push(kind: CaptureEntry["kind"], sev: Severity, message: string) {
     if (sev === "off") return;
@@ -261,14 +273,17 @@ export function installErrorCapture(
     if (type !== "error" && type !== "warning") return;
     const text = msg.text();
     if (!isFatalMessage(text, cfg.ignoreMessages)) return;
-    if (type === "error") push("console.error", cfg.consoleError, text);
-    else push("console.warn", cfg.consoleWarn, text);
+    if (type === "error") {
+      push("console.error", resolveSeverity(cfg.consoleError, text, cfg.consoleErrorFatalPatterns), text);
+    } else {
+      push("console.warn", resolveSeverity(cfg.consoleWarn, text, cfg.consoleWarnFatalPatterns), text);
+    }
   });
 
   page.on("pageerror", (err) => {
     const text = `${err.name}: ${err.message}`;
     if (isFatalMessage(text, cfg.ignoreMessages)) {
-      push("pageerror", cfg.consoleError, text);
+      push("pageerror", resolveSeverity(cfg.consoleError, text, cfg.consoleErrorFatalPatterns), text);
     }
   });
 
@@ -277,7 +292,8 @@ export function installErrorCapture(
     const url = req.url();
     if (cfg.ignoreNetwork.some((re) => re.test(url))) return;
     const reason = req.failure()?.errorText ?? "unknown";
-    push("network", cfg.network, `${req.method()} ${url} failed: ${reason}`);
+    const msg = `${req.method()} ${url} failed: ${reason}`;
+    push("network", resolveSeverity(cfg.network, url, cfg.networkFatalPatterns), msg);
   });
 
   page.on("response", (res) => {
@@ -285,7 +301,8 @@ export function installErrorCapture(
     if (cfg.ignoreNetwork.some((re) => re.test(url))) return;
     const status = res.status();
     if (status >= 500) {
-      push("network", cfg.network, `${res.request().method()} ${url} → ${status}`);
+      const msg = `${res.request().method()} ${url} → ${status}`;
+      push("network", resolveSeverity(cfg.network, url, cfg.networkFatalPatterns), msg);
     }
   });
 
