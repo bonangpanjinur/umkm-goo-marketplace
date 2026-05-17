@@ -180,9 +180,14 @@ export default function LookbookPage() {
           <DialogHeader><DialogTitle>{editing ? "Edit Foto Lookbook" : "Tambah Foto Lookbook"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>URL Foto <span className="text-destructive">*</span></Label>
-              <Input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." />
-              {form.image_url && <img src={form.image_url} alt="" className="mt-2 h-32 w-full object-cover rounded-lg" onError={e => (e.currentTarget.style.display = "none")} />}
+              <Label>Foto Lookbook <span className="text-destructive">*</span></Label>
+              <UploadableImage
+                value={form.image_url || null}
+                onChange={(url) => setForm(f => ({ ...f, image_url: url ?? "" }))}
+                bucket="shop-images"
+                pathPrefix={`${shop?.id ?? ""}/lookbook`}
+                hint="Foto model / OOTD — JPG/PNG/WebP maks 5 MB"
+              />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
