@@ -740,6 +740,7 @@ Setiap kategori usaha (11 baris aktif di DB) memiliki:
 
 ---
 
+### 0.8 Implikasi Teknis: Konfigurasi per Kategori
 
 Sistem booking HARUS dikonfigurasi secara berbeda berdasarkan kategori:
 
