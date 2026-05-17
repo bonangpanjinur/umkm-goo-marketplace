@@ -1,9 +1,27 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store } from "lucide-react";
+import { Store, Search as SearchIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+
+const SUBTYPE_LABEL: Record<string, string> = {
+  "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
+  "fashion": "Fashion", "elektronik": "Elektronik", "kelontong": "Kelontong", "buku": "Buku",
+  "salon": "Salon", "barbershop": "Barbershop", "spa": "Spa", "laundry": "Laundry",
+  "klinik-umum": "Klinik Umum", "klinik-gigi": "Klinik Gigi", "klinik-kecantikan": "Klinik Kecantikan",
+  "studio-foto": "Studio Foto", "studio-musik": "Studio Musik",
+  "umroh": "Umroh", "hajj": "Haji", "tour": "Tour & Travel",
+  "rental-mobil": "Rental Mobil", "rental-motor": "Rental Motor", "rental-alat": "Rental Alat",
+  "kursus": "Kursus", "custom-order": "Pesan Custom",
+};
+function formatSubtype(s: string): string {
+  return SUBTYPE_LABEL[s] ?? s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export const Route = createFileRoute("/kategori/$slug")({
   component: CategoryPage,
@@ -37,11 +55,17 @@ type Shop = {
 
 function CategoryPage() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const [cat, setCat] = useState<Category | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [subtypes, setSubtypes] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [notFoundFlag, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Quick filter draft
+  const [subtypeDraft, setSubtypeDraft] = useState<string>("");
+  const [cityDraft, setCityDraft] = useState<string>("");
 
   useEffect(() => {
     (async () => {
@@ -61,14 +85,16 @@ function CategoryPage() {
 
       const { data: shopsData } = await supabase
         .from("shops")
-        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count")
+        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, business_subtype")
         .eq("business_category_id", (c as any).id)
         .eq("is_active", true)
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(24);
-      setShops((shopsData as Shop[]) ?? []);
+      const shopList = (shopsData as any[]) ?? [];
+      setShops(shopList as Shop[]);
+      setSubtypes(Array.from(new Set(shopList.map(s => s.business_subtype).filter(Boolean))).sort());
 
-      const shopIds = ((shopsData as any[]) ?? []).map((s) => s.id);
+      const shopIds = shopList.map((s) => s.id);
       if (shopIds.length > 0) {
         const { data: prods } = await supabase
           .from("menu_items")
@@ -82,6 +108,17 @@ function CategoryPage() {
       setLoading(false);
     })();
   }, [slug]);
+
+  const applyQuickFilter = useMemo(() => () => {
+    navigate({
+      to: "/search",
+      search: {
+        cat: slug,
+        subtype: subtypeDraft || undefined,
+        city: cityDraft || undefined,
+      } as any,
+    });
+  }, [navigate, slug, subtypeDraft, cityDraft]);
 
   if (notFoundFlag) {
     return (
@@ -115,6 +152,47 @@ function CategoryPage() {
           {cat?.description && (
             <p className="mt-2 max-w-2xl text-muted-foreground">{cat.description}</p>
           )}
+        </div>
+      </section>
+
+      {/* Quick filter → /search */}
+      <section className="border-b border-border bg-card/40">
+        <div className="mx-auto max-w-7xl px-4 py-4">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <div>
+              <Label className="text-xs">Subtipe usaha</Label>
+              <Select
+                value={subtypeDraft || "all"}
+                onValueChange={(v) => setSubtypeDraft(v === "all" ? "" : v)}
+                disabled={subtypes.length === 0}
+              >
+                <SelectTrigger className="mt-1 h-9">
+                  <SelectValue placeholder={subtypes.length === 0 ? "Tidak ada subtipe" : "Semua subtipe"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua subtipe</SelectItem>
+                  {subtypes.map((s) => (
+                    <SelectItem key={s} value={s}>{formatSubtype(s)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Kota / Lokasi</Label>
+              <Input
+                className="mt-1 h-9"
+                value={cityDraft}
+                onChange={(e) => setCityDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") applyQuickFilter(); }}
+                placeholder="Jakarta, Bandung…"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button onClick={applyQuickFilter} className="h-9 w-full md:w-auto gap-1.5">
+                <SearchIcon className="h-4 w-4" /> Cari di kategori ini
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 

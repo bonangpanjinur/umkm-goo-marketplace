@@ -28,6 +28,7 @@ const SHOP_PAGE_SIZE = 12;
 const searchSchema = z.object({
   q:       z.string().optional().default(""),
   cat:     z.string().optional().default(""),
+  subtype: z.string().optional().default(""),
   sort:    z.enum(["relevan", "termurah", "termahal", "rating", "terbaru"]).optional().default("relevan"),
   min:     z.coerce.number().optional(),
   max:     z.coerce.number().optional(),
@@ -41,6 +42,29 @@ const searchSchema = z.object({
 const PAY_LABEL: Record<string, string> = {
   cash: "Tunai", qris: "QRIS", transfer: "Transfer Bank", ewallet: "E-Wallet", card: "Kartu",
 };
+
+const SUBTYPE_LABEL: Record<string, string> = {
+  // F&B
+  "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
+  // Retail
+  "fashion": "Fashion", "elektronik": "Elektronik", "kelontong": "Kelontong", "buku": "Buku",
+  // Jasa & Service
+  "salon": "Salon", "barbershop": "Barbershop", "spa": "Spa", "laundry": "Laundry",
+  // Klinik
+  "klinik-umum": "Klinik Umum", "klinik-gigi": "Klinik Gigi", "klinik-kecantikan": "Klinik Kecantikan",
+  // Studio
+  "studio-foto": "Studio Foto", "studio-musik": "Studio Musik",
+  // Travel
+  "umroh": "Umroh", "hajj": "Haji", "tour": "Tour & Travel",
+  // Rental & lainnya
+  "rental-mobil": "Rental Mobil", "rental-motor": "Rental Motor", "rental-alat": "Rental Alat",
+  "kursus": "Kursus", "custom-order": "Pesan Custom",
+};
+
+function formatSubtype(s: string): string {
+  if (!s) return s;
+  return SUBTYPE_LABEL[s] ?? s.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
@@ -243,7 +267,7 @@ function isAbortError(e: any): boolean {
 }
 
 function SearchPage() {
-  const { q, cat, sort, min, max, minRating, city, pay, verified, tab } = Route.useSearch();
+  const { q, cat, subtype, sort, min, max, minRating, city, pay, verified, tab } = Route.useSearch();
   const navigate = useNavigate({ from: "/search" });
 
   // Draft state for inputs that should NOT auto-apply (city, pay)
@@ -276,7 +300,7 @@ function SearchPage() {
   const productCacheRef = useRef<Map<string, ProductCacheEntry>>(new Map());
   const shopCacheRef    = useRef<Map<string, ShopCacheEntry>>(new Map());
   const cacheHydratedRef = useRef(false);
-  const cacheKey = JSON.stringify({ q, cat, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay, verified: !!verified });
+  const cacheKey = JSON.stringify({ q, cat, subtype, sort, min: min ?? null, max: max ?? null, minRating: minRating ?? null, city, pay, verified: !!verified });
 
   // AbortController per-section untuk membatalkan request lama saat filter berubah cepat.
   const productAbortRef = useRef<AbortController | null>(null);
@@ -307,14 +331,29 @@ function SearchPage() {
   useEffect(() => {
     if (!q && !cat) return;
     try {
-      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, sort, min, max, minRating, city, pay, verified, tab }));
+      localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, cat, subtype, sort, min, max, minRating, city, pay, verified, tab }));
     } catch { /* ignore */ }
-  }, [q, cat, sort, min, max, minRating, city, pay, verified, tab]);
+  }, [q, cat, subtype, sort, min, max, minRating, city, pay, verified, tab]);
 
   useEffect(() => {
     supabase.from("business_categories").select("id, slug, name").eq("is_active", true).order("sort_order")
       .then(r => setCats((r.data as Cat[]) ?? []));
   }, []);
+
+  // Subtypes tersedia (di-filter per kategori jika dipilih).
+  const [subtypes, setSubtypes] = useState<string[]>([]);
+  useEffect(() => {
+    (async () => {
+      let q2 = supabase.from("shops").select("business_subtype").eq("is_active", true).not("business_subtype", "is", null).limit(500);
+      if (cat) {
+        const c = cats.find(x => x.slug === cat);
+        if (c) q2 = q2.eq("business_category_id", c.id);
+      }
+      const { data } = await q2;
+      const uniq = Array.from(new Set(((data as any[]) ?? []).map(r => r.business_subtype).filter(Boolean))).sort();
+      setSubtypes(uniq);
+    })();
+  }, [cat, cats]);
 
   // ---- Query builders ----
   const buildProductQuery = () => {
@@ -337,6 +376,7 @@ function SearchPage() {
       const c = cats.find(x => x.slug === cat);
       if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
     }
+    if (subtype) prodQ = (prodQ as any).eq("shop.business_subtype", subtype);
     if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
     else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
     else if (sort === "terbaru")  prodQ = prodQ.order("created_at", { ascending: false });
@@ -358,6 +398,7 @@ function SearchPage() {
       const c = cats.find(x => x.slug === cat);
       if (c) shopQ = shopQ.eq("business_category_id", c.id);
     }
+    if (subtype) shopQ = shopQ.eq("business_subtype", subtype);
     if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
     if (city) shopQ = shopQ.ilike("address", `%${city}%`);
     if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
@@ -463,7 +504,7 @@ function SearchPage() {
       fetchShops();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cat, sort, min, max, minRating, city, pay, verified, cats]);
+  }, [q, cat, subtype, sort, min, max, minRating, city, pay, verified, cats]);
 
   const loadMoreProducts = async (opts?: { isRetry?: boolean }) => {
     const next = productPage + 1;
@@ -576,9 +617,10 @@ function SearchPage() {
     pay: (payDraft as any) || undefined,
   });
 
-  const hasFilters = !!(cat || min || max || minRating || city || pay || verified);
+  const hasFilters = !!(cat || subtype || min || max || minRating || city || pay || verified);
   const activePills: { label: string; key: string }[] = [];
   if (cat)       activePills.push({ label: cats.find(c => c.slug === cat)?.name ?? cat, key: "cat" });
+  if (subtype)   activePills.push({ label: `Subtipe: ${formatSubtype(subtype)}`, key: "subtype" });
   if (verified)  activePills.push({ label: "Terverifikasi", key: "verified" });
   if (minRating) activePills.push({ label: `Min ★${minRating}`, key: "minRating" });
   if (min)       activePills.push({ label: `Min Rp${Number(min).toLocaleString("id-ID")}`, key: "min" });
@@ -586,7 +628,7 @@ function SearchPage() {
   if (city)      activePills.push({ label: `Kota: ${city}`, key: "city" });
   if (pay)       activePills.push({ label: `Bayar: ${PAY_LABEL[pay] ?? pay}`, key: "pay" });
 
-  const hasQuery = !!(q || cat);
+  const hasQuery = !!(q || cat || subtype);
   const visibleProducts = tab === "toko"  ? [] : products;
   const visibleShops    = tab === "produk" ? [] : shops;
   const canLoadMoreProducts = products.length < productTotal;
@@ -603,8 +645,8 @@ function SearchPage() {
             <h1 className="text-2xl font-bold tracking-tight">
               {q
                 ? <>Hasil untuk "<span className="text-primary">{q}</span>"</>
-                : cat
-                  ? `Kategori: ${cats.find(c => c.slug === cat)?.name ?? cat}`
+                : cat || subtype
+                  ? `${cat ? (cats.find(c => c.slug === cat)?.name ?? cat) : "Subtipe"}${subtype ? ` · ${formatSubtype(subtype)}` : ""}`
                   : "Pencarian"
               }
             </h1>
@@ -663,7 +705,7 @@ function SearchPage() {
             {activePills.map(p => (
               <ActiveFilterPill key={p.key} label={p.label} onRemove={() => clearFilter(p.key)} />
             ))}
-            <button onClick={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
+            <button onClick={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, subtype: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
               Reset semua
             </button>
@@ -676,11 +718,27 @@ function SearchPage() {
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
               <div>
                 <Label className="text-xs">Kategori</Label>
-                <Select value={cat || "all"} onValueChange={v => update({ cat: v === "all" ? "" : v })}>
+                <Select value={cat || "all"} onValueChange={v => update({ cat: v === "all" ? "" : v, subtype: undefined })}>
                   <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Semua kategori</SelectItem>
                     {cats.map(c => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Subtipe usaha</Label>
+                <Select
+                  value={subtype || "all"}
+                  onValueChange={v => update({ subtype: v === "all" ? undefined : v })}
+                  disabled={subtypes.length === 0}
+                >
+                  <SelectTrigger className="mt-1 h-9">
+                    <SelectValue placeholder={subtypes.length === 0 ? (cat ? "Tidak ada subtipe" : "Semua subtipe") : "Semua subtipe"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua subtipe</SelectItem>
+                    {subtypes.map(s => <SelectItem key={s} value={s}>{formatSubtype(s)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -845,7 +903,7 @@ function SearchPage() {
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, subtype: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryShops}
                       error={shopError}
                     />
@@ -853,7 +911,7 @@ function SearchPage() {
                     <SearchEmptyState
                       type="toko"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, subtype: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryShops}
                     />
                   ) : (
@@ -967,7 +1025,7 @@ function SearchPage() {
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, subtype: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryProducts}
                       error={productError}
                     />
@@ -975,7 +1033,7 @@ function SearchPage() {
                     <SearchEmptyState
                       type="produk"
                       hasFilters={hasFilters}
-                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
+                      onClear={() => { setCityDraft(""); setPayDraft(""); update({ cat: undefined, subtype: undefined, min: undefined, max: undefined, minRating: undefined, city: undefined, pay: undefined, verified: undefined }); }}
                       onRetry={retryProducts}
                     />
                   ) : (
