@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useShop } from "@/lib/use-shop";
 import { Card } from "@/components/ui/card";
@@ -24,6 +24,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Video,
   Users,
   GraduationCap,
@@ -31,11 +32,30 @@ import {
   Eye,
   Clock,
   ArrowLeft,
-  ArrowUp,
-  ArrowDown,
   GripVertical,
   CheckCircle2,
+  PlayCircle,
+  Globe,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/pos-app/kursus")({ component: KursusPage });
 
@@ -56,6 +76,7 @@ type Module = {
   title: string;
   description: string | null;
   sort_order: number;
+  status: "draft" | "published";
   lesson_count: number;
 };
 
@@ -68,6 +89,7 @@ type Lesson = {
   duration_minutes: number;
   sort_order: number;
   is_free_preview: boolean;
+  status: "draft" | "published";
 };
 
 type EnrollmentStat = {
@@ -79,7 +101,7 @@ type EnrollmentStat = {
 const EMPTY_COURSE = { name: "", description: "", price: "", is_available: true };
 
 // ─── Module dialog ──────────────────────────────────────────────────────────
-const EMPTY_MODULE = { title: "", description: "", sort_order: "0" };
+const EMPTY_MODULE = { title: "", description: "", status: "draft" as "draft" | "published" };
 
 // ─── Lesson dialog ──────────────────────────────────────────────────────────
 const EMPTY_LESSON = {
@@ -87,8 +109,8 @@ const EMPTY_LESSON = {
   description: "",
   video_url: "",
   duration_minutes: "0",
-  sort_order: "0",
   is_free_preview: false,
+  status: "draft" as "draft" | "published",
 };
 
 function fmtDuration(mins: number) {
@@ -97,6 +119,38 @@ function fmtDuration(mins: number) {
   const m = mins % 60;
   if (h) return `${h}j ${m}m`;
   return `${m} menit`;
+}
+
+/**
+ * Ubah URL video populer (YouTube/Vimeo) menjadi URL embed
+ * agar bisa diputar inline di preview.
+ */
+function toEmbedUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const id = u.searchParams.get("v");
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1);
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (host === "vimeo.com") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      if (id && /^\d+$/.test(id)) return `https://player.vimeo.com/video/${id}`;
+    }
+    if (host.endsWith("loom.com")) {
+      const id = u.pathname.split("/share/")[1] ?? u.pathname.split("/").pop();
+      if (id) return `https://www.loom.com/embed/${id}`;
+    }
+    // Fallback: pakai URL apa adanya (cocok untuk .mp4 langsung)
+    return url;
+  } catch {
+    return null;
+  }
 }
 
 function KursusPage() {
@@ -202,7 +256,7 @@ function KursusPage() {
     try {
       const { data: mods, error } = await (supabase as any)
         .from("course_modules")
-        .select("id, menu_item_id, title, description, sort_order")
+        .select("id, menu_item_id, title, description, sort_order, status")
         .eq("menu_item_id", courseId)
         .order("sort_order", { ascending: true });
       if (error) throw error;
@@ -233,7 +287,7 @@ function KursusPage() {
   const loadLessons = useCallback(async (moduleId: string) => {
     const { data, error } = await (supabase as any)
       .from("course_lessons")
-      .select("id, module_id, title, description, video_url, duration_minutes, sort_order, is_free_preview")
+      .select("id, module_id, title, description, video_url, duration_minutes, sort_order, is_free_preview, status")
       .eq("module_id", moduleId)
       .order("sort_order", { ascending: true });
     if (error) { toast.error(error.message); return; }
@@ -320,7 +374,7 @@ function KursusPage() {
   // ── Module CRUD ────────────────────────────────────────────────
   const openNewModule = () => {
     setEditingModule(null);
-    setModuleForm({ title: "", description: "", sort_order: String(modules.length) });
+    setModuleForm({ ...EMPTY_MODULE });
     setModuleDialog(true);
   };
 
@@ -329,7 +383,7 @@ function KursusPage() {
     setModuleForm({
       title: m.title,
       description: m.description ?? "",
-      sort_order: String(m.sort_order),
+      status: m.status,
     });
     setModuleDialog(true);
   };
@@ -338,12 +392,14 @@ function KursusPage() {
     if (!selectedCourse) return;
     if (!moduleForm.title.trim()) { toast.error("Judul modul wajib diisi"); return; }
     setSavingModule(true);
-    const payload = {
+    const payload: any = {
       menu_item_id: selectedCourse.id,
       title: moduleForm.title.trim(),
       description: moduleForm.description?.trim() || null,
-      sort_order: Number(moduleForm.sort_order) || 0,
+      status: moduleForm.status,
     };
+    // Modul baru → letakkan di akhir
+    if (!editingModule) payload.sort_order = modules.length;
     let error: any;
     if (editingModule) {
       ({ error } = await (supabase as any).from("course_modules").update(payload).eq("id", editingModule.id));
@@ -372,11 +428,7 @@ function KursusPage() {
   const openNewLesson = (moduleId: string) => {
     setEditingLesson(null);
     setLessonForModule(moduleId);
-    const currentLessons = lessons[moduleId] ?? [];
-    setLessonForm({
-      ...EMPTY_LESSON,
-      sort_order: String(currentLessons.length),
-    });
+    setLessonForm({ ...EMPTY_LESSON });
     setLessonDialog(true);
   };
 
@@ -388,8 +440,8 @@ function KursusPage() {
       description: l.description ?? "",
       video_url: l.video_url ?? "",
       duration_minutes: String(l.duration_minutes),
-      sort_order: String(l.sort_order),
       is_free_preview: l.is_free_preview,
+      status: l.status,
     });
     setLessonDialog(true);
   };
@@ -398,15 +450,17 @@ function KursusPage() {
     if (!lessonForModule) return;
     if (!lessonForm.title.trim()) { toast.error("Judul pelajaran wajib diisi"); return; }
     setSavingLesson(true);
-    const payload = {
+    const currentLessons = lessons[lessonForModule] ?? [];
+    const payload: any = {
       module_id: lessonForModule,
       title: lessonForm.title.trim(),
       description: lessonForm.description?.trim() || null,
       video_url: lessonForm.video_url?.trim() || null,
       duration_minutes: Number(lessonForm.duration_minutes) || 0,
-      sort_order: Number(lessonForm.sort_order) || 0,
       is_free_preview: lessonForm.is_free_preview,
+      status: lessonForm.status,
     };
+    if (!editingLesson) payload.sort_order = currentLessons.length;
     let error: any;
     if (editingLesson) {
       ({ error } = await (supabase as any).from("course_lessons").update(payload).eq("id", editingLesson.id));
@@ -432,48 +486,91 @@ function KursusPage() {
     }
   };
 
-  // ── Reorder helpers (swap sort_order with neighbour) ───────────
-  const swapSortOrder = async (
+  // ── Drag-and-drop reorder ──────────────────────────────────────
+  const persistOrder = async (
     table: "course_modules" | "course_lessons",
-    a: { id: string; sort_order: number },
-    b: { id: string; sort_order: number },
+    orderedIds: string[],
   ) => {
-    // Two-step swap via a temporary value to avoid uniqueness collisions
-    // (sort_order isn't unique here but keep the pattern defensive).
-    const tmp = -1 - Date.now() % 1000;
-    const c1 = await (supabase as any).from(table).update({ sort_order: tmp }).eq("id", a.id);
-    if (c1.error) { toast.error(c1.error.message); return false; }
-    const c2 = await (supabase as any).from(table).update({ sort_order: a.sort_order }).eq("id", b.id);
-    if (c2.error) { toast.error(c2.error.message); return false; }
-    const c3 = await (supabase as any).from(table).update({ sort_order: b.sort_order }).eq("id", a.id);
-    if (c3.error) { toast.error(c3.error.message); return false; }
-    return true;
+    // Update sort_order untuk semua item sesuai posisi baru.
+    // Dilakukan paralel — kalau salah satu gagal, kita revalidate.
+    const results = await Promise.all(
+      orderedIds.map((id, idx) =>
+        (supabase as any).from(table).update({ sort_order: idx }).eq("id", id),
+      ),
+    );
+    const firstErr = results.find((r) => r.error);
+    if (firstErr) toast.error(firstErr.error.message);
   };
 
-  const moveModule = async (idx: number, dir: -1 | 1) => {
+  const reorderModules = async (oldIndex: number, newIndex: number) => {
     if (!selectedCourse) return;
-    const target = modules[idx + dir];
-    const current = modules[idx];
-    if (!target || !current) return;
-    const ok = await swapSortOrder("course_modules",
-      { id: current.id, sort_order: current.sort_order },
-      { id: target.id, sort_order: target.sort_order });
-    if (ok) loadModules(selectedCourse.id);
+    if (oldIndex === newIndex) return;
+    const next = arrayMove(modules, oldIndex, newIndex).map((m, i) => ({ ...m, sort_order: i }));
+    setModules(next); // optimistic
+    await persistOrder("course_modules", next.map((m) => m.id));
   };
 
-  const moveLesson = async (moduleId: string, idx: number, dir: -1 | 1) => {
+  const reorderLessons = async (moduleId: string, oldIndex: number, newIndex: number) => {
+    if (oldIndex === newIndex) return;
     const list = lessons[moduleId] ?? [];
-    const current = list[idx];
-    const target = list[idx + dir];
-    if (!current || !target) return;
-    const ok = await swapSortOrder("course_lessons",
-      { id: current.id, sort_order: current.sort_order },
-      { id: target.id, sort_order: target.sort_order });
-    if (ok) {
-      loadLessons(moduleId);
-      if (selectedCourse) loadModules(selectedCourse.id);
-    }
+    const next = arrayMove(list, oldIndex, newIndex).map((l, i) => ({ ...l, sort_order: i }));
+    setLessons((prev) => ({ ...prev, [moduleId]: next }));
+    await persistOrder("course_lessons", next.map((l) => l.id));
   };
+
+  // ── Toggle status (modul/pelajaran) ─────────────────────────────
+  const toggleModuleStatus = async (m: Module) => {
+    const next: "draft" | "published" = m.status === "published" ? "draft" : "published";
+    const { error } = await (supabase as any).from("course_modules").update({ status: next }).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next === "published" ? "Modul ditayangkan" : "Modul jadi draft");
+    if (selectedCourse) loadModules(selectedCourse.id);
+  };
+
+  const toggleLessonStatus = async (l: Lesson) => {
+    const next: "draft" | "published" = l.status === "published" ? "draft" : "published";
+    const { error } = await (supabase as any).from("course_lessons").update({ status: next }).eq("id", l.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next === "published" ? "Pelajaran ditayangkan" : "Pelajaran jadi draft");
+    loadLessons(l.module_id);
+  };
+
+  const toggleCourseStatus = async (c: Course, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !c.is_available;
+    const { error } = await (supabase as any).from("menu_items").update({ is_available: next }).eq("id", c.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next ? "Kursus ditayangkan" : "Kursus jadi draft");
+    loadCourses();
+  };
+
+  // ── Preview ────────────────────────────────────────────────────
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLessonIdx, setPreviewLessonIdx] = useState(0);
+  const previewSequence = useMemo(() => {
+    // Flatten modul → pelajaran sesuai urutan saat ini.
+    const out: { module: Module; lesson: Lesson; moduleIdx: number; lessonIdx: number }[] = [];
+    modules.forEach((mod, mi) => {
+      const ls = lessons[mod.id] ?? [];
+      ls.forEach((l, li) => out.push({ module: mod, lesson: l, moduleIdx: mi, lessonIdx: li }));
+    });
+    return out;
+  }, [modules, lessons]);
+
+  const openPreview = async () => {
+    // Pastikan semua pelajaran sudah dimuat
+    for (const m of modules) {
+      if (!lessons[m.id]) await loadLessons(m.id);
+    }
+    setPreviewLessonIdx(0);
+    setPreviewOpen(true);
+  };
+
+  // ── Sensors (DnD) ──────────────────────────────────────────────
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
   const totalEnrollments = enrollStats.reduce((s, e) => s + e.count, 0);
   const activeCourses = courses.filter((c) => c.is_available).length;
   const totalLessons = Object.values(lessons).reduce((s, ls) => s + ls.length, 0);
@@ -521,10 +618,16 @@ function KursusPage() {
             </>
           )}
           {view === "modules" && (
-            <Button size="sm" onClick={openNewModule}>
-              <Plus className="h-4 w-4 mr-1.5" />
-              Tambah Modul
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={openPreview} disabled={modules.length === 0}>
+                <PlayCircle className="h-4 w-4 mr-1.5" />
+                Preview
+              </Button>
+              <Button size="sm" onClick={openNewModule}>
+                <Plus className="h-4 w-4 mr-1.5" />
+                Tambah Modul
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -681,123 +784,54 @@ function KursusPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {modules.map((mod, idx) => {
-                const isExpanded = expandedModule === mod.id;
-                const modLessons = lessons[mod.id] ?? [];
-                return (
-                  <Card key={mod.id} className="overflow-hidden">
-                    {/* Module header */}
-                    <div
-                      className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-                      onClick={() => toggleModule(mod.id)}
-                    >
-                      <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                      <span className="flex items-center justify-center h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold shrink-0">
-                        {idx + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{mod.title}</p>
-                        {mod.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs text-muted-foreground mr-1">{mod.lesson_count} pelajaran</span>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === 0}
-                          onClick={(e) => { e.stopPropagation(); moveModule(idx, -1); }}>
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === modules.length - 1}
-                          onClick={(e) => { e.stopPropagation(); moveModule(idx, 1); }}>
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7"
-                          onClick={(e) => { e.stopPropagation(); openEditModule(mod); }}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={(e) => { e.stopPropagation(); deleteModule(mod); }}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />}
-                      </div>
-                    </div>
-
-                    {/* Lessons */}
-                    {isExpanded && (
-                      <div className="border-t border-border bg-muted/20">
-                        {modLessons.map((lesson, li) => (
-                          <div key={lesson.id} className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-b-0">
-                            <div className="pl-6 shrink-0">
-                              <Video className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-medium">{li + 1}. {lesson.title}</span>
-                                {lesson.is_free_preview && (
-                                  <Badge variant="secondary" className="text-[10px]">
-                                    <Eye className="h-2.5 w-2.5 mr-1" />
-                                    Pratinjau Gratis
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-2.5 w-2.5" />
-                                  {fmtDuration(lesson.duration_minutes)}
-                                </span>
-                                {lesson.video_url && (
-                                  <a
-                                    href={lesson.video_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline truncate max-w-[180px]"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {lesson.video_url}
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === 0}
-                                onClick={() => moveLesson(mod.id, li, -1)}>
-                                <ArrowUp className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === modLessons.length - 1}
-                                onClick={() => moveLesson(mod.id, li, 1)}>
-                                <ArrowDown className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7"
-                                onClick={() => openEditLesson(lesson)}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
-                                onClick={() => deleteLesson(lesson)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                        <div className="px-4 py-3">
-                          <Button
-                            size="sm" variant="outline" className="gap-1.5"
-                            onClick={() => openNewLesson(mod.id)}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            Tambah Pelajaran
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e: DragEndEvent) => {
+                const { active, over } = e;
+                if (!over || active.id === over.id) return;
+                const oldIdx = modules.findIndex((m) => m.id === active.id);
+                const newIdx = modules.findIndex((m) => m.id === over.id);
+                if (oldIdx >= 0 && newIdx >= 0) reorderModules(oldIdx, newIdx);
+              }}
+            >
+              <SortableContext items={modules.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {modules.map((mod, idx) => (
+                    <SortableModuleCard
+                      key={mod.id}
+                      mod={mod}
+                      idx={idx}
+                      isExpanded={expandedModule === mod.id}
+                      lessons={lessons[mod.id] ?? []}
+                      sensors={sensors}
+                      onToggle={() => toggleModule(mod.id)}
+                      onEdit={() => openEditModule(mod)}
+                      onDelete={() => deleteModule(mod)}
+                      onToggleStatus={() => toggleModuleStatus(mod)}
+                      onNewLesson={() => openNewLesson(mod.id)}
+                      onEditLesson={(l) => openEditLesson(l)}
+                      onDeleteLesson={(l) => deleteLesson(l)}
+                      onToggleLessonStatus={(l) => toggleLessonStatus(l)}
+                      onReorderLessons={(o, n) => reorderLessons(mod.id, o, n)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </>
       )}
+
+      {/* Preview dialog (modul → pelajaran berurutan) */}
+      <CoursePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        course={selectedCourse}
+        sequence={previewSequence}
+        index={previewLessonIdx}
+        setIndex={setPreviewLessonIdx}
+      />
 
       {/* ═══════════════════════════════════════════════════════════
            DIALOGS
@@ -884,14 +918,19 @@ function KursusPage() {
                 className="mt-1"
               />
             </div>
-            <div>
-              <Label>Urutan</Label>
-              <Input
-                type="number" min={0}
-                value={moduleForm.sort_order}
-                onChange={(e) => setModuleForm((f) => ({ ...f, sort_order: e.target.value }))}
-                className="mt-1"
+            <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+              <Switch
+                checked={moduleForm.status === "published"}
+                onCheckedChange={(v) => setModuleForm((f) => ({ ...f, status: v ? "published" : "draft" }))}
               />
+              <div className="flex-1">
+                <Label>{moduleForm.status === "published" ? "Tayang" : "Draft"}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {moduleForm.status === "published"
+                    ? "Modul ini terlihat oleh pembeli"
+                    : "Modul disimpan tapi belum terlihat oleh pembeli"}
+                </p>
+              </div>
             </div>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={() => setModuleDialog(false)}>Batal</Button>
@@ -941,26 +980,15 @@ function KursusPage() {
                 YouTube, Vimeo, Loom, atau URL video langsung
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Durasi (menit)</Label>
-                <Input
-                  type="number" min={0}
-                  value={lessonForm.duration_minutes}
-                  onChange={(e) => setLessonForm((f) => ({ ...f, duration_minutes: e.target.value }))}
-                  placeholder="0"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Urutan</Label>
-                <Input
-                  type="number" min={0}
-                  value={lessonForm.sort_order}
-                  onChange={(e) => setLessonForm((f) => ({ ...f, sort_order: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label>Durasi (menit)</Label>
+              <Input
+                type="number" min={0}
+                value={lessonForm.duration_minutes}
+                onChange={(e) => setLessonForm((f) => ({ ...f, duration_minutes: e.target.value }))}
+                placeholder="0"
+                className="mt-1"
+              />
             </div>
             <div className="flex items-center gap-2">
               <Switch
@@ -970,6 +998,20 @@ function KursusPage() {
               <div>
                 <Label>Pratinjau Gratis</Label>
                 <p className="text-xs text-muted-foreground">Calon pembeli bisa nonton pelajaran ini tanpa beli</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+              <Switch
+                checked={lessonForm.status === "published"}
+                onCheckedChange={(v) => setLessonForm((f) => ({ ...f, status: v ? "published" : "draft" }))}
+              />
+              <div className="flex-1">
+                <Label>{lessonForm.status === "published" ? "Tayang" : "Draft"}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {lessonForm.status === "published"
+                    ? "Pelajaran ini terlihat oleh pembeli"
+                    : "Pelajaran disimpan tapi belum terlihat"}
+                </p>
               </div>
             </div>
             <div className="flex gap-2 pt-2">
@@ -982,5 +1024,354 @@ function KursusPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Sortable Module Card (drag-and-drop wrapper)
+// ════════════════════════════════════════════════════════════════════════════
+function SortableModuleCard(props: {
+  mod: Module;
+  idx: number;
+  isExpanded: boolean;
+  lessons: Lesson[];
+  sensors: ReturnType<typeof useSensors>;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+  onNewLesson: () => void;
+  onEditLesson: (l: Lesson) => void;
+  onDeleteLesson: (l: Lesson) => void;
+  onToggleLessonStatus: (l: Lesson) => void;
+  onReorderLessons: (oldIdx: number, newIdx: number) => void;
+}) {
+  const { mod, idx, isExpanded, lessons, sensors } = props;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: mod.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="overflow-hidden">
+        <div className="flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors">
+          <button
+            type="button"
+            className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground/60 hover:text-foreground"
+            {...attributes}
+            {...listeners}
+            aria-label="Geser untuk mengurutkan modul"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          <span className="flex items-center justify-center h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold shrink-0">
+            {idx + 1}
+          </span>
+          <button
+            type="button"
+            onClick={props.onToggle}
+            className="flex-1 min-w-0 text-left"
+          >
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium text-sm">{mod.title}</p>
+              {mod.status === "published" ? (
+                <Badge className="text-[10px] bg-green-500 hover:bg-green-500">
+                  <Globe className="h-2.5 w-2.5 mr-1" />Tayang
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px]">
+                  <FileText className="h-2.5 w-2.5 mr-1" />Draft
+                </Badge>
+              )}
+            </div>
+            {mod.description && (
+              <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>
+            )}
+          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-xs text-muted-foreground mr-1">{mod.lesson_count} pelajaran</span>
+            <Button size="icon" variant="ghost" className="h-7 w-7"
+              title={mod.status === "published" ? "Jadikan draft" : "Tayangkan"}
+              onClick={props.onToggleStatus}>
+              {mod.status === "published"
+                ? <FileText className="h-3 w-3" />
+                : <Globe className="h-3 w-3" />}
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={props.onEdit}>
+              <Pencil className="h-3 w-3" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+              onClick={props.onDelete}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+            <button type="button" onClick={props.onToggle} className="ml-1 text-muted-foreground">
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t border-border bg-muted/20">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e: DragEndEvent) => {
+                const { active, over } = e;
+                if (!over || active.id === over.id) return;
+                const o = lessons.findIndex((l) => l.id === active.id);
+                const n = lessons.findIndex((l) => l.id === over.id);
+                if (o >= 0 && n >= 0) props.onReorderLessons(o, n);
+              }}
+            >
+              <SortableContext items={lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                {lessons.map((lesson, li) => (
+                  <SortableLessonRow
+                    key={lesson.id}
+                    lesson={lesson}
+                    li={li}
+                    onEdit={() => props.onEditLesson(lesson)}
+                    onDelete={() => props.onDeleteLesson(lesson)}
+                    onToggleStatus={() => props.onToggleLessonStatus(lesson)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+            <div className="px-4 py-3">
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={props.onNewLesson}>
+                <Plus className="h-3.5 w-3.5" />
+                Tambah Pelajaran
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function SortableLessonRow(props: {
+  lesson: Lesson;
+  li: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+}) {
+  const { lesson, li } = props;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: lesson.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style}
+      className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-b-0 bg-background/40">
+      <button
+        type="button"
+        className="cursor-grab active:cursor-grabbing pl-2 text-muted-foreground/60 hover:text-foreground"
+        {...attributes} {...listeners}
+        aria-label="Geser untuk mengurutkan pelajaran"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <Video className="h-4 w-4 text-muted-foreground shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium">{li + 1}. {lesson.title}</span>
+          {lesson.status === "published" ? (
+            <Badge className="text-[10px] bg-green-500 hover:bg-green-500">
+              <Globe className="h-2.5 w-2.5 mr-1" />Tayang
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px]">
+              <FileText className="h-2.5 w-2.5 mr-1" />Draft
+            </Badge>
+          )}
+          {lesson.is_free_preview && (
+            <Badge variant="secondary" className="text-[10px]">
+              <Eye className="h-2.5 w-2.5 mr-1" />Pratinjau
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+          <span className="flex items-center gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            {fmtDuration(lesson.duration_minutes)}
+          </span>
+          {lesson.video_url && (
+            <a href={lesson.video_url} target="_blank" rel="noopener noreferrer"
+              className="text-primary hover:underline truncate max-w-[180px]"
+              onClick={(e) => e.stopPropagation()}>
+              {lesson.video_url}
+            </a>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button size="icon" variant="ghost" className="h-7 w-7"
+          title={lesson.status === "published" ? "Jadikan draft" : "Tayangkan"}
+          onClick={props.onToggleStatus}>
+          {lesson.status === "published"
+            ? <FileText className="h-3 w-3" />
+            : <Globe className="h-3 w-3" />}
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={props.onEdit}>
+          <Pencil className="h-3 w-3" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+          onClick={props.onDelete}>
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Course Preview Dialog (putar alur modul → pelajaran)
+// ════════════════════════════════════════════════════════════════════════════
+function CoursePreviewDialog(props: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  course: Course | null;
+  sequence: { module: Module; lesson: Lesson; moduleIdx: number; lessonIdx: number }[];
+  index: number;
+  setIndex: (i: number) => void;
+}) {
+  const { open, onOpenChange, course, sequence, index, setIndex } = props;
+  const current = sequence[index];
+  const totalMinutes = sequence.reduce((s, x) => s + (x.lesson.duration_minutes || 0), 0);
+  const embed = toEmbedUrl(current?.lesson.video_url);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogHeader className="px-5 pt-5">
+          <DialogTitle className="flex items-center gap-2">
+            <PlayCircle className="h-5 w-5" />
+            Preview Kursus: {course?.name}
+          </DialogTitle>
+          <p className="text-xs text-muted-foreground">
+            {sequence.length} pelajaran · total {fmtDuration(totalMinutes)} · simulasi tampilan pembeli
+          </p>
+        </DialogHeader>
+
+        {sequence.length === 0 ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">
+            Belum ada pelajaran untuk dipreview. Tambahkan modul dan pelajaran terlebih dahulu.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-0">
+            {/* Player */}
+            <div className="p-5 space-y-3 min-w-0">
+              <div className="aspect-video w-full rounded-lg overflow-hidden bg-black flex items-center justify-center">
+                {embed ? (
+                  <iframe
+                    src={embed}
+                    title={current.lesson.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="text-center text-muted-foreground text-sm p-6">
+                    <Video className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                    <p>Pelajaran ini belum memiliki URL video.</p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Modul {current.moduleIdx + 1} · Pelajaran {current.lessonIdx + 1}
+                </div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 flex-wrap">
+                  {current.lesson.title}
+                  {current.lesson.status === "draft" && (
+                    <Badge variant="outline" className="text-[10px]"><FileText className="h-2.5 w-2.5 mr-1" />Draft</Badge>
+                  )}
+                  {current.lesson.is_free_preview && (
+                    <Badge variant="secondary" className="text-[10px]"><Eye className="h-2.5 w-2.5 mr-1" />Pratinjau Gratis</Badge>
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
+                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{fmtDuration(current.lesson.duration_minutes)}</span>
+                  <span className="truncate">Bagian dari: <b>{current.module.title}</b></span>
+                  {current.lesson.video_url && (
+                    <a href={current.lesson.video_url} target="_blank" rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1 truncate max-w-[220px]">
+                      <ExternalLink className="h-3 w-3" />Buka video
+                    </a>
+                  )}
+                </p>
+                {current.lesson.description && (
+                  <p className="text-sm text-muted-foreground pt-2">{current.lesson.description}</p>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-2 gap-2">
+                <Button variant="outline" size="sm" disabled={index === 0}
+                  onClick={() => setIndex(Math.max(0, index - 1))}>
+                  <ChevronLeft className="h-4 w-4 mr-1" />Sebelumnya
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {index + 1} / {sequence.length}
+                </span>
+                <Button size="sm" disabled={index >= sequence.length - 1}
+                  onClick={() => setIndex(Math.min(sequence.length - 1, index + 1))}>
+                  Berikutnya<ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Sidebar: outline */}
+            <div className="border-t md:border-t-0 md:border-l border-border bg-muted/30 max-h-[70vh] overflow-y-auto">
+              <div className="p-3 space-y-3">
+                {(() => {
+                  const grouped: Record<string, { module: Module; items: typeof sequence }> = {};
+                  sequence.forEach((s) => {
+                    if (!grouped[s.module.id]) grouped[s.module.id] = { module: s.module, items: [] };
+                    grouped[s.module.id].items.push(s);
+                  });
+                  return Object.values(grouped).map((g) => (
+                    <div key={g.module.id}>
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-1 mb-1">
+                        {g.module.title}
+                        {g.module.status === "draft" && <FileText className="h-3 w-3" />}
+                      </div>
+                      <div className="space-y-0.5">
+                        {g.items.map((s) => {
+                          const i = sequence.indexOf(s);
+                          const active = i === index;
+                          return (
+                            <button
+                              key={s.lesson.id}
+                              type="button"
+                              onClick={() => setIndex(i)}
+                              className={`w-full text-left text-xs px-2 py-1.5 rounded flex items-center gap-2 ${
+                                active ? "bg-primary text-primary-foreground" : "hover:bg-background/80"
+                              }`}
+                            >
+                              <PlayCircle className="h-3 w-3 shrink-0" />
+                              <span className="flex-1 truncate">{s.lesson.title}</span>
+                              <span className={`text-[10px] ${active ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                                {fmtDuration(s.lesson.duration_minutes)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

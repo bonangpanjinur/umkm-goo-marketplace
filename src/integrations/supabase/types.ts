@@ -1286,6 +1286,7 @@ export type Database = {
           is_free_preview: boolean
           module_id: string
           sort_order: number
+          status: string
           title: string
           updated_at: string
           video_url: string | null
@@ -1298,6 +1299,7 @@ export type Database = {
           is_free_preview?: boolean
           module_id: string
           sort_order?: number
+          status?: string
           title: string
           updated_at?: string
           video_url?: string | null
@@ -1310,6 +1312,7 @@ export type Database = {
           is_free_preview?: boolean
           module_id?: string
           sort_order?: number
+          status?: string
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -1331,6 +1334,7 @@ export type Database = {
           id: string
           menu_item_id: string
           sort_order: number
+          status: string
           title: string
           updated_at: string
         }
@@ -1340,6 +1344,7 @@ export type Database = {
           id?: string
           menu_item_id: string
           sort_order?: number
+          status?: string
           title: string
           updated_at?: string
         }
@@ -1349,6 +1354,7 @@ export type Database = {
           id?: string
           menu_item_id?: string
           sort_order?: number
+          status?: string
           title?: string
           updated_at?: string
         }
