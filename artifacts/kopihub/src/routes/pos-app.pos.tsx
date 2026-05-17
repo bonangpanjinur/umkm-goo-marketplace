@@ -675,6 +675,9 @@ function POSPage() {
           onOpenOrders={() => setOrdersDlgOpen(true)}
           ordersTodayCount={todayOrdersCount}
         />
+        <Button size="sm" variant="outline" className="ml-auto shrink-0 gap-1" onClick={() => setScannerOpen(true)}>
+          <ScanLine className="h-4 w-4" /> Scan
+        </Button>
       </div>
 
       {/* Left: Menu Grid */}
