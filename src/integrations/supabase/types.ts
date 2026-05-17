@@ -8482,6 +8482,7 @@ export type Database = {
           _address: string
           _fulfillment?: string
           _notes?: string
+          _payment_method?: string
           _phone: string
           _platform_voucher_code?: string
           _recipient_name: string
@@ -8628,7 +8629,7 @@ export type Database = {
         | "ready"
         | "delivering"
         | "cancelled"
-      payment_method: "cash" | "qris"
+      payment_method: "cash" | "qris" | "manual_transfer" | "cod"
       payment_status: "unpaid" | "awaiting_verification" | "paid" | "refunded"
       po_status: "draft" | "ordered" | "received" | "cancelled"
       promo_channel: "pos" | "online" | "all"
@@ -8805,7 +8806,7 @@ export const Constants = {
         "delivering",
         "cancelled",
       ],
-      payment_method: ["cash", "qris"],
+      payment_method: ["cash", "qris", "manual_transfer", "cod"],
       payment_status: ["unpaid", "awaiting_verification", "paid", "refunded"],
       po_status: ["draft", "ordered", "received", "cancelled"],
       promo_channel: ["pos", "online", "all"],

@@ -1,47 +1,58 @@
 ## Bug yang ditemukan
 
-Dev-server gagal mem-parse `artifacts/kopihub/src/routes/pos-app.audit-logs.tsx`:
+Alur pesan dari marketplace (`/checkout`) putus total karena ketidaksesuaian antara client dan database. Storefront per-toko (`/s/$slug/checkout`) tidak terdampak.
+
+### 1. Parameter `_payment_method` tidak ada di RPC
+
+`src/lib/marketplace-cart.ts` mengirim `_payment_method` saat memanggil `supabase.rpc("marketplace_checkout", ...)`, tetapi signature fungsi DB hanya menerima:
 
 ```
-Pre-transform error: Expected corresponding JSX closing tag for <Fragment>. (357:20)
+_recipient_name, _phone, _address, _fulfillment,
+_notes, _shipping, _shop_voucher_codes, _platform_voucher_code
 ```
 
-Akibat: route `/pos-app/audit-logs` (dan kemungkinan modul `pos-app` lain via HMR) gagal di-load. Ini error blokir, bukan warning.
+PostgREST → 404 "Could not find the function `public.marketplace_checkout(...)`". Tombol "Bayar" di `/checkout` selalu gagal sebelum apapun terjadi.
 
-## Penyebab
+### 2. Body fungsi me-cast nilai yang tidak ada di enum
 
-Di dalam `filtered.map((l) => { ... return (<Fragment key={l.id}> ... </Fragment>) })`, code-splitter TanStack Start kesulitan mem-parse `<Fragment>` bernama dengan key + isi tabel multi-baris. Open/close JSX-nya sebenarnya seimbang, tapi transformer tetap menolak.
+Di dalam body `marketplace_checkout`, baris INSERT order memakai:
+
+```sql
+'manual_transfer'::payment_method
+```
+
+Padahal enum `public.payment_method` hanya berisi `{cash, qris}`. Bahkan jika masalah #1 diperbaiki, INSERT tetap akan gagal dengan "invalid input value for enum payment_method".
+
+### 3. Enum tidak mencakup metode yang ditawarkan UI
+
+Halaman `/checkout` menampilkan tiga opsi: `transfer`, `cod`, `qris`. Hanya `qris` yang ada di enum DB.
+
+> Storefront `/s/$slug/checkout` aman: hanya pakai `cash`/`qris` yang valid, dan memetakan `transfer → qris` sebelum insert.
 
 ## Rencana perbaikan
 
-Ganti pola `<Fragment key={l.id}>...</Fragment>` di dalam `.map()` menjadi mengembalikan **array dua `<tr>`** dengan key per-baris — pola yang aman untuk semua transformer:
+### A. Migrasi DB (1 file)
 
-```tsx
-{filtered.flatMap((l) => {
-  // ...derive meta, reason, target, isOpen
-  const rows = [
-    <tr key={`${l.id}-main`} className="hover:bg-muted/30"> ...row utama... </tr>,
-  ];
-  if (isOpen) {
-    rows.push(
-      <tr key={`${l.id}-detail`} className="bg-muted/20">
-        <td colSpan={6} className="px-4 py-3">
-          <pre>{JSON.stringify(l.meta, null, 2)}</pre>
-        </td>
-      </tr>,
-    );
-  }
-  return rows;
-})}
-```
+1. `ALTER TYPE public.payment_method ADD VALUE IF NOT EXISTS 'manual_transfer';`
+2. `ALTER TYPE public.payment_method ADD VALUE IF NOT EXISTS 'cod';`
+3. `DROP FUNCTION public.marketplace_checkout(...)` (signature lama) lalu `CREATE OR REPLACE` dengan:
+   - Tambah parameter `_payment_method text DEFAULT 'manual_transfer'` (diletakkan SEBELUM `_notes` agar urutan param sesuai dengan apa yang dikirim client di `marketplace-cart.ts`).
+   - Di awal body, normalisasi: `transfer` / `manual_transfer` → `manual_transfer`, `qris` → `qris`, `cod` → `cod`, `cash` → `cash`, lainnya → `manual_transfer`.
+   - Ganti `'manual_transfer'::payment_method` di INSERT dengan variable yang sudah dinormalisasi.
+   - Selebihnya body fungsi dipertahankan utuh (logika voucher, komisi, dsb).
+4. `GRANT EXECUTE` ke `authenticated`.
 
-Setelah itu hapus import `Fragment` dari `"react"` karena tidak terpakai lagi.
+### B. Tidak ada perubahan client
+
+`marketplace-cart.ts` sudah mengirim `_payment_method` dengan urutan yang benar. Setelah migrasi, RPC akan menerima dan menggunakannya.
 
 ## Verifikasi
 
-1. Cek dev-server log tidak lagi memunculkan "Pre-transform error".
-2. Buka `/pos-app/audit-logs` di preview, pastikan tabel render, tombol "Detail" tetap meng-expand baris JSON.
+1. Login sebagai pembeli → tambah produk dari `/s/toko-berkah` ke marketplace cart (lewat `/toko/toko-berkah`) → buka `/checkout` → pilih metode `transfer` / `cod` / `qris` → submit.
+2. Pastikan toast "X pesanan berhasil dibuat" muncul dan redirect ke `/checkout/sukses/{id}`.
+3. Cek baris baru di tabel `orders` (`payment_method` terisi sesuai pilihan, `channel = marketplace`).
+4. Verifikasi storefront `/s/$slug/checkout` masih berfungsi (regresi).
 
 ## File yang berubah
 
-- `artifacts/kopihub/src/routes/pos-app.audit-logs.tsx` (refactor map → flatMap, hapus import Fragment)
+- `supabase/migrations/<timestamp>_fix_marketplace_checkout.sql` — migrasi baru (enum + drop/recreate fungsi).
