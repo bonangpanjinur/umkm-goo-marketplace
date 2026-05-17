@@ -144,12 +144,24 @@ function OrdersPage() {
   async function bulkUpdateStatus(status: string) {
     if (checkedIds.size === 0) { toast.error("Pilih pesanan terlebih dahulu"); return; }
     setBulkUpdating(true);
+    const ids = Array.from(checkedIds);
     const { error } = await supabase
       .from("orders")
       .update({ status } as any)
-      .in("id", Array.from(checkedIds));
+      .in("id", ids);
     if (error) { toast.error(error.message); } else {
       toast.success(`${checkedIds.size} pesanan diperbarui ke status "${status}"`);
+      // Audit log untuk aksi sensitif (void / cancel / refund)
+      if (shop && (status === "voided" || status === "cancelled" || status === "refunded")) {
+        const action = status === "refunded" ? "order.refund" : "order.void";
+        for (const id of ids) {
+          logStaffAction({
+            shopId: shop.id,
+            action,
+            meta: { order_id: id, status, bulk: true, count: ids.length },
+          });
+        }
+      }
       setCheckedIds(new Set());
       load();
     }
