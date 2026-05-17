@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import {
   LayoutTemplate, Plus, Trash2, GripVertical, Image, Type, Star, Package, Tag, ChevronUp, ChevronDown, Eye
 } from "lucide-react";
+import { useCurrentShop } from "@/lib/use-shop";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/pos-app/storefront-builder")({ component: StorefrontBuilderPage });
 
