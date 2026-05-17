@@ -5,7 +5,7 @@ import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History, Upload, Download, PackageCheck } from "lucide-react";
+import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History, Upload, Download, PackageCheck, PenLine, ScrollText, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
@@ -29,6 +29,18 @@ type Req = {
   created_at: string;
   delivery_file_url: string | null;
   delivery_note: string | null;
+  contract_id: string | null;
+};
+
+type ContractLite = {
+  id: string;
+  status: string;
+  sign_token: string | null;
+  signature_url: string | null;
+  signed_by_name: string | null;
+  signed_at: string | null;
+  total_value: number;
+  project_name: string;
 };
 
 const STATUS = [
@@ -52,6 +64,10 @@ function CustomOrdersPage() {
   const [savingDelivery, setSavingDelivery] = useState<string | null>(null);
   const [uploadingDelivery, setUploadingDelivery] = useState<string | null>(null);
   const deliveryFileRef = useRef<HTMLInputElement>(null);
+
+  // Contracts linked to custom orders
+  const [contracts, setContracts] = useState<Record<string, ContractLite>>({});
+  const [creatingContract, setCreatingContract] = useState<string | null>(null);
 
   // Search & filter
   const [q, setQ] = useState("");
@@ -116,8 +132,75 @@ function CustomOrdersPage() {
       .eq("shop_id", shop.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setItems((data ?? []) as Req[]);
+    const rows = (data ?? []) as Req[];
+    setItems(rows);
     setLoading(false);
+    const ids = rows.map(r => r.contract_id).filter(Boolean) as string[];
+    if (ids.length) {
+      const { data: cs } = await (supabase as any)
+        .from("freelance_contracts")
+        .select("id,status,sign_token,signature_url,signed_by_name,signed_at,total_value,project_name")
+        .in("id", ids);
+      const map: Record<string, ContractLite> = {};
+      (cs ?? []).forEach((c: ContractLite) => { map[c.id] = c; });
+      setContracts(map);
+    }
+  }
+
+  async function createContractFor(r: Req) {
+    if (!shop) return;
+    setCreatingContract(r.id);
+    try {
+      const totalValue = r.budget_max ?? r.budget_min ?? 0;
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = r.deadline ? r.deadline.slice(0, 10) : new Date(Date.now() + 30 * 86400_000).toISOString().slice(0, 10);
+      const { data, error } = await (supabase as any)
+        .from("freelance_contracts")
+        .insert({
+          shop_id: shop.id,
+          client_name: r.customer_name,
+          client_phone: r.customer_contact,
+          project_name: `Custom Order — ${r.customer_name}`,
+          project_description: r.description,
+          total_value: totalValue,
+          start_date: startDate,
+          end_date: endDate,
+          deliverables: "Sesuai brief custom order pelanggan",
+          revision_count: 2,
+          payment_terms: "Sesuai kesepakatan",
+          status: "draft",
+        })
+        .select("id,status,sign_token,signature_url,signed_by_name,signed_at,total_value,project_name")
+        .single();
+      if (error) throw error;
+      const { error: linkErr } = await supabase
+        .from("custom_order_requests")
+        .update({ contract_id: data.id })
+        .eq("id", r.id);
+      if (linkErr) throw linkErr;
+      setItems(prev => prev.map(p => p.id === r.id ? { ...p, contract_id: data.id } : p));
+      setContracts(prev => ({ ...prev, [data.id]: data as ContractLite }));
+      toast.success("Kontrak dibuat & ditautkan");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal membuat kontrak");
+    } finally {
+      setCreatingContract(null);
+    }
+  }
+
+  async function copySignLink(c: ContractLite) {
+    if (!c.sign_token) { toast.error("Token belum tersedia"); return; }
+    const url = `${window.location.origin}/kontrak/${c.sign_token}`;
+    try { await navigator.clipboard.writeText(url); toast.success("Link tanda tangan disalin"); }
+    catch { toast.error("Gagal menyalin"); }
+  }
+
+  async function refreshContract(id: string) {
+    const { data } = await (supabase as any)
+      .from("freelance_contracts")
+      .select("id,status,sign_token,signature_url,signed_by_name,signed_at,total_value,project_name")
+      .eq("id", id).maybeSingle();
+    if (data) setContracts(prev => ({ ...prev, [data.id]: data as ContractLite }));
   }
 
   async function loadHistory(requestId: string) {
@@ -422,6 +505,76 @@ function CustomOrdersPage() {
                     </Button>
                   </div>
                 )}
+
+                {(() => {
+                  const c = r.contract_id ? contracts[r.contract_id] : null;
+                  if (!r.contract_id) {
+                    return (
+                      <div className="border-t border-border pt-3">
+                        <Button size="sm" variant="outline" className="gap-1.5"
+                          disabled={creatingContract === r.id}
+                          onClick={() => createContractFor(r)}>
+                          {creatingContract === r.id
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <ScrollText className="h-3.5 w-3.5" />}
+                          Buat kontrak & link tanda tangan
+                        </Button>
+                      </div>
+                    );
+                  }
+                  if (!c) return null;
+                  const signed = c.status === "signed" || !!c.signature_url;
+                  return (
+                    <div className="border-t border-border pt-3 space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <ScrollText className="h-4 w-4 text-primary" />
+                        Kontrak Tertaut
+                        <span className={`ml-1 text-[10px] px-2 py-0.5 rounded-full ${signed ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                          {signed ? "Ditandatangani" : (c.status === "sent" ? "Dikirim" : "Draft")}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {c.sign_token && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => copySignLink(c)}>
+                            <LinkIcon className="h-3 w-3" /> Salin link TTD
+                          </Button>
+                        )}
+                        {c.sign_token && !signed && (
+                          <a href={waLink(r.customer_contact,
+                            `Halo ${r.customer_name}, silakan tanda tangan kontrak untuk custom order kamu di tautan berikut:\n${window.location.origin}/kontrak/${c.sign_token}`)}
+                            target="_blank" rel="noreferrer">
+                            <Button size="sm" className="h-7 text-xs">Kirim WA</Button>
+                          </a>
+                        )}
+                        <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => refreshContract(c.id)}>
+                          Refresh
+                        </Button>
+                      </div>
+                      {signed && c.signature_url && (
+                        <div className="rounded-lg border bg-muted/30 p-2">
+                          <div className="flex items-center gap-3">
+                            <PenLine className="h-3.5 w-3.5 text-green-700 shrink-0" />
+                            <img src={c.signature_url} alt="Tanda tangan" className="h-12 max-w-[160px] rounded bg-white" />
+                            <div className="text-xs text-muted-foreground flex-1 min-w-0">
+                              <div className="truncate font-medium text-foreground">{c.signed_by_name ?? r.customer_name}</div>
+                              {c.signed_at && <div>{new Date(c.signed_at).toLocaleString("id-ID")}</div>}
+                            </div>
+                          </div>
+                          <div className="mt-2 flex gap-2">
+                            <a href={c.signature_url} target="_blank" rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                              <ExternalLink className="h-3 w-3" /> Buka
+                            </a>
+                            <a href={c.signature_url} download={`ttd-${r.customer_name.replace(/\s+/g, "_")}.png`}
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                              <Download className="h-3 w-3" /> Unduh PNG
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 <div className="border-t border-border pt-2">
                   <button onClick={() => toggleTimeline(r.id)} className="text-xs flex items-center gap-1 text-primary hover:underline">
