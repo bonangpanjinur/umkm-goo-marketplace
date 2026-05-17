@@ -692,11 +692,21 @@ function ShopChatPage() {
                         )}
                         {/* Upload progress overlay */}
                         {isSending && msg._pendingUpload && typeof msg._uploadProgress === "number" && (
-                          <div className="absolute inset-x-1.5 bottom-1.5 rounded-full bg-black/55 px-2 py-1 backdrop-blur-sm">
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-white">
-                              <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                              <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
-                              <div className="ml-auto h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/50 backdrop-blur-[1px]">
+                            <button
+                              type="button"
+                              onClick={() => cancelSend(msg._tempId!)}
+                              className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition"
+                              title="Batalkan unggahan"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            <div className="w-[80%] max-w-[200px]">
+                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-white mb-1">
+                                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
+                              </div>
+                              <div className="h-1.5 overflow-hidden rounded-full bg-white/25">
                                 <div
                                   className="h-full bg-white transition-[width] duration-150 ease-out"
                                   style={{ width: `${Math.round(msg._uploadProgress * 100)}%` }}
