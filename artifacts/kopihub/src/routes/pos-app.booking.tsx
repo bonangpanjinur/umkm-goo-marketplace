@@ -2282,6 +2282,17 @@ function BookingPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {shop && (
+        <RecurringSlotDialog
+          open={recurringOpen}
+          onOpenChange={setRecurringOpen}
+          shopId={shop.id}
+          bookingType={bookingType}
+          defaultDate={date}
+          onGenerated={load}
+        />
+      )}
     </div>
   );
 }
