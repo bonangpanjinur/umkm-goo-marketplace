@@ -5,7 +5,7 @@ import { useCurrentShop } from "@/lib/use-shop";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History, Upload, Download, PackageCheck } from "lucide-react";
+import { Loader2, FileText, Phone, Calendar, ImageIcon, ExternalLink, Search, X, ChevronDown, ChevronUp, History, Upload, Download, PackageCheck, PenLine, ScrollText, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { CustomOrderTimeline, type TimelineEntry } from "@/components/CustomOrderTimeline";
 
