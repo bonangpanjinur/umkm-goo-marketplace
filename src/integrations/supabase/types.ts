@@ -3638,6 +3638,7 @@ export type Database = {
       orders: {
         Row: {
           amount_tendered: number | null
+          assigned_at: string | null
           balance_due: number
           balance_paid: boolean
           balance_paid_at: string | null
@@ -3653,6 +3654,7 @@ export type Database = {
           created_at: string
           customer_name: string | null
           customer_phone: string | null
+          customer_signature_url: string | null
           customer_user_id: string | null
           delivered_at: string | null
           delivery_address: string | null
@@ -3681,6 +3683,7 @@ export type Database = {
           payment_proof_url: string | null
           payment_split: Json
           payment_status: Database["public"]["Enums"]["payment_status"]
+          picked_up_at: string | null
           platform_voucher_code: string | null
           platform_voucher_discount: number
           points_earned: number
@@ -3707,6 +3710,7 @@ export type Database = {
         }
         Insert: {
           amount_tendered?: number | null
+          assigned_at?: string | null
           balance_due?: number
           balance_paid?: boolean
           balance_paid_at?: string | null
@@ -3722,6 +3726,7 @@ export type Database = {
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
+          customer_signature_url?: string | null
           customer_user_id?: string | null
           delivered_at?: string | null
           delivery_address?: string | null
@@ -3750,6 +3755,7 @@ export type Database = {
           payment_proof_url?: string | null
           payment_split?: Json
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          picked_up_at?: string | null
           platform_voucher_code?: string | null
           platform_voucher_discount?: number
           points_earned?: number
@@ -3776,6 +3782,7 @@ export type Database = {
         }
         Update: {
           amount_tendered?: number | null
+          assigned_at?: string | null
           balance_due?: number
           balance_paid?: boolean
           balance_paid_at?: string | null
@@ -3791,6 +3798,7 @@ export type Database = {
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
+          customer_signature_url?: string | null
           customer_user_id?: string | null
           delivered_at?: string | null
           delivery_address?: string | null
@@ -3819,6 +3827,7 @@ export type Database = {
           payment_proof_url?: string | null
           payment_split?: Json
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          picked_up_at?: string | null
           platform_voucher_code?: string | null
           platform_voucher_discount?: number
           points_earned?: number
@@ -7960,6 +7969,17 @@ export type Database = {
       }
     }
     Views: {
+      courier_earnings: {
+        Row: {
+          courier_id: string | null
+          day: string | null
+          deliveries: number | null
+          gross_fee: number | null
+          shop_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       menu_hpp_view: {
         Row: {
           hpp: number | null
@@ -8426,6 +8446,10 @@ export type Database = {
         Returns: boolean
       }
       increment_promo_usage: { Args: { _promo_id: string }; Returns: undefined }
+      is_courier_of_shop: {
+        Args: { _shop_id: string; _user_id: string }
+        Returns: boolean
+      }
       link_courier_account: { Args: never; Returns: number }
       list_available_delivery_orders: {
         Args: { _courier_id: string }
