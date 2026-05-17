@@ -128,6 +128,9 @@ function MenuPage() {
   const [nutritionFiber, setNutritionFiber] = useState<string>("");
   const [productionDays, setProductionDays] = useState<string>("");
   const [conditionGrade, setConditionGrade] = useState<string>("");
+  const [allergens, setAllergens] = useState<string[]>([]);
+  const [isHalal, setIsHalal] = useState<boolean>(false);
+  const [availableModes, setAvailableModes] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
