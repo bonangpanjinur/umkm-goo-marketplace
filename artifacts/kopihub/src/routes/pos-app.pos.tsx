@@ -125,6 +125,7 @@ function POSPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [modPickerItem, setModPickerItem] = useState<MenuItem | null>(null);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Park dialog
   const [parkOpen, setParkOpen] = useState(false);
