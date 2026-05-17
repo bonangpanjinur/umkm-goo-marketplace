@@ -243,6 +243,18 @@ function PatientRecordsPage() {
                 {selected.birth_date && <span>🎂 {new Date(selected.birth_date).toLocaleDateString("id-ID")}</span>}
                 {selected.gender && <span>{selected.gender === "L" ? "♂ Laki-laki" : selected.gender === "P" ? "♀ Perempuan" : "Lainnya"}</span>}
                 {selected.blood_type && <Badge variant="outline" className="text-xs">Gol. {selected.blood_type}</Badge>}
+                {selected.payer_type === "bpjs" && (
+                  <Badge className="bg-emerald-100 text-emerald-700 border-0 gap-1 text-xs">
+                    <ShieldCheck className="h-3 w-3" /> BPJS{selected.bpjs_number ? ` · ${selected.bpjs_number}` : ""}
+                  </Badge>
+                )}
+                {selected.payer_type === "asuransi" && (
+                  <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">Asuransi</Badge>
+                )}
+                {selected.payer_type === "umum" && (
+                  <Badge variant="outline" className="text-xs">Umum</Badge>
+                )}
+                {selected.nik && <span className="font-mono text-[10px]">NIK {selected.nik}</span>}
               </div>
             </div>
             <Button size="sm" variant="outline" onClick={() => openEditP(selected)} className="gap-1.5"><Pencil className="h-3.5 w-3.5" /> Edit Data</Button>
