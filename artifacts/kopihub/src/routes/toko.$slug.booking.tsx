@@ -41,8 +41,8 @@ type Shop = {
   rating_avg: number | null;
   rating_count: number | null;
   kyc_status: string | null;
-  require_deposit: boolean | null;
-  deposit_percent: number | null;
+  deposit_required: boolean | null;
+  deposit_percentage: number | null;
   deposit_notes: string | null;
   require_id_upload: boolean | null;
 };
@@ -160,7 +160,7 @@ export default function PublicBookingPage() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [cancellationToken, setCancellationToken] = useState<string | null>(null);
+  const [cancellationToken, setCancelToken] = useState<string | null>(null);
   const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
   const [confirmingDeposit, setConfirmingDeposit] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -219,7 +219,7 @@ export default function PublicBookingPage() {
     (async () => {
       const { data: s } = await supabase
         .from("shops" as any)
-        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, require_deposit, deposit_percent, deposit_notes, require_id_upload")
+        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, deposit_required, deposit_percentage, deposit_notes, require_id_upload")
         .eq("slug", slug)
         .eq("is_active", true)
         .maybeSingle();
@@ -510,8 +510,8 @@ export default function PublicBookingPage() {
 
   // Computed deposit amount (based on full effective price)
   const depositAmount = (() => {
-    if (!shop?.require_deposit || !selectedSlot) return 0;
-    const pct = shop.deposit_percent ?? 50;
+    if (!shop?.deposit_required || !selectedSlot) return 0;
+    const pct = shop.deposit_percentage ?? 50;
     return Math.ceil((effectivePrice * pct) / 100);
   })();
 
@@ -537,7 +537,7 @@ export default function PublicBookingPage() {
 
       const staffId = selectedStaffId !== NO_PREF_STAFF_ID ? selectedStaffId : null;
       const staffName = selectedStaff?.name ?? null;
-      const needsDeposit = !!(shop.require_deposit && effectivePrice > 0);
+      const needsDeposit = !!(shop.deposit_required && effectivePrice > 0);
 
       const { data: bk, error } = await supabase
         .from("bookings" as any)
@@ -552,7 +552,7 @@ export default function PublicBookingPage() {
           ...(needsDeposit ? {
             deposit_required: true,
             deposit_amount: depositAmount,
-            deposit_status: "waiting_payment",
+            deposit_status: "pending",
           } : {}),
           ...(appliedVoucher ? {
             voucher_code: appliedVoucher.code,
@@ -579,7 +579,7 @@ export default function PublicBookingPage() {
             document_type: docType,
           } : {}),
         } as any)
-        .select("id, cancellation_token")
+        .select("id, cancel_token")
         .maybeSingle() as any;
       if (error) throw error;
 
@@ -605,7 +605,7 @@ export default function PublicBookingPage() {
         } as any);
 
       setBookingId(bk?.id ?? "ok");
-      setCancellationToken(bk?.cancellation_token ?? null);
+      setCancelToken(bk?.cancel_token ?? null);
       if (needsDeposit) {
         setStep("deposit");
       } else {
@@ -624,7 +624,7 @@ export default function PublicBookingPage() {
     try {
       await supabase
         .from("bookings" as any)
-        .update({ deposit_status: "submitted" } as any)
+        .update({ deposit_status: "pending" } as any)
         .eq("id" as any, bookingId);
 
       if (shop?.id) {
@@ -1973,7 +1973,7 @@ export default function PublicBookingPage() {
               <p className="text-sm text-muted-foreground mb-1">Jumlah DP yang harus dibayar</p>
               <p className="text-4xl font-bold text-primary">{formatIDR(depositAmount)}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                ({shop.deposit_percent ?? 50}% dari {formatIDR(effectivePrice)})
+                ({shop.deposit_percentage ?? 50}% dari {formatIDR(effectivePrice)})
               </p>
             </div>
 
@@ -2211,7 +2211,7 @@ export default function PublicBookingPage() {
                     <span className="text-primary">{formatIDR(effectivePrice)}</span>
                   </p>
                 )}
-                {shop?.require_deposit && depositAmount > 0 && (
+                {shop?.deposit_required && depositAmount > 0 && (
                   <p className="flex items-center gap-1.5 font-medium text-emerald-700">
                     <Check className="h-3.5 w-3.5" /> DP {formatIDR(depositAmount)} sudah dikonfirmasi
                   </p>
@@ -2274,7 +2274,7 @@ export default function PublicBookingPage() {
                   setSelectedStaffId(NO_PREF_STAFF_ID);
                   setName(""); setPhone(""); setPartySize("1"); setNotes("");
                   setBookingId(null);
-                  setCancellationToken(null);
+                  setCancelToken(null);
                   setCancelLinkCopied(false);
                   setWaitlistPosition(null);
                   setAppliedVoucher(null);

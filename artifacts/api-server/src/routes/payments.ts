@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { paymentTransactions, webhookLogs } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger.js";
 import {
   createSnapTransaction,
@@ -310,12 +310,16 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
   const notification = req.body as MidtransNotification;
   const settings = mergeGatewaySettings(null);
 
-  await db.insert(webhookLogs).values({
-    gateway: "midtrans",
-    event: notification.transaction_status,
-    payload: notification as unknown as Record<string, unknown>,
-    status: "received",
-  });
+  const [insertedLog] = await db
+    .insert(webhookLogs)
+    .values({
+      gateway: "midtrans",
+      event: notification.transaction_status,
+      payload: notification as unknown as Record<string, unknown>,
+      status: "received",
+    })
+    .returning({ id: webhookLogs.id });
+  const logId = insertedLog?.id;
 
   if (!notification.order_id) {
     res.status(400).json({ error: "Missing order_id" });
@@ -387,23 +391,22 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
       }
     }
 
-    await db
-      .update(webhookLogs)
-      .set({ status: "processed", relatedTransactionId: tx.id })
-      .where(
-        and(
-          eq(webhookLogs.gateway, "midtrans"),
-          eq(webhookLogs.status, "received"),
-        ),
-      );
+    if (logId) {
+      await db
+        .update(webhookLogs)
+        .set({ status: "processed", relatedTransactionId: tx.id })
+        .where(eq(webhookLogs.id, logId));
+    }
 
     res.json({ received: true, status: newStatus });
   } catch (err: unknown) {
     logger.error({ err }, "Midtrans webhook processing error");
-    await db
-      .update(webhookLogs)
-      .set({ status: "error", processingError: err instanceof Error ? err.message : String(err) })
-      .where(and(eq(webhookLogs.gateway, "midtrans"), eq(webhookLogs.status, "received")));
+    if (logId) {
+      await db
+        .update(webhookLogs)
+        .set({ status: "error", processingError: err instanceof Error ? err.message : String(err) })
+        .where(eq(webhookLogs.id, logId));
+    }
     res.status(500).json({ error: "Webhook processing failed" });
   }
 });
@@ -414,12 +417,16 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
 
   const payload = req.body as XenditWebhookPayload;
 
-  await db.insert(webhookLogs).values({
-    gateway: "xendit",
-    event: payload.status,
-    payload: payload as unknown as Record<string, unknown>,
-    status: "received",
-  });
+  const [insertedLog] = await db
+    .insert(webhookLogs)
+    .values({
+      gateway: "xendit",
+      event: payload.status,
+      payload: payload as unknown as Record<string, unknown>,
+      status: "received",
+    })
+    .returning({ id: webhookLogs.id });
+  const logId = insertedLog?.id;
 
   if (settings.xendit_webhook_token && callbackToken) {
     const valid = verifyXenditWebhookToken(callbackToken, settings.xendit_webhook_token);
@@ -475,18 +482,22 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
       }
     }
 
-    await db
-      .update(webhookLogs)
-      .set({ status: "processed", relatedTransactionId: tx.id })
-      .where(and(eq(webhookLogs.gateway, "xendit"), eq(webhookLogs.status, "received")));
+    if (logId) {
+      await db
+        .update(webhookLogs)
+        .set({ status: "processed", relatedTransactionId: tx.id })
+        .where(eq(webhookLogs.id, logId));
+    }
 
     res.json({ received: true, status: newStatus });
   } catch (err: unknown) {
     logger.error({ err }, "Xendit webhook processing error");
-    await db
-      .update(webhookLogs)
-      .set({ status: "error", processingError: err instanceof Error ? err.message : String(err) })
-      .where(and(eq(webhookLogs.gateway, "xendit"), eq(webhookLogs.status, "received")));
+    if (logId) {
+      await db
+        .update(webhookLogs)
+        .set({ status: "error", processingError: err instanceof Error ? err.message : String(err) })
+        .where(eq(webhookLogs.id, logId));
+    }
     res.status(500).json({ error: "Webhook processing failed" });
   }
 });

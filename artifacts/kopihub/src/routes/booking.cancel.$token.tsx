@@ -83,7 +83,7 @@ function BookingCancelPage() {
             shops!inner ( id, name, slug, phone )
           )
         `)
-        .eq("cancellation_token", token)
+        .eq("cancel_token", token)
         .maybeSingle();
 
       if (error || !data) {
