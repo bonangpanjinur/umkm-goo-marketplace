@@ -8604,6 +8604,11 @@ export type Database = {
         | "customer"
         | "manager"
         | "courier"
+        | "pelayan"
+        | "gudang"
+        | "koki"
+        | "helper"
+        | "supervisor"
       cash_movement_type:
         | "in"
         | "out"
@@ -8780,6 +8785,11 @@ export const Constants = {
         "customer",
         "manager",
         "courier",
+        "pelayan",
+        "gudang",
+        "koki",
+        "helper",
+        "supervisor",
       ],
       cash_movement_type: ["in", "out", "sale", "refund", "opening", "closing"],
       delivery_mode: ["flat", "zone"],
