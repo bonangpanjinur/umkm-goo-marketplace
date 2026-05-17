@@ -93,6 +93,7 @@ import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
+import { useShopCapabilities } from "@/lib/use-shop-capabilities";
 
 export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
@@ -101,8 +102,10 @@ export const Route = createFileRoute("/pos-app")({
 type NavItem = {
   to: string; label: string; icon: typeof LayoutDashboard;
   exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[];
-  /** If set, only show this item when shop's category type is in this list */
+  /** Show only when shop's category type is in this list (legacy/coarse gate). */
   onlyFor?: string[];
+  /** Show only when shop has ALL of these feature keys (fine-grained, from v_shop_capabilities). */
+  requires?: import("@/lib/feature-keys").FeatureKey[];
   /** If set, only show for these business sub-types (sales-pro: 'umroh' | 'sales') */
   subtypeOnly?: ("umroh" | "sales")[];
   /** If true, hide from staff (only owner sees) */
@@ -111,21 +114,32 @@ type NavItem = {
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
 // ─── Map business_categories.slug → simplified type ─────────────────────────
+// Mapping ekplisit per 11 slug DB. Tidak ada lagi regex fallback ke "general"
+// agar kategori seperti Travel/Klinik/Rental tidak lagi dapat menu/KDS F&B.
 function deriveCategoryType(slug: string | null | undefined): string {
   if (!slug) return "general";
-  const s = slug.toLowerCase();
-  if (s === "sales-jasa-profesional") return "sales-pro";
-  if (/fnb|kuliner|makanan|minuman|cafe|kafe|restoran|bakery|food|kopi|warung|catering|beverage/.test(s)) return "fnb";
-  if (/fashion|pakaian|clothing|busana|sepatu|aksesoris/.test(s)) return "fashion";
-  if (/digital|software|konten|content|saas|aplikasi|pendidikan/.test(s)) return "digital";
-  if (/jasa|laundry|salon|bengkel|beauty|kecantikan|otomotif/.test(s)) return "services";
-  if (/kerajinan|handmade|craft|seni|dekorasi|art/.test(s)) return "craft";
-  if (/elektronik|gadget|komputer|tech/.test(s)) return "electronics";
-  return "general";
+  switch (slug) {
+    case "fnb":          return "fnb";
+    case "retail":       return "retail";
+    case "jasa":         return "services";
+    case "rental":       return "rental";
+    case "kursus":       return "digital";
+    case "salon":        return "services";
+    case "klinik":       return "services";
+    case "studio-foto":  return "services";
+    case "travel":       return "sales-pro";
+    case "custom-order": return "craft";
+    case "lainnya":      return "general";
+    // Legacy / sales-pro vertical (sebelumnya disebut "sales-jasa-profesional")
+    case "sales-jasa-profesional": return "sales-pro";
+    default:             return "general";
+  }
 }
 
-// Categories that have POS / KDS / Stok / Inventori / Resep / Shift Kasir
-const HAS_POS = ["fnb", "fashion", "craft", "electronics", "general"];
+// Categories that have POS / KDS / Stok / Inventori / Resep / Shift Kasir.
+// "general" hanya untuk kategori "lainnya" — tetap dapat POS sebagai opt-out
+// via shops.feature_overrides bila perlu.
+const HAS_POS = ["fnb", "retail", "fashion", "craft", "electronics", "general"];
 
 // Category type groups for onlyFor references
 const FNB         = ["fnb"];
@@ -133,9 +147,9 @@ const FNB_SVC     = ["fnb", "services"];
 const DIGITAL_SVC = ["digital", "services"];
 const SVC         = ["services"];
 const SVC_CRAFT   = ["services", "craft"];
-const PHYSICAL    = ["fnb", "fashion", "craft", "electronics", "general"];
-const FASHION     = ["fashion"];
-const FASHION_SVC = ["fashion", "services"];
+const PHYSICAL    = ["fnb", "retail", "fashion", "craft", "electronics", "general"];
+const FASHION     = ["fashion", "retail"];
+const FASHION_SVC = ["fashion", "retail", "services"];
 const CRAFT       = ["craft"];
 
 const NAV_GROUPS: NavGroup[] = [
@@ -151,14 +165,14 @@ const NAV_GROUPS: NavGroup[] = [
     id: "sales_pro",
     label: "Sales / Umroh",
     items: [
-      { to: "/pos-app/umroh-packages",   label: "Paket Umroh",       icon: Plane,     onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
-      { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
-      { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"] },
+      { to: "/pos-app/umroh-packages",   label: "Paket Umroh",       icon: Plane,     onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_PACKAGES"] },
+      { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FACILITIES"] },
+      { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FAQ"] },
       { to: "/pos-app/sales-offerings",  label: "Katalog Layanan",   icon: Briefcase, onlyFor: ["sales-pro"], subtypeOnly: ["sales"] },
-      { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"] },
-      { to: "/pos-app/testimonials",     label: "Testimoni",         icon: Quote,     onlyFor: ["sales-pro"] },
-      { to: "/pos-app/leads",            label: "Lead / CRM",        icon: Inbox,     onlyFor: ["sales-pro"] },
-      { to: "/pos-app/about-page",       label: "Halaman Tentang",   icon: Info,      onlyFor: ["sales-pro"] },
+      { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"], requires: ["FLYERS"] },
+      { to: "/pos-app/testimonials",     label: "Testimoni",         icon: Quote,     onlyFor: ["sales-pro"], requires: ["TESTIMONIALS"] },
+      { to: "/pos-app/leads",            label: "Lead / CRM",        icon: Inbox,     onlyFor: ["sales-pro"], requires: ["LEADS"] },
+      { to: "/pos-app/about-page",       label: "Halaman Tentang",   icon: Info,      onlyFor: ["sales-pro"], requires: ["ABOUT_PAGE"] },
     ],
   },
   {
@@ -375,6 +389,7 @@ function AppLayoutInner() {
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
   const [shopCategoryType, setShopCategoryType] = useState<string>("general");
   const [shopSubtype, setShopSubtype] = useState<string | null>(null);
+  const capabilities = useShopCapabilities(shop?.id ?? null);
 
   useEffect(() => {
     if (loading) return;
@@ -547,12 +562,18 @@ function AppLayoutInner() {
       if (it.subtypeOnly && it.subtypeOnly.length > 0) {
         if (!shopSubtype || !it.subtypeOnly.includes(shopSubtype as "umroh" | "sales")) return false;
       }
+      // Feature-key check (fine-grained gating via v_shop_capabilities).
+      // Hanya berlaku jika capabilities sudah ter-load — saat masih loading,
+      // jangan sembunyikan apapun supaya nav tidak "berkedip".
+      if (it.requires && it.requires.length > 0 && capabilities.ready && capabilities.data) {
+        if (!capabilities.hasAll(it.requires)) return false;
+      }
       return true;
     };
     return NAV_GROUPS
       .map((g) => ({ ...g, items: g.items.filter(allowed) }))
       .filter((g) => g.items.length > 0);
-  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype]);
+  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype, capabilities.ready, capabilities.data]);
 
   // Track which group is open; auto-open the group that contains the active route
   const matchItem = (it: NavItem, path: string) => {
