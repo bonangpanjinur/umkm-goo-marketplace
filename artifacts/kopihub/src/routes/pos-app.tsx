@@ -173,6 +173,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FACILITIES"] },
       { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FAQ"] },
       { to: "/pos-app/travel-manifest",     label: "Manifest Jamaah",   icon: Users,     hint: "Data jamaah: paspor, kamar, status keberangkatan", onlyFor: ["sales-pro"], requires: ["TRAVEL_MANIFEST"] },
+      { to: "/pos-app/jamaah-documents",    label: "Dokumen Jamaah",    icon: FileText,  hint: "Paspor, visa, vaksin per jamaah + alert expired", onlyFor: ["sales-pro"], requires: ["JAMAAH_DOCUMENTS"] },
+      { to: "/pos-app/travel-itinerary",    label: "Itinerary Harian",  icon: CalendarDays, hint: "Rundown hari-per-hari per paket travel", onlyFor: ["sales-pro"], requires: ["TRAVEL_ITINERARY"] },
       { to: "/pos-app/travel-installments", label: "Cicilan Travel",    icon: Wallet,    hint: "Jadwal pembayaran bertahap pelanggan", onlyFor: ["sales-pro"], requires: ["TRAVEL_INSTALLMENTS"] },
       { to: "/pos-app/sales-offerings",  label: "Katalog Layanan",   icon: Briefcase, onlyFor: ["sales-pro"], subtypeOnly: ["sales"] },
       { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"], requires: ["FLYERS"] },
