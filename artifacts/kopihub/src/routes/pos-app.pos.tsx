@@ -512,6 +512,7 @@ function POSPage() {
 
       // Reset current tab
       updateCart(() => newCart(cart.label));
+      notifyParkedCartChange(outlet?.id);
     } catch (e: any) {
       const offline = !navigator.onLine;
       toast.error(
