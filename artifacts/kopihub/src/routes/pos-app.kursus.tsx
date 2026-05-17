@@ -31,6 +31,8 @@ import {
   Eye,
   Clock,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   GripVertical,
   CheckCircle2,
 } from "lucide-react";
