@@ -191,6 +191,15 @@ function Page() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{STATUS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
+              <div>
+                <Label>Fotografer</Label>
+                <Select value={form.photographer_id || "_none"} onValueChange={(v) => setForm({ ...form, photographer_id: v === "_none" ? "" : v })}>
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">— Belum ditugaskan —</SelectItem>
+                    {photographers.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <label className="flex items-center gap-2"><input type="checkbox" checked={form.watermark_enabled} onChange={(e) => setForm({ ...form, watermark_enabled: e.target.checked })} /><span className="text-sm">Watermark pada preview klien</span></label>
