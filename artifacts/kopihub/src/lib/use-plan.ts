@@ -58,12 +58,10 @@ export function useIsSuperAdmin() {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", u.user.id)
-        .eq("role", "super_admin")
-        .maybeSingle();
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: u.user.id,
+        _role: "super_admin",
+      });
       setIsAdmin(!!data);
       setLoading(false);
     })();
