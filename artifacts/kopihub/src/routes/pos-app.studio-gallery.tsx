@@ -191,6 +191,7 @@ function Page() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{STATUS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
+              </div>
               <div>
                 <Label>Fotografer</Label>
                 <Select value={form.photographer_id || "_none"} onValueChange={(v) => setForm({ ...form, photographer_id: v === "_none" ? "" : v })}>
