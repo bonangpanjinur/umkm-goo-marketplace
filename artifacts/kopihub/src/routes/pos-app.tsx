@@ -346,6 +346,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/outlets",           label: "Multi-Outlet",     icon: Building2 },
       { to: "/pos-app/domain",            label: "Domain Kustom",    icon: Globe, proOnly: true },
       { to: "/pos-app/backup",            label: "Backup Data",      icon: Database },
+      { to: "/pos-app/capabilities",      label: "Kapabilitas Fitur",icon: SlidersHorizontal },
       { to: "/pos-app/settings",          label: "Pengaturan",       icon: Settings },
     ],
   },
