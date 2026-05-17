@@ -11,10 +11,35 @@ export type StaffInfo = {
   loading: boolean;
 };
 
+/**
+ * Default modul yang boleh diakses per role staff.
+ * Empty array `[]` = boleh semua (setara dengan null override).
+ * Daftar role multi-UMKM: pelayan, gudang, koki, helper, supervisor.
+ * Legacy (cashier, barista, manager) tetap didukung untuk akun lama.
+ */
 const MODULE_MAP: Record<string, string[]> = {
-  manager: [], // all
-  cashier: ["pos", "orders", "shifts"],
-  barista: ["orders", "online-orders"],
+  // Generik (modern, dipakai semua jenis UMKM)
+  supervisor: [], // semua kecuali billing/settings (di-handle di NAV)
+  pelayan: ["pos", "orders", "online-orders", "tables", "open-bills", "shifts"],
+  gudang: ["inventory", "recipes", "purchase-orders", "suppliers"],
+  koki: ["kitchen-load", "orders", "online-orders", "recipes"],
+  helper: ["orders", "online-orders"],
+  // Legacy aliases (jangan dihapus — data lama masih pakai)
+  manager: [],
+  cashier: ["pos", "orders", "shifts", "open-bills", "tables"],
+  barista: ["orders", "online-orders", "kitchen-load"],
+};
+
+/** Label Bahasa Indonesia untuk role staff (dipakai di UI manage employees) */
+export const STAFF_ROLE_LABELS: Record<string, string> = {
+  supervisor: "Supervisor",
+  pelayan: "Pelayan / Kasir",
+  gudang: "Staff Gudang",
+  koki: "Koki / Produksi",
+  helper: "Helper",
+  manager: "Manajer (legacy)",
+  cashier: "Kasir (legacy)",
+  barista: "Barista (legacy)",
 };
 
 export function useStaffRole(): StaffInfo {
