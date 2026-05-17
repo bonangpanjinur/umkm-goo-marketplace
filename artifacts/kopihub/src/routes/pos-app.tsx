@@ -562,12 +562,18 @@ function AppLayoutInner() {
       if (it.subtypeOnly && it.subtypeOnly.length > 0) {
         if (!shopSubtype || !it.subtypeOnly.includes(shopSubtype as "umroh" | "sales")) return false;
       }
+      // Feature-key check (fine-grained gating via v_shop_capabilities).
+      // Hanya berlaku jika capabilities sudah ter-load — saat masih loading,
+      // jangan sembunyikan apapun supaya nav tidak "berkedip".
+      if (it.requires && it.requires.length > 0 && capabilities.ready && capabilities.data) {
+        if (!capabilities.hasAll(it.requires)) return false;
+      }
       return true;
     };
     return NAV_GROUPS
       .map((g) => ({ ...g, items: g.items.filter(allowed) }))
       .filter((g) => g.items.length > 0);
-  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype]);
+  }, [staff.isOwner, staff.isStaff, staff.allowedModules, shopCategoryType, shopSubtype, capabilities.ready, capabilities.data]);
 
   // Track which group is open; auto-open the group that contains the active route
   const matchItem = (it: NavItem, path: string) => {
