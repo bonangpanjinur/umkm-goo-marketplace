@@ -293,6 +293,13 @@ function PatientRecordsPage() {
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removeV(v)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
+                {v.icd10_code && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-1 text-xs">
+                    <Stethoscope className="h-3 w-3 text-primary" />
+                    <span className="font-mono font-semibold text-primary">{v.icd10_code}</span>
+                    <span className="text-muted-foreground">{v.icd10_label}</span>
+                  </div>
+                )}
                 <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   {v.complaint && <div><span className="font-medium">Keluhan:</span> <span className="text-muted-foreground">{v.complaint}</span></div>}
                   {v.diagnosis && <div><span className="font-medium">Diagnosis:</span> <span className="text-muted-foreground">{v.diagnosis}</span></div>}
@@ -324,8 +331,15 @@ function PatientRecordsPage() {
                 <Textarea rows={2} value={vForm.complaint} onChange={e => setVForm(f => ({ ...f, complaint: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label>Diagnosis</Label>
+                <Label>Diagnosis (Narasi)</Label>
                 <Textarea rows={2} value={vForm.diagnosis} onChange={e => setVForm(f => ({ ...f, diagnosis: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Diagnosis ICD-10</Label>
+                <Icd10Picker
+                  value={vForm.icd10_code ? { code: vForm.icd10_code, label: vForm.icd10_label } : null}
+                  onChange={(v) => setVForm(f => ({ ...f, icd10_code: v?.code ?? "", icd10_label: v?.label ?? "" }))}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Tindakan / Treatment</Label>
