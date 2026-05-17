@@ -336,7 +336,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "settings",
     label: "Pengaturan Toko",
     items: [
-      { to: "/pos-app/table-qr",          label: "QR Code Meja",    icon: QrCode, onlyFor: FNB },
+      { to: "/pos-app/table-qr",          label: "QR Code Meja",    icon: QrCode, onlyFor: FNB, requires: ["TABLES"] },
       { to: "/pos-app/printers",          label: "Printer",          icon: Printer },
       { to: "/pos-app/appearance",        label: "Tampilan Toko",    icon: Palette },
       { to: "/pos-app/storefront-builder",label: "Storefront Builder",icon: LayoutDashboard },
