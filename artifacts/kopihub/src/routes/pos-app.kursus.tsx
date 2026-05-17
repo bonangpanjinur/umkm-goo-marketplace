@@ -287,7 +287,7 @@ function KursusPage() {
   const loadLessons = useCallback(async (moduleId: string) => {
     const { data, error } = await (supabase as any)
       .from("course_lessons")
-      .select("id, module_id, title, description, video_url, duration_minutes, sort_order, is_free_preview")
+      .select("id, module_id, title, description, video_url, duration_minutes, sort_order, is_free_preview, status")
       .eq("module_id", moduleId)
       .order("sort_order", { ascending: true });
     if (error) { toast.error(error.message); return; }
