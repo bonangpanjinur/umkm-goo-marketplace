@@ -57,6 +57,8 @@ type MenuItem = {
   allergens?: string[] | null;
   is_halal?: boolean | null;
   available_modes?: string[] | null;
+  sku?: string | null;
+  barcode?: string | null;
 };
 
 const COMMON_ALLERGENS = ["Gluten", "Susu", "Telur", "Kacang Tanah", "Kacang Pohon", "Kedelai", "Ikan", "Udang/Kerang", "Wijen"];
@@ -131,6 +133,8 @@ function MenuPage() {
   const [allergens, setAllergens] = useState<string[]>([]);
   const [isHalal, setIsHalal] = useState<boolean>(false);
   const [availableModes, setAvailableModes] = useState<string[]>([]);
+  const [sku, setSku] = useState<string>("");
+  const [barcode, setBarcode] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -161,7 +165,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade, allergens, is_halal, available_modes")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade, allergens, is_halal, available_modes, sku, barcode")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -218,6 +222,8 @@ function MenuPage() {
     setAllergens([]);
     setIsHalal(false);
     setAvailableModes([]);
+    setSku("");
+    setBarcode("");
     setAiTags([]);
     setOpen(true);
   }
@@ -257,6 +263,8 @@ function MenuPage() {
     setAllergens(it.allergens ?? []);
     setIsHalal(Boolean(it.is_halal));
     setAvailableModes(it.available_modes ?? []);
+    setSku(it.sku ?? "");
+    setBarcode(it.barcode ?? "");
     setAiTags([]);
     setOpen(true);
   }
@@ -488,6 +496,8 @@ function MenuPage() {
       allergens: allergens,
       is_halal: isHalal,
       available_modes: availableModes,
+      sku: sku.trim() || null,
+      barcode: barcode.trim() || null,
     } as unknown as TablesInsert<"menu_items">;
     if (editing) {
       const oldPrice = editing.price;
@@ -990,6 +1000,29 @@ function MenuPage() {
                         <div className="space-y-1">
                           <Label className="text-[11px]">Serat (g)</Label>
                           <Input type="number" min={0} step="0.1" value={nutritionFiber} onChange={e => setNutritionFiber(e.target.value)} placeholder="3" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Retail — SKU & Barcode */}
+                    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+                          <Boxes className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">SKU & Barcode</div>
+                          <div className="text-[11px] text-muted-foreground">Untuk pencarian cepat & scan barcode di POS.</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">SKU</Label>
+                          <Input value={sku} onChange={(e) => setSku(e.target.value)} placeholder="SKU-001" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Barcode</Label>
+                          <Input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="8991002101234" inputMode="numeric" />
                         </div>
                       </div>
                     </div>

@@ -24,8 +24,10 @@ import {
   StickyNote,
   RotateCcw,
   Trash2,
+  ScanLine,
 } from "lucide-react";
 import { ListOrdered } from "lucide-react";
+import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import type { CartItem } from "@/lib/cart";
@@ -123,6 +125,7 @@ function POSPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [modPickerItem, setModPickerItem] = useState<MenuItem | null>(null);
   const [cartSheetOpen, setCartSheetOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Park dialog
   const [parkOpen, setParkOpen] = useState(false);
@@ -338,6 +341,60 @@ function POSPage() {
       return { ...c, items };
     });
   };
+
+  async function handleBarcodeDetected(code: string) {
+    if (!shop) return;
+    const trimmed = code.trim();
+    if (!trimmed) return;
+    // Cek menu_items dulu (barcode atau sku)
+    const { data: miRows } = await supabase
+      .from("menu_items")
+      .select("id, name, price, image_url, category_id, is_available, item_type, barcode, sku")
+      .eq("shop_id", shop.id)
+      .or(`barcode.eq.${trimmed},sku.eq.${trimmed}`)
+      .limit(1);
+    const hit = miRows?.[0];
+    if (hit) {
+      if (!hit.is_available) {
+        toast.error(`${hit.name} sedang nonaktif`);
+        return;
+      }
+      addToCart(hit as MenuItem);
+      toast.success(`+ ${hit.name}`);
+      return;
+    }
+    // Cek varian
+    const { data: varRows } = await supabase
+      .from("menu_item_variants")
+      .select("id, menu_item_id, name, price, sku, barcode, is_available")
+      .eq("shop_id", shop.id)
+      .or(`barcode.eq.${trimmed},sku.eq.${trimmed}`)
+      .limit(1);
+    const v = varRows?.[0];
+    if (v) {
+      if (!v.is_available) {
+        toast.error(`Varian ${v.name} sedang nonaktif`);
+        return;
+      }
+      // Tambah sebagai item dengan opsi varian
+      const parent = items.find((i) => i.id === v.menu_item_id);
+      const displayName = parent ? `${parent.name} — ${v.name}` : v.name;
+      addToCart(
+        {
+          id: v.menu_item_id,
+          name: displayName,
+          price: v.price,
+          image_url: parent?.image_url ?? null,
+          category_id: parent?.category_id ?? null,
+          is_available: true,
+        } as MenuItem,
+        [{ group_id: "variant", option_id: v.id, name: v.name, price_adjustment: 0 }],
+      );
+      toast.success(`+ ${displayName}`);
+      return;
+    }
+    toast.error(`Barcode "${trimmed}" tidak ditemukan`);
+  }
 
   const addCartTab = () => {
     if (carts.length >= MAX_CARTS) {
@@ -618,6 +675,9 @@ function POSPage() {
           onOpenOrders={() => setOrdersDlgOpen(true)}
           ordersTodayCount={todayOrdersCount}
         />
+        <Button size="sm" variant="outline" className="ml-auto shrink-0 gap-1" onClick={() => setScannerOpen(true)}>
+          <ScanLine className="h-4 w-4" /> Scan
+        </Button>
       </div>
 
       {/* Left: Menu Grid */}
@@ -634,6 +694,9 @@ function POSPage() {
             onOpenOrders={() => setOrdersDlgOpen(true)}
             ordersTodayCount={todayOrdersCount}
           />
+          <Button size="sm" variant="outline" className="ml-auto shrink-0 gap-1" onClick={() => setScannerOpen(true)}>
+            <ScanLine className="h-4 w-4" /> Scan Barcode
+          </Button>
         </div>
         <div className="flex-1 min-h-0">
           <MenuGrid
@@ -685,6 +748,12 @@ function POSPage() {
           if (modPickerItem) addToCart(modPickerItem, options);
           setModPickerItem(null);
         }}
+      />
+
+      <BarcodeScannerDialog
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onDetected={handleBarcodeDetected}
       />
 
       <PaymentDialog

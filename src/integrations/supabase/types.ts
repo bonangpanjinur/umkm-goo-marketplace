@@ -3392,6 +3392,7 @@ export type Database = {
       menu_item_variants: {
         Row: {
           attributes: Json
+          barcode: string | null
           created_at: string
           id: string
           is_available: boolean
@@ -3406,6 +3407,7 @@ export type Database = {
         }
         Insert: {
           attributes?: Json
+          barcode?: string | null
           created_at?: string
           id?: string
           is_available?: boolean
@@ -3420,6 +3422,7 @@ export type Database = {
         }
         Update: {
           attributes?: Json
+          barcode?: string | null
           created_at?: string
           id?: string
           is_available?: boolean
@@ -3485,6 +3488,7 @@ export type Database = {
           auto_disable_on_empty: boolean
           available_modes: string[]
           average_rating: number | null
+          barcode: string | null
           category_id: string | null
           compare_price: number | null
           condition_grade: string | null
@@ -3546,6 +3550,7 @@ export type Database = {
           auto_disable_on_empty?: boolean
           available_modes?: string[]
           average_rating?: number | null
+          barcode?: string | null
           category_id?: string | null
           compare_price?: number | null
           condition_grade?: string | null
@@ -3607,6 +3612,7 @@ export type Database = {
           auto_disable_on_empty?: boolean
           available_modes?: string[]
           average_rating?: number | null
+          barcode?: string | null
           category_id?: string | null
           compare_price?: number | null
           condition_grade?: string | null
