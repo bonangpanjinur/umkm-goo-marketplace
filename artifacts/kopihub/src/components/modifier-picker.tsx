@@ -147,6 +147,8 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuIt
   }
 
   function handleConfirm() {
+    // Wajib pilih varian jika ada
+    if (variants.length > 0 && !variantId) return;
     // Validate required groups
     for (const g of groups) {
       if (g.is_required && (selections[g.id] ?? []).length === 0) {
@@ -154,6 +156,18 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuIt
       }
     }
     const selected: SelectedOption[] = [];
+    if (variants.length > 0 && variantId) {
+      const v = variants.find((x) => x.id === variantId);
+      if (v) {
+        selected.push({
+          group_id: "variant",
+          group_name: "Varian",
+          option_id: v.id,
+          option_name: v.name,
+          price_adjustment: Number(v.price) - Number(menuItemPrice ?? 0),
+        });
+      }
+    }
     for (const g of groups) {
       for (const optId of selections[g.id] ?? []) {
         const opt = g.options.find((o) => o.id === optId);
@@ -172,9 +186,9 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuIt
     onClose();
   }
 
-  const allValid = groups.every(
-    (g) => !g.is_required || (selections[g.id] ?? []).length > 0,
-  );
+  const allValid =
+    (variants.length === 0 || !!variantId) &&
+    groups.every((g) => !g.is_required || (selections[g.id] ?? []).length > 0);
 
   return (
     <Dialog open={open && ready} onOpenChange={(o) => !o && onClose()}>
