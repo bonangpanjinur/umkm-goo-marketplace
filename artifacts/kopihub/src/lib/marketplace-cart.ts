@@ -253,18 +253,25 @@ export async function checkout(args: {
   shop_voucher_codes?: Record<string, string>;
   platform_voucher_code?: string | null;
 }): Promise<string[]> {
-  const { data, error } = await supabase.rpc("marketplace_checkout", {
-    _recipient_name: args.recipient_name,
-    _phone: args.phone,
-    _address: args.address,
-    _fulfillment: args.fulfillment ?? "delivery",
-    _payment_method: args.payment_method ?? "transfer",
-    _notes: args.notes ?? undefined,
-    _shipping: (args.shipping ?? {}) as any,
-    _shop_voucher_codes: (args.shop_voucher_codes ?? {}) as any,
-    _platform_voucher_code: args.platform_voucher_code ?? undefined,
-  });
-  if (error) throw error;
-  notifyCartChange();
-  return ((data as any)?.order_ids as string[]) ?? [];
+  // Snapshot dulu untuk optimistic clear — badge langsung kosong saat confirm.
+  let snapshot: CartItem[] = [];
+  try { snapshot = await listCart(); } catch {}
+  for (const it of snapshot) applyOptimisticDelta(it.shop_id, -Number(it.quantity ?? 0));
+  try {
+    const { data, error } = await supabase.rpc("marketplace_checkout", {
+      _recipient_name: args.recipient_name,
+      _phone: args.phone,
+      _address: args.address,
+      _fulfillment: args.fulfillment ?? "delivery",
+      _payment_method: args.payment_method ?? "transfer",
+      _notes: args.notes ?? undefined,
+      _shipping: (args.shipping ?? {}) as any,
+      _shop_voucher_codes: (args.shop_voucher_codes ?? {}) as any,
+      _platform_voucher_code: args.platform_voucher_code ?? undefined,
+    });
+    if (error) throw error;
+    return ((data as any)?.order_ids as string[]) ?? [];
+  } finally {
+    for (const it of snapshot) applyOptimisticDelta(it.shop_id, Number(it.quantity ?? 0));
+  }
 }
