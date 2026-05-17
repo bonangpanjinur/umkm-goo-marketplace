@@ -32,7 +32,7 @@ const SEED_TASKS: Omit<SeedTask, "running" | "done" | "result">[] = [
 ];
 
 const DEMO_CATEGORIES = [
-  { slug: "fnb",      name: "Warung Kopi Demo",    type: "Kafe & Minuman" },
+  { slug: "fnb",      name: "Warung UMKM Demo",    type: "Kafe & Minuman" },
   { slug: "fashion",  name: "Butik Mode Demo",     type: "Fashion & Pakaian" },
   { slug: "rental",   name: "Rental Kendaraan Demo", type: "Rental & Sewa" },
   { slug: "klinik",   name: "Klinik Kecantikan Demo", type: "Kesehatan & Kecantikan" },

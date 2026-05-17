@@ -246,7 +246,7 @@ function OnboardingPage() {
                 <Label htmlFor="shop">Nama toko *</Label>
                 <Input id="shop" className="mt-1.5" required value={shopName}
                   onChange={e => setShopName(e.target.value)}
-                  placeholder="mis. Kopi Senja, Butik Arisa, Toko Digital Kreatif" />
+                  placeholder="mis. Toko Berkah, Butik Arisa, Toko Digital Kreatif" />
               </div>
               <div>
                 <Label htmlFor="desc">Deskripsi singkat <span className="text-muted-foreground">(opsional)</span></Label>

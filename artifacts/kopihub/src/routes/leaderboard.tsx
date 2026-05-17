@@ -68,7 +68,7 @@ function LeaderboardPage() {
     (async () => {
       setLoading(true);
 
-      // 1. Coffee shops
+      // 1. Shops
       const { data: shopData } = await supabase
         .from("shops")
         .select("id, name, slug, logo_url, tagline, is_kyc_verified")

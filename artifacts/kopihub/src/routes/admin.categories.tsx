@@ -272,7 +272,7 @@ function AdminCategories() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Nama Kategori *</Label>
-              <Input placeholder="Kafe & Kedai Kopi" value={form.name}
+              <Input placeholder="Kafe & Restoran" value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: f.slug || autoSlug(e.target.value) }))} />
             </div>
             <div className="space-y-1.5">

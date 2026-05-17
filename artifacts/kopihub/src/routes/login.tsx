@@ -119,7 +119,7 @@ export function AuthShell({
           <p className="text-2xl font-semibold leading-snug">
             "Sejak pakai UMKMgo, kasir kami selesaikan order rush hour 2× lebih cepat."
           </p>
-          <p className="mt-3 text-sm opacity-80">— Owner, Kopi Senja Bandung</p>
+          <p className="mt-3 text-sm opacity-80">— Owner, Toko Berkah Bandung</p>
         </div>
       </div>
     </div>

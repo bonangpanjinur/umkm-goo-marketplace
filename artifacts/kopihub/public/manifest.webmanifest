@@ -1,7 +1,7 @@
 {
   "name": "UMKMgo",
   "short_name": "UMKMgo",
-  "description": "POS & Marketplace untuk coffeeshop modern",
+  "description": "POS & Marketplace untuk semua UMKM",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
