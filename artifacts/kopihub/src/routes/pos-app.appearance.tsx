@@ -59,7 +59,10 @@ function AppearancePage() {
   }, [themes, recommendedKey]);
 
   const storefrontUrl = shop?.slug ? `/s/${shop.slug}` : null;
-  const previewUrl = storefrontUrl ? `${window.location.origin}${storefrontUrl}?preview=1` : null;
+  const previewUrl = storefrontUrl
+    ? `${window.location.origin}${storefrontUrl}?preview=1${previewThemeKey ? `&theme=${encodeURIComponent(previewThemeKey)}` : ""}`
+    : null;
+  const previewThemeName = previewThemeKey ? themes.find((t) => t.key === previewThemeKey)?.name ?? previewThemeKey : null;
 
 
   const apply = async (key: string) => {
