@@ -249,11 +249,13 @@ function CartPage() {
   };
 
   const setQty = async (id: string, qty: number) => {
+    const cur = items.find((i) => i.id === id);
+    const meta = cur ? { shop_id: cur.shop_id, prevQuantity: Number(cur.quantity ?? 0) } : undefined;
     if (qty <= 0) {
-      await removeCartItem(id);
+      await removeCartItem(id, meta);
       setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
     } else {
-      await updateCartItem(id, qty);
+      await updateCartItem(id, qty, meta);
     }
     refresh();
   };
