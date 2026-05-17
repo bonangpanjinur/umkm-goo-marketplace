@@ -249,6 +249,9 @@ function OrdersPage() {
               <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 text-red-500" onClick={() => bulkUpdateStatus("voided")} disabled={bulkUpdating}>
                 <XCircle className="h-3.5 w-3.5" /> Void
               </Button>
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 text-red-500" onClick={() => bulkUpdateStatus("cancelled")} disabled={bulkUpdating}>
+                Cancel
+              </Button>
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setCheckedIds(new Set())} disabled={bulkUpdating}>
                 Batal Pilih
               </Button>
