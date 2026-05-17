@@ -50,6 +50,7 @@ import { Route as PosAppUmrohPackagesRouteImport } from './routes/pos-app.umroh-
 import { Route as PosAppUmrohFaqRouteImport } from './routes/pos-app.umroh-faq'
 import { Route as PosAppUmrohFacilitiesRouteImport } from './routes/pos-app.umroh-facilities'
 import { Route as PosAppTravelManifestRouteImport } from './routes/pos-app.travel-manifest'
+import { Route as PosAppTravelItineraryRouteImport } from './routes/pos-app.travel-itinerary'
 import { Route as PosAppTravelInstallmentsRouteImport } from './routes/pos-app.travel-installments'
 import { Route as PosAppTestimonialsRouteImport } from './routes/pos-app.testimonials'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
@@ -495,6 +496,11 @@ const PosAppUmrohFacilitiesRoute = PosAppUmrohFacilitiesRouteImport.update({
 const PosAppTravelManifestRoute = PosAppTravelManifestRouteImport.update({
   id: '/travel-manifest',
   path: '/travel-manifest',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppTravelItineraryRoute = PosAppTravelItineraryRouteImport.update({
+  id: '/travel-itinerary',
+  path: '/travel-itinerary',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppTravelInstallmentsRoute =
@@ -1938,6 +1944,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
   '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
@@ -2217,6 +2224,7 @@ export interface FileRoutesByTo {
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
   '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
@@ -2501,6 +2509,7 @@ export interface FileRoutesById {
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
   '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
@@ -2787,6 +2796,7 @@ export interface FileRouteTypes {
     | '/pos-app/tables'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
+    | '/pos-app/travel-itinerary'
     | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
@@ -3066,6 +3076,7 @@ export interface FileRouteTypes {
     | '/pos-app/tables'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
+    | '/pos-app/travel-itinerary'
     | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
@@ -3349,6 +3360,7 @@ export interface FileRouteTypes {
     | '/pos-app/tables'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
+    | '/pos-app/travel-itinerary'
     | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
@@ -3739,6 +3751,13 @@ declare module '@tanstack/react-router' {
       path: '/travel-manifest'
       fullPath: '/pos-app/travel-manifest'
       preLoaderRoute: typeof PosAppTravelManifestRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/travel-itinerary': {
+      id: '/pos-app/travel-itinerary'
+      path: '/travel-itinerary'
+      fullPath: '/pos-app/travel-itinerary'
+      preLoaderRoute: typeof PosAppTravelItineraryRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/travel-installments': {
@@ -5851,6 +5870,7 @@ interface PosAppRouteChildren {
   PosAppTablesRoute: typeof PosAppTablesRoute
   PosAppTestimonialsRoute: typeof PosAppTestimonialsRoute
   PosAppTravelInstallmentsRoute: typeof PosAppTravelInstallmentsRoute
+  PosAppTravelItineraryRoute: typeof PosAppTravelItineraryRoute
   PosAppTravelManifestRoute: typeof PosAppTravelManifestRoute
   PosAppUmrohFacilitiesRoute: typeof PosAppUmrohFacilitiesRoute
   PosAppUmrohFaqRoute: typeof PosAppUmrohFaqRoute
@@ -5989,6 +6009,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTablesRoute: PosAppTablesRoute,
   PosAppTestimonialsRoute: PosAppTestimonialsRoute,
   PosAppTravelInstallmentsRoute: PosAppTravelInstallmentsRoute,
+  PosAppTravelItineraryRoute: PosAppTravelItineraryRoute,
   PosAppTravelManifestRoute: PosAppTravelManifestRoute,
   PosAppUmrohFacilitiesRoute: PosAppUmrohFacilitiesRoute,
   PosAppUmrohFaqRoute: PosAppUmrohFaqRoute,
