@@ -761,6 +761,14 @@ function KursusPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === 0}
+                                onClick={() => moveLesson(mod.id, li, -1)}>
+                                <ArrowUp className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === modLessons.length - 1}
+                                onClick={() => moveLesson(mod.id, li, 1)}>
+                                <ArrowDown className="h-3 w-3" />
+                              </Button>
                               <Button size="icon" variant="ghost" className="h-7 w-7"
                                 onClick={() => openEditLesson(lesson)}>
                                 <Pencil className="h-3 w-3" />
