@@ -482,18 +482,22 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
       }
     }
 
-    await db
-      .update(webhookLogs)
-      .set({ status: "processed", relatedTransactionId: tx.id })
-      .where(and(eq(webhookLogs.gateway, "xendit"), eq(webhookLogs.status, "received")));
+    if (logId) {
+      await db
+        .update(webhookLogs)
+        .set({ status: "processed", relatedTransactionId: tx.id })
+        .where(eq(webhookLogs.id, logId));
+    }
 
     res.json({ received: true, status: newStatus });
   } catch (err: unknown) {
     logger.error({ err }, "Xendit webhook processing error");
-    await db
-      .update(webhookLogs)
-      .set({ status: "error", processingError: err instanceof Error ? err.message : String(err) })
-      .where(and(eq(webhookLogs.gateway, "xendit"), eq(webhookLogs.status, "received")));
+    if (logId) {
+      await db
+        .update(webhookLogs)
+        .set({ status: "error", processingError: err instanceof Error ? err.message : String(err) })
+        .where(eq(webhookLogs.id, logId));
+    }
     res.status(500).json({ error: "Webhook processing failed" });
   }
 });
