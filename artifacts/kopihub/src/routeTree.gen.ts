@@ -45,6 +45,7 @@ import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
 import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVerifiedClaimsRouteImport } from './routes/pos-app.verified-claims'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
+import { Route as PosAppVariantMatrixRouteImport } from './routes/pos-app.variant-matrix'
 import { Route as PosAppUpsellRouteImport } from './routes/pos-app.upsell'
 import { Route as PosAppUmrohPackagesRouteImport } from './routes/pos-app.umroh-packages'
 import { Route as PosAppUmrohFaqRouteImport } from './routes/pos-app.umroh-faq'
@@ -472,6 +473,11 @@ const PosAppVerifiedClaimsRoute = PosAppVerifiedClaimsRouteImport.update({
 const PosAppVariantsRoute = PosAppVariantsRouteImport.update({
   id: '/variants',
   path: '/variants',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppVariantMatrixRoute = PosAppVariantMatrixRouteImport.update({
+  id: '/variant-matrix',
+  path: '/variant-matrix',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppUpsellRoute = PosAppUpsellRouteImport.update({
@@ -1957,6 +1963,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
+  '/pos-app/variant-matrix': typeof PosAppVariantMatrixRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
@@ -2238,6 +2245,7 @@ export interface FileRoutesByTo {
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
+  '/pos-app/variant-matrix': typeof PosAppVariantMatrixRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
@@ -2524,6 +2532,7 @@ export interface FileRoutesById {
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
+  '/pos-app/variant-matrix': typeof PosAppVariantMatrixRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
@@ -2812,6 +2821,7 @@ export interface FileRouteTypes {
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
+    | '/pos-app/variant-matrix'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
     | '/pos-app/vouchers'
@@ -3093,6 +3103,7 @@ export interface FileRouteTypes {
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
+    | '/pos-app/variant-matrix'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
     | '/pos-app/vouchers'
@@ -3378,6 +3389,7 @@ export interface FileRouteTypes {
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
+    | '/pos-app/variant-matrix'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
     | '/pos-app/vouchers'
@@ -3728,6 +3740,13 @@ declare module '@tanstack/react-router' {
       path: '/variants'
       fullPath: '/pos-app/variants'
       preLoaderRoute: typeof PosAppVariantsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/variant-matrix': {
+      id: '/pos-app/variant-matrix'
+      path: '/variant-matrix'
+      fullPath: '/pos-app/variant-matrix'
+      preLoaderRoute: typeof PosAppVariantMatrixRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/upsell': {
@@ -5896,6 +5915,7 @@ interface PosAppRouteChildren {
   PosAppUmrohFaqRoute: typeof PosAppUmrohFaqRoute
   PosAppUmrohPackagesRoute: typeof PosAppUmrohPackagesRoute
   PosAppUpsellRoute: typeof PosAppUpsellRoute
+  PosAppVariantMatrixRoute: typeof PosAppVariantMatrixRoute
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppVerifiedClaimsRoute: typeof PosAppVerifiedClaimsRoute
   PosAppVouchersRoute: typeof PosAppVouchersRoute
@@ -6036,6 +6056,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppUmrohFaqRoute: PosAppUmrohFaqRoute,
   PosAppUmrohPackagesRoute: PosAppUmrohPackagesRoute,
   PosAppUpsellRoute: PosAppUpsellRoute,
+  PosAppVariantMatrixRoute: PosAppVariantMatrixRoute,
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppVerifiedClaimsRoute: PosAppVerifiedClaimsRoute,
   PosAppVouchersRoute: PosAppVouchersRoute,
