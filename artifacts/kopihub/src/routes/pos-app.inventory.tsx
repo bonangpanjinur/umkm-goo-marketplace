@@ -376,7 +376,7 @@ function InventoryPage() {
     if (!shop) return;
     setHistoryLoading(true);
     setHistoryOpen(true);
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("stock_opnames")
       .select("*, stock_opname_items(*, ingredients(name, unit))")
       .eq("shop_id", shop.id)
