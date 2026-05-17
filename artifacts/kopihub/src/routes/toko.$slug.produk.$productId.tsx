@@ -294,7 +294,7 @@ function ProductDetailPage() {
       setLoading(true);
       const { data: s } = await supabase
         .from("shops")
-        .select("id, slug, name, logo_url")
+        .select("id, slug, name, logo_url, address, average_rating, review_count, total_sales_count, verification_status")
         .eq("slug", slug)
         .maybeSingle();
       if (!s) {
