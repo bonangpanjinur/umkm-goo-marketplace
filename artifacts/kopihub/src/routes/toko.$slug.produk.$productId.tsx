@@ -120,7 +120,17 @@ function PriceHistory({ productId, currentPrice }: { productId: string; currentP
   );
 }
 
-type Shop = { id: string; slug: string; name: string; logo_url: string | null };
+type Shop = {
+  id: string;
+  slug: string;
+  name: string;
+  logo_url: string | null;
+  address?: string | null;
+  average_rating?: number | null;
+  review_count?: number | null;
+  total_sales_count?: number | null;
+  verification_status?: string | null;
+};
 
 function useFlashCountdown(endsAt: string | null) {
   const [, tick] = useState(0);
