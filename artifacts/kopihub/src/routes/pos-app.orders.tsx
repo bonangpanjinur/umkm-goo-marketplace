@@ -534,6 +534,11 @@ function DetailDialog({
                   const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
                   setVoiding(false);
                   if (error) { toast.error(error.message); return; }
+                  logStaffAction({
+                    shopId,
+                    action: "order.void",
+                    meta: { order_id: order.id, order_no: order.order_no, reason },
+                  });
                   toast.success("Order di-void");
                   onVoided();
                 }}
