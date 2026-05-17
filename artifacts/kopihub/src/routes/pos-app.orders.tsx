@@ -442,13 +442,15 @@ function DetailDialog({
     const amt = Number(refundAmount || 0);
     if (amt <= 0) { toast.error("Jumlah refund harus > 0"); return; }
     if (amt > Number(order.total)) { toast.error("Tidak boleh melebihi total order"); return; }
+    const reason = refundReason.trim();
+    if (reason.length < 3) { toast.error("Alasan refund wajib (min. 3 karakter)"); return; }
     setRefunding(true);
     try {
-      await refundOrder(order.id, amt, refundReason || "Refund", refundMethod);
+      await refundOrder(order.id, amt, reason, refundMethod);
       logStaffAction({
         shopId,
         action: "order.refund",
-        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason: refundReason, method: refundMethod },
+        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason, method: refundMethod },
       });
       toast.success(`Refund ${formatIDR(amt)} dicatat`);
       setRefundOpen(false);
@@ -458,6 +460,43 @@ function DetailDialog({
       toast.error(msg);
     } finally {
       setRefunding(false);
+    }
+  }
+
+  async function handleVoid(reason: string) {
+    setVoiding(true);
+    try {
+      const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
+      if (error) { toast.error(error.message); throw error; }
+      logStaffAction({
+        shopId,
+        action: "order.void",
+        meta: { order_id: order.id, order_no: order.order_no, reason },
+      });
+      toast.success("Order di-void");
+      onVoided();
+    } finally {
+      setVoiding(false);
+    }
+  }
+
+  async function handleCancel(reason: string) {
+    setCancelling(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" } as any)
+        .eq("id", order.id);
+      if (error) { toast.error(error.message); throw error; }
+      logStaffAction({
+        shopId,
+        action: "order.void",
+        meta: { order_id: order.id, order_no: order.order_no, status: "cancelled", reason },
+      });
+      toast.success("Order dibatalkan");
+      onVoided();
+    } finally {
+      setCancelling(false);
     }
   }
 
