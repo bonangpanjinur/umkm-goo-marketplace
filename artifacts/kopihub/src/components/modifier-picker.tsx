@@ -202,6 +202,44 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuIt
           </div>
         ) : (
           <div className="space-y-5">
+            {variants.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-semibold">Varian</span>
+                  <span className="text-[10px] font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">Wajib</span>
+                </div>
+                <RadioGroup value={variantId} onValueChange={setVariantId}>
+                  {variants.map((v) => {
+                    const oos =
+                      !v.is_available || (v.stock !== null && (v.stock ?? 0) <= 0);
+                    const delta = Number(v.price) - Number(menuItemPrice ?? 0);
+                    return (
+                      <div
+                        key={v.id}
+                        className={`flex items-center justify-between py-1.5 ${oos ? "opacity-50" : ""}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value={v.id} id={`var-${v.id}`} disabled={oos} />
+                          <Label htmlFor={`var-${v.id}`} className="text-sm cursor-pointer flex items-center gap-2">
+                            <span>{v.name}</span>
+                            {v.stock !== null && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${oos ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                                {oos ? "Habis" : `Stok ${v.stock}`}
+                              </span>
+                            )}
+                          </Label>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {delta !== 0
+                            ? `${delta > 0 ? "+" : ""}${formatIDR(delta)}`
+                            : formatIDR(v.price)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              </div>
+            )}
             {groups.map((g) => (
               <div key={g.id}>
                 <div className="flex items-center gap-2 mb-2">
