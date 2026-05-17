@@ -154,6 +154,7 @@ import { Route as PosAppBookingAnalyticsRouteImport } from './routes/pos-app.boo
 import { Route as PosAppBookingRouteImport } from './routes/pos-app.booking'
 import { Route as PosAppBillingRouteImport } from './routes/pos-app.billing'
 import { Route as PosAppBackupRouteImport } from './routes/pos-app.backup'
+import { Route as PosAppAuditLogsRouteImport } from './routes/pos-app.audit-logs'
 import { Route as PosAppAttendanceRouteImport } from './routes/pos-app.attendance'
 import { Route as PosAppAtributRouteImport } from './routes/pos-app.atribut'
 import { Route as PosAppAppearanceRouteImport } from './routes/pos-app.appearance'
@@ -1009,6 +1010,11 @@ const PosAppBackupRoute = PosAppBackupRouteImport.update({
   path: '/backup',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppAuditLogsRoute = PosAppAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppAttendanceRoute = PosAppAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -1748,6 +1754,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
+  '/pos-app/audit-logs': typeof PosAppAuditLogsRoute
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
@@ -2015,6 +2022,7 @@ export interface FileRoutesByTo {
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
+  '/pos-app/audit-logs': typeof PosAppAuditLogsRoute
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
@@ -2287,6 +2295,7 @@ export interface FileRoutesById {
   '/pos-app/appearance': typeof PosAppAppearanceRoute
   '/pos-app/atribut': typeof PosAppAtributRoute
   '/pos-app/attendance': typeof PosAppAttendanceRoute
+  '/pos-app/audit-logs': typeof PosAppAuditLogsRoute
   '/pos-app/backup': typeof PosAppBackupRoute
   '/pos-app/billing': typeof PosAppBillingRoute
   '/pos-app/booking': typeof PosAppBookingRoute
@@ -2561,6 +2570,7 @@ export interface FileRouteTypes {
     | '/pos-app/appearance'
     | '/pos-app/atribut'
     | '/pos-app/attendance'
+    | '/pos-app/audit-logs'
     | '/pos-app/backup'
     | '/pos-app/billing'
     | '/pos-app/booking'
@@ -2828,6 +2838,7 @@ export interface FileRouteTypes {
     | '/pos-app/appearance'
     | '/pos-app/atribut'
     | '/pos-app/attendance'
+    | '/pos-app/audit-logs'
     | '/pos-app/backup'
     | '/pos-app/billing'
     | '/pos-app/booking'
@@ -3099,6 +3110,7 @@ export interface FileRouteTypes {
     | '/pos-app/appearance'
     | '/pos-app/atribut'
     | '/pos-app/attendance'
+    | '/pos-app/audit-logs'
     | '/pos-app/backup'
     | '/pos-app/billing'
     | '/pos-app/booking'
@@ -4321,6 +4333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppBackupRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/audit-logs': {
+      id: '/pos-app/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/pos-app/audit-logs'
+      preLoaderRoute: typeof PosAppAuditLogsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/attendance': {
       id: '/pos-app/attendance'
       path: '/attendance'
@@ -5503,6 +5522,7 @@ interface PosAppRouteChildren {
   PosAppAppearanceRoute: typeof PosAppAppearanceRoute
   PosAppAtributRoute: typeof PosAppAtributRoute
   PosAppAttendanceRoute: typeof PosAppAttendanceRoute
+  PosAppAuditLogsRoute: typeof PosAppAuditLogsRoute
   PosAppBackupRoute: typeof PosAppBackupRoute
   PosAppBillingRoute: typeof PosAppBillingRoute
   PosAppBookingRoute: typeof PosAppBookingRoute
@@ -5631,6 +5651,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppAppearanceRoute: PosAppAppearanceRoute,
   PosAppAtributRoute: PosAppAtributRoute,
   PosAppAttendanceRoute: PosAppAttendanceRoute,
+  PosAppAuditLogsRoute: PosAppAuditLogsRoute,
   PosAppBackupRoute: PosAppBackupRoute,
   PosAppBillingRoute: PosAppBillingRoute,
   PosAppBookingRoute: PosAppBookingRoute,
