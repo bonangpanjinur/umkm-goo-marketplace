@@ -3,7 +3,7 @@ import { useEntitlements } from "@/lib/use-entitlements";
 import { useShop } from "@/lib/use-shop";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphone, RefreshCw, Sparkles } from "lucide-react";
+import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphone, RefreshCw, Sparkles, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +27,7 @@ function AppearancePage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [recommendedKey, setRecommendedKey] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!shop?.id) return;
@@ -58,7 +59,10 @@ function AppearancePage() {
   }, [themes, recommendedKey]);
 
   const storefrontUrl = shop?.slug ? `/s/${shop.slug}` : null;
-  const previewUrl = storefrontUrl ? `${window.location.origin}${storefrontUrl}?preview=1` : null;
+  const previewUrl = storefrontUrl
+    ? `${window.location.origin}${storefrontUrl}?preview=1${previewThemeKey ? `&theme=${encodeURIComponent(previewThemeKey)}` : ""}`
+    : null;
+  const previewThemeName = previewThemeKey ? themes.find((t) => t.key === previewThemeKey)?.name ?? previewThemeKey : null;
 
 
   const apply = async (key: string) => {
@@ -67,6 +71,7 @@ function AppearancePage() {
       const { setShopTheme } = await import("@/server/entitlements.functions");
       await setShopTheme({ data: { themeKey: key } });
       toast.success("Tema diaktifkan");
+      setPreviewThemeKey(null);
       await reload();
       setIframeKey((k) => k + 1);
     } catch (e) {
@@ -149,7 +154,15 @@ function AppearancePage() {
             </div>
           </div>
           <div className="border-t border-border bg-muted/20 px-4 py-2 text-center text-xs text-muted-foreground">
-            Preview langsung storefront toko Anda · Klik "Buka Storefront" untuk tampilan penuh
+            {previewThemeKey ? (
+              <span className="inline-flex items-center gap-2">
+                <Eye className="h-3.5 w-3.5" />
+                Pratinjau tema <strong>{previewThemeName}</strong> — belum diterapkan.
+                <button onClick={() => setPreviewThemeKey(null)} className="underline hover:text-foreground">Tutup pratinjau</button>
+              </span>
+            ) : (
+              <>Preview langsung storefront toko Anda · Klik "Buka Storefront" untuk tampilan penuh</>
+            )}
           </div>
         </Card>
       )}
@@ -167,10 +180,20 @@ function AppearancePage() {
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pilih Tema</h2>
           {recommendedKey && recommendedKey !== activeThemeKey && (
-            <Button size="sm" variant="outline" onClick={() => apply(recommendedKey)} disabled={busy === recommendedKey}>
-              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-              Pakai Rekomendasi
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => { setPreviewThemeKey(recommendedKey); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              >
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                Pratinjau Rekomendasi
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => apply(recommendedKey)} disabled={busy === recommendedKey}>
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Pakai Rekomendasi
+              </Button>
+            </div>
           )}
         </div>
         {categoryName && recommendedKey && (
@@ -199,13 +222,28 @@ function AppearancePage() {
                 </div>
                 {t.description && <p className="text-xs text-muted-foreground mt-1">{t.description}</p>}
                 {!t.allowed && t.reason && <p className="text-xs text-amber-700 mt-2">{t.reason}</p>}
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   {t.allowed ? (
                     <Button size="sm" disabled={active || busy === t.key} onClick={() => apply(t.key)}>
                       {busy === t.key ? <Loader2 className="h-4 w-4 animate-spin" /> : active ? "Sedang dipakai" : "Pakai tema ini"}
                     </Button>
                   ) : (
                     <Link to="/pos-app/billing"><Button size="sm" variant="outline">Upgrade untuk akses</Button></Link>
+                  )}
+                  {!active && (
+                    previewThemeKey === t.key ? (
+                      <Button size="sm" variant="ghost" onClick={() => setPreviewThemeKey(null)}>
+                        <X className="h-3.5 w-3.5 mr-1" />Tutup pratinjau
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => { setPreviewThemeKey(t.key); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1" />Pratinjau
+                      </Button>
+                    )
                   )}
                 </div>
               </Card>

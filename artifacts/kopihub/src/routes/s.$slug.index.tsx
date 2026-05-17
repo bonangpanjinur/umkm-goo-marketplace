@@ -100,6 +100,11 @@ function ShopHome() {
   if (catSlug === "sales-jasa-profesional") {
     themeKey = subtype === "umroh" ? "umroh" : "sales-pro";
   }
+  // Theme preview override (?theme=key) — used by owner appearance page
+  if (typeof window !== "undefined") {
+    const override = new URLSearchParams(window.location.search).get("theme");
+    if (override) themeKey = override;
+  }
   const onAdd = (i: StorefrontItem) => {
     addToCart(slug, { menu_item_id: i.id, name: i.name, price: Number(i.price), image_url: i.image_url });
     toast.success(`${i.name} ditambahkan`);
