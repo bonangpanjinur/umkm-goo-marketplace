@@ -27,33 +27,41 @@ export async function addToCart(args: {
   quantity?: number;
   notes?: string;
 }): Promise<void> {
-  const cart_id = await getOrCreateCartId();
-  const { data: existing } = await supabase
-    .from("marketplace_cart_items")
-    .select("id, quantity")
-    .eq("cart_id", cart_id)
-    .eq("product_id", args.product_id)
-    .is("variant_id", null)
-    .maybeSingle();
-
-  if (existing) {
-    const { error } = await supabase
+  const qty = args.quantity ?? 1;
+  // Optimistik: badge langsung naik sebelum round-trip ke server.
+  applyOptimisticDelta(args.shop_id, qty);
+  try {
+    const cart_id = await getOrCreateCartId();
+    const { data: existing } = await supabase
       .from("marketplace_cart_items")
-      .update({ quantity: (existing as any).quantity + (args.quantity ?? 1), notes: args.notes ?? null })
-      .eq("id", (existing as any).id);
-    if (error) throw error;
-  } else {
-    const { error } = await supabase.from("marketplace_cart_items").insert({
-      cart_id,
-      shop_id: args.shop_id,
-      product_id: args.product_id,
-      unit_price: args.unit_price,
-      quantity: args.quantity ?? 1,
-      notes: args.notes ?? null,
-    });
-    if (error) throw error;
+      .select("id, quantity")
+      .eq("cart_id", cart_id)
+      .eq("product_id", args.product_id)
+      .is("variant_id", null)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase
+        .from("marketplace_cart_items")
+        .update({ quantity: (existing as any).quantity + qty, notes: args.notes ?? null })
+        .eq("id", (existing as any).id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from("marketplace_cart_items").insert({
+        cart_id,
+        shop_id: args.shop_id,
+        product_id: args.product_id,
+        unit_price: args.unit_price,
+        quantity: qty,
+        notes: args.notes ?? null,
+      });
+      if (error) throw error;
+    }
+  } finally {
+    // Rekonsiliasi: hapus delta optimistik & broadcast supaya listener re-fetch
+    // angka asli dari server. Kalau gagal pun, delta tetap di-revert.
+    applyOptimisticDelta(args.shop_id, -qty);
   }
-  notifyCartChange();
 }
 
 export async function listCart(): Promise<CartItem[]> {
@@ -69,22 +77,40 @@ export async function listCart(): Promise<CartItem[]> {
   return (data as any) ?? [];
 }
 
-export async function updateCartItem(id: string, quantity: number): Promise<void> {
+export async function updateCartItem(
+  id: string,
+  quantity: number,
+  meta?: { shop_id: string; prevQuantity: number },
+): Promise<void> {
   if (quantity <= 0) {
-    return removeCartItem(id);
+    return removeCartItem(id, meta);
   }
-  const { error } = await supabase
-    .from("marketplace_cart_items")
-    .update({ quantity })
-    .eq("id", id);
-  if (error) throw error;
-  notifyCartChange();
+  const delta = meta ? quantity - meta.prevQuantity : 0;
+  if (meta && delta !== 0) applyOptimisticDelta(meta.shop_id, delta);
+  try {
+    const { error } = await supabase
+      .from("marketplace_cart_items")
+      .update({ quantity })
+      .eq("id", id);
+    if (error) throw error;
+  } finally {
+    if (meta && delta !== 0) applyOptimisticDelta(meta.shop_id, -delta);
+    else notifyCartChange();
+  }
 }
 
-export async function removeCartItem(id: string): Promise<void> {
-  const { error } = await supabase.from("marketplace_cart_items").delete().eq("id", id);
-  if (error) throw error;
-  notifyCartChange();
+export async function removeCartItem(
+  id: string,
+  meta?: { shop_id: string; prevQuantity: number },
+): Promise<void> {
+  if (meta) applyOptimisticDelta(meta.shop_id, -meta.prevQuantity);
+  try {
+    const { error } = await supabase.from("marketplace_cart_items").delete().eq("id", id);
+    if (error) throw error;
+  } finally {
+    if (meta) applyOptimisticDelta(meta.shop_id, meta.prevQuantity);
+    else notifyCartChange();
+  }
 }
 
 export function markCartActivity(): void {
@@ -109,6 +135,32 @@ export function notifyCartChange(): void {
   } catch {}
 }
 
+// =====================================================================
+// Optimistic delta layer
+// =====================================================================
+// Menyimpan delta in-memory per shop sehingga `cartQuantitySum(shopId)` bisa
+// melaporkan angka optimistik (server + delta pending) sebelum response
+// supabase masuk. Setelah operasi selesai, delta direvert dan listener
+// dipanggil ulang sehingga badge merefleksikan angka final dari server.
+const ALL_SHOPS = "__all__";
+const optimisticDeltas = new Map<string, number>();
+
+export function applyOptimisticDelta(shopId: string | undefined, delta: number): void {
+  if (delta === 0) return;
+  const bump = (key: string) => {
+    const next = (optimisticDeltas.get(key) ?? 0) + delta;
+    if (next === 0) optimisticDeltas.delete(key);
+    else optimisticDeltas.set(key, next);
+  };
+  bump(shopId ?? ALL_SHOPS);
+  if (shopId) bump(ALL_SHOPS);
+  notifyCartChange();
+}
+
+function readOptimistic(shopId?: string): number {
+  return optimisticDeltas.get(shopId ?? ALL_SHOPS) ?? 0;
+}
+
 export async function cartCount(): Promise<number> {
   return cartQuantitySum();
 }
@@ -117,10 +169,13 @@ export async function cartCount(): Promise<number> {
  * Jumlah total qty di cart aktif user (sum quantity, bukan jumlah baris).
  * Filter `shopId` opsional — gunakan untuk badge per-toko agar tidak
  * mengakumulasi item dari toko lain pada satu user (multi-shop di satu cart).
+ *
+ * Termasuk delta optimistik (lihat `applyOptimisticDelta`) supaya badge
+ * langsung berubah saat user add/remove/confirm tanpa menunggu server.
  */
 export async function cartQuantitySum(shopId?: string): Promise<number> {
   const { data: session } = await supabase.auth.getSession();
-  if (!session.session) return 0;
+  if (!session.session) return readOptimistic(shopId);
   const cart_id = await getOrCreateCartId();
   let q = supabase
     .from("marketplace_cart_items")
@@ -128,8 +183,10 @@ export async function cartQuantitySum(shopId?: string): Promise<number> {
     .eq("cart_id", cart_id);
   if (shopId) q = q.eq("shop_id", shopId);
   const { data, error } = await q;
-  if (error || !data) return 0;
-  return (data as { quantity: number }[]).reduce((s, r) => s + Number(r.quantity ?? 0), 0);
+  const serverSum = error || !data
+    ? 0
+    : (data as { quantity: number }[]).reduce((s, r) => s + Number(r.quantity ?? 0), 0);
+  return serverSum + readOptimistic(shopId);
 }
 
 export type DeliveryZone = {
@@ -196,18 +253,25 @@ export async function checkout(args: {
   shop_voucher_codes?: Record<string, string>;
   platform_voucher_code?: string | null;
 }): Promise<string[]> {
-  const { data, error } = await supabase.rpc("marketplace_checkout", {
-    _recipient_name: args.recipient_name,
-    _phone: args.phone,
-    _address: args.address,
-    _fulfillment: args.fulfillment ?? "delivery",
-    _payment_method: args.payment_method ?? "transfer",
-    _notes: args.notes ?? undefined,
-    _shipping: (args.shipping ?? {}) as any,
-    _shop_voucher_codes: (args.shop_voucher_codes ?? {}) as any,
-    _platform_voucher_code: args.platform_voucher_code ?? undefined,
-  });
-  if (error) throw error;
-  notifyCartChange();
-  return ((data as any)?.order_ids as string[]) ?? [];
+  // Snapshot dulu untuk optimistic clear — badge langsung kosong saat confirm.
+  let snapshot: CartItem[] = [];
+  try { snapshot = await listCart(); } catch {}
+  for (const it of snapshot) applyOptimisticDelta(it.shop_id, -Number(it.quantity ?? 0));
+  try {
+    const { data, error } = await supabase.rpc("marketplace_checkout", {
+      _recipient_name: args.recipient_name,
+      _phone: args.phone,
+      _address: args.address,
+      _fulfillment: args.fulfillment ?? "delivery",
+      _payment_method: args.payment_method ?? "transfer",
+      _notes: args.notes ?? undefined,
+      _shipping: (args.shipping ?? {}) as any,
+      _shop_voucher_codes: (args.shop_voucher_codes ?? {}) as any,
+      _platform_voucher_code: args.platform_voucher_code ?? undefined,
+    });
+    if (error) throw error;
+    return ((data as any)?.order_ids as string[]) ?? [];
+  } finally {
+    for (const it of snapshot) applyOptimisticDelta(it.shop_id, Number(it.quantity ?? 0));
+  }
 }
