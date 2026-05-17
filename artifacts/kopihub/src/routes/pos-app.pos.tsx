@@ -24,8 +24,10 @@ import {
   StickyNote,
   RotateCcw,
   Trash2,
+  ScanLine,
 } from "lucide-react";
 import { ListOrdered } from "lucide-react";
+import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import type { CartItem } from "@/lib/cart";
