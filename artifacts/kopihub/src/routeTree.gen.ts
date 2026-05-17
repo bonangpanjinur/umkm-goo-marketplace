@@ -45,11 +45,13 @@ import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
 import { Route as PosAppVouchersRouteImport } from './routes/pos-app.vouchers'
 import { Route as PosAppVerifiedClaimsRouteImport } from './routes/pos-app.verified-claims'
 import { Route as PosAppVariantsRouteImport } from './routes/pos-app.variants'
+import { Route as PosAppVariantMatrixRouteImport } from './routes/pos-app.variant-matrix'
 import { Route as PosAppUpsellRouteImport } from './routes/pos-app.upsell'
 import { Route as PosAppUmrohPackagesRouteImport } from './routes/pos-app.umroh-packages'
 import { Route as PosAppUmrohFaqRouteImport } from './routes/pos-app.umroh-faq'
 import { Route as PosAppUmrohFacilitiesRouteImport } from './routes/pos-app.umroh-facilities'
 import { Route as PosAppTravelManifestRouteImport } from './routes/pos-app.travel-manifest'
+import { Route as PosAppTravelItineraryRouteImport } from './routes/pos-app.travel-itinerary'
 import { Route as PosAppTravelInstallmentsRouteImport } from './routes/pos-app.travel-installments'
 import { Route as PosAppTestimonialsRouteImport } from './routes/pos-app.testimonials'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
@@ -118,6 +120,7 @@ import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppLookbookRouteImport } from './routes/pos-app.lookbook'
 import { Route as PosAppLimitedEditionsRouteImport } from './routes/pos-app.limited-editions'
+import { Route as PosAppLessonProgressRouteImport } from './routes/pos-app.lesson-progress'
 import { Route as PosAppLeadsRouteImport } from './routes/pos-app.leads'
 import { Route as PosAppLaporanHarianRouteImport } from './routes/pos-app.laporan-harian'
 import { Route as PosAppKycRouteImport } from './routes/pos-app.kyc'
@@ -126,6 +129,7 @@ import { Route as PosAppKitchenLoadRouteImport } from './routes/pos-app.kitchen-
 import { Route as PosAppKeuanganRouteImport } from './routes/pos-app.keuangan'
 import { Route as PosAppKdsRouteImport } from './routes/pos-app.kds'
 import { Route as PosAppJobDeliverablesRouteImport } from './routes/pos-app.job-deliverables'
+import { Route as PosAppJamaahDocumentsRouteImport } from './routes/pos-app.jamaah-documents'
 import { Route as PosAppInvoiceRouteImport } from './routes/pos-app.invoice'
 import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
 import { Route as PosAppInboxRouteImport } from './routes/pos-app.inbox'
@@ -472,6 +476,11 @@ const PosAppVariantsRoute = PosAppVariantsRouteImport.update({
   path: '/variants',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppVariantMatrixRoute = PosAppVariantMatrixRouteImport.update({
+  id: '/variant-matrix',
+  path: '/variant-matrix',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppUpsellRoute = PosAppUpsellRouteImport.update({
   id: '/upsell',
   path: '/upsell',
@@ -495,6 +504,11 @@ const PosAppUmrohFacilitiesRoute = PosAppUmrohFacilitiesRouteImport.update({
 const PosAppTravelManifestRoute = PosAppTravelManifestRouteImport.update({
   id: '/travel-manifest',
   path: '/travel-manifest',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppTravelItineraryRoute = PosAppTravelItineraryRouteImport.update({
+  id: '/travel-itinerary',
+  path: '/travel-itinerary',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppTravelInstallmentsRoute =
@@ -842,6 +856,11 @@ const PosAppLimitedEditionsRoute = PosAppLimitedEditionsRouteImport.update({
   path: '/limited-editions',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppLessonProgressRoute = PosAppLessonProgressRouteImport.update({
+  id: '/lesson-progress',
+  path: '/lesson-progress',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppLeadsRoute = PosAppLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -880,6 +899,11 @@ const PosAppKdsRoute = PosAppKdsRouteImport.update({
 const PosAppJobDeliverablesRoute = PosAppJobDeliverablesRouteImport.update({
   id: '/job-deliverables',
   path: '/job-deliverables',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppJamaahDocumentsRoute = PosAppJamaahDocumentsRouteImport.update({
+  id: '/jamaah-documents',
+  path: '/jamaah-documents',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppInvoiceRoute = PosAppInvoiceRouteImport.update({
@@ -1862,6 +1886,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
+  '/pos-app/jamaah-documents': typeof PosAppJamaahDocumentsRoute
   '/pos-app/job-deliverables': typeof PosAppJobDeliverablesRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
@@ -1870,6 +1895,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/leads': typeof PosAppLeadsRoute
+  '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -1938,11 +1964,13 @@ export interface FileRoutesByFullPath {
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
   '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
+  '/pos-app/variant-matrix': typeof PosAppVariantMatrixRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
@@ -2141,6 +2169,7 @@ export interface FileRoutesByTo {
   '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
+  '/pos-app/jamaah-documents': typeof PosAppJamaahDocumentsRoute
   '/pos-app/job-deliverables': typeof PosAppJobDeliverablesRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
@@ -2149,6 +2178,7 @@ export interface FileRoutesByTo {
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/leads': typeof PosAppLeadsRoute
+  '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -2217,11 +2247,13 @@ export interface FileRoutesByTo {
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
   '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
+  '/pos-app/variant-matrix': typeof PosAppVariantMatrixRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
@@ -2425,6 +2457,7 @@ export interface FileRoutesById {
   '/pos-app/inbox': typeof PosAppInboxRoute
   '/pos-app/inventory': typeof PosAppInventoryRoute
   '/pos-app/invoice': typeof PosAppInvoiceRoute
+  '/pos-app/jamaah-documents': typeof PosAppJamaahDocumentsRoute
   '/pos-app/job-deliverables': typeof PosAppJobDeliverablesRoute
   '/pos-app/kds': typeof PosAppKdsRoute
   '/pos-app/keuangan': typeof PosAppKeuanganRouteWithChildren
@@ -2433,6 +2466,7 @@ export interface FileRoutesById {
   '/pos-app/kyc': typeof PosAppKycRoute
   '/pos-app/laporan-harian': typeof PosAppLaporanHarianRoute
   '/pos-app/leads': typeof PosAppLeadsRoute
+  '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRoute
@@ -2501,11 +2535,13 @@ export interface FileRoutesById {
   '/pos-app/tables': typeof PosAppTablesRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
+  '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
   '/pos-app/travel-manifest': typeof PosAppTravelManifestRoute
   '/pos-app/umroh-facilities': typeof PosAppUmrohFacilitiesRoute
   '/pos-app/umroh-faq': typeof PosAppUmrohFaqRoute
   '/pos-app/umroh-packages': typeof PosAppUmrohPackagesRoute
   '/pos-app/upsell': typeof PosAppUpsellRoute
+  '/pos-app/variant-matrix': typeof PosAppVariantMatrixRoute
   '/pos-app/variants': typeof PosAppVariantsRoute
   '/pos-app/verified-claims': typeof PosAppVerifiedClaimsRoute
   '/pos-app/vouchers': typeof PosAppVouchersRoute
@@ -2711,6 +2747,7 @@ export interface FileRouteTypes {
     | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
+    | '/pos-app/jamaah-documents'
     | '/pos-app/job-deliverables'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
@@ -2719,6 +2756,7 @@ export interface FileRouteTypes {
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/leads'
+    | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -2787,11 +2825,13 @@ export interface FileRouteTypes {
     | '/pos-app/tables'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
+    | '/pos-app/travel-itinerary'
     | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
+    | '/pos-app/variant-matrix'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
     | '/pos-app/vouchers'
@@ -2990,6 +3030,7 @@ export interface FileRouteTypes {
     | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
+    | '/pos-app/jamaah-documents'
     | '/pos-app/job-deliverables'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
@@ -2998,6 +3039,7 @@ export interface FileRouteTypes {
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/leads'
+    | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -3066,11 +3108,13 @@ export interface FileRouteTypes {
     | '/pos-app/tables'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
+    | '/pos-app/travel-itinerary'
     | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
+    | '/pos-app/variant-matrix'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
     | '/pos-app/vouchers'
@@ -3273,6 +3317,7 @@ export interface FileRouteTypes {
     | '/pos-app/inbox'
     | '/pos-app/inventory'
     | '/pos-app/invoice'
+    | '/pos-app/jamaah-documents'
     | '/pos-app/job-deliverables'
     | '/pos-app/kds'
     | '/pos-app/keuangan'
@@ -3281,6 +3326,7 @@ export interface FileRouteTypes {
     | '/pos-app/kyc'
     | '/pos-app/laporan-harian'
     | '/pos-app/leads'
+    | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
@@ -3349,11 +3395,13 @@ export interface FileRouteTypes {
     | '/pos-app/tables'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
+    | '/pos-app/travel-itinerary'
     | '/pos-app/travel-manifest'
     | '/pos-app/umroh-facilities'
     | '/pos-app/umroh-faq'
     | '/pos-app/umroh-packages'
     | '/pos-app/upsell'
+    | '/pos-app/variant-matrix'
     | '/pos-app/variants'
     | '/pos-app/verified-claims'
     | '/pos-app/vouchers'
@@ -3706,6 +3754,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppVariantsRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/variant-matrix': {
+      id: '/pos-app/variant-matrix'
+      path: '/variant-matrix'
+      fullPath: '/pos-app/variant-matrix'
+      preLoaderRoute: typeof PosAppVariantMatrixRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/upsell': {
       id: '/pos-app/upsell'
       path: '/upsell'
@@ -3739,6 +3794,13 @@ declare module '@tanstack/react-router' {
       path: '/travel-manifest'
       fullPath: '/pos-app/travel-manifest'
       preLoaderRoute: typeof PosAppTravelManifestRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/travel-itinerary': {
+      id: '/pos-app/travel-itinerary'
+      path: '/travel-itinerary'
+      fullPath: '/pos-app/travel-itinerary'
+      preLoaderRoute: typeof PosAppTravelItineraryRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/travel-installments': {
@@ -4217,6 +4279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppLimitedEditionsRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/lesson-progress': {
+      id: '/pos-app/lesson-progress'
+      path: '/lesson-progress'
+      fullPath: '/pos-app/lesson-progress'
+      preLoaderRoute: typeof PosAppLessonProgressRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/leads': {
       id: '/pos-app/leads'
       path: '/leads'
@@ -4271,6 +4340,13 @@ declare module '@tanstack/react-router' {
       path: '/job-deliverables'
       fullPath: '/pos-app/job-deliverables'
       preLoaderRoute: typeof PosAppJobDeliverablesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/jamaah-documents': {
+      id: '/pos-app/jamaah-documents'
+      path: '/jamaah-documents'
+      fullPath: '/pos-app/jamaah-documents'
+      preLoaderRoute: typeof PosAppJamaahDocumentsRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/invoice': {
@@ -5775,6 +5851,7 @@ interface PosAppRouteChildren {
   PosAppInboxRoute: typeof PosAppInboxRoute
   PosAppInventoryRoute: typeof PosAppInventoryRoute
   PosAppInvoiceRoute: typeof PosAppInvoiceRoute
+  PosAppJamaahDocumentsRoute: typeof PosAppJamaahDocumentsRoute
   PosAppJobDeliverablesRoute: typeof PosAppJobDeliverablesRoute
   PosAppKdsRoute: typeof PosAppKdsRoute
   PosAppKeuanganRoute: typeof PosAppKeuanganRouteWithChildren
@@ -5783,6 +5860,7 @@ interface PosAppRouteChildren {
   PosAppKycRoute: typeof PosAppKycRoute
   PosAppLaporanHarianRoute: typeof PosAppLaporanHarianRoute
   PosAppLeadsRoute: typeof PosAppLeadsRoute
+  PosAppLessonProgressRoute: typeof PosAppLessonProgressRoute
   PosAppLimitedEditionsRoute: typeof PosAppLimitedEditionsRoute
   PosAppLookbookRoute: typeof PosAppLookbookRoute
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
@@ -5851,11 +5929,13 @@ interface PosAppRouteChildren {
   PosAppTablesRoute: typeof PosAppTablesRoute
   PosAppTestimonialsRoute: typeof PosAppTestimonialsRoute
   PosAppTravelInstallmentsRoute: typeof PosAppTravelInstallmentsRoute
+  PosAppTravelItineraryRoute: typeof PosAppTravelItineraryRoute
   PosAppTravelManifestRoute: typeof PosAppTravelManifestRoute
   PosAppUmrohFacilitiesRoute: typeof PosAppUmrohFacilitiesRoute
   PosAppUmrohFaqRoute: typeof PosAppUmrohFaqRoute
   PosAppUmrohPackagesRoute: typeof PosAppUmrohPackagesRoute
   PosAppUpsellRoute: typeof PosAppUpsellRoute
+  PosAppVariantMatrixRoute: typeof PosAppVariantMatrixRoute
   PosAppVariantsRoute: typeof PosAppVariantsRoute
   PosAppVerifiedClaimsRoute: typeof PosAppVerifiedClaimsRoute
   PosAppVouchersRoute: typeof PosAppVouchersRoute
@@ -5913,6 +5993,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppInboxRoute: PosAppInboxRoute,
   PosAppInventoryRoute: PosAppInventoryRoute,
   PosAppInvoiceRoute: PosAppInvoiceRoute,
+  PosAppJamaahDocumentsRoute: PosAppJamaahDocumentsRoute,
   PosAppJobDeliverablesRoute: PosAppJobDeliverablesRoute,
   PosAppKdsRoute: PosAppKdsRoute,
   PosAppKeuanganRoute: PosAppKeuanganRouteWithChildren,
@@ -5921,6 +6002,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppKycRoute: PosAppKycRoute,
   PosAppLaporanHarianRoute: PosAppLaporanHarianRoute,
   PosAppLeadsRoute: PosAppLeadsRoute,
+  PosAppLessonProgressRoute: PosAppLessonProgressRoute,
   PosAppLimitedEditionsRoute: PosAppLimitedEditionsRoute,
   PosAppLookbookRoute: PosAppLookbookRoute,
   PosAppLoyaltyRoute: PosAppLoyaltyRoute,
@@ -5989,11 +6071,13 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTablesRoute: PosAppTablesRoute,
   PosAppTestimonialsRoute: PosAppTestimonialsRoute,
   PosAppTravelInstallmentsRoute: PosAppTravelInstallmentsRoute,
+  PosAppTravelItineraryRoute: PosAppTravelItineraryRoute,
   PosAppTravelManifestRoute: PosAppTravelManifestRoute,
   PosAppUmrohFacilitiesRoute: PosAppUmrohFacilitiesRoute,
   PosAppUmrohFaqRoute: PosAppUmrohFaqRoute,
   PosAppUmrohPackagesRoute: PosAppUmrohPackagesRoute,
   PosAppUpsellRoute: PosAppUpsellRoute,
+  PosAppVariantMatrixRoute: PosAppVariantMatrixRoute,
   PosAppVariantsRoute: PosAppVariantsRoute,
   PosAppVerifiedClaimsRoute: PosAppVerifiedClaimsRoute,
   PosAppVouchersRoute: PosAppVouchersRoute,

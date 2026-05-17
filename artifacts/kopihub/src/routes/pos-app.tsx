@@ -173,6 +173,8 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/pos-app/umroh-facilities", label: "Fasilitas",         icon: Star,      onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FACILITIES"] },
       { to: "/pos-app/umroh-faq",        label: "FAQ & Dokumen",     icon: HelpCircle,onlyFor: ["sales-pro"], subtypeOnly: ["umroh"], requires: ["UMROH_FAQ"] },
       { to: "/pos-app/travel-manifest",     label: "Manifest Jamaah",   icon: Users,     hint: "Data jamaah: paspor, kamar, status keberangkatan", onlyFor: ["sales-pro"], requires: ["TRAVEL_MANIFEST"] },
+      { to: "/pos-app/jamaah-documents",    label: "Dokumen Jamaah",    icon: FileText,  hint: "Paspor, visa, vaksin per jamaah + alert expired", onlyFor: ["sales-pro"], requires: ["JAMAAH_DOCUMENTS"] },
+      { to: "/pos-app/travel-itinerary",    label: "Itinerary Harian",  icon: CalendarDays, hint: "Rundown hari-per-hari per paket travel", onlyFor: ["sales-pro"], requires: ["TRAVEL_ITINERARY"] },
       { to: "/pos-app/travel-installments", label: "Cicilan Travel",    icon: Wallet,    hint: "Jadwal pembayaran bertahap pelanggan", onlyFor: ["sales-pro"], requires: ["TRAVEL_INSTALLMENTS"] },
       { to: "/pos-app/sales-offerings",  label: "Katalog Layanan",   icon: Briefcase, onlyFor: ["sales-pro"], subtypeOnly: ["sales"] },
       { to: "/pos-app/flyers",           label: "Galeri Flyer",      icon: ImageIcon, onlyFor: ["sales-pro"], requires: ["FLYERS"] },
@@ -198,6 +200,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/pos-app/menu",           label: "Menu / Produk",   icon: UtensilsCrossed, onlyFor: HAS_POS, requires: ["MENU"] },
       { to: "/pos-app/variants",       label: "Varian Produk",   icon: SlidersHorizontal, onlyFor: HAS_POS, requires: ["VARIANTS"] },
+      { to: "/pos-app/variant-matrix", label: "Matrix Varian",   icon: SlidersHorizontal, hint: "Generate kombinasi Size × Color × Material dengan SKU & stok per kombinasi", onlyFor: HAS_POS, requires: ["VARIANT_MATRIX","VARIANTS"] },
       { to: "/pos-app/categories",     label: "Kategori",        icon: Tags, onlyFor: HAS_POS, requires: ["MENU"] },
       { to: "/pos-app/digital",          label: "Produk Digital",  icon: Download, onlyFor: DIGITAL_SVC, requires: ["DIGITAL"] },
       { to: "/pos-app/digital-licenses", label: "Lisensi Digital", icon: ShieldCheck, hint: "Lacak unduhan pembeli & kelola lisensi per produk digital — anti-sharing", onlyFor: DIGITAL_SVC, requires: ["DIGITAL_LICENSES"] },

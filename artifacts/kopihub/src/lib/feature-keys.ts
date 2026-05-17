@@ -36,6 +36,9 @@ export const FEATURE_KEYS = [
   // Fase A/B baru
   "RENTAL_KYC","RENTAL_INSPECTIONS","MEDICATIONS","PRESCRIPTIONS",
   "PRODUCT_RETURNS","CUSTOMER_TREATMENTS","SESSION_MEMBERSHIP","STUDIO_GALLERY",
+  // Fase E
+  "VARIANT_MATRIX","ORDER_MODE","TRAVEL_ITINERARY","JAMAAH_DOCUMENTS",
+  "LESSON_PROGRESS","COURSE_CERTIFICATES",
 ] as const;
 
 export type FeatureKey = typeof FEATURE_KEYS[number];
@@ -93,4 +96,10 @@ export const FEATURE_LABEL: Partial<Record<FeatureKey, string>> = {
   CUSTOMER_TREATMENTS: "Riwayat Treatment",
   SESSION_MEMBERSHIP: "Paket Sesi",
   STUDIO_GALLERY: "Galeri Klien",
+  VARIANT_MATRIX: "Matrix Varian",
+  ORDER_MODE: "Mode Pesanan",
+  TRAVEL_ITINERARY: "Itinerary Harian",
+  JAMAAH_DOCUMENTS: "Dokumen Jamaah",
+  LESSON_PROGRESS: "Progress Pelajaran",
+  COURSE_CERTIFICATES: "Sertifikat Kursus",
 };
