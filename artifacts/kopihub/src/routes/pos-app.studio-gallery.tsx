@@ -96,10 +96,6 @@ function Page() {
     if (error) { toast.error(error.message); return; }
     toast.success("Tersimpan"); setOpenForm(false); void load();
   }
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Tersimpan"); setOpenForm(false); void load();
-  }
 
   async function del(g: Gal) {
     if (!confirm(`Hapus galeri "${g.title}"?`)) return;
@@ -191,6 +187,7 @@ function Page() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{STATUS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
+              </div>
               <div>
                 <Label>Fotografer</Label>
                 <Select value={form.photographer_id || "_none"} onValueChange={(v) => setForm({ ...form, photographer_id: v === "_none" ? "" : v })}>
