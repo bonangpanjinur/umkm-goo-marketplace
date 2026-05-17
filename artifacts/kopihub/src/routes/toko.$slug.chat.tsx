@@ -410,6 +410,11 @@ function ShopChatPage() {
     const files = Array.from(e.target.files ?? []);
     if (!files.length || !user || !chatId || !shopId) return;
     e.target.value = "";
+    await processFiles(files);
+  }
+
+  async function processFiles(files: File[]) {
+    if (!files.length || !user || !chatId || !shopId) return;
 
     // Validate all upfront; collect valid files
     const valid: File[] = [];
