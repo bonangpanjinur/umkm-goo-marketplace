@@ -26,16 +26,30 @@ export type OptionChoice = {
   sort_order: number;
 };
 
+type VariantRow = {
+  id: string;
+  name: string;
+  price: number;
+  stock: number | null;
+  is_available: boolean;
+  attributes: Record<string, string> | null;
+  sort_order: number | null;
+};
+
 type Props = {
   open: boolean;
   onClose: () => void;
   menuItemId: string;
   menuItemName: string;
+  /** Base price of parent menu item (used to compute variant price_adjustment) */
+  menuItemPrice?: number;
   shopId: string;
   onConfirm: (selected: SelectedOption[]) => void;
 };
 
-export function ModifierPicker({ open, onClose, menuItemId, menuItemName, shopId, onConfirm }: Props) {
+export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuItemPrice = 0, shopId, onConfirm }: Props) {
+  const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [variantId, setVariantId] = useState<string>("");
   const [groups, setGroups] = useState<OptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [selections, setSelections] = useState<Record<string, string[]>>({});
