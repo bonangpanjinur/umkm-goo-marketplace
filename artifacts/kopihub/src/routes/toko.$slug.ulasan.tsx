@@ -176,11 +176,11 @@ export default function UlasanPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
+        <MarketplaceHeader shopId={shop?.id} />
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-        <MarketplaceFooter />
+        <MarketplaceFooter shopId={shop?.id} />
       </div>
     );
   }
@@ -188,7 +188,7 @@ export default function UlasanPage() {
   if (notFound) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
+        <MarketplaceHeader shopId={shop?.id} />
         <div className="mx-auto max-w-md px-4 py-20 text-center">
           <Camera className="mx-auto h-14 w-14 text-muted-foreground/30 mb-4" />
           <h1 className="text-xl font-bold">Link tidak ditemukan</h1>
@@ -199,7 +199,7 @@ export default function UlasanPage() {
             <Link to="/">Kembali ke Beranda</Link>
           </Button>
         </div>
-        <MarketplaceFooter />
+        <MarketplaceFooter shopId={shop?.id} />
       </div>
     );
   }
@@ -207,7 +207,7 @@ export default function UlasanPage() {
   if (alreadyDone || submitted) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
+        <MarketplaceHeader shopId={shop?.id} />
         <div className="mx-auto max-w-md px-4 py-20 text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6">
             <CheckCircle2 className="h-10 w-10 text-green-600" />
@@ -225,14 +225,14 @@ export default function UlasanPage() {
             </Button>
           )}
         </div>
-        <MarketplaceFooter />
+        <MarketplaceFooter shopId={shop?.id} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <MarketplaceHeader />
+      <MarketplaceHeader shopId={shop?.id} />
 
       <div className="mx-auto max-w-lg px-4 py-10 space-y-8">
         {/* Shop + session info header */}
@@ -363,7 +363,7 @@ export default function UlasanPage() {
         </p>
       </div>
 
-      <MarketplaceFooter />
+      <MarketplaceFooter shopId={shop?.id} />
     </div>
   );
 }

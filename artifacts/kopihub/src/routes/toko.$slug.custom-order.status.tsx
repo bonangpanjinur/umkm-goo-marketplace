@@ -127,7 +127,7 @@ function CustomOrderStatusPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <MarketplaceHeader />
+      <MarketplaceHeader shopId={shop?.id} />
       <main className="flex-1 mx-auto max-w-3xl w-full px-4 py-8">
         <Link to="/toko/$slug" params={{ slug }} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ChevronLeft className="h-4 w-4" /> Kembali ke {shop.name}
@@ -243,7 +243,7 @@ function CustomOrderStatusPage() {
           )}
         </div>
       </main>
-      <MarketplaceFooter />
+      <MarketplaceFooter shopId={shop?.id} />
     </div>
   );
 }
