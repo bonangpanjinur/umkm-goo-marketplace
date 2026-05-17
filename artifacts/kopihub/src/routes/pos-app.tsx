@@ -828,7 +828,9 @@ function AppLayoutInner() {
               />
             </div>
           ) : (
-            <Outlet />
+            <ErrorBoundary withFallback>
+              <Outlet />
+            </ErrorBoundary>
           )}
         </main>
       </div>
