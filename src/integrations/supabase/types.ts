@@ -521,6 +521,8 @@ export type Database = {
           deposit_amount: number
           deposit_paid: boolean
           deposit_paid_at: string | null
+          deposit_required: boolean
+          deposit_status: string
           feedback_requested_at: string | null
           id: string
           location_address: string | null
@@ -552,6 +554,8 @@ export type Database = {
           deposit_amount?: number
           deposit_paid?: boolean
           deposit_paid_at?: string | null
+          deposit_required?: boolean
+          deposit_status?: string
           feedback_requested_at?: string | null
           id?: string
           location_address?: string | null
@@ -583,6 +587,8 @@ export type Database = {
           deposit_amount?: number
           deposit_paid?: boolean
           deposit_paid_at?: string | null
+          deposit_required?: boolean
+          deposit_status?: string
           feedback_requested_at?: string | null
           id?: string
           location_address?: string | null
@@ -6591,7 +6597,9 @@ export type Database = {
           custom_domain_verify_token: string | null
           deposit_enabled: boolean
           deposit_min_total: number
+          deposit_notes: string | null
           deposit_percent: number
+          deposit_percentage: number
           description: string | null
           email: string | null
           id: string
@@ -6624,6 +6632,7 @@ export type Database = {
           rating_count: number | null
           receipt_footer: string | null
           receipt_header: string | null
+          require_id_upload: boolean
           review_count: number
           service_charge_percent: number
           slug: string
@@ -6657,7 +6666,9 @@ export type Database = {
           custom_domain_verify_token?: string | null
           deposit_enabled?: boolean
           deposit_min_total?: number
+          deposit_notes?: string | null
           deposit_percent?: number
+          deposit_percentage?: number
           description?: string | null
           email?: string | null
           id?: string
@@ -6690,6 +6701,7 @@ export type Database = {
           rating_count?: number | null
           receipt_footer?: string | null
           receipt_header?: string | null
+          require_id_upload?: boolean
           review_count?: number
           service_charge_percent?: number
           slug: string
@@ -6723,7 +6735,9 @@ export type Database = {
           custom_domain_verify_token?: string | null
           deposit_enabled?: boolean
           deposit_min_total?: number
+          deposit_notes?: string | null
           deposit_percent?: number
+          deposit_percentage?: number
           description?: string | null
           email?: string | null
           id?: string
@@ -6756,6 +6770,7 @@ export type Database = {
           rating_count?: number | null
           receipt_footer?: string | null
           receipt_header?: string | null
+          require_id_upload?: boolean
           review_count?: number
           service_charge_percent?: number
           slug?: string
