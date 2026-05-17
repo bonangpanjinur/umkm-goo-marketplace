@@ -45,6 +45,7 @@ const defaultSections: Section[] = [
 ];
 
 export default function StorefrontBuilderPage() {
+  const { shop } = useCurrentShop();
   const [sections, setSections] = useState<Section[]>(defaultSections);
   const [selected, setSelected] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
