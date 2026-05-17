@@ -146,7 +146,7 @@ export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
   );
 }
 
-export function MarketplaceFooter() {
+export function MarketplaceFooter({ shopId }: { shopId?: string } = {}) {
   return (
     <>
       <footer className="mb-14 mt-16 border-t border-border py-8 sm:mb-0">
@@ -158,7 +158,7 @@ export function MarketplaceFooter() {
           </div>
         </div>
       </footer>
-      <MarketplaceBottomNav />
+      <MarketplaceBottomNav shopId={shopId} />
     </>
   );
 }
