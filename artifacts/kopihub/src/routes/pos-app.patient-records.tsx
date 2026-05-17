@@ -466,6 +466,37 @@ function PatientDialog({ form, setForm, editing, saving, onSave, onCancel }: {
             <Input value={form.blood_type} onChange={e => setForm(f => ({ ...f, blood_type: e.target.value }))} placeholder="A / B / AB / O" />
           </div>
         </div>
+
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Identitas & Penjamin</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>NIK</Label>
+              <Input inputMode="numeric" maxLength={16} value={form.nik}
+                onChange={e => setForm(f => ({ ...f, nik: e.target.value.replace(/\D/g, "") }))}
+                placeholder="16 digit NIK" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Jenis Penjamin</Label>
+              <select className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                value={form.payer_type}
+                onChange={e => setForm(f => ({ ...f, payer_type: e.target.value as any }))}>
+                <option value="">—</option>
+                <option value="umum">Umum</option>
+                <option value="bpjs">BPJS Kesehatan</option>
+                <option value="asuransi">Asuransi Swasta</option>
+              </select>
+            </div>
+          </div>
+          {form.payer_type === "bpjs" && (
+            <div className="space-y-1.5">
+              <Label>No. Kartu BPJS</Label>
+              <Input inputMode="numeric" maxLength={13} value={form.bpjs_number}
+                onChange={e => setForm(f => ({ ...f, bpjs_number: e.target.value.replace(/\D/g, "") }))}
+                placeholder="13 digit nomor BPJS" />
+            </div>
+          )}
+        </div>
         <div className="space-y-1.5">
           <Label>Alergi</Label>
           <Textarea rows={2} value={form.allergies} onChange={e => setForm(f => ({ ...f, allergies: e.target.value }))} placeholder="Alergi obat / makanan…" />
