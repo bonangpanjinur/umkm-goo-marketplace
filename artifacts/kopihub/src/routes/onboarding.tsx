@@ -44,6 +44,7 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   other: Package,
 };
 
+type Subtype = { slug: string; label: string; icon?: string };
 type CategoryRow = {
   id: string;
   slug: string;
@@ -51,6 +52,7 @@ type CategoryRow = {
   description: string | null;
   enabled_features?: string[] | null;
   flow_types?: string[] | null;
+  subtypes?: Subtype[] | null;
 };
 
 const STEPS = [
@@ -74,6 +76,7 @@ function OnboardingPage() {
 
   // Step 2
   const [categoryId, setCategoryId] = useState<string>("");
+  const [subtypeSlug, setSubtypeSlug] = useState<string>("");
 
   // Step 3
   const [outletName, setOutletName] = useState("Outlet Pusat");
@@ -98,7 +101,7 @@ function OnboardingPage() {
     setCategoriesError(null);
     const { data, error } = await supabase
       .from("business_categories")
-      .select("id, slug, name, description, enabled_features, flow_types")
+      .select("id, slug, name, description, enabled_features, flow_types, subtypes")
       .eq("is_active", true)
       .order("sort_order");
     if (error) {
@@ -197,6 +200,7 @@ function OnboardingPage() {
           slug,
           description: description.trim() || null,
           business_category_id: cat.id,
+          business_subtype: subtypeSlug || null,
         } as any)
         .select("id")
         .single();
@@ -362,7 +366,7 @@ function OnboardingPage() {
                   return (
                     <button
                       key={cat.id}
-                      onClick={() => setCategoryId(cat.slug)}
+                      onClick={() => { setCategoryId(cat.slug); setSubtypeSlug(""); }}
                       className={`relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
                         active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-accent"
                       }`}
@@ -420,6 +424,34 @@ function OnboardingPage() {
                       )}
                     </div>
                   )}
+                </div>
+              );
+            })()}
+            {(() => {
+              const selected = categories.find((c) => c.slug === categoryId);
+              const subs = selected?.subtypes ?? [];
+              if (!selected || subs.length === 0) return null;
+              return (
+                <div className="rounded-xl border bg-card p-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold">Jenis spesifik {selected.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Pilih satu yang paling cocok (opsional, bisa diubah nanti).</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {subs.map((s) => {
+                      const on = subtypeSlug === s.slug;
+                      return (
+                        <button
+                          key={s.slug}
+                          type="button"
+                          onClick={() => setSubtypeSlug(on ? "" : s.slug)}
+                          className={`text-xs px-3 py-1.5 rounded-full border transition ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-primary/50"}`}
+                        >
+                          {s.icon ? `${s.icon} ` : ""}{s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })()}
