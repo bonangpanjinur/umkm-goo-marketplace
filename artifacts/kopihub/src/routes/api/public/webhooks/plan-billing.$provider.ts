@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/public/webhooks/plan-billing/$provide
             }
             const payload = JSON.parse(body);
             const { order_id, status_code, gross_amount, signature_key, transaction_status } = payload;
-            if (!verifyMidtrans(order_id, status_code, gross_amount, signature_key, serverKey)) {
+            if (!(await verifyMidtrans(order_id, status_code, gross_amount, signature_key, serverKey))) {
               return new Response("Invalid signature", { status: 401 });
             }
             invoiceRef = order_id;
