@@ -600,24 +600,17 @@ function DetailDialog({
                 variant="outline"
                 className="text-destructive hover:text-destructive"
                 disabled={voiding}
-                onClick={async () => {
-                  const reason = prompt("Alasan void (wajib untuk audit):")?.trim() ?? "";
-                  if (!reason) { toast.error("Alasan wajib diisi"); return; }
-                  if (!confirm(`Void order #${order.order_no}? Stok & poin akan dibalik.`)) return;
-                  setVoiding(true);
-                  const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
-                  setVoiding(false);
-                  if (error) { toast.error(error.message); return; }
-                  logStaffAction({
-                    shopId,
-                    action: "order.void",
-                    meta: { order_id: order.id, order_no: order.order_no, reason },
-                  });
-                  toast.success("Order di-void");
-                  onVoided();
-                }}
+                onClick={() => setVoidReasonOpen(true)}
               >
                 <XCircle className="mr-2 h-4 w-4" /> {voiding ? "Memproses…" : "Void"}
+              </Button>
+              <Button
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                disabled={cancelling}
+                onClick={() => setCancelReasonOpen(true)}
+              >
+                {cancelling ? "Memproses…" : "Cancel"}
               </Button>
               <Button variant="outline" onClick={() => setRefundOpen(true)}>
                 <Undo2 className="mr-2 h-4 w-4" /> Refund
