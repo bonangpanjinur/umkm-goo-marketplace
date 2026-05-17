@@ -317,6 +317,7 @@ function OrdersPage() {
       {selected && shop && outlet && (
         <DetailDialog
           order={selected}
+          shopId={shop.id}
           shopName={shop.name}
           outletName={outlet.name}
           outletId={outlet.id}
