@@ -68,6 +68,7 @@ export async function parkCart(input: {
       .select()
       .single();
     if (error) throw error;
+    notifyParkedCartChange(input.outlet_id);
     return data as ParkedCart;
   }
   const { data, error } = await sb
@@ -83,10 +84,13 @@ export async function parkCart(input: {
     .select()
     .single();
   if (error) throw error;
+  notifyParkedCartChange(input.outlet_id);
   return data as ParkedCart;
 }
 
 export async function deleteParkedCart(id: string): Promise<void> {
   const { error } = await sb.from("parked_carts").delete().eq("id", id);
   if (error) throw error;
+  notifyParkedCartChange();
+}
 }
