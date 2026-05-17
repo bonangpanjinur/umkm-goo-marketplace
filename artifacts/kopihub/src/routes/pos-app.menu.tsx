@@ -27,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ModifierManager } from "@/components/modifier-manager";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import { logStaffAction } from "@/lib/staff-audit";
 
 export const Route = createFileRoute("/pos-app/menu")({
   component: MenuPage,
