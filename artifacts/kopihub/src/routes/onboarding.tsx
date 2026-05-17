@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Coffee, Loader2, Store, ChevronRight, ChevronLeft,
+   Loader2, Store, ChevronRight, ChevronLeft,
   Check, Upload, FileImage, ShoppingBag, Shirt, Laptop,
   Sparkles, Hammer, Zap, Package, ArrowRight
 } from "lucide-react";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const CATEGORIES = [
-  { id: "fnb",       label: "F&B / Kuliner",      icon: Coffee,      desc: "Kafe, restoran, katering, cloud kitchen" },
+  { id: "fnb",       label: "F&B / Kuliner",      icon:       desc: "Kafe, restoran, katering, cloud kitchen" },
   { id: "fashion",   label: "Fashion & Pakaian",   icon: Shirt,       desc: "Baju, celana, aksesoris, tas" },
   { id: "digital",   label: "Produk Digital",      icon: Laptop,      desc: "Template, e-book, kursus, software" },
   { id: "beauty",    label: "Kecantikan",           icon: Sparkles,    desc: "Skincare, makeup, perawatan diri" },
@@ -198,7 +198,7 @@ function OnboardingPage() {
         {/* Brand */}
         <div className="mb-8 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Coffee className="h-4 w-4" />
+            <Store className="h-4 w-4" />
           </div>
           <span className="text-sm font-bold tracking-tight">UMKMgo</span>
         </div>

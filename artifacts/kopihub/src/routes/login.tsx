@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Coffee, Loader2 } from "lucide-react";
+import { Store, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -104,7 +104,7 @@ export function AuthShell({
         <div className="w-full max-w-sm">
           <Link to="/" className="mb-8 inline-flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Coffee className="h-4 w-4" />
+              <Store className="h-4 w-4" />
             </div>
             <span className="text-sm font-semibold tracking-tight">UMKMgo</span>
           </Link>
@@ -115,7 +115,7 @@ export function AuthShell({
       </div>
       <div className="relative hidden bg-gradient-to-br from-primary to-emerald-700 lg:block">
         <div className="absolute inset-0 flex flex-col justify-end p-10 text-primary-foreground">
-          <Coffee className="mb-6 h-10 w-10 opacity-80" />
+          <Store className="mb-6 h-10 w-10 opacity-80" />
           <p className="text-2xl font-semibold leading-snug">
             "Sejak pakai UMKMgo, kasir kami selesaikan order rush hour 2× lebih cepat."
           </p>

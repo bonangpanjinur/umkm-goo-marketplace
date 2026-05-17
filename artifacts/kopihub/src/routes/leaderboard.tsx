@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Star, ShoppingBag, Users, BadgeCheck, Coffee, Trophy } from "lucide-react";
+import { Loader2, Star, ShoppingBag, Users, BadgeCheck, Store, Trophy } from "lucide-react";
 import { TrustCertBadge, computeTrustCert } from "@/components/TrustCertBadge";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -211,7 +211,7 @@ function LeaderboardPage() {
           </div>
         ) : sorted.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
-            <Coffee className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+            <Store className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
             <p className="text-sm text-muted-foreground">Belum ada toko yang memenuhi syarat.</p>
           </div>
         ) : (
@@ -238,7 +238,7 @@ function LeaderboardPage() {
                         <img src={s.logo_url} alt={s.name} className="h-14 w-14 rounded-xl object-cover border-2 border-white shadow" />
                       ) : (
                         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-amber-100 border-2 border-white shadow">
-                          <Coffee className="h-7 w-7 text-amber-600" />
+                          <Store className="h-7 w-7 text-amber-600" />
                         </div>
                       )}
                     </div>
@@ -293,7 +293,7 @@ function LeaderboardPage() {
                           <img src={s.logo_url} alt={s.name} className="h-10 w-10 rounded-lg object-cover border border-border shrink-0" />
                         ) : (
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
-                            <Coffee className="h-5 w-5 text-amber-600" />
+                            <Store className="h-5 w-5 text-amber-600" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
