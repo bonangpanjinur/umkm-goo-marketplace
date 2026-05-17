@@ -454,6 +454,25 @@ function ProductDetailPage() {
                 <BundleContents productId={product.id} />
               )}
 
+              {/* F&B — Halal & mode order */}
+              {(product.is_halal || (product.available_modes && product.available_modes.length > 0)) && (
+                <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                  {product.is_halal && (
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      ✓ Halal
+                    </span>
+                  )}
+                  {product.available_modes?.map((m: string) => {
+                    const label = m === "dine_in" ? "Dine-in" : m === "takeaway" ? "Takeaway" : m === "delivery" ? "Delivery" : m;
+                    return (
+                      <span key={m} className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        {label}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* P-08: Dietary & Allergen tags */}
               {((product.dietary_tags && product.dietary_tags.length > 0) || (product.allergens && product.allergens.length > 0)) && (
                 <div className="mt-5 space-y-2">
