@@ -276,8 +276,18 @@ function POSPage() {
         () => refreshParked(),
       )
       .subscribe();
+    // Cross-tab + local broadcast: refresh segera saat park/unpark/confirm
+    // dijalankan di tab lain (storage event) atau di tab ini (custom event).
+    const onLocal = () => refreshParked();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "kh_pos_cart_ts") refreshParked();
+    };
+    window.addEventListener("kh-pos-cart-change", onLocal);
+    window.addEventListener("storage", onStorage);
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("kh-pos-cart-change", onLocal);
+      window.removeEventListener("storage", onStorage);
     };
   }, [outlet?.id]);
 
