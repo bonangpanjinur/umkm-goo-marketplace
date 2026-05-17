@@ -427,6 +427,34 @@ function OnboardingPage() {
                 </div>
               );
             })()}
+            {(() => {
+              const selected = categories.find((c) => c.slug === categoryId);
+              const subs = selected?.subtypes ?? [];
+              if (!selected || subs.length === 0) return null;
+              return (
+                <div className="rounded-xl border bg-card p-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold">Jenis spesifik {selected.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Pilih satu yang paling cocok (opsional, bisa diubah nanti).</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {subs.map((s) => {
+                      const on = subtypeSlug === s.slug;
+                      return (
+                        <button
+                          key={s.slug}
+                          type="button"
+                          onClick={() => setSubtypeSlug(on ? "" : s.slug)}
+                          className={`text-xs px-3 py-1.5 rounded-full border transition ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-primary/50"}`}
+                        >
+                          {s.icon ? `${s.icon} ` : ""}{s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
             <div className="flex gap-3">
               <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setStep(1)}>
                 <ChevronLeft className="h-4 w-4" /> Kembali
