@@ -96,4 +96,10 @@ export const FEATURE_LABEL: Partial<Record<FeatureKey, string>> = {
   CUSTOMER_TREATMENTS: "Riwayat Treatment",
   SESSION_MEMBERSHIP: "Paket Sesi",
   STUDIO_GALLERY: "Galeri Klien",
+  VARIANT_MATRIX: "Matrix Varian",
+  ORDER_MODE: "Mode Pesanan",
+  TRAVEL_ITINERARY: "Itinerary Harian",
+  JAMAAH_DOCUMENTS: "Dokumen Jamaah",
+  LESSON_PROGRESS: "Progress Pelajaran",
+  COURSE_CERTIFICATES: "Sertifikat Kursus",
 };
