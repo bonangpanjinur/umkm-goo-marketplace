@@ -77,7 +77,7 @@ type ShopRow = {
   auto_reply_enabled: boolean;
   auto_reply_message: string | null;
   deposit_enabled: boolean;
-  deposit_percent: number;
+  deposit_percentage: number;
   deposit_min_total: number;
 };
 
@@ -102,7 +102,7 @@ function SettingsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("shops")
-        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percent, deposit_min_total")
+        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percentage, deposit_min_total")
         .eq("id", shop.id)
         .maybeSingle();
       if (data) {
@@ -118,7 +118,7 @@ function SettingsPage() {
           auto_reply_enabled: Boolean((data as any).auto_reply_enabled ?? false),
           auto_reply_message: (data as any).auto_reply_message ?? null,
           deposit_enabled: Boolean((data as any).deposit_enabled ?? false),
-          deposit_percent: Number((data as any).deposit_percent ?? 30),
+          deposit_percentage: Number((data as any).deposit_percentage ?? 30),
           deposit_min_total: Number((data as any).deposit_min_total ?? 0),
         } as ShopRow);
       }
@@ -233,7 +233,7 @@ function SettingsPage() {
         auto_reply_enabled: form.auto_reply_enabled,
         auto_reply_message: form.auto_reply_message,
         deposit_enabled: form.deposit_enabled,
-        deposit_percent: form.deposit_percent,
+        deposit_percentage: form.deposit_percentage,
         deposit_min_total: form.deposit_min_total,
       } as never)
       .eq("id", shop.id);
@@ -508,8 +508,8 @@ function SettingsPage() {
                   inputMode="numeric"
                   min={1}
                   max={100}
-                  value={form.deposit_percent}
-                  onChange={(e) => update("deposit_percent", Math.max(1, Math.min(100, Number(e.target.value || 0))))}
+                  value={form.deposit_percentage}
+                  onChange={(e) => update("deposit_percentage", Math.max(1, Math.min(100, Number(e.target.value || 0))))}
                   placeholder="30"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">Mis. 30 = pelanggan bayar 30% di awal.</p>
