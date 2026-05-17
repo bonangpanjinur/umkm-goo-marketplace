@@ -53,7 +53,7 @@ export async function addToCart(args: {
     });
     if (error) throw error;
   }
-  markCartActivity();
+  notifyCartChange();
 }
 
 export async function listCart(): Promise<CartItem[]> {
