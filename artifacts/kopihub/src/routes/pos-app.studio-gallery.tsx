@@ -22,14 +22,17 @@ type Gal = {
   id: string; title: string; client_name: string | null; client_email: string | null;
   share_token: string; expires_at: string | null; watermark_enabled: boolean;
   max_selections: number | null; status: string; created_at: string;
+  photographer_id: string | null;
 };
 type Photo = { id: string; gallery_id: string; photo_url: string; is_selected: boolean; customer_note: string | null; sort_order: number };
+type Photographer = { id: string; name: string; color: string; role: string; is_active: boolean };
 
 const STATUS = ["draft","sent","reviewed","closed"];
 
 function Page() {
   const { shop, loading } = useCurrentShop();
   const [items, setItems] = useState<Gal[]>([]);
+  const [photographers, setPhotographers] = useState<Photographer[]>([]);
   const [openForm, setOpenForm] = useState(false);
   const [editing, setEditing] = useState<Gal | null>(null);
   const [saving, setSaving] = useState(false);
@@ -38,6 +41,7 @@ function Page() {
   const [form, setForm] = useState({
     title: "", client_name: "", client_email: "", expires_at: "",
     watermark_enabled: true, max_selections: "", status: "draft",
+    photographer_id: "",
   });
 
   async function load() {
