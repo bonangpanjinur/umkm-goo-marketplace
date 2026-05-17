@@ -57,6 +57,8 @@ type MenuItem = {
   allergens?: string[] | null;
   is_halal?: boolean | null;
   available_modes?: string[] | null;
+  sku?: string | null;
+  barcode?: string | null;
 };
 
 const COMMON_ALLERGENS = ["Gluten", "Susu", "Telur", "Kacang Tanah", "Kacang Pohon", "Kedelai", "Ikan", "Udang/Kerang", "Wijen"];
