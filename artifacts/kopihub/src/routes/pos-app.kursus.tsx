@@ -31,6 +31,8 @@ import {
   Eye,
   Clock,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   GripVertical,
   CheckCircle2,
 } from "lucide-react";
@@ -430,7 +432,48 @@ function KursusPage() {
     }
   };
 
-  // ── Stats ──────────────────────────────────────────────────────
+  // ── Reorder helpers (swap sort_order with neighbour) ───────────
+  const swapSortOrder = async (
+    table: "course_modules" | "course_lessons",
+    a: { id: string; sort_order: number },
+    b: { id: string; sort_order: number },
+  ) => {
+    // Two-step swap via a temporary value to avoid uniqueness collisions
+    // (sort_order isn't unique here but keep the pattern defensive).
+    const tmp = -1 - Date.now() % 1000;
+    const c1 = await (supabase as any).from(table).update({ sort_order: tmp }).eq("id", a.id);
+    if (c1.error) { toast.error(c1.error.message); return false; }
+    const c2 = await (supabase as any).from(table).update({ sort_order: a.sort_order }).eq("id", b.id);
+    if (c2.error) { toast.error(c2.error.message); return false; }
+    const c3 = await (supabase as any).from(table).update({ sort_order: b.sort_order }).eq("id", a.id);
+    if (c3.error) { toast.error(c3.error.message); return false; }
+    return true;
+  };
+
+  const moveModule = async (idx: number, dir: -1 | 1) => {
+    if (!selectedCourse) return;
+    const target = modules[idx + dir];
+    const current = modules[idx];
+    if (!target || !current) return;
+    const ok = await swapSortOrder("course_modules",
+      { id: current.id, sort_order: current.sort_order },
+      { id: target.id, sort_order: target.sort_order });
+    if (ok) loadModules(selectedCourse.id);
+  };
+
+  const moveLesson = async (moduleId: string, idx: number, dir: -1 | 1) => {
+    const list = lessons[moduleId] ?? [];
+    const current = list[idx];
+    const target = list[idx + dir];
+    if (!current || !target) return;
+    const ok = await swapSortOrder("course_lessons",
+      { id: current.id, sort_order: current.sort_order },
+      { id: target.id, sort_order: target.sort_order });
+    if (ok) {
+      loadLessons(moduleId);
+      if (selectedCourse) loadModules(selectedCourse.id);
+    }
+  };
   const totalEnrollments = enrollStats.reduce((s, e) => s + e.count, 0);
   const activeCourses = courses.filter((c) => c.is_available).length;
   const totalLessons = Object.values(lessons).reduce((s, ls) => s + ls.length, 0);
@@ -659,8 +702,16 @@ function KursusPage() {
                           <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs text-muted-foreground">{mod.lesson_count} pelajaran</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-muted-foreground mr-1">{mod.lesson_count} pelajaran</span>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === 0}
+                          onClick={(e) => { e.stopPropagation(); moveModule(idx, -1); }}>
+                          <ArrowUp className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === modules.length - 1}
+                          onClick={(e) => { e.stopPropagation(); moveModule(idx, 1); }}>
+                          <ArrowDown className="h-3 w-3" />
+                        </Button>
                         <Button size="icon" variant="ghost" className="h-7 w-7"
                           onClick={(e) => { e.stopPropagation(); openEditModule(mod); }}>
                           <Pencil className="h-3 w-3" />
@@ -669,7 +720,7 @@ function KursusPage() {
                           onClick={(e) => { e.stopPropagation(); deleteModule(mod); }}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
-                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />}
                       </div>
                     </div>
 
@@ -710,6 +761,14 @@ function KursusPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === 0}
+                                onClick={() => moveLesson(mod.id, li, -1)}>
+                                <ArrowUp className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" disabled={li === modLessons.length - 1}
+                                onClick={() => moveLesson(mod.id, li, 1)}>
+                                <ArrowDown className="h-3 w-3" />
+                              </Button>
                               <Button size="icon" variant="ghost" className="h-7 w-7"
                                 onClick={() => openEditLesson(lesson)}>
                                 <Pencil className="h-3 w-3" />
