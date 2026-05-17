@@ -31,14 +31,20 @@ function AppearancePage() {
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { data } = await supabase
+      const { data: s } = await supabase
         .from("shops")
-        .select("business_category_id, business_categories:business_category_id (name, recommended_theme_key)")
+        .select("business_category_id")
         .eq("id", shop.id)
         .maybeSingle();
-      const cat = (data as any)?.business_categories;
-      setRecommendedKey(cat?.recommended_theme_key ?? null);
-      setCategoryName(cat?.name ?? null);
+      const catId = (s as any)?.business_category_id;
+      if (!catId) { setRecommendedKey(null); setCategoryName(null); return; }
+      const { data: cat } = await supabase
+        .from("business_categories")
+        .select("name, recommended_theme_key")
+        .eq("id", catId)
+        .maybeSingle();
+      setRecommendedKey((cat as any)?.recommended_theme_key ?? null);
+      setCategoryName((cat as any)?.name ?? null);
     })();
   }, [shop?.id]);
 
