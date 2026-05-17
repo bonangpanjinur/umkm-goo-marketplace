@@ -215,6 +215,9 @@ function MenuPage() {
     setNutritionCal(""); setNutritionProtein(""); setNutritionCarbs(""); setNutritionFat(""); setNutritionFiber("");
     setProductionDays("");
     setConditionGrade("");
+    setAllergens([]);
+    setIsHalal(false);
+    setAvailableModes([]);
     setAiTags([]);
     setOpen(true);
   }
