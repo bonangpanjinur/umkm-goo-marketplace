@@ -824,6 +824,41 @@ function CommandPaletteOwner() {
   return <CommandPalette open={open} onClose={() => setOpen(false)} role="owner" />;
 }
 
+function FeatureBlocked({
+  label,
+  requires,
+  categoryName,
+}: {
+  label: string;
+  requires: FeatureKey[];
+  categoryName: string | null;
+}) {
+  const featLabel = requires.map((k) => FEATURE_LABEL[k] ?? k).join(" / ");
+  return (
+    <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-xl border border-dashed bg-card p-8 text-center">
+      <div className="rounded-full bg-muted p-3">
+        <Lock className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold">{label} tidak tersedia</h2>
+        <p className="text-sm text-muted-foreground">
+          Fitur <strong>{featLabel}</strong> tidak aktif untuk kategori
+          {categoryName ? <> <em>{categoryName}</em></> : " toko Anda"}.
+          Owner dapat mengaktifkannya lewat pengaturan toko jika diperlukan.
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/pos-app">Kembali ke Dashboard</Link>
+        </Button>
+        <Button asChild size="sm">
+          <Link to="/pos-app/settings">Pengaturan Toko</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function OutletSwitcher({ shopName }: { shopName?: string }) {
   const { outlets, current, setCurrent } = useOutletContext();
   if (outlets.length <= 1) {
