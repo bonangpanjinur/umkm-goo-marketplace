@@ -626,6 +626,29 @@ function OnboardingPage() {
                 <p className="mt-0.5 text-xs text-amber-600">Upload KTP di menu Verifikasi KYC agar toko bisa aktif penuh dan mendapat badge Terverifikasi.</p>
               </div>
             )}
+            <div className="rounded-xl border border-border bg-card p-4 text-left">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Mulai dengan contoh data?</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Kami akan menambahkan beberapa produk/layanan contoh sesuai kategori Anda. Bisa diedit atau dihapus kapan saja.
+                  </p>
+                  {seeded && (
+                    <p className="mt-1.5 text-xs text-primary">
+                      ✓ {seeded.items + seeded.bundles} item contoh ditambahkan
+                    </p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant={seeded ? "outline" : "secondary"}
+                  onClick={handleSeed}
+                  disabled={seeding || !!seeded}
+                >
+                  {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : seeded ? "Selesai" : "Tambahkan"}
+                </Button>
+              </div>
+            </div>
             <Button className="h-12 w-full gap-2 text-base" onClick={goToDashboard}>
               Masuk Dashboard <ArrowRight className="h-5 w-5" />
             </Button>
