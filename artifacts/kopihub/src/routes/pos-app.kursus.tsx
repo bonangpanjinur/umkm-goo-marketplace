@@ -1026,3 +1026,352 @@ function KursusPage() {
     </div>
   );
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Sortable Module Card (drag-and-drop wrapper)
+// ════════════════════════════════════════════════════════════════════════════
+function SortableModuleCard(props: {
+  mod: Module;
+  idx: number;
+  isExpanded: boolean;
+  lessons: Lesson[];
+  sensors: ReturnType<typeof useSensors>;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+  onNewLesson: () => void;
+  onEditLesson: (l: Lesson) => void;
+  onDeleteLesson: (l: Lesson) => void;
+  onToggleLessonStatus: (l: Lesson) => void;
+  onReorderLessons: (oldIdx: number, newIdx: number) => void;
+}) {
+  const { mod, idx, isExpanded, lessons, sensors } = props;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: mod.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="overflow-hidden">
+        <div className="flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors">
+          <button
+            type="button"
+            className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground/60 hover:text-foreground"
+            {...attributes}
+            {...listeners}
+            aria-label="Geser untuk mengurutkan modul"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          <span className="flex items-center justify-center h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold shrink-0">
+            {idx + 1}
+          </span>
+          <button
+            type="button"
+            onClick={props.onToggle}
+            className="flex-1 min-w-0 text-left"
+          >
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium text-sm">{mod.title}</p>
+              {mod.status === "published" ? (
+                <Badge className="text-[10px] bg-green-500 hover:bg-green-500">
+                  <Globe className="h-2.5 w-2.5 mr-1" />Tayang
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px]">
+                  <FileText className="h-2.5 w-2.5 mr-1" />Draft
+                </Badge>
+              )}
+            </div>
+            {mod.description && (
+              <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>
+            )}
+          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-xs text-muted-foreground mr-1">{mod.lesson_count} pelajaran</span>
+            <Button size="icon" variant="ghost" className="h-7 w-7"
+              title={mod.status === "published" ? "Jadikan draft" : "Tayangkan"}
+              onClick={props.onToggleStatus}>
+              {mod.status === "published"
+                ? <FileText className="h-3 w-3" />
+                : <Globe className="h-3 w-3" />}
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={props.onEdit}>
+              <Pencil className="h-3 w-3" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+              onClick={props.onDelete}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+            <button type="button" onClick={props.onToggle} className="ml-1 text-muted-foreground">
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t border-border bg-muted/20">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e: DragEndEvent) => {
+                const { active, over } = e;
+                if (!over || active.id === over.id) return;
+                const o = lessons.findIndex((l) => l.id === active.id);
+                const n = lessons.findIndex((l) => l.id === over.id);
+                if (o >= 0 && n >= 0) props.onReorderLessons(o, n);
+              }}
+            >
+              <SortableContext items={lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                {lessons.map((lesson, li) => (
+                  <SortableLessonRow
+                    key={lesson.id}
+                    lesson={lesson}
+                    li={li}
+                    onEdit={() => props.onEditLesson(lesson)}
+                    onDelete={() => props.onDeleteLesson(lesson)}
+                    onToggleStatus={() => props.onToggleLessonStatus(lesson)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+            <div className="px-4 py-3">
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={props.onNewLesson}>
+                <Plus className="h-3.5 w-3.5" />
+                Tambah Pelajaran
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function SortableLessonRow(props: {
+  lesson: Lesson;
+  li: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+}) {
+  const { lesson, li } = props;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: lesson.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style}
+      className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-b-0 bg-background/40">
+      <button
+        type="button"
+        className="cursor-grab active:cursor-grabbing pl-2 text-muted-foreground/60 hover:text-foreground"
+        {...attributes} {...listeners}
+        aria-label="Geser untuk mengurutkan pelajaran"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <Video className="h-4 w-4 text-muted-foreground shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium">{li + 1}. {lesson.title}</span>
+          {lesson.status === "published" ? (
+            <Badge className="text-[10px] bg-green-500 hover:bg-green-500">
+              <Globe className="h-2.5 w-2.5 mr-1" />Tayang
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px]">
+              <FileText className="h-2.5 w-2.5 mr-1" />Draft
+            </Badge>
+          )}
+          {lesson.is_free_preview && (
+            <Badge variant="secondary" className="text-[10px]">
+              <Eye className="h-2.5 w-2.5 mr-1" />Pratinjau
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+          <span className="flex items-center gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            {fmtDuration(lesson.duration_minutes)}
+          </span>
+          {lesson.video_url && (
+            <a href={lesson.video_url} target="_blank" rel="noopener noreferrer"
+              className="text-primary hover:underline truncate max-w-[180px]"
+              onClick={(e) => e.stopPropagation()}>
+              {lesson.video_url}
+            </a>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button size="icon" variant="ghost" className="h-7 w-7"
+          title={lesson.status === "published" ? "Jadikan draft" : "Tayangkan"}
+          onClick={props.onToggleStatus}>
+          {lesson.status === "published"
+            ? <FileText className="h-3 w-3" />
+            : <Globe className="h-3 w-3" />}
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={props.onEdit}>
+          <Pencil className="h-3 w-3" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+          onClick={props.onDelete}>
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Course Preview Dialog (putar alur modul → pelajaran)
+// ════════════════════════════════════════════════════════════════════════════
+function CoursePreviewDialog(props: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  course: Course | null;
+  sequence: { module: Module; lesson: Lesson; moduleIdx: number; lessonIdx: number }[];
+  index: number;
+  setIndex: (i: number) => void;
+}) {
+  const { open, onOpenChange, course, sequence, index, setIndex } = props;
+  const current = sequence[index];
+  const totalMinutes = sequence.reduce((s, x) => s + (x.lesson.duration_minutes || 0), 0);
+  const embed = toEmbedUrl(current?.lesson.video_url);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogHeader className="px-5 pt-5">
+          <DialogTitle className="flex items-center gap-2">
+            <PlayCircle className="h-5 w-5" />
+            Preview Kursus: {course?.name}
+          </DialogTitle>
+          <p className="text-xs text-muted-foreground">
+            {sequence.length} pelajaran · total {fmtDuration(totalMinutes)} · simulasi tampilan pembeli
+          </p>
+        </DialogHeader>
+
+        {sequence.length === 0 ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">
+            Belum ada pelajaran untuk dipreview. Tambahkan modul dan pelajaran terlebih dahulu.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-0">
+            {/* Player */}
+            <div className="p-5 space-y-3 min-w-0">
+              <div className="aspect-video w-full rounded-lg overflow-hidden bg-black flex items-center justify-center">
+                {embed ? (
+                  <iframe
+                    src={embed}
+                    title={current.lesson.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="text-center text-muted-foreground text-sm p-6">
+                    <Video className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                    <p>Pelajaran ini belum memiliki URL video.</p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Modul {current.moduleIdx + 1} · Pelajaran {current.lessonIdx + 1}
+                </div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 flex-wrap">
+                  {current.lesson.title}
+                  {current.lesson.status === "draft" && (
+                    <Badge variant="outline" className="text-[10px]"><FileText className="h-2.5 w-2.5 mr-1" />Draft</Badge>
+                  )}
+                  {current.lesson.is_free_preview && (
+                    <Badge variant="secondary" className="text-[10px]"><Eye className="h-2.5 w-2.5 mr-1" />Pratinjau Gratis</Badge>
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
+                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{fmtDuration(current.lesson.duration_minutes)}</span>
+                  <span className="truncate">Bagian dari: <b>{current.module.title}</b></span>
+                  {current.lesson.video_url && (
+                    <a href={current.lesson.video_url} target="_blank" rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1 truncate max-w-[220px]">
+                      <ExternalLink className="h-3 w-3" />Buka video
+                    </a>
+                  )}
+                </p>
+                {current.lesson.description && (
+                  <p className="text-sm text-muted-foreground pt-2">{current.lesson.description}</p>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-2 gap-2">
+                <Button variant="outline" size="sm" disabled={index === 0}
+                  onClick={() => setIndex(Math.max(0, index - 1))}>
+                  <ChevronLeft className="h-4 w-4 mr-1" />Sebelumnya
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {index + 1} / {sequence.length}
+                </span>
+                <Button size="sm" disabled={index >= sequence.length - 1}
+                  onClick={() => setIndex(Math.min(sequence.length - 1, index + 1))}>
+                  Berikutnya<ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Sidebar: outline */}
+            <div className="border-t md:border-t-0 md:border-l border-border bg-muted/30 max-h-[70vh] overflow-y-auto">
+              <div className="p-3 space-y-3">
+                {(() => {
+                  const grouped: Record<string, { module: Module; items: typeof sequence }> = {};
+                  sequence.forEach((s) => {
+                    if (!grouped[s.module.id]) grouped[s.module.id] = { module: s.module, items: [] };
+                    grouped[s.module.id].items.push(s);
+                  });
+                  return Object.values(grouped).map((g) => (
+                    <div key={g.module.id}>
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-1 mb-1">
+                        {g.module.title}
+                        {g.module.status === "draft" && <FileText className="h-3 w-3" />}
+                      </div>
+                      <div className="space-y-0.5">
+                        {g.items.map((s) => {
+                          const i = sequence.indexOf(s);
+                          const active = i === index;
+                          return (
+                            <button
+                              key={s.lesson.id}
+                              type="button"
+                              onClick={() => setIndex(i)}
+                              className={`w-full text-left text-xs px-2 py-1.5 rounded flex items-center gap-2 ${
+                                active ? "bg-primary text-primary-foreground" : "hover:bg-background/80"
+                              }`}
+                            >
+                              <PlayCircle className="h-3 w-3 shrink-0" />
+                              <span className="flex-1 truncate">{s.lesson.title}</span>
+                              <span className={`text-[10px] ${active ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                                {fmtDuration(s.lesson.duration_minutes)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
