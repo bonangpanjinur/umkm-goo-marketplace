@@ -560,6 +560,7 @@ export type Database = {
           location_type: string | null
           notes: string | null
           party_size: number
+          photographer_id: string | null
           rating_submitted_at: string | null
           reminded_h1_at: string | null
           reminded_h1h_at: string | null
@@ -593,6 +594,7 @@ export type Database = {
           location_type?: string | null
           notes?: string | null
           party_size?: number
+          photographer_id?: string | null
           rating_submitted_at?: string | null
           reminded_h1_at?: string | null
           reminded_h1h_at?: string | null
@@ -626,6 +628,7 @@ export type Database = {
           location_type?: string | null
           notes?: string | null
           party_size?: number
+          photographer_id?: string | null
           rating_submitted_at?: string | null
           reminded_h1_at?: string | null
           reminded_h1h_at?: string | null
@@ -641,6 +644,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "studio_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "studio_photographers"
             referencedColumns: ["id"]
           },
           {
@@ -7692,6 +7702,7 @@ export type Database = {
           updated_at: string
           verification_status: string
           verified_at: string | null
+          watermark_settings: Json
           whatsapp: string | null
         }
         Insert: {
@@ -7763,6 +7774,7 @@ export type Database = {
           updated_at?: string
           verification_status?: string
           verified_at?: string | null
+          watermark_settings?: Json
           whatsapp?: string | null
         }
         Update: {
@@ -7834,6 +7846,7 @@ export type Database = {
           updated_at?: string
           verification_status?: string
           verified_at?: string | null
+          watermark_settings?: Json
           whatsapp?: string | null
         }
         Relationships: [
@@ -8206,6 +8219,7 @@ export type Database = {
           expires_at: string | null
           id: string
           max_selections: number | null
+          photographer_id: string | null
           share_token: string
           shop_id: string
           status: string
@@ -8220,6 +8234,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           max_selections?: number | null
+          photographer_id?: string | null
           share_token?: string
           shop_id: string
           status?: string
@@ -8234,6 +8249,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           max_selections?: number | null
+          photographer_id?: string | null
           share_token?: string
           shop_id?: string
           status?: string
@@ -8242,6 +8258,13 @@ export type Database = {
           watermark_enabled?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "studio_galleries_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "studio_photographers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "studio_galleries_shop_id_fkey"
             columns: ["shop_id"]
@@ -8430,6 +8453,70 @@ export type Database = {
           },
           {
             foreignKeyName: "studio_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
+      studio_photographers: {
+        Row: {
+          color: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_photographers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "studio_photographers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_photographers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "v_shop_capabilities"
