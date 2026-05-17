@@ -488,7 +488,7 @@ function DetailDialog({
     try {
       const { error } = await supabase
         .from("orders")
-        .update({ status: "cancelled" } as any)
+        .update({ status: "cancelled" satisfies OrderStatus })
         .eq("id", order.id);
       if (error) { toast.error(error.message); throw error; }
       logStaffAction({
