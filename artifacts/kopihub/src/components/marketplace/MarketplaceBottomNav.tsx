@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Search, ShoppingCart, User, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
-import { cartCount } from "@/lib/marketplace-cart";
+import { cartQuantitySum } from "@/lib/marketplace-cart";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,20 +13,26 @@ const NAV = [
   { to: "/akun",       label: "Akun",      icon: User,         auth: true },
 ];
 
-export function MarketplaceBottomNav() {
+export function MarketplaceBottomNav({ shopId }: { shopId?: string } = {}) {
   const location = useLocation();
   const { user } = useAuth();
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-    const refresh = () => cartCount().then((c) => mounted && setCount(c)).catch(() => {});
+    const refresh = () => cartQuantitySum(shopId).then((c) => mounted && setCount(c)).catch(() => {});
     refresh();
-    const ch = supabase.channel("mp-cart-bottom")
+    const onCartChange = () => refresh();
+    window.addEventListener("kh-cart-change", onCartChange);
+    const ch = supabase.channel(`mp-cart-bottom-${shopId ?? "all"}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "marketplace_cart_items" }, refresh)
       .subscribe();
-    return () => { mounted = false; supabase.removeChannel(ch); };
-  }, []);
+    return () => {
+      mounted = false;
+      window.removeEventListener("kh-cart-change", onCartChange);
+      supabase.removeChannel(ch);
+    };
+  }, [shopId]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur sm:hidden">
