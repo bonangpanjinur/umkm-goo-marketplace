@@ -510,7 +510,7 @@ export default function PublicBookingPage() {
 
   // Computed deposit amount (based on full effective price)
   const depositAmount = (() => {
-    if (!shop?.deposit_required || !selectedSlot) return 0;
+    if (!shop?.deposit_enabled || !selectedSlot) return 0;
     const pct = shop.deposit_percentage ?? 50;
     return Math.ceil((effectivePrice * pct) / 100);
   })();
