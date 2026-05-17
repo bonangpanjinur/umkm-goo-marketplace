@@ -547,195 +547,24 @@ function ShopChatPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {loading ? (
-          <>
-            {/* Skeleton seller */}
-            <div className="flex justify-start animate-pulse">
-              <div className="max-w-[78%] space-y-2">
-                <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-56 h-12" />
-                <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-40 h-10" />
-              </div>
-            </div>
-            {/* Skeleton mine */}
-            <div className="flex justify-end animate-pulse">
-              <div className="space-y-2 max-w-[78%]">
-                <div className="bg-primary/20 rounded-2xl rounded-br-sm px-3 py-2.5 w-48 h-10" />
-                <div className="bg-primary/20 rounded-2xl rounded-br-sm px-3 py-2.5 w-32 h-8" />
-              </div>
-            </div>
-            {/* Skeleton seller */}
-            <div className="flex justify-start animate-pulse">
-              <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-64 h-14" />
-            </div>
-            {/* Skeleton mine */}
-            <div className="flex justify-end animate-pulse">
-              <div className="bg-primary/20 rounded-2xl rounded-br-sm px-3 py-2.5 w-44 h-10" />
-            </div>
-            {/* Skeleton seller */}
-            <div className="flex justify-start animate-pulse">
-              <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2.5 w-52 h-10" />
-            </div>
-          </>
-        ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
-            <MessageCircle className="h-10 w-10 text-muted-foreground opacity-30" />
-            <p className="text-sm text-muted-foreground max-w-xs">
-              Belum ada pesan. Tanya soal produk, ketersediaan, atau promo — penjual akan segera membalas!
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-3 max-w-md">
-              {QUICK_REPLIES.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => sendQuickReply(q)}
-                  disabled={sending}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card hover:bg-muted transition disabled:opacity-50"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((msg) => {
-            const isMine = msg.sender_role === "buyer";
-            const prod = msg.product_id ? productById(msg.product_id) : null;
-            const status: SendStatus = msg._status ?? "sent";
-            const isFailed = isMine && status === "failed";
-            const isSending = isMine && status === "sending";
-            return (
-              <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[78%] ${isFailed ? "flex flex-col items-end gap-1" : ""}`}>
-                  <div
-                    className={`rounded-2xl px-3 py-2 transition-opacity ${
-                      isMine
-                        ? `${isFailed ? "bg-destructive/10 border border-destructive/40 text-foreground" : "bg-primary text-primary-foreground"} rounded-br-sm ${isSending ? "opacity-70" : ""}`
-                        : "bg-muted rounded-bl-sm"
-                    }`}
-                  >
-                    {!isMine && (
-                      <p className="text-[10px] font-semibold mb-0.5 text-muted-foreground">{shopName}</p>
-                    )}
-
-                    {(msg.attachment_url || msg._localPreview) && msg.attachment_type === "image" && (
-                      <div className="relative mb-1.5">
-                        {msg.attachment_url ? (
-                          <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="block">
-                            <img
-                              src={msg.attachment_url}
-                              alt="Lampiran"
-                              className="rounded-lg max-h-60 w-auto object-cover"
-                              loading="lazy"
-                            />
-                          </a>
-                        ) : (
-                          <img
-                            src={msg._localPreview!}
-                            alt="Lampiran (mengunggah)"
-                            className={`rounded-lg max-h-60 w-auto object-cover ${
-                              isSending ? "opacity-70" : isFailed ? "opacity-60 grayscale" : ""
-                            }`}
-                          />
-                        )}
-                        {/* Upload progress overlay */}
-                        {isSending && msg._pendingUpload && typeof msg._uploadProgress === "number" && (
-                          <div className="absolute inset-x-1.5 bottom-1.5 rounded-full bg-black/55 px-2 py-1 backdrop-blur-sm">
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-white">
-                              <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                              <span className="tabular-nums">{Math.round(msg._uploadProgress * 100)}%</span>
-                              <div className="ml-auto h-1 flex-1 overflow-hidden rounded-full bg-white/25">
-                                <div
-                                  className="h-full bg-white transition-[width] duration-150 ease-out"
-                                  style={{ width: `${Math.round(msg._uploadProgress * 100)}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {prod && (
-                      <Link
-                        to="/toko/$slug" params={{ slug }}
-                        className={`flex items-center gap-2 rounded-lg p-2 mb-1.5 ${
-                          isMine && !isFailed ? "bg-primary-foreground/10" : "bg-background"
-                        }`}
-                      >
-                        {prod.image_url ? (
-                          <img src={prod.image_url} alt={prod.name} className="h-10 w-10 rounded object-cover" />
-                        ) : (
-                          <div className={`h-10 w-10 rounded flex items-center justify-center ${isMine && !isFailed ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                            <ShoppingBag className="h-4 w-4 opacity-60" />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium truncate">{prod.name}</p>
-                          <p className={`text-[11px] ${isMine && !isFailed ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{formatIDR(prod.price)}</p>
-                        </div>
-                      </Link>
-                    )}
-
-                    {msg.body && <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>}
-
-                    <div
-                      className={`text-[10px] mt-1 flex items-center gap-1 ${
-                        isMine
-                          ? isFailed
-                            ? "text-destructive justify-end"
-                            : "text-primary-foreground/70 justify-end"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      <span>
-                        {new Date(msg.created_at).toLocaleTimeString("id-ID", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {isMine && (
-                        status === "sending" ? (
-                          <Clock className="h-3 w-3" aria-label="Mengirim" />
-                        ) : status === "failed" ? (
-                          <AlertCircle className="h-3 w-3" aria-label="Gagal terkirim" />
-                        ) : msg.read_at ? (
-                          <CheckCheck className="h-3 w-3" aria-label="Dibaca" />
-                        ) : (
-                          <Check className="h-3 w-3" aria-label="Terkirim" />
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                  {isFailed && (
-                    <button
-                      type="button"
-                      onClick={() => retrySend(msg)}
-                      className="flex items-center gap-1 text-[11px] font-medium text-destructive hover:underline px-1"
-                    >
-                      <RefreshCw className="h-3 w-3" /> Coba kirim ulang
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-
-        {sellerTyping && (
-          <div className="flex justify-start">
-            <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2">
-              <div className="flex gap-1 items-center h-4">
-                <span className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-            </div>
+      <div
+        className="relative flex-1 overflow-y-auto p-4 space-y-3"
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const files = Array.from(e.dataTransfer.files);
+          if (files.length) processFiles(files);
+        }}
+      >
+        {dragOver && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-primary/10 backdrop-blur-[1px] border-2 border-dashed border-primary/50 rounded-lg m-2">
+            <ImageIcon className="h-10 w-10 text-primary/60 mb-2" />
+            <p className="text-sm font-medium text-primary">Lepaskan gambar di sini</p>
+            <p className="text-xs text-primary/70 mt-0.5">Maksimal 5 MB tiap gambar</p>
           </div>
         )}
-
-        <div ref={bottomRef} />
-      </div>
 
       {messages.length > 0 && messages.length < 4 && (
         <div className="px-3 pb-2 flex gap-2 overflow-x-auto">
