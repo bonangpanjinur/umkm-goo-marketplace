@@ -58,9 +58,9 @@ function SaldoPage() {
     (async () => {
       setLoading(true);
       const [{ data: ws }, { data: txs }, { data: ms }] = await Promise.all([
-        supabase.from("customer_wallets" as any).select("*, shop:coffee_shops(name,slug)").eq("customer_user_id", user.id),
+        supabase.from("customer_wallets" as any).select("*, shop:shops(name,slug)").eq("customer_user_id", user.id),
         supabase.from("customer_wallet_transactions" as any).select("*").eq("customer_user_id", user.id).order("created_at", { ascending: false }).limit(30),
-        supabase.from("customer_memberships" as any).select("*, tier:shop_membership_tiers(name,discount_percent), shop:coffee_shops(name,slug)").eq("customer_user_id", user.id).eq("status", "active").order("expires_at"),
+        supabase.from("customer_memberships" as any).select("*, tier:shop_membership_tiers(name,discount_percent), shop:shops(name,slug)").eq("customer_user_id", user.id).eq("status", "active").order("expires_at"),
       ]);
       setWallets((ws as any) ?? []);
       setTx((txs as any) ?? []);

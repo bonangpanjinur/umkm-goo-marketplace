@@ -13,7 +13,7 @@ export const Route = createFileRoute("/order/$slug")({
   }),
   loader: async ({ params, location }) => {
     const { data: shop } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .select("id, name, slug, description, tagline, logo_url, phone, is_active")
       .eq("slug", params.slug)
       .maybeSingle();

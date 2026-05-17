@@ -58,7 +58,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       root: { props: {} },
       content: [
         { type: "Heading", props: { id: "h1", text: "Selamat Datang", level: "h1", align: "left" } },
-        { type: "Text", props: { id: "t1", text: "Kami menyajikan kopi terbaik dengan harga ramah. Silakan jelajahi menu kami.", align: "left" } },
+        { type: "Text", props: { id: "t1", text: "Kami menyajikan produk terbaik dengan harga ramah. Silakan jelajahi katalog kami.", align: "left" } },
         { type: "MenuGrid", props: { id: "m1", title: "", columns: 3, limit: 12, showPrice: true } },
         { type: "ShopInfo", props: { id: "i1", showAddress: true, showPhone: true, showHours: true } },
       ],

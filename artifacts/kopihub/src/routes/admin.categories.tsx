@@ -272,12 +272,12 @@ function AdminCategories() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Nama Kategori *</Label>
-              <Input placeholder="Kafe & Kedai Kopi" value={form.name}
+              <Input placeholder="Kafe & Restoran" value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: f.slug || autoSlug(e.target.value) }))} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Slug (URL) *</Label>
-              <Input placeholder="kafe-kedai-kopi" value={form.slug}
+              <Input placeholder="kafe-restoran" value={form.slug}
                 onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") }))} />
             </div>
             <div className="space-y-1.5">

@@ -32,7 +32,7 @@ const SEED_TASKS: Omit<SeedTask, "running" | "done" | "result">[] = [
 ];
 
 const DEMO_CATEGORIES = [
-  { slug: "fnb",      name: "Warung Kopi Demo",    type: "Kafe & Minuman" },
+  { slug: "fnb",      name: "Warung UMKM Demo",    type: "Kafe & Minuman" },
   { slug: "fashion",  name: "Butik Mode Demo",     type: "Fashion & Pakaian" },
   { slug: "rental",   name: "Rental Kendaraan Demo", type: "Rental & Sewa" },
   { slug: "klinik",   name: "Klinik Kecantikan Demo", type: "Kesehatan & Kecantikan" },
@@ -58,7 +58,7 @@ export default function SandboxPage() {
     try {
       if (taskId === "shops") {
         for (const cat of DEMO_CATEGORIES) {
-          await (supabase as any).from("coffee_shops").upsert({
+          await (supabase as any).from("shops").upsert({
             name: cat.name, slug: `demo-${cat.slug}-${Date.now()}`,
             is_active: true, is_demo: true,
             description: `Toko demo untuk kategori ${cat.type}`,
@@ -94,7 +94,7 @@ export default function SandboxPage() {
   const cleanup = async () => {
     setCleaningUp(true);
     try {
-      await (supabase as any).from("coffee_shops").delete().eq("is_demo", true);
+      await (supabase as any).from("shops").delete().eq("is_demo", true);
       setTasks(prev => prev.map(t => ({ ...t, done: false, result: null })));
       toast.success("Data sandbox dibersihkan");
     } catch (err) {

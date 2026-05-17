@@ -49,7 +49,7 @@ const DEFAULT_FIELDS = [
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.anamnesis_forms (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   booking_id uuid REFERENCES public.bookings(id) ON DELETE SET NULL,
   patient_name text NOT NULL,
   chief_complaint text NOT NULL,

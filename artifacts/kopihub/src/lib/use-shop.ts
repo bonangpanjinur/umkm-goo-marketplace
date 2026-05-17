@@ -29,7 +29,7 @@ export function useCurrentShop() {
 
       // 1) Try as owner first
       let { data: s } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, logo_url, address, phone, tax_percent, service_charge_percent, tax_inclusive, owner_id")
         .eq("owner_id", user.id)
         .order("created_at", { ascending: true })
@@ -52,7 +52,7 @@ export function useCurrentShop() {
         if (role?.shop_id) {
           staffOutletId = role.outlet_id ?? null;
           const { data: shopRow } = await supabase
-            .from("coffee_shops")
+            .from("shops")
             .select("id, name, slug, logo_url, address, phone, tax_percent, service_charge_percent, tax_inclusive, owner_id")
             .eq("id", role.shop_id)
             .maybeSingle();

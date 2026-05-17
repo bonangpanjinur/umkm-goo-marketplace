@@ -40,7 +40,7 @@ type PhotoReview = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_photo_reviews (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   token text NOT NULL DEFAULT gen_random_uuid()::text,
   client_name text NOT NULL,
   client_phone text,

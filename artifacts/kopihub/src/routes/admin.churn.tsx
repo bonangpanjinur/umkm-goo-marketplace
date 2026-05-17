@@ -51,7 +51,7 @@ export default function AdminChurnPage() {
     try {
       if (tab === "expiring") {
         const { data } = await supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("id, name, slug, plan, plan_expires_at, created_at")
           .eq("plan", "pro")
           .gte("plan_expires_at", now)
@@ -64,14 +64,14 @@ export default function AdminChurnPage() {
             : null,
         })));
         const [{ count: e7 }, { count: e30 }] = await Promise.all([
-          supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", in7),
-          supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", in30),
+          supabase.from("shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", in7),
+          supabase.from("shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", in30),
         ]);
         setKpis(k => ({ ...k, expiring7: e7 ?? 0, expiring30: e30 ?? 0 }));
 
       } else if (tab === "churned") {
         const { data } = await supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("id, name, slug, plan, plan_expires_at, created_at")
           .eq("plan", "free")
           .not("plan_expires_at", "is", null)
@@ -85,7 +85,7 @@ export default function AdminChurnPage() {
         // Shops with high GMV in prev 30d but lower in current 30d
         const { data: ordersNow } = await supabase
           .from("orders")
-          .select("shop_id, total, shop:coffee_shops(name, slug, plan)")
+          .select("shop_id, total, shop:shops(name, slug, plan)")
           .eq("status", "completed")
           .gte("created_at", ago30);
         const { data: ordersPrev } = await supabase
@@ -129,7 +129,7 @@ export default function AdminChurnPage() {
         const activeIds = new Set((activeShopIds ?? []).map((o: any) => o.shop_id));
 
         const { data } = await supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("id, name, slug, plan, plan_expires_at, created_at")
           .eq("plan", "pro")
           .order("created_at", { ascending: false })

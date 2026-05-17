@@ -36,7 +36,7 @@ export const Route = createFileRoute("/pos-app/flash-sale")({
 const FS_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.flash_sales (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   menu_item_id uuid not null references public.menu_items(id) on delete cascade,
   flash_price numeric(10,2) not null,
   original_price numeric(10,2) not null,
@@ -49,8 +49,8 @@ create table if not exists public.flash_sales (
 );
 alter table public.flash_sales enable row level security;
 create policy "owner_all_fs" on public.flash_sales
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 create policy "public_read_fs" on public.flash_sales
   for select using (true);`;
 

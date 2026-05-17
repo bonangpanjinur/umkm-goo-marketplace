@@ -4,7 +4,7 @@ import { Receipt } from "@/components/pos/receipt";
 import { KitchenTicket } from "@/components/pos/kitchen-ticket";
 
 const baseReceiptProps = {
-  shopName: "KopiHub",
+  shopName: "UMKMgo",
   outletName: "Outlet A",
   orderNo: "0001",
   cashierName: "Kasir",

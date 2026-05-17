@@ -21,7 +21,7 @@ function PublicQuoteView() {
     (async () => {
       const { data } = await (supabase as any)
         .from("custom_order_quotes")
-        .select("id, total, breakdown, notes, valid_until, status, sent_at, created_at, request:custom_order_requests(customer_name, description), shop:coffee_shops(name, slug, logo_url)")
+        .select("id, total, breakdown, notes, valid_until, status, sent_at, created_at, request:custom_order_requests(customer_name, description), shop:shops(name, slug, logo_url)")
         .eq("id", id)
         .in("status", ["sent", "accepted", "rejected", "expired"])
         .maybeSingle();

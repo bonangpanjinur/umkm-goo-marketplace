@@ -37,7 +37,7 @@ type SizeChart = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_size_charts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   name text NOT NULL,
   description text,
   unit text NOT NULL DEFAULT 'cm',

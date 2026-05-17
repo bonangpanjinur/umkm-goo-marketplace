@@ -32,7 +32,7 @@ const BULK_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.bulk_pricing_rules (
   id uuid primary key default gen_random_uuid(),
   menu_item_id uuid not null references public.menu_items(id) on delete cascade,
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   min_qty integer not null,
   max_qty integer,
   price numeric(10,2) not null,
@@ -42,8 +42,8 @@ create table if not exists public.bulk_pricing_rules (
 );
 alter table public.bulk_pricing_rules enable row level security;
 create policy "owner_all_bp" on public.bulk_pricing_rules
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 create policy "public_read_bp" on public.bulk_pricing_rules
   for select using (true);`;
 

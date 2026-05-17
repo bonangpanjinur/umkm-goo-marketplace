@@ -30,7 +30,7 @@ export default function ShopMapPage() {
 
   useEffect(() => {
     supabase
-      .from("coffee_shops")
+      .from("shops")
       .select("id, name, address, city, phone, logo_url, latitude, longitude, open_hours, kyc_status")
       .eq("slug", slug)
       .maybeSingle()

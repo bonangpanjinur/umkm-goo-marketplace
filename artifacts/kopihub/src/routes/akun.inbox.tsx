@@ -41,7 +41,7 @@ function InboxPage() {
     const load = async () => {
       const { data: chatData } = await (supabase as any)
         .from("shop_chats")
-        .select("id, shop_id, last_message_at, created_at, shop:coffee_shops(name, slug, logo_url)")
+        .select("id, shop_id, last_message_at, created_at, shop:shops(name, slug, logo_url)")
         .eq("buyer_user_id", user.id)
         .order("last_message_at", { ascending: false, nullsFirst: false });
 

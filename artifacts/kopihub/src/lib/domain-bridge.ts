@@ -7,10 +7,10 @@ export async function requestCustomDomainBridge({ data }: { data: { domain: stri
   const { domain } = z.object({ domain: z.string().min(3).max(253).regex(DOMAIN_RE) }).parse(data);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not_authenticated");
-  const { data: shop } = await supabase.from("coffee_shops").select("id").eq("owner_id", user.id).maybeSingle();
+  const { data: shop } = await supabase.from("shops").select("id").eq("owner_id", user.id).maybeSingle();
   if (!shop) throw new Error("shop_not_found");
   const token = `umkmgo-verify=${Math.random().toString(36).slice(2)}`;
-  const { error } = await supabase.from("coffee_shops").update({ custom_domain: domain, custom_domain_verify_token: token, custom_domain_verified_at: null }).eq("id", shop.id);
+  const { error } = await supabase.from("shops").update({ custom_domain: domain, custom_domain_verify_token: token, custom_domain_verified_at: null }).eq("id", shop.id);
   if (error) throw error;
   return { token, instructions: `Add TXT record _umkmgo-verify.${domain} = ${token}` };
 }
@@ -29,7 +29,7 @@ const CNAME_TARGET = "tenants.umkmgo.app";
 export async function verifyCustomDomainBridge(): Promise<VerifyResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not_authenticated");
-  const { data: shop } = await supabase.from("coffee_shops").select("id, custom_domain, custom_domain_verify_token").eq("owner_id", user.id).maybeSingle();
+  const { data: shop } = await supabase.from("shops").select("id, custom_domain, custom_domain_verify_token").eq("owner_id", user.id).maybeSingle();
   if (!shop?.custom_domain || !shop?.custom_domain_verify_token) throw new Error("no_domain");
 
   const domain = shop.custom_domain as string;
@@ -62,7 +62,7 @@ export async function verifyCustomDomainBridge(): Promise<VerifyResult> {
     base.cnameOk = cnameOk;
 
     if (txtFound) {
-      await supabase.from("coffee_shops").update({ custom_domain_verified_at: new Date().toISOString() }).eq("id", shop.id);
+      await supabase.from("shops").update({ custom_domain_verified_at: new Date().toISOString() }).eq("id", shop.id);
       base.verified = true;
     }
 
@@ -75,8 +75,8 @@ export async function verifyCustomDomainBridge(): Promise<VerifyResult> {
 export async function removeCustomDomainBridge() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not_authenticated");
-  const { data: shop } = await supabase.from("coffee_shops").select("id").eq("owner_id", user.id).maybeSingle();
+  const { data: shop } = await supabase.from("shops").select("id").eq("owner_id", user.id).maybeSingle();
   if (!shop) throw new Error("shop_not_found");
-  await supabase.from("coffee_shops").update({ custom_domain: null, custom_domain_verify_token: null, custom_domain_verified_at: null }).eq("id", shop.id);
+  await supabase.from("shops").update({ custom_domain: null, custom_domain_verify_token: null, custom_domain_verified_at: null }).eq("id", shop.id);
   return { removed: true };
 }

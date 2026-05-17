@@ -381,7 +381,7 @@ function AppLayoutInner() {
     (async () => {
       // Owner flow
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, logo_url, suspended_at, suspended_reason, business_subtype, business_category:business_categories(slug)")
         .eq("owner_id", user.id)
         .maybeSingle();
@@ -400,7 +400,7 @@ function AppLayoutInner() {
       if (staff.loading) return;
       if (staff.isStaff && staff.shopId) {
         const { data: s } = await supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("id, name, logo_url, suspended_at, suspended_reason, business_subtype, business_category:business_categories(slug)")
           .eq("id", staff.shopId)
           .maybeSingle();

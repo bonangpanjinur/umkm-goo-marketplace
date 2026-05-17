@@ -35,7 +35,7 @@ type WipPost = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.wip_gallery (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   title text NOT NULL,
   caption text,
   image_url text NOT NULL,

@@ -57,12 +57,12 @@ function BandingkanPage() {
     (async () => {
       const { data } = await supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, shop_id, dietary_tags, allergens, bpom_number, ingredients, coffee_shops(name, slug)")
+        .select("id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, shop_id, dietary_tags, allergens, bpom_number, ingredients, shops(name, slug)")
         .in("id", productIds);
 
       const list = ((data ?? []) as any[]).map(p => ({
         ...p,
-        shop: p.coffee_shops ?? null,
+        shop: p.shops ?? null,
       }));
       const ordered = productIds
         .map(id => list.find((p: any) => p.id === id))

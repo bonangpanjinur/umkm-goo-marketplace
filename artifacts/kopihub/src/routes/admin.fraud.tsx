@@ -64,7 +64,7 @@ export default function AdminFraudPage() {
 
       const { data: bigOrders } = await supabase
         .from("orders")
-        .select("id, order_no, total, status, created_at, customer_name, shop:coffee_shops(name)")
+        .select("id, order_no, total, status, created_at, customer_name, shop:shops(name)")
         .gte("created_at", ago7)
         .gte("total", 500000)
         .order("total", { ascending: false })
@@ -113,7 +113,7 @@ export default function AdminFraudPage() {
       // Spike shops: today vs 7-day avg
       const { data: todayOrders } = await supabase
         .from("orders")
-        .select("shop_id, total, shop:coffee_shops(name, slug)")
+        .select("shop_id, total, shop:shops(name, slug)")
         .eq("status", "completed")
         .gte("created_at", todayStart.toISOString());
 

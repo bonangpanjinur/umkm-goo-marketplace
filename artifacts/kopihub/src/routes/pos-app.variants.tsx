@@ -219,7 +219,7 @@ function VariantsPage() {
 {`-- Tabel varian produk (O-3)
 CREATE TABLE IF NOT EXISTS menu_item_variants (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id       uuid NOT NULL REFERENCES coffee_shops(id) ON DELETE CASCADE,
+  shop_id       uuid NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
   menu_item_id  uuid NOT NULL REFERENCES menu_items(id) ON DELETE CASCADE,
   name          text NOT NULL,
   sku           text,
@@ -231,8 +231,8 @@ CREATE TABLE IF NOT EXISTS menu_item_variants (
   updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
--- Kolom KYC di coffee_shops
-ALTER TABLE coffee_shops
+-- Kolom KYC di shops
+ALTER TABLE shops
   ADD COLUMN IF NOT EXISTS kyc_status        text DEFAULT 'not_submitted',
   ADD COLUMN IF NOT EXISTS kyc_document_url  text,
   ADD COLUMN IF NOT EXISTS kyc_submitted_at  timestamptz,
@@ -246,10 +246,10 @@ ALTER TABLE menu_item_variants ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "owner_all" ON menu_item_variants
   USING (shop_id IN (
-    SELECT id FROM coffee_shops WHERE owner_id = auth.uid()
+    SELECT id FROM shops WHERE owner_id = auth.uid()
   ))
   WITH CHECK (shop_id IN (
-    SELECT id FROM coffee_shops WHERE owner_id = auth.uid()
+    SELECT id FROM shops WHERE owner_id = auth.uid()
   ));
 
 CREATE POLICY "staff_read" ON menu_item_variants

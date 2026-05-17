@@ -333,7 +333,7 @@ function PODetailPage() {
       poData.supplier_id
         ? supabase.from("suppliers").select("id, name, phone, contact_name, address, email").eq("id", poData.supplier_id).single()
         : Promise.resolve({ data: null }),
-      supabase.from("coffee_shops").select("id, name, address, phone, email, logo_url").eq("id", poData.shop_id).single(),
+      supabase.from("shops").select("id, name, address, phone, email, logo_url").eq("id", poData.shop_id).single(),
       supabase.from("po_audit_log").select("id, action, from_status, to_status, reason, actor_name, created_at").eq("po_id", poId).order("created_at", { ascending: false }),
     ]);
     const itList = (itRes.data ?? []) as POItem[];

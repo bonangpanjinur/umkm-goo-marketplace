@@ -60,7 +60,7 @@ function AdminWithdrawals() {
     setLoading(true);
     let q = supabase
       .from("withdrawal_requests")
-      .select("*, shop:coffee_shops(name, slug)")
+      .select("*, shop:shops(name, slug)")
       .order("created_at", { ascending: false })
       .limit(200);
     if (filter !== "all") q = q.eq("status", filter);

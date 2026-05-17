@@ -158,7 +158,7 @@ function LaporanHarianPage() {
       lowStock.length > 0 ? `⚠️ *Stok Kritis (${lowStock.length} bahan):*` : null,
       ...lowStock.slice(0, 5).map(s => `• ${s.name}: ${s.current_stock} ${s.unit}${s.current_stock <= 0 ? " ❌ HABIS" : ""}`),
       "",
-      `_Dikirim otomatis oleh KopiHub_`,
+      `_Dikirim otomatis oleh UMKMgo_`,
     ].filter(Boolean);
 
     return encodeURIComponent(lines.join("\n"));

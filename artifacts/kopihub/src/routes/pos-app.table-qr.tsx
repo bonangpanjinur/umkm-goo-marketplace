@@ -80,7 +80,7 @@ function TableQRPage() {
     if (!shop?.id) return;
     (async () => {
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("custom_domain, custom_domain_verified_at")
         .eq("id", shop.id)
         .maybeSingle();

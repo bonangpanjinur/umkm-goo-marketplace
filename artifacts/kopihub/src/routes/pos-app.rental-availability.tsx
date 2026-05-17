@@ -32,7 +32,7 @@ export const Route = createFileRoute("/pos-app/rental-availability")({
 const RENTAL_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.rental_units (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   name text not null,
   unit_code text,
   category text,
@@ -49,7 +49,7 @@ create table if not exists public.rental_units (
 create table if not exists public.rental_bookings (
   id uuid primary key default gen_random_uuid(),
   unit_id uuid not null references public.rental_units(id) on delete cascade,
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   customer_name text not null,
   customer_phone text,
   start_date date not null,
@@ -69,12 +69,12 @@ alter table public.rental_units enable row level security;
 alter table public.rental_bookings enable row level security;
 
 create policy "owner_all_units" on public.rental_units
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 
 create policy "owner_all_rbooking" on public.rental_bookings
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 
 create policy "public_read_units" on public.rental_units for select using (is_active = true);
 create policy "public_insert_booking" on public.rental_bookings for insert with check (true);`;

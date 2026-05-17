@@ -29,7 +29,7 @@ function AdminImpersonation() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .select("id, name, slug, plan")
       .order("name") as any;
 

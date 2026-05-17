@@ -31,7 +31,7 @@ type Claim = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_product_claims (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   label text NOT NULL,
   badge_type text NOT NULL DEFAULT 'dermatologist',
   evidence_url text,

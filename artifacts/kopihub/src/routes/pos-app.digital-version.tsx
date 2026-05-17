@@ -32,7 +32,7 @@ export const Route = createFileRoute("/pos-app/digital-version")({
 const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor:
 CREATE TABLE IF NOT EXISTS public.digital_product_versions (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id       uuid        NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id       uuid        NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   product_id    uuid        NOT NULL REFERENCES public.menu_items(id) ON DELETE CASCADE,
   product_name  text        NOT NULL,
   version       text        NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.digital_product_versions (
 CREATE INDEX IF NOT EXISTS idx_dpv_product ON public.digital_product_versions(product_id, created_at DESC);
 ALTER TABLE public.digital_product_versions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "merchant_own_dpv" ON public.digital_product_versions
-  USING (shop_id = (SELECT id FROM coffee_shops WHERE owner_id = auth.uid() LIMIT 1));`;
+  USING (shop_id = (SELECT id FROM shops WHERE owner_id = auth.uid() LIMIT 1));`;
 
 type DigitalProduct = {
   id: string;

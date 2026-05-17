@@ -44,7 +44,7 @@ function KatalogPage() {
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, logo_url, tagline, phone")
         .eq("slug", slug)
         .maybeSingle();

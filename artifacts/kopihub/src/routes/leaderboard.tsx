@@ -5,7 +5,7 @@ import { Loader2, Star, ShoppingBag, Users, BadgeCheck, Coffee, Trophy } from "l
 import { TrustCertBadge, computeTrustCert } from "@/components/TrustCertBadge";
 
 export const Route = createFileRoute("/leaderboard")({
-  head: () => ({ meta: [{ title: "Leaderboard Toko Terbaik — KopiHub" }] }),
+  head: () => ({ meta: [{ title: "Leaderboard Toko Terbaik — UMKMgo" }] }),
   component: LeaderboardPage,
 });
 
@@ -68,9 +68,9 @@ function LeaderboardPage() {
     (async () => {
       setLoading(true);
 
-      // 1. Coffee shops
+      // 1. Shops
       const { data: shopData } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, logo_url, tagline, is_kyc_verified")
         .eq("is_active", true)
         .order("created_at")
@@ -175,7 +175,7 @@ function LeaderboardPage() {
           </div>
           <h1 className="text-3xl font-black tracking-tight">Leaderboard Toko Terbaik</h1>
           <p className="mt-2 text-amber-100 text-sm">
-            Ranking toko kopi berdasarkan rating, pesanan, dan popularitas di KopiHub
+            Ranking toko berdasarkan rating, pesanan, dan popularitas di UMKMgo
           </p>
           {certCount > 0 && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium">

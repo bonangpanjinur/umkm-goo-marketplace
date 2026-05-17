@@ -87,7 +87,7 @@ function MerchantTiersPage() {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 86400 * 1000).toISOString();
 
       const { data: shopData } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, plan, kyc_status, rating_avg, rating_count, created_at")
         .order("created_at", { ascending: false });
 

@@ -101,7 +101,7 @@ function SettingsPage() {
     (async () => {
       setLoading(true);
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percent, deposit_min_total")
         .eq("id", shop.id)
         .maybeSingle();
@@ -210,7 +210,7 @@ function SettingsPage() {
       .filter((c) => (c.oldVal ?? "") !== (c.newVal ?? ""));
 
     const { error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .update({
         name: form.name,
         description: form.description,
@@ -306,7 +306,7 @@ function SettingsPage() {
             </div>
             <div>
               <Label htmlFor="tagline">Tagline</Label>
-              <Input id="tagline" placeholder="Mis. Kopi nikmat, harga sahabat" value={form.tagline ?? ""}
+              <Input id="tagline" placeholder="Mis. Produk berkualitas, harga sahabat" value={form.tagline ?? ""}
                 onChange={(e) => update("tagline", e.target.value)} />
             </div>
             <div>
@@ -474,7 +474,7 @@ function SettingsPage() {
                 <div className="space-y-2">
                   <div>
                     <Label>Nama merchant</Label>
-                    <Input placeholder="Mis. Toko Kopi Sahabat" value={form.qris_merchant_name ?? ""}
+                    <Input placeholder="Mis. Toko Berkah Sahabat" value={form.qris_merchant_name ?? ""}
                       onChange={(e) => update("qris_merchant_name", e.target.value)} />
                     <p className="mt-1 text-xs text-muted-foreground">Tampil di halaman pembayaran pelanggan.</p>
                   </div>

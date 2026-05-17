@@ -93,7 +93,7 @@ export default function AdminAutoRenewalPage() {
       // Fallback: query Supabase directly
       const cutoff = new Date(Date.now() + maxDays * 86_400_000).toISOString();
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, plan_expires_at")
         .eq("plan", "pro")
         .gte("plan_expires_at", new Date().toISOString())
@@ -126,7 +126,7 @@ export default function AdminAutoRenewalPage() {
     setNotifsLoading(true);
     const { data } = await (supabase as any)
       .from("owner_notifications")
-      .select("id, shop_id, title, body, severity, created_at, shop:coffee_shops(name)")
+      .select("id, shop_id, title, body, severity, created_at, shop:shops(name)")
       .eq("type", "renewal_reminder")
       .order("created_at", { ascending: false })
       .limit(20);

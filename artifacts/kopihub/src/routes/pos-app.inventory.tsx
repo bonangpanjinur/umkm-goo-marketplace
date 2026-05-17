@@ -590,7 +590,7 @@ function InventoryPage() {
           </div>
           <h2 className="text-lg font-semibold">Belum ada bahan</h2>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
-            Tambahkan bahan baku — biji kopi, susu, sirup, kemasan. Lalu hubungkan ke menu di tab Resep.
+            Tambahkan bahan baku — bahan baku, kemasan, supplies. Lalu hubungkan ke menu di tab Resep.
           </p>
         </div>
       ) : (

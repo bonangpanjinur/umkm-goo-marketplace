@@ -125,7 +125,7 @@ export default function OnboardingAutomationPage() {
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const { data } = await supabase
-        .from("coffee_shops" as any)
+        .from("shops" as any)
         .select("id, name, owner_email, created_at")
         .gte("created_at" as any, sevenDaysAgo)
         .order("created_at" as any, { ascending: false })

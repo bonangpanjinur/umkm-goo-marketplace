@@ -29,7 +29,7 @@ type Req = {
   delivery_note: string | null;
 };
 
-const STORAGE_KEY = (slug: string) => `kopihub:custom-order-contact:${slug}`;
+const STORAGE_KEY = (slug: string) => `umkmgo:custom-order-contact:${slug}`;
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
   pending: { label: "Menunggu review", cls: "bg-amber-100 text-amber-800 border-amber-200" },
@@ -64,7 +64,7 @@ function CustomOrderStatusPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: s } = await supabase.from("coffee_shops").select("id, name").eq("slug", slug).maybeSingle();
+      const { data: s } = await supabase.from("shops").select("id, name").eq("slug", slug).maybeSingle();
       if (s) setShop(s);
       const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY(slug)) : null;
       if (saved) {

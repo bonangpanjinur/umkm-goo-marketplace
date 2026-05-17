@@ -12,7 +12,7 @@ function Render({ label, message, align: a }: WhatsAppCTAProps) {
   const [wa, setWa] = useState<string>("");
   useEffect(() => {
     if (!ctx.slug) return;
-    supabase.from("coffee_shops").select("whatsapp,phone").eq("slug", ctx.slug).maybeSingle()
+    supabase.from("shops").select("whatsapp,phone").eq("slug", ctx.slug).maybeSingle()
       .then(({ data }) => setWa((data?.whatsapp || data?.phone || "").replace(/\D/g, "")));
   }, [ctx.slug]);
   const href = wa ? `https://wa.me/${wa.startsWith("0") ? "62" + wa.slice(1) : wa}?text=${encodeURIComponent(message)}` : "#";

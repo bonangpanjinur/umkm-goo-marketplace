@@ -43,7 +43,7 @@ function CustomOrdersPage() {
     (async () => {
       const { data } = await (supabase as any)
         .from("custom_order_requests")
-        .select("id, shop_id, description, status, budget_min, budget_max, deadline, created_at, shop:coffee_shops(name, slug)")
+        .select("id, shop_id, description, status, budget_min, budget_max, deadline, created_at, shop:shops(name, slug)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setRows((data ?? []) as Row[]);

@@ -44,7 +44,7 @@ type AdRequest = {
 const DEMO_ADS: AdRequest[] = [
   { id: "ad-0", shop_id: "s0", shop_name: "Warung Mbok Sri", shop_logo: null, ad_type: "product", target_id: "p0", target_name: "Nasi Gudeg Spesial", target_image: null, position: "homepage_middle", budget_idr: 210000, duration_days: 7, starts_at: null, ends_at: null, status: "payment_pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 900000).toISOString(), payment_method: "transfer", payment_tx_id: null },
   { id: "ad-1", shop_id: "s1", shop_name: "Batik Nusantara", shop_logo: null, ad_type: "shop", target_id: "s1", target_name: "Batik Nusantara", target_image: null, position: "hero_carousel", budget_idr: 500000, duration_days: 14, starts_at: null, ends_at: null, status: "pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 3600000).toISOString(), payment_method: "gopay", payment_tx_id: "txn-abc-001" },
-  { id: "ad-2", shop_id: "s2", shop_name: "Kopi Senja", shop_logo: null, ad_type: "product", target_id: "p1", target_name: "Kopi Arabika Gayo Premium 250g", target_image: null, position: "homepage_middle", budget_idr: 200000, duration_days: 7, starts_at: new Date(Date.now() - 86400000 * 2).toISOString(), ends_at: new Date(Date.now() + 86400000 * 5).toISOString(), status: "active", reject_reason: null, impressions: 1240, clicks: 87, created_at: new Date(Date.now() - 86400000 * 3).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-002" },
+  { id: "ad-2", shop_id: "s2", shop_name: "Toko Berkah", shop_logo: null, ad_type: "product", target_id: "p1", target_name: "Produk Unggulan Toko", target_image: null, position: "homepage_middle", budget_idr: 200000, duration_days: 7, starts_at: new Date(Date.now() - 86400000 * 2).toISOString(), ends_at: new Date(Date.now() + 86400000 * 5).toISOString(), status: "active", reject_reason: null, impressions: 1240, clicks: 87, created_at: new Date(Date.now() - 86400000 * 3).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-002" },
   { id: "ad-3", shop_id: "s3", shop_name: "Craft Corner", shop_logo: null, ad_type: "product", target_id: "p2", target_name: "Tas Anyam Rotan Premium", target_image: null, position: "search_top", budget_idr: 150000, duration_days: 7, starts_at: null, ends_at: null, status: "pending", reject_reason: null, impressions: 0, clicks: 0, created_at: new Date(Date.now() - 7200000).toISOString(), payment_method: "qris", payment_tx_id: "txn-abc-003" },
   { id: "ad-4", shop_id: "s4", shop_name: "Fashion ID", shop_logo: null, ad_type: "shop", target_id: "s4", target_name: "Fashion ID", target_image: null, position: "category_top", budget_idr: 300000, duration_days: 14, starts_at: new Date(Date.now() - 86400000 * 10).toISOString(), ends_at: new Date(Date.now() - 86400000 * 3).toISOString(), status: "expired", reject_reason: null, impressions: 3200, clicks: 210, created_at: new Date(Date.now() - 86400000 * 15).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-004" },
   { id: "ad-5", shop_id: "s5", shop_name: "Digital Hub", shop_logo: null, ad_type: "product", target_id: "p3", target_name: "Template Canva Premium Bundle", target_image: null, position: "product_sidebar", budget_idr: 100000, duration_days: 7, starts_at: null, ends_at: null, status: "rejected", reject_reason: "Konten tidak sesuai dengan kebijakan platform", impressions: 0, clicks: 0, created_at: new Date(Date.now() - 86400000).toISOString(), payment_method: "transfer", payment_tx_id: "txn-abc-005" },
@@ -88,7 +88,7 @@ export default function AdminAdsPage() {
     setLoading(true);
     try {
       const { data, error } = await (supabase as any).from("ad_requests")
-        .select("*, coffee_shops(name, logo_url)")
+        .select("*, shops(name, logo_url)")
         .order("created_at", { ascending: false });
       if (error || !data) throw new Error();
       setAds(data as AdRequest[]);
@@ -381,7 +381,7 @@ export default function AdminAdsPage() {
           <p className="font-semibold mb-1">SQL untuk tabel ad_requests (jalankan di Supabase SQL Editor):</p>
           <pre className="mt-2 overflow-x-auto rounded bg-amber-100 p-3 text-xs leading-relaxed">{`create table if not exists ad_requests (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid references coffee_shops(id),
+  shop_id uuid references shops(id),
   ad_type text check (ad_type in ('product','shop')) default 'product',
   target_id uuid,
   target_name text,
@@ -409,15 +409,15 @@ alter table ad_requests enable row level security;
 -- Owner bisa buat & lihat iklan milik toko mereka
 create policy "owner insert" on ad_requests for insert
   with check (shop_id in (
-    select id from coffee_shops where owner_id = auth.uid()
+    select id from shops where owner_id = auth.uid()
   ));
 create policy "owner select" on ad_requests for select
   using (shop_id in (
-    select id from coffee_shops where owner_id = auth.uid()
+    select id from shops where owner_id = auth.uid()
   ));
 create policy "owner update payment" on ad_requests for update
   using (shop_id in (
-    select id from coffee_shops where owner_id = auth.uid()
+    select id from shops where owner_id = auth.uid()
   ));`}
           </pre>
         </div>

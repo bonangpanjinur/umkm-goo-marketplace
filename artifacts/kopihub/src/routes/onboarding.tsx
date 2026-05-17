@@ -70,7 +70,7 @@ function OnboardingPage() {
     if (!user) { navigate({ to: "/login" }); return; }
     (async () => {
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id")
         .eq("owner_id", user.id)
         .maybeSingle();
@@ -114,7 +114,7 @@ function OnboardingPage() {
         .maybeSingle();
 
       const { data: shop, error: shopErr } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .insert({
           owner_id: user!.id,
           name: shopName.trim(),
@@ -165,7 +165,7 @@ function OnboardingPage() {
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("shop-verifications").getPublicUrl(path);
 
-      await (supabase as any).from("coffee_shops").update({
+      await (supabase as any).from("shops").update({
         kyc_document_url: urlData.publicUrl,
         kyc_status: "pending",
         kyc_submitted_at: new Date().toISOString(),
@@ -246,7 +246,7 @@ function OnboardingPage() {
                 <Label htmlFor="shop">Nama toko *</Label>
                 <Input id="shop" className="mt-1.5" required value={shopName}
                   onChange={e => setShopName(e.target.value)}
-                  placeholder="mis. Kopi Senja, Butik Arisa, Toko Digital Kreatif" />
+                  placeholder="mis. Toko Berkah, Butik Arisa, Toko Digital Kreatif" />
               </div>
               <div>
                 <Label htmlFor="desc">Deskripsi singkat <span className="text-muted-foreground">(opsional)</span></Label>

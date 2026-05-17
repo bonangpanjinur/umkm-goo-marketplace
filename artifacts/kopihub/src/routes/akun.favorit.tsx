@@ -75,7 +75,7 @@ function FavoritPage() {
     syncFavIds();
     const { data } = await supabase
       .from("orders")
-      .select("id, order_no, total, created_at, shop:coffee_shops(name, slug, logo_url)")
+      .select("id, order_no, total, created_at, shop:shops(name, slug, logo_url)")
       .eq("customer_user_id", user.id)
       .like("order_no", "MKT-%")
       .in("status", ["completed", "delivering"])

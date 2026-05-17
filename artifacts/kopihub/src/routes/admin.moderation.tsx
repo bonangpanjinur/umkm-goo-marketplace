@@ -43,7 +43,7 @@ export default function AdminModerationPage() {
       .from("product_reviews")
       .select(`
         id, rating, body, is_hidden, is_flagged, flag_reason, created_at, shop_reply,
-        shop:coffee_shops(name, slug),
+        shop:shops(name, slug),
         product:menu_items(name)
       `)
       .eq("is_flagged", true)

@@ -122,7 +122,7 @@ export default function IklanPage() {
     setLoading(true);
     try {
       if (!user) throw new Error();
-      const { data: shopData } = await supabase.from("coffee_shops").select("id, name").eq("owner_id", user.id).maybeSingle();
+      const { data: shopData } = await supabase.from("shops").select("id, name").eq("owner_id", user.id).maybeSingle();
       if (!shopData) throw new Error();
       setShopId(shopData.id);
       setShopName(shopData.name);

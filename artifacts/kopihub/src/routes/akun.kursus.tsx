@@ -61,7 +61,7 @@ function KursusSayaPage() {
             enrolled_at,
             course:menu_items!menu_item_id(
               id, name, description, image_url, price,
-              shop:coffee_shops(name, slug)
+              shop:shops(name, slug)
             )
           `)
           .eq("user_id", user.id)

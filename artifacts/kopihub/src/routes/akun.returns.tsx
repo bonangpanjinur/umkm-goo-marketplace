@@ -47,7 +47,7 @@ create policy "user_own_rr" on public.return_requests
 create policy "shop_view_rr" on public.return_requests for select
   using (order_id in (
     select o.id from orders o
-    join coffee_shops cs on cs.id = o.shop_id
+    join shops cs on cs.id = o.shop_id
     where cs.owner_id = auth.uid()
   ));`;
 

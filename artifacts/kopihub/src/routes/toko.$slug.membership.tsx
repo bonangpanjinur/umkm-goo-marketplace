@@ -38,7 +38,7 @@ function ShopMembershipPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data: s } = await supabase.from("coffee_shops").select("id,name,phone").eq("slug", slug).maybeSingle();
+    const { data: s } = await supabase.from("shops").select("id,name,phone").eq("slug", slug).maybeSingle();
     if (!s) { setLoading(false); return; }
     setShop(s as any);
     const [{ data: ts }, mRes] = await Promise.all([

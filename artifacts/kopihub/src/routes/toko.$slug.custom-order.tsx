@@ -39,7 +39,7 @@ function CustomOrderForm() {
 
   useEffect(() => {
     (async () => {
-      const { data: s } = await supabase.from("coffee_shops").select("id, name").eq("slug", slug).maybeSingle();
+      const { data: s } = await supabase.from("shops").select("id, name").eq("slug", slug).maybeSingle();
       if (s) {
         setShop(s);
         if (produk) {
@@ -104,7 +104,7 @@ function CustomOrderForm() {
         user_id: user?.id ?? null,
       } as never);
       if (error) { toast.error(error.message); return; }
-      try { localStorage.setItem(`kopihub:custom-order-contact:${slug}`, contact.trim()); } catch { /* ignore */ }
+      try { localStorage.setItem(`umkmgo:custom-order-contact:${slug}`, contact.trim()); } catch { /* ignore */ }
       setSubmitted(true);
     } finally { setSaving(false); }
   }

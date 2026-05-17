@@ -1,75 +1,71 @@
 ## Tujuan
+Mengubah sistem dari "KopiHub" (khusus coffee shop) menjadi **"UMKMgo"** (semua jenis usaha UMKM), mencakup backend (skema database), kode, dan seluruh teks UI/PWA/email.
 
-1. **Booking F&B**: sembunyikan tab "Layanan", paksa mode meja saja → tombol di storefront jadi langsung "Reservasi Meja".
-2. **Chat aktif end-to-end**: pastikan owner/staff bisa balas dari dashboard, perjelas masuknya.
-3. **Hapus semua tampilan "Not Found"** → auto-redirect ke beranda marketplace tanpa countdown.
+## Temuan Audit
 
----
+**Backend / Database**
+- Tabel `public.coffee_shops` — masih bernama coffee, padahal sudah generic (sudah punya kolom `business_category_id` & `business_subtype`). Tidak ada kolom/tabel lain yang spesifik kopi.
+- Tabel kosong (0 baris), jadi rename aman tanpa migrasi data.
 
-## 1. Booking F&B mode — sembunyikan tab Layanan
+**Kode**
+- 154 file menyebut "kopi/coffee" (total ~330 kemunculan).
+- ~50+ query memakai `supabase.from("coffee_shops")` dan join `shop:coffee_shops(...)`.
+- File generated `src/integrations/supabase/types.ts` (auto-regen setelah migrasi).
 
-File: `artifacts/kopihub/src/routes/toko.$slug.booking.tsx`
+**Teks brand & contoh data**
+- `public/manifest.webmanifest`: name/short_name "KopiHub", description "coffeeshop modern".
+- `index.html`: title sudah "UMKMgo POS" ✅.
+- Email/reminder templates: `app.kopihub.id`, "PT KopiHub Indonesia", "KOPIHUB INDONESIA", placeholder "Kopi Senja".
+- Sandbox demo: "Warung Kopi Demo".
+- iCal PRODID: `KopiHub//Booking`.
+- Memori proyek (`mem://index.md`): masih menyebut "coffee shop (KopiHub)".
 
-- Tambah deteksi `is_fnb` dari toko (cek field `business_type`/`vertical` di `coffee_shops`; kalau tidak ada, anggap default = F&B karena ini KopiHub).
-- Kalau F&B: paksa `bookingType = "table"`, **hapus** render `<Tabs>` di atas wizard, label statis "Reservasi Meja".
-- Kalau non-F&B (salon/studio): tab tetap muncul seperti sekarang.
+## Rencana Eksekusi
 
-File: `artifacts/kopihub/src/routes/toko.$slug.tsx`
+### 1. Migrasi Database (1 migration)
+- `ALTER TABLE public.coffee_shops RENAME TO shops;`
+- Rename constraint/FK names yang berawalan `coffee_shops_*` → `shops_*` agar bersih.
+- Update policy names jika mengandung "coffee".
+- Tidak ada perubahan kolom; hanya rename. Setelah ini, `types.ts` di-regen otomatis.
 
-- Tombol action bar yang sekarang "Booking & Reservasi" → rename jadi **"Reservasi Meja"** (icon `UtensilsCrossed`) saat F&B; tetap "Booking & Reservasi" untuk vertical lain.
-- Default link: `/toko/$slug/booking?type=table`.
+### 2. Refactor Kode (sweep `coffee_shops` → `shops`)
+- Global replace di seluruh `artifacts/kopihub/src/**`:
+  - `from("coffee_shops")` → `from("shops")`
+  - `shop:coffee_shops(` → `shop:shops(`
+  - `coffee_shops(` (di select join) → `shops(`
+  - `referencedRelation: "coffee_shops"` (akan ter-regen di types.ts)
+- File terdampak utama: `src/lib/use-shop.ts`, semua route `admin.*`, `toko.$slug.*`, `akun.*`, `checkout*`, `order.*`, `bandingkan.tsx`, `katalog.*`, `kategori.*`, `track.*`, `download.*`, `booking.*`, `server/*.functions.ts`.
 
----
+### 3. Rebrand Teks & Aset
+- `public/manifest.webmanifest`: name/short_name = "UMKMgo", description = "POS & Marketplace untuk semua UMKM".
+- Semua literal "KopiHub" → "UMKMgo"; "kopihub.id" → "umkmgo.id" (placeholder URL email/billing).
+- "PT KopiHub Indonesia" → "PT UMKMgo Indonesia"; "KOPIHUB INDONESIA" → "UMKMGO INDONESIA".
+- iCal PRODID `KopiHub//Booking` → `UMKMgo//Booking`.
+- Placeholder contoh: "Kopi Senja" → "Toko Berkah", "Warung Kopi Demo" → "Warung UMKM Demo".
+- Sandbox seed (`admin.sandbox.tsx`) — pastikan deskripsi mencakup variasi UMKM (F&B, retail, jasa, dll), bukan hanya kafe.
+- Hapus/ganti copy "coffeeshop modern" / "kedai kopi" di komponen landing/onboarding bila ada.
 
-## 2. Chat — pastikan owner/staff bisa balas
+### 4. Memori Proyek
+- Update `mem://index.md` Core: deskripsi jadi "SaaS POS multi-UMKM (UMKMgo)" alih-alih coffee shop.
 
-Investigasi: `pos-app.inbox.tsx` SUDAH ada (thread list + kirim balasan + realtime). Yang kurang: signal & discoverability.
+### 5. Validasi
+- Cek build TS lulus setelah types.ts ter-regen.
+- Sanity test: `/admin/shops`, `/toko/$slug`, `/checkout`, `/onboarding` membuka tanpa error.
+- Grep akhir: tidak ada lagi `coffee_shops`, "KopiHub", "coffeeshop" di `src/` & `public/` (kecuali nama folder `artifacts/kopihub/` yang tidak diubah karena hanya path build).
 
-Perubahan:
+### Tidak Termasuk
+- Tidak mengubah nama folder `artifacts/kopihub/` (berisiko mempengaruhi config Replit/build pipeline).
+- Tidak mengubah logika bisnis, hanya naming & branding.
+- Domain produksi sebenarnya (umkmgo.id vs kopihub.id) hanya placeholder UI — DNS aktual tetap di tangan kamu.
 
-- **`artifacts/kopihub/src/routes/pos-app.tsx`** (sidebar): tambah badge angka unread di samping label "Inbox Chat" — pakai query `shop_chat_messages WHERE sender_role='buyer' AND read_at IS NULL AND shop_id = current`. Realtime refresh on new INSERT.
-- **`artifacts/kopihub/src/routes/pos-app.index.tsx`**: tambah kartu "Chat Pelanggan" di dashboard utama dengan jumlah unread + CTA "Buka Inbox".
-- **Verifikasi `pos-app.inbox.tsx`**:
-  - Saat owner kirim balasan, juga panggil `shop_chats.update({ last_message_at, last_sender_role: 'seller' })` agar buyer dapat notif.
-  - Tambah broadcast typing event (seller side) supaya indicator "sedang mengetik…" di `toko.$slug.chat.tsx` jalan.
-  - Auto-mark `read_at = now()` untuk pesan buyer saat thread dibuka (sudah ada — verifikasi sekali lagi).
-- Tidak ada perubahan schema DB — semua kolom sudah ada.
+## Detail Teknis Migrasi
 
----
+```sql
+ALTER TABLE public.coffee_shops RENAME TO shops;
+-- Postgres otomatis update FK references; nama constraint lama tetap valid.
+-- Opsional cleanup nama constraint:
+ALTER TABLE public.shops RENAME CONSTRAINT coffee_shops_pkey TO shops_pkey;
+-- (dan FK lain yang berawalan coffee_shops_)
+```
 
-## 3. Hilangkan semua "Not Found" → instant redirect ke marketplace
-
-Strategi: ganti semua tampilan 404 jadi `<Navigate to="/" replace />` + toast info, baik untuk URL yang benar-benar tidak ada (router-level) maupun untuk halaman yang gagal load data (component-level).
-
-### 3a. Router-level (URL tidak match)
-
-- **`artifacts/kopihub/src/main.tsx`** → `DefaultNotFoundComponent` diganti komponen yang langsung `useEffect(() => router.navigate({ to: "/", replace: true }))` + tampilkan spinner kecil "Mengalihkan ke beranda…". Hilangkan teks "404".
-- **`artifacts/kopihub/src/routes/__root.tsx`** → `NotFoundComponent` diganti dengan logika yang sama: redirect instan tanpa countdown 6 detik. (Optional: pertahankan delay 800ms cuma untuk show toast "Halaman tidak ditemukan, kembali ke beranda".)
-
-### 3b. Component-level (data tidak ditemukan)
-
-Cari setiap halaman yang punya state `notFound` lalu render layar "Tidak ditemukan" dan ganti jadi `Navigate to="/"` + toast:
-
-Target file utama yang relevan dengan storefront publik:
-- `artifacts/kopihub/src/routes/toko.$slug.tsx` (toko tidak ada)
-- `artifacts/kopihub/src/routes/toko.$slug.produk.$productId.tsx` (produk tidak ada) — ganti blok `if (notFound) { return <div>Produk tidak ditemukan...</div> }` jadi `useEffect → navigate({ to: "/", replace: true })` + `toast.info("Produk sudah tidak tersedia")`.
-- `artifacts/kopihub/src/routes/toko.$slug.chat.tsx` (toko tidak ada) — sama.
-
-Halaman milik user yang login (akun, pos-app) **tidak** diganti — biarkan tampilkan pesan kontekstual; ini cuma untuk storefront publik agar customer tidak ketemu jalan buntu.
-
-### 3c. Sanity-check data
-URL yang user buka (`/toko/tes-1yf0/produk/5a63...`) memang tidak ada di DB. Setelah perubahan ini, URL itu langsung lempar ke `/` (beranda marketplace) — tidak pernah lagi muncul "Not Found".
-
----
-
-## Catatan teknis
-
-- Schema `coffee_shops` perlu dicek: kalau belum punya kolom penanda F&B/vertical, fallback ke flag konstan `isFnB = true` di tingkat aplikasi (KopiHub = coffee shop secara default). Tidak perlu migrasi.
-- Tidak ada migrasi DB di plan ini.
-- Tidak ada perubahan auth/RLS.
-
-## Tidak termasuk
-
-- Tidak menyentuh logic POS / KDS / inventory.
-- Tidak menambah notifikasi push baru (in-app badge saja).
-- Tidak mengubah halaman 404 di area admin/owner login (mereka butuh info eksplisit).
+Setelah migrasi, `types.ts` di-regen → semua `Database["public"]["Tables"]["coffee_shops"]` lenyap → typecheck akan menangkap referensi yang terlewat.

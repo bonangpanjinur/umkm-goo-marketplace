@@ -312,20 +312,20 @@ function AdminPlatformBilling() {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <Label>Success Redirect URL</Label>
-            <Input value={cfg.success_redirect_url} onChange={e => set({ success_redirect_url: e.target.value })} placeholder="https://app.kopihub.id/pos-app/billing?status=success" />
+            <Input value={cfg.success_redirect_url} onChange={e => set({ success_redirect_url: e.target.value })} placeholder="https://app.umkmgo.id/pos-app/billing?status=success" />
           </div>
           <div>
             <Label>Failure Redirect URL</Label>
-            <Input value={cfg.failure_redirect_url} onChange={e => set({ failure_redirect_url: e.target.value })} placeholder="https://app.kopihub.id/pos-app/billing?status=failed" />
+            <Input value={cfg.failure_redirect_url} onChange={e => set({ failure_redirect_url: e.target.value })} placeholder="https://app.umkmgo.id/pos-app/billing?status=failed" />
           </div>
           <div>
             <Label>Webhook URL Midtrans</Label>
-            <Input value={cfg.webhook_url_midtrans} onChange={e => set({ webhook_url_midtrans: e.target.value })} placeholder="https://app.kopihub.id/api/public/webhooks/plan-billing/midtrans" />
+            <Input value={cfg.webhook_url_midtrans} onChange={e => set({ webhook_url_midtrans: e.target.value })} placeholder="https://app.umkmgo.id/api/public/webhooks/plan-billing/midtrans" />
             <p className="text-[11px] text-muted-foreground mt-1">Salin URL ini ke Midtrans Dashboard → Settings → Notification URL.</p>
           </div>
           <div>
             <Label>Webhook URL Xendit</Label>
-            <Input value={cfg.webhook_url_xendit} onChange={e => set({ webhook_url_xendit: e.target.value })} placeholder="https://app.kopihub.id/api/public/webhooks/plan-billing/xendit" />
+            <Input value={cfg.webhook_url_xendit} onChange={e => set({ webhook_url_xendit: e.target.value })} placeholder="https://app.umkmgo.id/api/public/webhooks/plan-billing/xendit" />
             <p className="text-[11px] text-muted-foreground mt-1">Salin URL ini ke Xendit Dashboard → Webhooks → Invoice Paid.</p>
           </div>
         </div>
@@ -348,7 +348,7 @@ function AdminPlatformBilling() {
             </div>
             <div>
               <Label>Atas Nama</Label>
-              <Input value={cfg.manual_account_name} onChange={e => set({ manual_account_name: e.target.value })} placeholder="PT KopiHub Indonesia" />
+              <Input value={cfg.manual_account_name} onChange={e => set({ manual_account_name: e.target.value })} placeholder="PT UMKMgo Indonesia" />
             </div>
           </div>
           <div className="mt-3">
@@ -367,7 +367,7 @@ function AdminPlatformBilling() {
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <Label>Nama Merchant QRIS</Label>
-              <Input value={cfg.qris_merchant_name} onChange={e => set({ qris_merchant_name: e.target.value })} placeholder="KOPIHUB INDONESIA" />
+              <Input value={cfg.qris_merchant_name} onChange={e => set({ qris_merchant_name: e.target.value })} placeholder="UMKMGO INDONESIA" />
             </div>
             <div>
               <Label>URL Gambar QRIS</Label>

@@ -24,7 +24,7 @@ function SuccessPage() {
     (async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, order_no, total, customer_name, shop:coffee_shops(name, slug, phone, whatsapp)")
+        .select("id, order_no, total, customer_name, shop:shops(name, slug, phone, whatsapp)")
         .in("id", ids);
       setOrders((data as any[]) ?? []);
     })();

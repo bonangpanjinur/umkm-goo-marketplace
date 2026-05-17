@@ -111,14 +111,14 @@ function CartUpsell({ cartItems }: { cartItems: CartItem[] }) {
 
         const { data: products } = await supabase
           .from("menu_items")
-          .select("id, name, price, image_url, shop_id, slug, coffee_shops(slug)")
+          .select("id, name, price, image_url, shop_id, slug, shops(slug)")
           .in("id", topIds)
           .eq("is_available" as any, true) as any;
 
         setSuggestions(
           ((products ?? []) as any[]).map((p: any) => ({
             ...p,
-            shop_slug: p.coffee_shops?.slug ?? "",
+            shop_slug: p.shops?.slug ?? "",
           }))
         );
       } catch {

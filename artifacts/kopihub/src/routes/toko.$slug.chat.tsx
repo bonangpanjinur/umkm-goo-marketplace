@@ -111,7 +111,7 @@ function ShopChatPage() {
       setLoading(true);
 
       const { data: shop } = await (supabase as any)
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name")
         .eq("slug", slug)
         .eq("is_active", true)

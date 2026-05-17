@@ -29,7 +29,7 @@ function ShopWalletPage() {
   const load = async () => {
     setLoading(true);
     const { data: s } = await supabase
-      .from("coffee_shops").select("id,name,slug,phone").eq("slug", slug).maybeSingle();
+      .from("shops").select("id,name,slug,phone").eq("slug", slug).maybeSingle();
     if (!s) { setLoading(false); return; }
     setShop(s as any);
     const [{ data: ps }, walletRes] = await Promise.all([

@@ -91,7 +91,7 @@ function LoyaltyPage() {
           // Enrich with shop names
           const shopIds = pts.map((p: any) => p.shop_id);
           const { data: shops } = await supabase
-            .from("coffee_shops")
+            .from("shops")
             .select("id, name")
             .in("id", shopIds);
           const shopMap = Object.fromEntries((shops ?? []).map((s: any) => [s.id, s.name]));

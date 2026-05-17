@@ -58,7 +58,7 @@ function AdminBroadcast() {
         toast.success(`Broadcast terkirim ke ${buyers.length} pembeli`);
       } else {
         // Get target shops based on audience (merchant broadcast)
-        let shopQuery = supabase.from("coffee_shops").select("id");
+        let shopQuery = supabase.from("shops").select("id");
         if (audience !== "all") {
           shopQuery = shopQuery.eq("plan" as any, audience);
         }

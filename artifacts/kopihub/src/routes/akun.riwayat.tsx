@@ -53,7 +53,7 @@ export default function RiwayatPage() {
     const ids = raw.map(r => r.id);
     const { data } = await supabase
       .from("menu_items")
-      .select("id, name, price, image_url, is_available, coffee_shops(slug, name)")
+      .select("id, name, price, image_url, is_available, shops(slug, name)")
       .in("id", ids);
     if (!data) { setEnriched(raw); return; }
     const map = Object.fromEntries(data.map((d: any) => [d.id, d]));
@@ -66,8 +66,8 @@ export default function RiwayatPage() {
         price: fresh.price ?? r.price,
         image_url: fresh.image_url ?? r.image_url,
         is_available: fresh.is_available ?? r.is_available,
-        shop_slug: fresh.coffee_shops?.slug ?? r.shop_slug,
-        shop_name: fresh.coffee_shops?.name ?? r.shop_name,
+        shop_slug: fresh.shops?.slug ?? r.shop_slug,
+        shop_name: fresh.shops?.name ?? r.shop_name,
       };
     });
     setEnriched(merged);

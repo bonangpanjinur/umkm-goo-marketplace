@@ -24,7 +24,7 @@ import { initiatePayment, openMidtransSnap, getPaymentStatus } from "@/lib/payme
 
 export const Route = createFileRoute("/toko/$slug/booking")({
   validateSearch: (search: Record<string, unknown>) => ({
-    // F&B (KopiHub) → default & paksa ke "table". Mode "service" tidak dipakai lagi.
+    // F&B (UMKMgo) → default & paksa ke "table". Mode "service" tidak dipakai lagi.
     type: "table" as "service" | "table",
   }),
   component: PublicBookingPage,
@@ -218,7 +218,7 @@ export default function PublicBookingPage() {
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase
-        .from("coffee_shops" as any)
+        .from("shops" as any)
         .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, require_deposit, deposit_percent, deposit_notes, require_id_upload")
         .eq("slug", slug)
         .eq("is_active", true)

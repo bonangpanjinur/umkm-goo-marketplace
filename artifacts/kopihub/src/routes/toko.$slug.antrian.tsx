@@ -51,7 +51,7 @@ function AntrianPage() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setMyId(user?.id ?? null);
-      const { data: s } = await supabase.from("coffee_shops").select("id, name").eq("slug", slug).maybeSingle();
+      const { data: s } = await supabase.from("shops").select("id, name").eq("slug", slug).maybeSingle();
       if (s) { setShop(s); await load(s.id); }
       setLoading(false);
     })();

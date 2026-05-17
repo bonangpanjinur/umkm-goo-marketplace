@@ -205,9 +205,9 @@ function SearchEmptyState({
 
 // ===== Cache persistence (per-tab, with TTL) =====
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 menit
-const PRODUCT_CACHE_KEY = "kopihub:search:productCache:v1";
-const SHOP_CACHE_KEY    = "kopihub:search:shopCache:v1";
-const FILTERS_KEY       = "kopihub:search:filters:v1";
+const PRODUCT_CACHE_KEY = "umkmgo:search:productCache:v1";
+const SHOP_CACHE_KEY    = "umkmgo:search:shopCache:v1";
+const FILTERS_KEY       = "umkmgo:search:filters:v1";
 
 type ProductCacheEntry = { products: any[]; productTotal: number; productPage: number; ts: number };
 type ShopCacheEntry    = { shops: any[];    shopTotal: number;    shopPage: number;    ts: number };
@@ -322,7 +322,7 @@ function SearchPage() {
     let prodQ = supabase
       .from("menu_items")
       .select(
-        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
+        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
         { count: "exact" },
       )
       .ilike("name", term)
@@ -347,7 +347,7 @@ function SearchPage() {
   const buildShopQuery = () => {
     const term = q ? `%${q}%` : "%";
     let shopQ = supabase
-      .from("coffee_shops")
+      .from("shops")
       .select(
         "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
         { count: "exact" },

@@ -325,7 +325,7 @@ function BundlesPage() {
           <Package className="mb-3 h-10 w-10 text-muted-foreground/30" />
           <p className="text-sm font-medium text-muted-foreground">Belum ada bundle</p>
           <p className="mt-1 text-xs text-muted-foreground/70">
-            Buat paket seperti "Kopi + Snack = harga spesial"
+            Buat paket seperti "Produk A + Produk B = harga spesial"
           </p>
           <Button variant="outline" className="mt-4 gap-2" onClick={openNew}>
             <Plus className="h-4 w-4" />
@@ -433,7 +433,7 @@ function BundlesPage() {
                 <Textarea
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  placeholder="Kopi + Snack favoritmu…"
+                  placeholder="Paket favoritmu…"
                   rows={2}
                 />
               </div>

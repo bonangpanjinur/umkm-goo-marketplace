@@ -23,7 +23,7 @@ export function usePlan(): PlanInfo {
     }
     (async () => {
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("plan, plan_expires_at, owner_id")
         .eq("id", shop.id)
         .maybeSingle();
