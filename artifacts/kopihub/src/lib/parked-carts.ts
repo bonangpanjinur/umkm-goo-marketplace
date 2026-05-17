@@ -93,4 +93,3 @@ export async function deleteParkedCart(id: string): Promise<void> {
   if (error) throw error;
   notifyParkedCartChange();
 }
-}
