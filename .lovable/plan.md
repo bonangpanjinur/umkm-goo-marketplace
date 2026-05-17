@@ -48,7 +48,7 @@ Tujuan: turunkan bug rate sebelum menambah fitur baru.
 2. ✅ **Idempotency log webhook** — tabel `webhook_events` (unique provider+event_id). Webhook plan-billing memeriksa duplikat sebelum memproses; replay → 200 tanpa side-effect.
 
 ### Fase H — Penyelesaian fitur per kategori (high-ROI sisa)
-1. **F&B**: kolom `allergen[]` + `is_halal` + `nutrition` di `menu_items`, badge storefront, mode order eksplisit (dine-in/takeaway/delivery) di POS, modifier `is_required` + `min_select`.
+1. ✅ **F&B**: kolom `allergens[]` + `is_halal` + `available_modes[]` + `nutrition_info` di form menu (advanced tab), badge Halal/mode di halaman produk storefront, modifier `is_required` (sudah ada). _Sisa_: `min_select` modifier (perlu migration).
 2. **Retail**: integrasikan `variant-matrix.tsx` ke POS + stok per SKU + barcode scanner pakai `@zxing/browser` (Web).
 3. **Travel**: form alternatif untuk subtype `wisata-*` (tanpa field umroh), batch + quota terstruktur di `umroh-packages`.
 4. **Custom Order**: e-sign kontrak (HTML canvas signature) + simpan ke storage.

@@ -54,7 +54,17 @@ type MenuItem = {
   condition_grade?: string | null;
   nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
   production_days?: number | null;
+  allergens?: string[] | null;
+  is_halal?: boolean | null;
+  available_modes?: string[] | null;
 };
+
+const COMMON_ALLERGENS = ["Gluten", "Susu", "Telur", "Kacang Tanah", "Kacang Pohon", "Kedelai", "Ikan", "Udang/Kerang", "Wijen"];
+const ORDER_MODES: { v: string; l: string }[] = [
+  { v: "dine_in", l: "Dine-in" },
+  { v: "takeaway", l: "Takeaway" },
+  { v: "delivery", l: "Delivery" },
+];
 
 type HPPRow = {
   menu_item_id: string;
@@ -118,6 +128,9 @@ function MenuPage() {
   const [nutritionFiber, setNutritionFiber] = useState<string>("");
   const [productionDays, setProductionDays] = useState<string>("");
   const [conditionGrade, setConditionGrade] = useState<string>("");
+  const [allergens, setAllergens] = useState<string[]>([]);
+  const [isHalal, setIsHalal] = useState<boolean>(false);
+  const [availableModes, setAvailableModes] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const batchAbortRef = useRef(false);
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -148,7 +161,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade, allergens, is_halal, available_modes")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -202,6 +215,9 @@ function MenuPage() {
     setNutritionCal(""); setNutritionProtein(""); setNutritionCarbs(""); setNutritionFat(""); setNutritionFiber("");
     setProductionDays("");
     setConditionGrade("");
+    setAllergens([]);
+    setIsHalal(false);
+    setAvailableModes([]);
     setAiTags([]);
     setOpen(true);
   }
@@ -238,6 +254,9 @@ function MenuPage() {
     setNutritionFiber(ni.fiber != null ? String(ni.fiber) : "");
     setProductionDays(it.production_days != null ? String(it.production_days) : "");
     setConditionGrade(it.condition_grade ?? "");
+    setAllergens(it.allergens ?? []);
+    setIsHalal(Boolean(it.is_halal));
+    setAvailableModes(it.available_modes ?? []);
     setAiTags([]);
     setOpen(true);
   }
@@ -466,6 +485,9 @@ function MenuPage() {
       } : null,
       production_days: productionDays ? Number(productionDays) : null,
       condition_grade: conditionGrade || null,
+      allergens: allergens,
+      is_halal: isHalal,
+      available_modes: availableModes,
     } as unknown as TablesInsert<"menu_items">;
     if (editing) {
       const oldPrice = editing.price;
@@ -969,6 +991,71 @@ function MenuPage() {
                           <Label className="text-[11px]">Serat (g)</Label>
                           <Input type="number" min={0} step="0.1" value={nutritionFiber} onChange={e => setNutritionFiber(e.target.value)} placeholder="3" />
                         </div>
+                      </div>
+                    </div>
+
+                    {/* F&B — Halal, Alergen, Mode order */}
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                          <UtensilsCrossed className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">F&amp;B — Halal, alergen &amp; mode order</div>
+                          <div className="text-[11px] text-muted-foreground">Bantu pembeli pilih yang aman & set kanal order yang didukung.</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
+                        <div>
+                          <div className="text-sm font-medium">Bersertifikat / klaim Halal</div>
+                          <div className="text-[11px] text-muted-foreground">Tampilkan badge Halal di halaman produk.</div>
+                        </div>
+                        <Switch checked={isHalal} onCheckedChange={setIsHalal} />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[11px]">Mengandung alergen</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {COMMON_ALLERGENS.map((a) => {
+                            const on = allergens.includes(a);
+                            return (
+                              <button
+                                key={a}
+                                type="button"
+                                onClick={() => setAllergens((prev) => on ? prev.filter((x) => x !== a) : [...prev, a])}
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${on ? "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300" : "bg-background text-muted-foreground border-border hover:bg-muted/60"}`}
+                              >
+                                {a}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {allergens.length > 0 && (
+                          <button type="button" onClick={() => setAllergens([])} className="text-[10px] text-muted-foreground hover:text-destructive">
+                            Hapus semua alergen
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[11px]">Mode order yang didukung</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ORDER_MODES.map(({ v, l }) => {
+                            const on = availableModes.includes(v);
+                            return (
+                              <button
+                                key={v}
+                                type="button"
+                                onClick={() => setAvailableModes((prev) => on ? prev.filter((x) => x !== v) : [...prev, v])}
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${on ? "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-background text-muted-foreground border-border hover:bg-muted/60"}`}
+                              >
+                                {l}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Kosongkan untuk mengizinkan semua mode.</p>
                       </div>
                     </div>
 

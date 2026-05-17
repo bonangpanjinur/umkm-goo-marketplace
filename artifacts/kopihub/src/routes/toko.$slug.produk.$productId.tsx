@@ -53,6 +53,8 @@ type Product = {
   flash_ends_at?: string | null;
   restock_deadline?: string | null;
   nutrition_info?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number } | null;
+  is_halal?: boolean | null;
+  available_modes?: string[] | null;
   production_days?: number | null;
 };
 
@@ -306,7 +308,7 @@ function ProductDetailPage() {
 
       const { data: p } = await supabase
         .from("menu_items")
-        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags, restock_deadline, nutrition_info, production_days")
+        .select("id, shop_id, name, description, price, image_url, rating_avg, rating_count, stock, track_stock, allergens, dietary_tags, ingredients, bpom_number, size_chart, item_type, preview_image_url, accepts_custom_order, flash_price, flash_starts_at, flash_ends_at, skin_type_tags, restock_deadline, nutrition_info, production_days, is_halal, available_modes")
         .eq("id", productId)
         .eq("shop_id", (s as any).id)
         .maybeSingle();
@@ -450,6 +452,25 @@ function ProductDetailPage() {
               {/* M-10: Bundle components */}
               {product.item_type === "bundle" && (
                 <BundleContents productId={product.id} />
+              )}
+
+              {/* F&B — Halal & mode order */}
+              {(product.is_halal || (product.available_modes && product.available_modes.length > 0)) && (
+                <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                  {product.is_halal && (
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      ✓ Halal
+                    </span>
+                  )}
+                  {product.available_modes?.map((m: string) => {
+                    const label = m === "dine_in" ? "Dine-in" : m === "takeaway" ? "Takeaway" : m === "delivery" ? "Delivery" : m;
+                    return (
+                      <span key={m} className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        {label}
+                      </span>
+                    );
+                  })}
+                </div>
               )}
 
               {/* P-08: Dietary & Allergen tags */}
