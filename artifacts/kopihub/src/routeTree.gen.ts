@@ -234,6 +234,7 @@ import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
 import { Route as AdminCohortAnalyticsRouteImport } from './routes/admin.cohort-analytics'
 import { Route as AdminChurnReengagementRouteImport } from './routes/admin.churn-reengagement'
 import { Route as AdminChurnRouteImport } from './routes/admin.churn'
+import { Route as AdminCategoryRevenueRouteImport } from './routes/admin.category-revenue'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminBuyerActionsRouteImport } from './routes/admin.buyer-actions'
@@ -1425,6 +1426,11 @@ const AdminChurnRoute = AdminChurnRouteImport.update({
   path: '/churn',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoryRevenueRoute = AdminCategoryRevenueRouteImport.update({
+  id: '/category-revenue',
+  path: '/category-revenue',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -1747,6 +1753,7 @@ export interface FileRoutesByFullPath {
   '/admin/buyer-actions': typeof AdminBuyerActionsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/category-revenue': typeof AdminCategoryRevenueRoute
   '/admin/churn': typeof AdminChurnRoute
   '/admin/churn-reengagement': typeof AdminChurnReengagementRoute
   '/admin/cohort-analytics': typeof AdminCohortAnalyticsRoute
@@ -2026,6 +2033,7 @@ export interface FileRoutesByTo {
   '/admin/buyer-actions': typeof AdminBuyerActionsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/category-revenue': typeof AdminCategoryRevenueRoute
   '/admin/churn': typeof AdminChurnRoute
   '/admin/churn-reengagement': typeof AdminChurnReengagementRoute
   '/admin/cohort-analytics': typeof AdminCohortAnalyticsRoute
@@ -2308,6 +2316,7 @@ export interface FileRoutesById {
   '/admin/buyer-actions': typeof AdminBuyerActionsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/category-revenue': typeof AdminCategoryRevenueRoute
   '/admin/churn': typeof AdminChurnRoute
   '/admin/churn-reengagement': typeof AdminChurnReengagementRoute
   '/admin/cohort-analytics': typeof AdminCohortAnalyticsRoute
@@ -2593,6 +2602,7 @@ export interface FileRouteTypes {
     | '/admin/buyer-actions'
     | '/admin/catalog'
     | '/admin/categories'
+    | '/admin/category-revenue'
     | '/admin/churn'
     | '/admin/churn-reengagement'
     | '/admin/cohort-analytics'
@@ -2872,6 +2882,7 @@ export interface FileRouteTypes {
     | '/admin/buyer-actions'
     | '/admin/catalog'
     | '/admin/categories'
+    | '/admin/category-revenue'
     | '/admin/churn'
     | '/admin/churn-reengagement'
     | '/admin/cohort-analytics'
@@ -3153,6 +3164,7 @@ export interface FileRouteTypes {
     | '/admin/buyer-actions'
     | '/admin/catalog'
     | '/admin/categories'
+    | '/admin/category-revenue'
     | '/admin/churn'
     | '/admin/churn-reengagement'
     | '/admin/cohort-analytics'
@@ -5017,6 +5029,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminChurnRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/category-revenue': {
+      id: '/admin/category-revenue'
+      path: '/category-revenue'
+      fullPath: '/admin/category-revenue'
+      preLoaderRoute: typeof AdminCategoryRevenueRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
@@ -5464,6 +5483,7 @@ interface AdminRouteChildren {
   AdminBuyerActionsRoute: typeof AdminBuyerActionsRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCategoryRevenueRoute: typeof AdminCategoryRevenueRoute
   AdminChurnRoute: typeof AdminChurnRoute
   AdminChurnReengagementRoute: typeof AdminChurnReengagementRoute
   AdminCohortAnalyticsRoute: typeof AdminCohortAnalyticsRoute
@@ -5523,6 +5543,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBuyerActionsRoute: AdminBuyerActionsRoute,
   AdminCatalogRoute: AdminCatalogRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCategoryRevenueRoute: AdminCategoryRevenueRoute,
   AdminChurnRoute: AdminChurnRoute,
   AdminChurnReengagementRoute: AdminChurnReengagementRoute,
   AdminCohortAnalyticsRoute: AdminCohortAnalyticsRoute,
