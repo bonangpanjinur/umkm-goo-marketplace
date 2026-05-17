@@ -179,6 +179,7 @@ import { Route as OrderSlugRouteImport } from './routes/order.$slug'
 import { Route as KurirProfileRouteImport } from './routes/kurir.profile'
 import { Route as KurirHistoryRouteImport } from './routes/kurir.history'
 import { Route as KurirEarningsRouteImport } from './routes/kurir.earnings'
+import { Route as KontrakTokenRouteImport } from './routes/kontrak.$token'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as KatalogSlugRouteImport } from './routes/katalog.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -1153,6 +1154,11 @@ const KurirEarningsRoute = KurirEarningsRouteImport.update({
   path: '/earnings',
   getParentRoute: () => KurirRoute,
 } as any)
+const KontrakTokenRoute = KontrakTokenRouteImport.update({
+  id: '/kontrak/$token',
+  path: '/kontrak/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KategoriSlugRoute = KategoriSlugRouteImport.update({
   id: '/kategori/$slug',
   path: '/kategori/$slug',
@@ -1843,6 +1849,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/kontrak/$token': typeof KontrakTokenRoute
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
@@ -2128,6 +2135,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/kontrak/$token': typeof KontrakTokenRoute
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
@@ -2416,6 +2424,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/kontrak/$token': typeof KontrakTokenRoute
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
@@ -2707,6 +2716,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/katalog/$slug'
     | '/kategori/$slug'
+    | '/kontrak/$token'
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
@@ -2992,6 +3002,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/katalog/$slug'
     | '/kategori/$slug'
+    | '/kontrak/$token'
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
@@ -3279,6 +3290,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/katalog/$slug'
     | '/kategori/$slug'
+    | '/kontrak/$token'
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
@@ -3498,6 +3510,7 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   KatalogSlugRoute: typeof KatalogSlugRoute
   KategoriSlugRoute: typeof KategoriSlugRoute
+  KontrakTokenRoute: typeof KontrakTokenRoute
   OrderSlugRoute: typeof OrderSlugRouteWithChildren
   PesananOrderIdRoute: typeof PesananOrderIdRouteWithChildren
   QuoteIdRoute: typeof QuoteIdRoute
@@ -4704,6 +4717,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/kurir/earnings'
       preLoaderRoute: typeof KurirEarningsRouteImport
       parentRoute: typeof KurirRoute
+    }
+    '/kontrak/$token': {
+      id: '/kontrak/$token'
+      path: '/kontrak/$token'
+      fullPath: '/kontrak/$token'
+      preLoaderRoute: typeof KontrakTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/kategori/$slug': {
       id: '/kategori/$slug'
@@ -6230,6 +6250,7 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   KatalogSlugRoute: KatalogSlugRoute,
   KategoriSlugRoute: KategoriSlugRoute,
+  KontrakTokenRoute: KontrakTokenRoute,
   OrderSlugRoute: OrderSlugRouteWithChildren,
   PesananOrderIdRoute: PesananOrderIdRouteWithChildren,
   QuoteIdRoute: QuoteIdRoute,
