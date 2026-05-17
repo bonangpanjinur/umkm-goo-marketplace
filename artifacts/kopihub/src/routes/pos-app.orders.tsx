@@ -411,6 +411,11 @@ function DetailDialog({
     setRefunding(true);
     try {
       await refundOrder(order.id, amt, refundReason || "Refund", refundMethod);
+      logStaffAction({
+        shopId,
+        action: "order.refund",
+        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason: refundReason, method: refundMethod },
+      });
       toast.success(`Refund ${formatIDR(amt)} dicatat`);
       setRefundOpen(false);
       onVoided();
