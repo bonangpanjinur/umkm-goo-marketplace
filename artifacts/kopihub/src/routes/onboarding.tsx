@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
    Loader2, Store, ChevronRight, ChevronLeft,
   Check, Upload, FileImage, ShoppingBag, Shirt, Laptop,
-  Sparkles, Hammer, Zap, Package, ArrowRight
+  Sparkles, Hammer, Zap, Package, ArrowRight,
+  Wrench, Car, GraduationCap, Stethoscope, Camera, Plane, Scissors,
+  type LucideIcon
 } from "lucide-react";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
@@ -18,16 +20,30 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const CATEGORIES = [
-  { id: "fnb",       label: "F&B / Kuliner",      icon: Store,       desc: "Kafe, restoran, katering, cloud kitchen" },
-  { id: "fashion",   label: "Fashion & Pakaian",   icon: Shirt,       desc: "Baju, celana, aksesoris, tas" },
-  { id: "digital",   label: "Produk Digital",      icon: Laptop,      desc: "Template, e-book, kursus, software" },
-  { id: "beauty",    label: "Kecantikan",           icon: Sparkles,    desc: "Skincare, makeup, perawatan diri" },
-  { id: "craft",     label: "Kerajinan Tangan",     icon: Hammer,      desc: "Handmade, dekorasi, seni" },
-  { id: "electronics", label: "Elektronik & Gadget", icon: Zap,       desc: "Aksesoris HP, elektronik, spare part" },
-  { id: "general",   label: "Toko Umum",            icon: ShoppingBag, desc: "Barang campuran / belum yakin" },
-  { id: "other",     label: "Lainnya",              icon: Package,     desc: "Jasa, langganan, atau kategori lain" },
-];
+// Icon mapping by category slug (slug = business_categories.slug di DB)
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  fnb: Store,
+  retail: ShoppingBag,
+  jasa: Wrench,
+  rental: Car,
+  kursus: GraduationCap,
+  salon: Scissors,
+  klinik: Stethoscope,
+  "studio-foto": Camera,
+  travel: Plane,
+  "custom-order": Hammer,
+  lainnya: Package,
+  // legacy / fallback
+  fashion: Shirt,
+  digital: Laptop,
+  beauty: Sparkles,
+  craft: Hammer,
+  electronics: Zap,
+  general: ShoppingBag,
+  other: Package,
+};
+
+type CategoryRow = { id: string; slug: string; name: string; description: string | null };
 
 const STEPS = [
   { id: 1, label: "Profil Toko" },
@@ -64,6 +80,17 @@ function OnboardingPage() {
 
   // Created IDs
   const [shopId, setShopId] = useState<string | null>(null);
+
+  // Kategori bisnis dari DB
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
+  useEffect(() => {
+    supabase
+      .from("business_categories")
+      .select("id, slug, name, description")
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => setCategories((data as CategoryRow[]) ?? []));
+  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -269,14 +296,14 @@ function OnboardingPage() {
               <p className="mt-1.5 text-sm text-muted-foreground">Ini membantu kami menyesuaikan fitur dan tampilan toko Anda.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                const active = categoryId === cat.id;
+              {categories.map(cat => {
+                const Icon = CATEGORY_ICON[cat.slug] ?? Package;
+                const active = categoryId === cat.slug;
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => setCategoryId(cat.id)}
-                    className={`flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
+                    onClick={() => setCategoryId(cat.slug)}
+                    className={`relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
                       active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-accent"
                     }`}
                   >
@@ -284,8 +311,8 @@ function OnboardingPage() {
                       <Icon className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold">{cat.label}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{cat.desc}</p>
+                      <p className="text-sm font-semibold">{cat.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{cat.description ?? ""}</p>
                     </div>
                     {active && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
                   </button>
