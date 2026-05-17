@@ -52,6 +52,7 @@ import {
   listParkedCarts,
   parkCart as parkCartRemote,
   deleteParkedCart,
+  notifyParkedCartChange,
   type ParkedCart,
 } from "@/lib/parked-carts";
 
