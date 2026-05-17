@@ -205,7 +205,7 @@ function BookingAnalyticsPage() {
     const completed = bookings.filter(b => b.status === "completed" || b.status === "done").length;
     const pending   = bookings.filter(b => b.status === "pending").length;
     const depositRevenue = bookings.reduce((sum, b) => {
-      if (b.deposit_status === "paid" || b.deposit_status === "verified") {
+      if (b.deposit_status === "paid" || b.deposit_status === "paid") {
         return sum + (Number(b.deposit_amount) || 0);
       }
       return sum;
@@ -222,7 +222,7 @@ function BookingAnalyticsPage() {
   const depositByDay = useMemo(() => {
     const map: Record<string, number> = {};
     bookings.forEach(b => {
-      if (b.deposit_status !== "paid" && b.deposit_status !== "verified") return;
+      if (b.deposit_status !== "paid" && b.deposit_status !== "paid") return;
       const day = b.created_at.slice(0, 10);
       map[day] = (map[day] || 0) + (Number(b.deposit_amount) || 0);
     });
