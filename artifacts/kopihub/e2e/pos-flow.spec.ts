@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, waitForPrint } from "./fixtures";
 
 /**
  * E2E alur POS UMKMgo:
