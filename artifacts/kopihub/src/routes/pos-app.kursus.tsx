@@ -76,6 +76,7 @@ type Module = {
   title: string;
   description: string | null;
   sort_order: number;
+  status: "draft" | "published";
   lesson_count: number;
 };
 
@@ -88,6 +89,7 @@ type Lesson = {
   duration_minutes: number;
   sort_order: number;
   is_free_preview: boolean;
+  status: "draft" | "published";
 };
 
 type EnrollmentStat = {
@@ -99,7 +101,7 @@ type EnrollmentStat = {
 const EMPTY_COURSE = { name: "", description: "", price: "", is_available: true };
 
 // ─── Module dialog ──────────────────────────────────────────────────────────
-const EMPTY_MODULE = { title: "", description: "", sort_order: "0" };
+const EMPTY_MODULE = { title: "", description: "", status: "draft" as "draft" | "published" };
 
 // ─── Lesson dialog ──────────────────────────────────────────────────────────
 const EMPTY_LESSON = {
@@ -107,8 +109,8 @@ const EMPTY_LESSON = {
   description: "",
   video_url: "",
   duration_minutes: "0",
-  sort_order: "0",
   is_free_preview: false,
+  status: "draft" as "draft" | "published",
 };
 
 function fmtDuration(mins: number) {
@@ -117,6 +119,38 @@ function fmtDuration(mins: number) {
   const m = mins % 60;
   if (h) return `${h}j ${m}m`;
   return `${m} menit`;
+}
+
+/**
+ * Ubah URL video populer (YouTube/Vimeo) menjadi URL embed
+ * agar bisa diputar inline di preview.
+ */
+function toEmbedUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const id = u.searchParams.get("v");
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1);
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (host === "vimeo.com") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      if (id && /^\d+$/.test(id)) return `https://player.vimeo.com/video/${id}`;
+    }
+    if (host.endsWith("loom.com")) {
+      const id = u.pathname.split("/share/")[1] ?? u.pathname.split("/").pop();
+      if (id) return `https://www.loom.com/embed/${id}`;
+    }
+    // Fallback: pakai URL apa adanya (cocok untuk .mp4 langsung)
+    return url;
+  } catch {
+    return null;
+  }
 }
 
 function KursusPage() {
