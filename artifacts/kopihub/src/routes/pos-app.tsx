@@ -101,8 +101,10 @@ export const Route = createFileRoute("/pos-app")({
 type NavItem = {
   to: string; label: string; icon: typeof LayoutDashboard;
   exact?: boolean; proOnly?: boolean; hint?: string; aliases?: string[];
-  /** If set, only show this item when shop's category type is in this list */
+  /** Show only when shop's category type is in this list (legacy/coarse gate). */
   onlyFor?: string[];
+  /** Show only when shop has ALL of these feature keys (fine-grained, from v_shop_capabilities). */
+  requires?: import("@/lib/feature-keys").FeatureKey[];
   /** If set, only show for these business sub-types (sales-pro: 'umroh' | 'sales') */
   subtypeOnly?: ("umroh" | "sales")[];
   /** If true, hide from staff (only owner sees) */
@@ -111,21 +113,32 @@ type NavItem = {
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
 // ─── Map business_categories.slug → simplified type ─────────────────────────
+// Mapping ekplisit per 11 slug DB. Tidak ada lagi regex fallback ke "general"
+// agar kategori seperti Travel/Klinik/Rental tidak lagi dapat menu/KDS F&B.
 function deriveCategoryType(slug: string | null | undefined): string {
   if (!slug) return "general";
-  const s = slug.toLowerCase();
-  if (s === "sales-jasa-profesional") return "sales-pro";
-  if (/fnb|kuliner|makanan|minuman|cafe|kafe|restoran|bakery|food|kopi|warung|catering|beverage/.test(s)) return "fnb";
-  if (/fashion|pakaian|clothing|busana|sepatu|aksesoris/.test(s)) return "fashion";
-  if (/digital|software|konten|content|saas|aplikasi|pendidikan/.test(s)) return "digital";
-  if (/jasa|laundry|salon|bengkel|beauty|kecantikan|otomotif/.test(s)) return "services";
-  if (/kerajinan|handmade|craft|seni|dekorasi|art/.test(s)) return "craft";
-  if (/elektronik|gadget|komputer|tech/.test(s)) return "electronics";
-  return "general";
+  switch (slug) {
+    case "fnb":          return "fnb";
+    case "retail":       return "retail";
+    case "jasa":         return "services";
+    case "rental":       return "rental";
+    case "kursus":       return "digital";
+    case "salon":        return "services";
+    case "klinik":       return "services";
+    case "studio-foto":  return "services";
+    case "travel":       return "sales-pro";
+    case "custom-order": return "craft";
+    case "lainnya":      return "general";
+    // Legacy / sales-pro vertical (sebelumnya disebut "sales-jasa-profesional")
+    case "sales-jasa-profesional": return "sales-pro";
+    default:             return "general";
+  }
 }
 
-// Categories that have POS / KDS / Stok / Inventori / Resep / Shift Kasir
-const HAS_POS = ["fnb", "fashion", "craft", "electronics", "general"];
+// Categories that have POS / KDS / Stok / Inventori / Resep / Shift Kasir.
+// "general" hanya untuk kategori "lainnya" — tetap dapat POS sebagai opt-out
+// via shops.feature_overrides bila perlu.
+const HAS_POS = ["fnb", "retail", "fashion", "craft", "electronics", "general"];
 
 // Category type groups for onlyFor references
 const FNB         = ["fnb"];
@@ -133,9 +146,9 @@ const FNB_SVC     = ["fnb", "services"];
 const DIGITAL_SVC = ["digital", "services"];
 const SVC         = ["services"];
 const SVC_CRAFT   = ["services", "craft"];
-const PHYSICAL    = ["fnb", "fashion", "craft", "electronics", "general"];
-const FASHION     = ["fashion"];
-const FASHION_SVC = ["fashion", "services"];
+const PHYSICAL    = ["fnb", "retail", "fashion", "craft", "electronics", "general"];
+const FASHION     = ["fashion", "retail"];
+const FASHION_SVC = ["fashion", "retail", "services"];
 const CRAFT       = ["craft"];
 
 const NAV_GROUPS: NavGroup[] = [
