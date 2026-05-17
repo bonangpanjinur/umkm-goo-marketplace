@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useShop } from "@/lib/use-shop";
 import { Card } from "@/components/ui/card";
@@ -24,6 +24,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Video,
   Users,
   GraduationCap,
@@ -31,11 +32,30 @@ import {
   Eye,
   Clock,
   ArrowLeft,
-  ArrowUp,
-  ArrowDown,
   GripVertical,
   CheckCircle2,
+  PlayCircle,
+  Globe,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/pos-app/kursus")({ component: KursusPage });
 
