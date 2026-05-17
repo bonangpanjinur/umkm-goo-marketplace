@@ -60,8 +60,22 @@ function OpenBillsPage() {
         () => refresh(),
       )
       .subscribe();
+
+    // Recompute on intra-tab + cross-tab cart change events (park / unpark / confirm / cancel)
+    const onLocal = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { outletId?: string } | undefined;
+      if (!detail?.outletId || detail.outletId === outlet.id) refresh();
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "kh-pos-cart-change") refresh();
+    };
+    window.addEventListener("kh-pos-cart-change", onLocal);
+    window.addEventListener("storage", onStorage);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("kh-pos-cart-change", onLocal);
+      window.removeEventListener("storage", onStorage);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outlet?.id]);
