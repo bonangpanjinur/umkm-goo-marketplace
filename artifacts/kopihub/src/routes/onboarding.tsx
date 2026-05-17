@@ -76,6 +76,7 @@ function OnboardingPage() {
 
   // Step 2
   const [categoryId, setCategoryId] = useState<string>("");
+  const [subtypeSlug, setSubtypeSlug] = useState<string>("");
 
   // Step 3
   const [outletName, setOutletName] = useState("Outlet Pusat");
