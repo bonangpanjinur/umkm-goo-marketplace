@@ -62,7 +62,7 @@ function Page() {
 
   function startNew() {
     setEditing(null);
-    setForm({ title: "", client_name: "", client_email: "", expires_at: "", watermark_enabled: true, max_selections: "", status: "draft" });
+    setForm({ title: "", client_name: "", client_email: "", expires_at: "", watermark_enabled: true, max_selections: "", status: "draft", photographer_id: "" });
     setOpenForm(true);
   }
   function startEdit(g: Gal) {
@@ -72,6 +72,7 @@ function Page() {
       expires_at: g.expires_at ? g.expires_at.slice(0, 10) : "",
       watermark_enabled: g.watermark_enabled, max_selections: g.max_selections?.toString() ?? "",
       status: g.status,
+      photographer_id: g.photographer_id ?? "",
     });
     setOpenForm(true);
   }
@@ -86,10 +87,15 @@ function Page() {
       expires_at: form.expires_at || null, watermark_enabled: form.watermark_enabled,
       max_selections: form.max_selections ? Number(form.max_selections) : null,
       status: form.status,
+      photographer_id: form.photographer_id || null,
     };
     const { error } = editing
       ? await supabase.from("studio_galleries").update(payload).eq("id", editing.id)
       : await supabase.from("studio_galleries").insert(payload);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Tersimpan"); setOpenForm(false); void load();
+  }
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Tersimpan"); setOpenForm(false); void load();
