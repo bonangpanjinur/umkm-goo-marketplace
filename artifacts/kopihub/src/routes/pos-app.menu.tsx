@@ -994,6 +994,71 @@ function MenuPage() {
                       </div>
                     </div>
 
+                    {/* F&B — Halal, Alergen, Mode order */}
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                          <UtensilsCrossed className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">F&amp;B — Halal, alergen &amp; mode order</div>
+                          <div className="text-[11px] text-muted-foreground">Bantu pembeli pilih yang aman & set kanal order yang didukung.</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
+                        <div>
+                          <div className="text-sm font-medium">Bersertifikat / klaim Halal</div>
+                          <div className="text-[11px] text-muted-foreground">Tampilkan badge Halal di halaman produk.</div>
+                        </div>
+                        <Switch checked={isHalal} onCheckedChange={setIsHalal} />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[11px]">Mengandung alergen</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {COMMON_ALLERGENS.map((a) => {
+                            const on = allergens.includes(a);
+                            return (
+                              <button
+                                key={a}
+                                type="button"
+                                onClick={() => setAllergens((prev) => on ? prev.filter((x) => x !== a) : [...prev, a])}
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${on ? "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300" : "bg-background text-muted-foreground border-border hover:bg-muted/60"}`}
+                              >
+                                {a}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {allergens.length > 0 && (
+                          <button type="button" onClick={() => setAllergens([])} className="text-[10px] text-muted-foreground hover:text-destructive">
+                            Hapus semua alergen
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[11px]">Mode order yang didukung</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ORDER_MODES.map(({ v, l }) => {
+                            const on = availableModes.includes(v);
+                            return (
+                              <button
+                                key={v}
+                                type="button"
+                                onClick={() => setAvailableModes((prev) => on ? prev.filter((x) => x !== v) : [...prev, v])}
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${on ? "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-background text-muted-foreground border-border hover:bg-muted/60"}`}
+                              >
+                                {l}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Kosongkan untuk mengizinkan semua mode.</p>
+                      </div>
+                    </div>
+
                     {/* Pre-loved */}
                     <div className="space-y-2 rounded-lg border border-border bg-card p-3">
                       <div className="flex items-center gap-2">
