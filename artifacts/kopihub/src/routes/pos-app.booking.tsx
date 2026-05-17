@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { logStaffAction } from "@/lib/staff-audit";
+import { RecurringSlotDialog } from "@/components/booking/RecurringSlotDialog";
 
 export const Route = createFileRoute("/pos-app/booking")({
   validateSearch: (search: Record<string, unknown>) => ({
