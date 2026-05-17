@@ -1418,7 +1418,7 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
       window.removeEventListener("kh-cart-change", onLocal);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, product.shop_id]);
 
   const effectivePrice = (() => {
     const now = Date.now();
