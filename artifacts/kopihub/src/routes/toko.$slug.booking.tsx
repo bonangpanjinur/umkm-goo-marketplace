@@ -41,7 +41,7 @@ type Shop = {
   rating_avg: number | null;
   rating_count: number | null;
   kyc_status: string | null;
-  deposit_required: boolean | null;
+  deposit_enabled: boolean | null;
   deposit_percentage: number | null;
   deposit_notes: string | null;
   require_id_upload: boolean | null;
