@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
  * Tulis baris ke `staff_audit_logs` untuk aksi sensitif.
  * Best-effort: kegagalan log TIDAK boleh menggagalkan aksi user.
  *
+ * Skema tabel: shop_id, actor_id, target_user_id?, target_email?, target_name?,
+ *              action, meta (jsonb)
+ *
  * Pakai di:
  *  - Void / cancel order
  *  - Refund
@@ -21,25 +24,28 @@ export type AuditAction =
   | "finance.view"
   | "finance.withdraw"
   | "shift.close"
-  | "inventory.adjust";
+  | "inventory.adjust"
+  | "staff.permissions_update";
 
 export async function logStaffAction(params: {
   shopId: string;
   action: AuditAction;
-  targetType?: string; // mis. 'order', 'menu_item'
-  targetId?: string;
-  metadata?: Record<string, unknown>;
+  targetUserId?: string;
+  targetEmail?: string;
+  targetName?: string;
+  meta?: Record<string, unknown>;
 }) {
   try {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     await supabase.from("staff_audit_logs").insert({
       shop_id: params.shopId,
-      user_id: u.user.id,
+      actor_id: u.user.id,
       action: params.action,
-      target_type: params.targetType ?? null,
-      target_id: params.targetId ?? null,
-      metadata: params.metadata ?? {},
+      target_user_id: params.targetUserId ?? null,
+      target_email: params.targetEmail ?? null,
+      target_name: params.targetName ?? null,
+      meta: params.meta ?? {},
     });
   } catch (err) {
     // Sengaja silent — audit log tidak boleh blok aksi user

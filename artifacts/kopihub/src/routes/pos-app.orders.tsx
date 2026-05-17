@@ -3,6 +3,7 @@ import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
+import { logStaffAction } from "@/lib/staff-audit";
 import { useAuth } from "@/lib/auth";
 import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2, MessageCircle, CheckSquare, Square, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
@@ -144,12 +145,24 @@ function OrdersPage() {
   async function bulkUpdateStatus(status: string) {
     if (checkedIds.size === 0) { toast.error("Pilih pesanan terlebih dahulu"); return; }
     setBulkUpdating(true);
+    const ids = Array.from(checkedIds);
     const { error } = await supabase
       .from("orders")
       .update({ status } as any)
-      .in("id", Array.from(checkedIds));
+      .in("id", ids);
     if (error) { toast.error(error.message); } else {
       toast.success(`${checkedIds.size} pesanan diperbarui ke status "${status}"`);
+      // Audit log untuk aksi sensitif (void / cancel / refund)
+      if (shop && (status === "voided" || status === "cancelled" || status === "refunded")) {
+        const action = status === "refunded" ? "order.refund" : "order.void";
+        for (const id of ids) {
+          logStaffAction({
+            shopId: shop.id,
+            action,
+            meta: { order_id: id, status, bulk: true, count: ids.length },
+          });
+        }
+      }
       setCheckedIds(new Set());
       load();
     }
@@ -304,6 +317,7 @@ function OrdersPage() {
       {selected && shop && outlet && (
         <DetailDialog
           order={selected}
+          shopId={shop.id}
           shopName={shop.name}
           outletName={outlet.name}
           outletId={outlet.id}
@@ -324,6 +338,7 @@ function OrdersPage() {
 
 function DetailDialog({
   order,
+  shopId,
   shopName,
   outletName,
   outletId,
@@ -334,6 +349,7 @@ function DetailDialog({
   onVoided,
 }: {
   order: OrderDetail;
+  shopId: string;
   shopName: string;
   outletName: string;
   outletId: string;
@@ -395,6 +411,11 @@ function DetailDialog({
     setRefunding(true);
     try {
       await refundOrder(order.id, amt, refundReason || "Refund", refundMethod);
+      logStaffAction({
+        shopId,
+        action: "order.refund",
+        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason: refundReason, method: refundMethod },
+      });
       toast.success(`Refund ${formatIDR(amt)} dicatat`);
       setRefundOpen(false);
       onVoided();
@@ -513,6 +534,11 @@ function DetailDialog({
                   const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
                   setVoiding(false);
                   if (error) { toast.error(error.message); return; }
+                  logStaffAction({
+                    shopId,
+                    action: "order.void",
+                    meta: { order_id: order.id, order_no: order.order_no, reason },
+                  });
                   toast.success("Order di-void");
                   onVoided();
                 }}
