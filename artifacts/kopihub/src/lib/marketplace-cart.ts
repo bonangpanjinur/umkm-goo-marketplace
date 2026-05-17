@@ -53,7 +53,7 @@ export async function addToCart(args: {
     });
     if (error) throw error;
   }
-  markCartActivity();
+  notifyCartChange();
 }
 
 export async function listCart(): Promise<CartItem[]> {
@@ -78,11 +78,13 @@ export async function updateCartItem(id: string, quantity: number): Promise<void
     .update({ quantity })
     .eq("id", id);
   if (error) throw error;
+  notifyCartChange();
 }
 
 export async function removeCartItem(id: string): Promise<void> {
   const { error } = await supabase.from("marketplace_cart_items").delete().eq("id", id);
   if (error) throw error;
+  notifyCartChange();
 }
 
 export function markCartActivity(): void {
@@ -91,6 +93,20 @@ export function markCartActivity(): void {
 
 export function getLastCartActivity(): number | null {
   try { const v = localStorage.getItem("kh_cart_ts"); return v ? Number(v) : null; } catch { return null; }
+}
+
+/**
+ * Broadcast cart change ke seluruh tab/komponen agar badge & state cart
+ * langsung refresh tanpa nunggu realtime postgres_changes. Aman dipanggil
+ * dari SSR (no-op kalau window tidak ada).
+ */
+export function notifyCartChange(): void {
+  markCartActivity();
+  try {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("kh-cart-change"));
+    }
+  } catch {}
 }
 
 export async function cartCount(): Promise<number> {
@@ -192,5 +208,6 @@ export async function checkout(args: {
     _platform_voucher_code: args.platform_voucher_code ?? undefined,
   });
   if (error) throw error;
+  notifyCartChange();
   return ((data as any)?.order_ids as string[]) ?? [];
 }
