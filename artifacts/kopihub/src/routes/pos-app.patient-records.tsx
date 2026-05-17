@@ -11,7 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Stethoscope, Plus, Pencil, Trash2, Loader2, Search, FileText, Calendar, ChevronLeft } from "lucide-react";
+import { Stethoscope, Plus, Pencil, Trash2, Loader2, Search, FileText, Calendar, ChevronLeft, ShieldCheck } from "lucide-react";
+import { Icd10Picker } from "@/components/Icd10Picker";
 
 export const Route = createFileRoute("/pos-app/patient-records")({
   head: () => ({ meta: [{ title: "Rekam Medis Pasien" }] }),
