@@ -161,6 +161,8 @@ export function PaymentDialog({
                     key={v}
                     variant="outline"
                     size="sm"
+                    data-testid="cash-suggestion"
+                    data-amount={v}
                     onClick={() => setCashAmount(v.toString())}
                   >
                     {formatIDR(v)}
