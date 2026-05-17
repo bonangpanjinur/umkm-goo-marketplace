@@ -73,8 +73,8 @@ test.describe("POS Flow", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    // Klik salah satu suggestion uang (chip dengan Rp)
-    const suggestion = dialog.locator("button", { hasText: /^Rp/ }).first();
+    // Klik salah satu suggestion uang (chip dengan data-testid)
+    const suggestion = dialog.locator("[data-testid='cash-suggestion']").first();
     if (await suggestion.isVisible().catch(() => false)) {
       await suggestion.click();
     } else {
@@ -82,7 +82,7 @@ test.describe("POS Flow", () => {
       await dialog.locator("input[type='number']").fill("1000000");
     }
 
-    await dialog.getByRole("button", { name: /selesaikan pesanan/i }).click();
+    await dialog.locator("[data-testid='confirm-payment']").click();
 
     // Tunggu pesanan diproses & print di-trigger (mocked)
     await page.waitForFunction(() => (window as any).__printCalls >= 1, { timeout: 15_000 }).catch(() => {});

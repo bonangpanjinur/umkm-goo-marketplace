@@ -161,6 +161,8 @@ export function PaymentDialog({
                     key={v}
                     variant="outline"
                     size="sm"
+                    data-testid="cash-suggestion"
+                    data-amount={v}
                     onClick={() => setCashAmount(v.toString())}
                   >
                     {formatIDR(v)}
@@ -192,6 +194,7 @@ export function PaymentDialog({
         <DialogFooter>
           <Button
             className="w-full h-12 text-lg"
+            data-testid="confirm-payment"
             disabled={loading || (method === "cash" && amount < total)}
             onClick={handleConfirm}
           >
