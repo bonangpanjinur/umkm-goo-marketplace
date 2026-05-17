@@ -83,6 +83,8 @@
 | SB-03 | Durasi layanan berbeda per jenis | Dasar ada, belum per-service granular | Tambah field `duration_minutes` per service item di booking |
 | SB-09 | Konfirmasi booking via WA | Hanya tombol manual, belum otomatis | Integrasi WhatsApp Business API / webhook |
 | RT-02 | Manajemen armada/unit rental | Dasar ada, belum manajemen kondisi & dokumen unit | Tambah field kondisi unit, log servis, dokumen per unit |
+| B5 (F-16) | Konfirmasi DP via webhook | `markDepositPaid` masih trust client | Pindahkan ke webhook-only (Midtrans/Xendit) sebagai truth source |
+| B6 (F-16) | Dualism config deposit | `shops.booking_config.deposit_*` (jsonb) vs `shops.deposit_*` (kolom) jalan paralel | Deprecate JSON path, jadikan kolom satu-satunya source |
 
 ---
 
@@ -108,9 +110,9 @@
 
 | # | Kode | Fitur | Estimasi | Catatan |
 |---|---|---|---|---|
-| 1 | F-16 | Deposit via Payment Gateway (booking) | 3 hari | Konfirmasi manual ✅ sudah ada |
-| 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada |
-| 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada |
+| 1 | F-16 | Deposit via Payment Gateway (booking) | 🔧 Fase 1-2 ✅ (code align + seed + DB schema) · Fase 3-6 ❌ (konsolidasi config, cron auto-cancel, hardening, Midtrans Snap init) — lihat **BAGIAN F** |
+| 2 | SB-10 | Deposit online via payment gateway (barbershop) | 3 hari | Manual ✅ sudah ada; akan ikut Fase 6 F-16 |
+| 3 | RT-09 | Deposit rental via payment gateway | 3 hari | Konfigurasi deposit % ✅ sudah ada; akan ikut Fase 6 F-16 |
 | 4 | F-01 | Group Buy / Patungan | 3 hari | Escrow, batas waktu, refund jika gagal |
 | 5 | F-02 | Subscription / Langganan Produk Rutin | 3 hari | Recurring billing & auto-debit |
 | 6 | F-06 | Affiliate Program per Toko | 3 hari | Tracking klik, komisi, dashboard afiliator per toko |
