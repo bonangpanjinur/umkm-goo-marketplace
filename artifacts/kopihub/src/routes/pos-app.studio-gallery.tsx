@@ -153,6 +153,15 @@ function Page() {
                 </div>
                 <Badge>{g.status}</Badge>
               </div>
+              {(() => {
+                const p = photographers.find(x => x.id === g.photographer_id);
+                return p ? (
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+                    <span className="text-xs">{p.name}</span>
+                  </div>
+                ) : null;
+              })()}
               {g.expires_at && <p className="text-xs mt-1">Berakhir: {g.expires_at.slice(0, 10)}</p>}
               {g.max_selections && <p className="text-xs">Maks pilih: {g.max_selections}</p>}
               <div className="flex gap-1 mt-3 flex-wrap">
