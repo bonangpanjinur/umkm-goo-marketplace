@@ -8263,6 +8263,13 @@ export type Database = {
         Args: { _courier_id: string; _order_id: string }
         Returns: Json
       }
+      auto_cancel_pending_deposit_bookings: {
+        Args: never
+        Returns: {
+          cancelled_count: number
+          cutoff_hours: number
+        }[]
+      }
       auto_release_escrow: { Args: never; Returns: Json }
       auto_unverify_domain: {
         Args: { _reason: string; _shop_id: string }
