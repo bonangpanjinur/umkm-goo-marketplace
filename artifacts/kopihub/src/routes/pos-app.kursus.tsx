@@ -994,6 +994,20 @@ function KursusPage() {
                 <p className="text-xs text-muted-foreground">Calon pembeli bisa nonton pelajaran ini tanpa beli</p>
               </div>
             </div>
+            <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+              <Switch
+                checked={lessonForm.status === "published"}
+                onCheckedChange={(v) => setLessonForm((f) => ({ ...f, status: v ? "published" : "draft" }))}
+              />
+              <div className="flex-1">
+                <Label>{lessonForm.status === "published" ? "Tayang" : "Draft"}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {lessonForm.status === "published"
+                    ? "Pelajaran ini terlihat oleh pembeli"
+                    : "Pelajaran disimpan tapi belum terlihat"}
+                </p>
+              </div>
+            </div>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={() => setLessonDialog(false)}>Batal</Button>
               <Button className="flex-1" onClick={saveLesson} disabled={savingLesson}>
