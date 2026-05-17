@@ -52,6 +52,7 @@ import {
   listParkedCarts,
   parkCart as parkCartRemote,
   deleteParkedCart,
+  notifyParkedCartChange,
   type ParkedCart,
 } from "@/lib/parked-carts";
 
@@ -275,8 +276,18 @@ function POSPage() {
         () => refreshParked(),
       )
       .subscribe();
+    // Cross-tab + local broadcast: refresh segera saat park/unpark/confirm
+    // dijalankan di tab lain (storage event) atau di tab ini (custom event).
+    const onLocal = () => refreshParked();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "kh_pos_cart_ts") refreshParked();
+    };
+    window.addEventListener("kh-pos-cart-change", onLocal);
+    window.addEventListener("storage", onStorage);
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("kh-pos-cart-change", onLocal);
+      window.removeEventListener("storage", onStorage);
     };
   }, [outlet?.id]);
 
@@ -351,6 +362,7 @@ function POSPage() {
     }
     setCarts((prev) => prev.filter((_, i) => i !== idx));
     setActiveIdx((prev) => (prev >= idx ? Math.max(0, prev - 1) : prev));
+    notifyParkedCartChange(outlet?.id);
   };
 
   const handleParkClick = () => {
@@ -415,6 +427,7 @@ function POSPage() {
     setCarts((prev) => [...prev, restored]);
     setActiveIdx(carts.length);
     setParkedListOpen(false);
+    notifyParkedCartChange(outlet?.id);
     toast.success(`Memuat cart: ${p.label}`);
   };
 
@@ -509,6 +522,7 @@ function POSPage() {
 
       // Reset current tab
       updateCart(() => newCart(cart.label));
+      notifyParkedCartChange(outlet?.id);
     } catch (e: any) {
       const offline = !navigator.onLine;
       toast.error(

@@ -1,6 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { CartItem } from "@/lib/cart";
 
+/**
+ * Broadcast perubahan parked cart (park/unpark/hapus/confirm) ke seluruh
+ * tab & komponen, supaya badge "Cart Tersimpan" + counter cart aktif
+ * langsung refresh tanpa menunggu realtime postgres_changes.
+ * Aman dipanggil dari SSR (no-op kalau window tidak ada).
+ */
+export function notifyParkedCartChange(outletId?: string): void {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("kh_pos_cart_ts", Date.now().toString());
+    }
+  } catch {}
+  try {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("kh-pos-cart-change", { detail: { outletId } }),
+      );
+    }
+  } catch {}
+}
+
 export type ParkedCart = {
   id: string;
   shop_id: string;
@@ -47,6 +68,7 @@ export async function parkCart(input: {
       .select()
       .single();
     if (error) throw error;
+    notifyParkedCartChange(input.outlet_id);
     return data as ParkedCart;
   }
   const { data, error } = await sb
@@ -62,10 +84,12 @@ export async function parkCart(input: {
     .select()
     .single();
   if (error) throw error;
+  notifyParkedCartChange(input.outlet_id);
   return data as ParkedCart;
 }
 
 export async function deleteParkedCart(id: string): Promise<void> {
   const { error } = await sb.from("parked_carts").delete().eq("id", id);
   if (error) throw error;
+  notifyParkedCartChange();
 }
