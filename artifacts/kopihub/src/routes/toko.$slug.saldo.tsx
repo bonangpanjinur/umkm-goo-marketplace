@@ -74,7 +74,7 @@ function ShopWalletPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <MarketplaceHeader />
+      <MarketplaceHeader shopId={shop?.id} />
       <main className="flex-1 mx-auto w-full max-w-2xl px-4 py-6 space-y-5">
         <div>
           <Link to="/toko/$slug" params={{ slug }} className="text-xs text-primary">← Kembali ke {shop.name}</Link>
@@ -113,7 +113,7 @@ function ShopWalletPage() {
           <span>Setelah klik Top-up, kamu akan diarahkan ke WhatsApp toko untuk melakukan pembayaran. Saldo masuk setelah toko mengkonfirmasi pembayaran.</span>
         </Card>
       </main>
-      <MarketplaceFooter />
+      <MarketplaceFooter shopId={shop?.id} />
     </div>
   );
 }

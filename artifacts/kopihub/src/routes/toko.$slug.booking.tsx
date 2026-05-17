@@ -768,11 +768,11 @@ export default function PublicBookingPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
+        <MarketplaceHeader shopId={shop?.id} />
         <div className="flex items-center justify-center py-32">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-        <MarketplaceFooter />
+        <MarketplaceFooter shopId={shop?.id} />
       </div>
     );
   }
@@ -780,19 +780,19 @@ export default function PublicBookingPage() {
   if (notFound || !shop) {
     return (
       <div className="min-h-screen bg-background">
-        <MarketplaceHeader />
+        <MarketplaceHeader shopId={shop?.id} />
         <div className="mx-auto max-w-2xl px-4 py-24 text-center">
           <h1 className="text-2xl font-bold">Toko tidak ditemukan</h1>
           <Link to="/" className="mt-4 inline-block text-primary hover:underline">← Beranda</Link>
         </div>
-        <MarketplaceFooter />
+        <MarketplaceFooter shopId={shop?.id} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <MarketplaceHeader />
+      <MarketplaceHeader shopId={shop?.id} />
 
       {/* Shop header strip */}
       <div className="border-b border-border bg-gradient-to-b from-primary/5 to-background">
@@ -2292,7 +2292,7 @@ export default function PublicBookingPage() {
         )}
       </div>
 
-      <MarketplaceFooter />
+      <MarketplaceFooter shopId={shop?.id} />
 
       {/* ─── Waitlist Dialog (M-12) ─── */}
       <Dialog open={!!waitlistSlot} onOpenChange={open => { if (!open) setWaitlistSlot(null); }}>
