@@ -585,6 +585,7 @@ function ProductDetailPage() {
                   <span className="text-xs font-semibold text-primary shrink-0">Mulai →</span>
                 </Link>
               )}
+              <ShopInfoCard shop={shop} />
             </div>
           </div>
         ) : null}
