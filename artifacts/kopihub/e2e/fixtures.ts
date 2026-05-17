@@ -146,8 +146,49 @@ export async function login(page: Page, email = DEMO_EMAIL, password = DEMO_PASS
 }
 
 /**
+ * Severity rules untuk capture E2E.
+ *
+ * - `consoleError`: minimum severity untuk console.error (default 'fatal')
+ * - `consoleWarn`:  minimum severity untuk console.warn  (default 'off')
+ * - `network`:      minimum severity untuk request failed / status >= 500 (default 'fatal')
+ *
+ * Level: 'off' (abaikan) < 'warn' (log saja, jangan fail) < 'fatal' (fail test).
+ *
+ * Override per-test:
+ *   test.use({ severity: { consoleWarn: 'fatal', network: 'fatal' } });
+ */
+export type Severity = "off" | "warn" | "fatal";
+
+export type SeverityRules = {
+  consoleError?: Severity;
+  consoleWarn?: Severity;
+  network?: Severity;
+  /** Pola URL yang di-ignore untuk capture network (regex). */
+  ignoreNetwork?: RegExp[];
+  /** Pola pesan tambahan yang di-ignore di console.warn/error. */
+  ignoreMessages?: RegExp[];
+};
+
+export const DEFAULT_SEVERITY: Required<Omit<SeverityRules, "ignoreNetwork" | "ignoreMessages">> & {
+  ignoreNetwork: RegExp[];
+  ignoreMessages: RegExp[];
+} = {
+  consoleError: "fatal",
+  consoleWarn: "off",
+  network: "fatal",
+  ignoreNetwork: [
+    /\/lovable\.js/i,
+    /cdn\.gpteng\.co/i,
+    /hot-update/i,
+    /__vite_ping/i,
+    /\/@vite\//i,
+    /\.map(\?|$)/i,
+  ],
+  ignoreMessages: [],
+};
+
+/**
  * Pola yang di-ignore (warning umum dari ekstensi, HMR, lovable.js, dsb).
- * Tambahkan di sini kalau ada noise baru yang bukan bug aplikasi.
  */
 export const FATAL_IGNORE_PATTERNS: RegExp[] = [
   /RESET_BLANK_CHECK/i,
@@ -158,68 +199,126 @@ export const FATAL_IGNORE_PATTERNS: RegExp[] = [
   /ResizeObserver loop/i,
   /Non-Error promise rejection captured/i,
   /Failed to load resource.*manifest\.webmanifest/i,
-  // Sonner / toast info tidak boleh mem-fail test
   /sonner/i,
 ];
 
-export function isFatalMessage(msg: string): boolean {
+export function isFatalMessage(msg: string, extra: RegExp[] = []): boolean {
   if (!msg) return false;
-  return !FATAL_IGNORE_PATTERNS.some((re) => re.test(msg));
+  const all = [...FATAL_IGNORE_PATTERNS, ...extra];
+  return !all.some((re) => re.test(msg));
 }
 
-/** Pasang capture console.error + pageerror + unhandledrejection ke page. */
-export function installErrorCapture(page: Page): { errors: string[] } {
-  const errors: string[] = [];
+export type CaptureEntry = {
+  kind: "console.error" | "console.warn" | "pageerror" | "network";
+  severity: Exclude<Severity, "off">;
+  message: string;
+};
+
+/**
+ * Pasang capture untuk console.error, console.warn, pageerror,
+ * unhandledrejection, dan network failures dengan severity rules.
+ */
+export function installErrorCapture(
+  page: Page,
+  rules: SeverityRules = {},
+): { entries: CaptureEntry[]; fatal: CaptureEntry[] } {
+  const cfg = {
+    consoleError: rules.consoleError ?? DEFAULT_SEVERITY.consoleError,
+    consoleWarn: rules.consoleWarn ?? DEFAULT_SEVERITY.consoleWarn,
+    network: rules.network ?? DEFAULT_SEVERITY.network,
+    ignoreNetwork: [...DEFAULT_SEVERITY.ignoreNetwork, ...(rules.ignoreNetwork ?? [])],
+    ignoreMessages: [...(rules.ignoreMessages ?? [])],
+  };
+
+  const entries: CaptureEntry[] = [];
+
+  function push(kind: CaptureEntry["kind"], sev: Severity, message: string) {
+    if (sev === "off") return;
+    entries.push({ kind, severity: sev, message });
+  }
 
   page.on("console", (msg) => {
-    if (msg.type() !== "error") return;
+    const type = msg.type();
+    if (type !== "error" && type !== "warning") return;
     const text = msg.text();
-    if (isFatalMessage(text)) errors.push(`[console.error] ${text}`);
+    if (!isFatalMessage(text, cfg.ignoreMessages)) return;
+    if (type === "error") push("console.error", cfg.consoleError, text);
+    else push("console.warn", cfg.consoleWarn, text);
   });
 
-  // Uncaught exceptions di halaman
   page.on("pageerror", (err) => {
     const text = `${err.name}: ${err.message}`;
-    if (isFatalMessage(text)) errors.push(`[pageerror] ${text}`);
+    if (isFatalMessage(text, cfg.ignoreMessages)) {
+      push("pageerror", cfg.consoleError, text);
+    }
   });
 
-  // Hook unhandledrejection di dalam page agar selalu terbaca oleh `pageerror`
+  // Network: request gagal di transport level (DNS/abort) ATAU response 5xx
+  page.on("requestfailed", (req) => {
+    const url = req.url();
+    if (cfg.ignoreNetwork.some((re) => re.test(url))) return;
+    const reason = req.failure()?.errorText ?? "unknown";
+    push("network", cfg.network, `${req.method()} ${url} failed: ${reason}`);
+  });
+
+  page.on("response", (res) => {
+    const url = res.url();
+    if (cfg.ignoreNetwork.some((re) => re.test(url))) return;
+    const status = res.status();
+    if (status >= 500) {
+      push("network", cfg.network, `${res.request().method()} ${url} → ${status}`);
+    }
+  });
+
   page.addInitScript(() => {
     window.addEventListener("unhandledrejection", (ev) => {
       const reason: any = (ev as PromiseRejectionEvent).reason;
       const msg = reason?.stack ?? reason?.message ?? String(reason);
-      // Throw sintetis agar tertangkap oleh Playwright 'pageerror'
-      // (tapi jangan ganggu app — schedule async dengan label jelas)
       setTimeout(() => {
         throw new Error(`[unhandledrejection] ${msg}`);
       }, 0);
     });
   });
 
-  return { errors };
+  return {
+    entries,
+    get fatal() {
+      return entries.filter((e) => e.severity === "fatal");
+    },
+  } as any;
 }
 
 type Fixtures = {
   authedPage: Page;
-  consoleErrors: string[];
+  severity: SeverityRules;
+  capture: { entries: CaptureEntry[]; fatal: CaptureEntry[] };
 };
 
 export const test = base.extend<Fixtures>({
-  // Per-test array; auto-fail kalau ada error fatal saat test selesai.
-  consoleErrors: async ({ page }, use, testInfo) => {
-    const { errors } = installErrorCapture(page);
-    await use(errors);
-    if (errors.length > 0) {
-      testInfo.attach("console-errors.txt", {
-        body: errors.join("\n"),
+  severity: [{} as SeverityRules, { option: true }],
+  capture: async ({ page, severity }, use, testInfo) => {
+    const cap = installErrorCapture(page, severity);
+    await use(cap);
+    const fatal = cap.entries.filter((e) => e.severity === "fatal");
+    const warn = cap.entries.filter((e) => e.severity === "warn");
+    if (warn.length > 0) {
+      await testInfo.attach("warnings.txt", {
+        body: warn.map((e) => `[${e.kind}] ${e.message}`).join("\n"),
+        contentType: "text/plain",
+      });
+    }
+    if (fatal.length > 0) {
+      await testInfo.attach("fatal.txt", {
+        body: fatal.map((e) => `[${e.kind}] ${e.message}`).join("\n"),
         contentType: "text/plain",
       });
       throw new Error(
-        `Test menghasilkan ${errors.length} error fatal:\n${errors.join("\n")}`,
+        `Test menghasilkan ${fatal.length} error fatal:\n` +
+          fatal.map((e) => `  • [${e.kind}] ${e.message}`).join("\n"),
       );
     }
   },
-  authedPage: async ({ page, consoleErrors: _ }, use) => {
+  authedPage: async ({ page, capture: _ }, use) => {
     await installPrintMock(page);
     await login(page);
     await use(page);
