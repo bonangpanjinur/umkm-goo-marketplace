@@ -273,9 +273,11 @@ function ShopChatPage() {
   /**
    * Upload a file via signed URL using XHR so we get real progress events.
    * Returns the final public URL on success.
+   * The xhr is registered in activeUploadsRef under tempId so it can be aborted.
    */
   function uploadFileWithProgress(
     file: File,
+    tempId: string,
     onProgress: (pct: number) => void,
   ): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
@@ -292,6 +294,7 @@ function ShopChatPage() {
       }
 
       const xhr = new XMLHttpRequest();
+      activeUploadsRef.current.set(tempId, xhr);
       xhr.open("PUT", signed.signedUrl, true);
       xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
       xhr.setRequestHeader("x-upsert", "false");
@@ -299,6 +302,7 @@ function ShopChatPage() {
         if (ev.lengthComputable) onProgress(ev.loaded / ev.total);
       };
       xhr.onload = () => {
+        activeUploadsRef.current.delete(tempId);
         if (xhr.status >= 200 && xhr.status < 300) {
           const { data: pub } = supabase.storage.from("chat-attachments").getPublicUrl(path);
           onProgress(1);
@@ -307,8 +311,8 @@ function ShopChatPage() {
           reject(new Error(`upload-${xhr.status}`));
         }
       };
-      xhr.onerror = () => reject(new Error("network"));
-      xhr.onabort = () => reject(new Error("aborted"));
+      xhr.onerror = () => { activeUploadsRef.current.delete(tempId); reject(new Error("network")); };
+      xhr.onabort = () => { activeUploadsRef.current.delete(tempId); reject(new Error("aborted")); };
       xhr.send(file);
     });
   }
