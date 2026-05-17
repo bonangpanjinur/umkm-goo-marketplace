@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Loader2,
   ShieldAlert,
@@ -306,56 +306,57 @@ function AuditLogsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filtered.map((l) => {
+                {filtered.flatMap((l) => {
                   const meta = l.meta as Record<string, unknown>;
                   const reason = typeof meta?.reason === "string" ? meta.reason as string : null;
                   const target = l.target_name ?? l.target_email ?? (typeof meta?.menu_name === "string" ? meta.menu_name as string : null) ?? (typeof meta?.order_no === "string" ? `#${meta.order_no}` : null);
                   const isOpen = expanded === l.id;
-                  return (
-                    <Fragment key={l.id}>
-                      <tr className="hover:bg-muted/30">
-                        <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
-                          {new Date(l.created_at).toLocaleString("id-ID", {
-                            day: "2-digit", month: "short", year: "numeric",
-                            hour: "2-digit", minute: "2-digit",
-                          })}
+                  const rows: JSX.Element[] = [
+                    <tr key={`${l.id}-main`} className="hover:bg-muted/30">
+                      <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
+                        {new Date(l.created_at).toLocaleString("id-ID", {
+                          day: "2-digit", month: "short", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">{shopName(l.shop_id)}</td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        {l.actor_id ? (actors[l.actor_id] ?? l.actor_id.slice(0, 8)) : "—"}
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge className={`${actionTone(l.action)} text-[10px] font-medium`} variant="outline">
+                          {actionLabel(l.action)}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2">
+                        {target && <div className="font-medium">{target}</div>}
+                        {reason && (
+                          <div className="text-xs text-muted-foreground line-clamp-2">{reason}</div>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setExpanded(isOpen ? null : l.id)}
+                        >
+                          {isOpen ? "Tutup" : "Detail"}
+                        </Button>
+                      </td>
+                    </tr>,
+                  ];
+                  if (isOpen) {
+                    rows.push(
+                      <tr key={`${l.id}-detail`} className="bg-muted/20">
+                        <td colSpan={6} className="px-4 py-3">
+                          <pre className="max-h-72 overflow-auto rounded bg-background p-3 text-[11px] leading-relaxed">
+                            {JSON.stringify(l.meta, null, 2)}
+                          </pre>
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap">{shopName(l.shop_id)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          {l.actor_id ? (actors[l.actor_id] ?? l.actor_id.slice(0, 8)) : "—"}
-                        </td>
-                        <td className="px-3 py-2">
-                          <Badge className={`${actionTone(l.action)} text-[10px] font-medium`} variant="outline">
-                            {actionLabel(l.action)}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-2">
-                          {target && <div className="font-medium">{target}</div>}
-                          {reason && (
-                            <div className="text-xs text-muted-foreground line-clamp-2">{reason}</div>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setExpanded(isOpen ? null : l.id)}
-                          >
-                            {isOpen ? "Tutup" : "Detail"}
-                          </Button>
-                        </td>
-                      </tr>
-                      {isOpen && (
-                        <tr className="bg-muted/20">
-                          <td colSpan={6} className="px-4 py-3">
-                            <pre className="max-h-72 overflow-auto rounded bg-background p-3 text-[11px] leading-relaxed">
-{JSON.stringify(l.meta, null, 2)}
-                            </pre>
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
-                  );
+                      </tr>,
+                    );
+                  }
+                  return rows;
                 })}
               </tbody>
             </table>
