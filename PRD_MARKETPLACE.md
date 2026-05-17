@@ -214,6 +214,89 @@ Platform ini sudah sangat kuat dari sisi infrastruktur. **~90% fitur inti (P1 & 
    - Reschedule mandiri oleh pelanggan (hanya batal mandiri yang ada)
    - Preview watermarked produk digital
 
+**Penyelarasan tujuan marketplace (17 Mei 2026):**
+- **Marketplace = etalase multi-kategori UMKM** dengan 11 kategori aktif sesuai seed `business_categories`: F&B, Retail, Jasa, Rental, Kursus, Salon, Klinik, Studio Foto, Travel/Umroh, Custom Order, Lainnya.
+- **Booking gateway-ready** (DP via Midtrans) jadi syarat go-live untuk Tipe 3 & Tipe 4 dengan `deposit_required = true`.
+- **Single source of truth config**: kolom kanonik `shops.deposit_*`, `shops.open_hours`, `shops.payment_methods_enabled`, dan `bookings.deposit_status` (`none|pending|paid|failed|expired|refunded`). Path JSON `shops.booking_config.deposit_*` dideprek.
+- **Role check** wajib via RPC `has_role(_user_id, _role)` — tidak baca `user_roles` langsung dari client.
+
+---
+
+## BAGIAN F: STATUS FASE INTEGRASI CLOUD & F-16 (Deposit Booking via Payment Gateway)
+
+> Status per 17 Mei 2026. Fase 1 & 2 sudah dieksekusi; Fase 3-6 jadi backlog prioritas.
+
+### F.1 Fase 1 — Code Align ✅ Selesai
+
+Rename agar code match schema DB hasil migrasi `20260517105717`:
+- `require_deposit` → `deposit_required`
+- `deposit_percent` → `deposit_percentage`
+- `cancellation_token` → `cancel_token`
+- Status DP: `waiting_payment`/`submitted` → `pending`; `verified` → `paid`
+
+File terdampak: `toko.$slug.booking.tsx`, `pos-app.booking.tsx`, `pos-app.booking-analytics.tsx`, `booking.cancel.$token.tsx`, `checkout.tsx`, `pos-app.settings.tsx`, `types/stage4.ts`, `api-server/src/routes/payments.ts`.
+
+Bonus: **webhook idempotency** — `webhook_logs` insert pakai `RETURNING id`, update filter `WHERE id = logId` (sebelumnya filter `status='received'` rawan double-process).
+
+Migrasi DB yang menyertai:
+- `bookings`: tambah `deposit_required` (bool), `deposit_status` (text + CHECK `none|pending|paid|failed|expired|refunded`), index `idx_bookings_shop_deposit_status`. Backfill `deposit_status` dari `deposit_paid`/`deposit_amount`.
+- `shops`: tambah `deposit_notes`, `deposit_percentage` (0–100), `require_id_upload`.
+
+### F.2 Fase 2 — Seed Data Inti ✅ Selesai
+
+Idempoten via `ON CONFLICT DO NOTHING`. Verifikasi: semua count sesuai target.
+
+| Tabel | Isi | Jumlah |
+|---|---|---|
+| `business_categories` | 11 kategori (fnb, retail, jasa, rental, kursus, salon, klinik, studio-foto, travel, custom-order, lainnya) | 11 |
+| `plans` | free (Rp 0) · pro (Rp 99rb) · enterprise (Rp 499rb), `duration_days=30` | 3 |
+| `features` (master) | `max_outlets`, `max_products`, `max_orders_month`, `max_staff` | 4 |
+| `plan_features` | limit per (plan, feature) — `-1` = unlimited | 12 |
+| `user_roles` | `super_admin` (shop_id NULL) + `owner` (shop terikat) untuk owner pertama `305a3d88-…` | 2 |
+| `platform_settings` | `platform_name`, `default_currency`, `platform_fee_percent` (2.5), `max_voucher_discount_percent` (50), `min_withdrawal_idr` (50000), `booking_default_min_hours_before` (2), `booking_default_max_advance_days` (60), `booking_default_deposit_percentage` (30), `booking_auto_cancel_hours` (24), `default_tax_percent` (11), `default_service_charge_percent` (0), `pwa_install_prompt` (true) | 12 |
+
+Catatan kompat skema:
+- `business_categories.booking_type` CHECK hanya menerima `session|rental|both` — mapping: jasa/kursus/salon/klinik/travel → `session`; rental → `rental`; studio-foto → `both`.
+- `user_roles` unique index pada `(user_id, role, shop_id, outlet_id)`.
+
+### F.3 Fase 3 — Konsolidasi Sumber Config ❌ Belum
+
+- Deprecate `shops.booking_config.deposit_*` (jsonb) → satu-satunya truth: kolom `shops.deposit_required`, `shops.deposit_percentage`, `shops.deposit_notes`, `shops.require_id_upload`.
+- `admin.booking-config.tsx` diubah: jadi UI default platform (tulis ke `platform_settings.booking_default_*`), bukan per-shop.
+- Backfill terakhir: copy nilai dari JSON ke kolom (jika ada perbedaan), lalu hapus path JSON dari semua reader.
+
+### F.4 Fase 4 — Operasional ❌ Belum
+
+- Cron `auto_cancel_pending_deposit_bookings()` — jalan harian, cancel booking dengan `deposit_status='pending'` & `created_at < now() - interval '24 hours'` (ambil window dari `platform_settings.booking_auto_cancel_hours`).
+- Audit log eskalasi: catat aksi auto-cancel ke `staff_audit_logs` dengan `actor_id = NULL` + `action='auto_cancel_pending_dp'`.
+- E2E test happy path: booking → init DP → webhook paid → status `paid`; + unhappy: webhook signature invalid, double-callback, timeout > window.
+
+### F.5 Fase 5 — Hardening ❌ Belum
+
+- Audit semua RLS policy `USING (true)` (linter flag); ganti dengan scope `shop_id` / `auth.uid()`.
+- Set `SECURITY DEFINER` functions ke `SET search_path = public` (saat ini banyak yang mutable).
+- Tutup public bucket listing storage (`avatars`, `menu-photos`, `documents`) — hanya `SELECT by path`, tanpa list.
+- Pindahkan extensions dari schema `public` ke `extensions` (pgcrypto, pg_net, dll).
+
+### F.6 Fase 6 — Midtrans Snap Client Init ❌ Belum
+
+- Server fn `initBookingDeposit({ bookingId })` (auth-protected) → buat `payment_intents` row + panggil Midtrans `charge` API → return `snap_token`.
+- Client `toko.$slug.booking.tsx` setelah submit booking dengan `deposit_required=true`: load `snap.js`, `snap.pay(token, { onSuccess, onPending, onError })`.
+- Redirect handler `/booking/$id/payment-callback` → tampilkan status saja; **truth tetap webhook** (`api-server/src/routes/payments.ts`).
+- Hapus `markDepositPaid` dari client (B5 fix). Hanya owner POS yang bisa override manual via tombol "Tandai DP Lunas (manual)" dengan log audit.
+
+### F.7 Backlog Berikutnya (Prioritas Sedang yang masih ❌)
+
+| Kode | Fitur | Estimasi |
+|---|---|---|
+| SA-05 | Konfigurasi Booking per Kategori (toggle T3/T4 default per kategori) | 1 hari |
+| SF-04 | Portfolio publik studio foto di halaman toko | 1 hari |
+| SF-03 | Pilih lokasi sesi (studio/outdoor/lokasi klien) | 0.5 hari |
+| SF-09 | Review post-booking dengan foto hasil klien | 1 hari |
+| BE-03 | Tag skin type per produk skincare | 0.5 hari |
+| KL-03 | Rekam medis sederhana per pasien | 2 hari |
+| JU-05 | Deliver hasil kerja (file) via platform | 1 hari |
+
 ---
 
 ## BAGIAN 0: ANALISIS ALUR BISNIS PER TIPE USAHA
