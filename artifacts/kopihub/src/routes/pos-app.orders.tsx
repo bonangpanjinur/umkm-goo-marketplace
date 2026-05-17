@@ -3,6 +3,7 @@ import { OrdersTabs } from "@/components/orders/OrdersTabs";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
+import { logStaffAction } from "@/lib/staff-audit";
 import { useAuth } from "@/lib/auth";
 import { Loader2, ListOrdered, Banknote, QrCode, Printer, XCircle, Undo2, MessageCircle, CheckSquare, Square, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
