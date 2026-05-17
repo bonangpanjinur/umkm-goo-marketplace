@@ -9,6 +9,10 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Send, ChevronLeft, Store, Loader2, AlertCircle, MessageCircle,
   Paperclip, ImageIcon, X, ShoppingBag, Check, CheckCheck, Clock, RefreshCw, Wifi, WifiOff,
 } from "lucide-react";
@@ -82,6 +86,7 @@ function ShopChatPage() {
   const [sellerTyping, setSellerTyping] = useState(false);
   const [rtStatus, setRtStatus] = useState<RtStatus>("connecting");
   const [dragOver, setDragOver] = useState(false);
+  const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -695,7 +700,7 @@ function ShopChatPage() {
                           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/50 backdrop-blur-[1px]">
                             <button
                               type="button"
-                              onClick={() => cancelSend(msg._tempId!)}
+                              onClick={() => setCancelConfirmId(msg._tempId!)}
                               className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition"
                               title="Batalkan unggahan"
                             >
@@ -782,7 +787,7 @@ function ShopChatPage() {
                       <span className="text-[10px] text-muted-foreground">·</span>
                       <button
                         type="button"
-                        onClick={() => cancelSend(msg._tempId!)}
+                        onClick={() => setCancelConfirmId(msg._tempId!)}
                         className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
                       >
                         <X className="h-3 w-3" /> Hapus
@@ -917,6 +922,29 @@ function ShopChatPage() {
           Pesan langsung ke pemilik toko
         </p>
       </div>
+
+      <AlertDialog open={!!cancelConfirmId} onOpenChange={(open) => { if (!open) setCancelConfirmId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Batalkan unggahan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Gambar yang sedang diunggah akan dihapus dan tidak bisa dikirim ulang.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelConfirmId(null)}>Tetap unggah</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (cancelConfirmId) cancelSend(cancelConfirmId);
+                setCancelConfirmId(null);
+              }}
+            >
+              Batalkan unggahan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
