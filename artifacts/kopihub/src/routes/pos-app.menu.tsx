@@ -485,6 +485,9 @@ function MenuPage() {
       } : null,
       production_days: productionDays ? Number(productionDays) : null,
       condition_grade: conditionGrade || null,
+      allergens: allergens,
+      is_halal: isHalal,
+      available_modes: availableModes,
     } as unknown as TablesInsert<"menu_items">;
     if (editing) {
       const oldPrice = editing.price;
