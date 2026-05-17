@@ -325,137 +325,131 @@ function ReportsPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex h-60 items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard icon={Coins} label="Omzet" value={formatIDR(summary.total)} />
-            <KpiCard icon={Receipt} label="Transaksi" value={String(summary.count)} />
-            <KpiCard icon={TrendingUp} label="Rata-rata / order" value={formatIDR(summary.aov)} />
-            <KpiCard icon={ShoppingBag} label="Item terjual" value={String(summary.itemsCount)} />
+      {(() => {
+        const cat = st.category;
+        const extraTabs: { id: string; label: string }[] = [];
+        if (cat === "rental") extraTabs.push({ id: "rental", label: "Occupancy" });
+        if (cat === "travel") extraTabs.push({ id: "travel", label: "Pengisian paket" });
+        if (cat === "kursus") extraTabs.push({ id: "kursus", label: "Penyelesaian kelas" });
+        if (cat === "klinik") extraTabs.push({ id: "klinik", label: "Kapasitas klinik" });
+        if (cat === "jasa" || cat === "salon" || cat === "studio-foto") extraTabs.push({ id: "leads", label: "Lead → booking" });
+
+        const SalesPanel = loading ? (
+          <div className="flex h-60 items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <ChartCard title="Penjualan harian" className="lg:col-span-2">
-              {dailySales.length === 0 ? (
-                <Empty />
-              ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={dailySales}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="label" fontSize={11} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis fontSize={11} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}jt` : `${v/1000}rb`} />
-                    <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatIDR(v)} />
-                    <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </ChartCard>
-
-            <ChartCard title="Metode pembayaran">
-              {byPayment.length === 0 ? (
-                <Empty />
-              ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <PieChart>
-                    <Pie data={byPayment} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={(d) => d.name}>
-                      {byPayment.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatIDR(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </ChartCard>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <ChartCard title="Jam ramai (jumlah transaksi)">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={hourly}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="hour" fontSize={10} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis allowDecimals={false} fontSize={11} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} labelFormatter={(l) => `Jam ${l}:00`} />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <ChartCard title="Penjualan per kategori">
-              {byCategory.length === 0 ? (
-                <Empty />
-              ) : (
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard icon={Coins} label="Omzet" value={formatIDR(summary.total)} />
+              <KpiCard icon={Receipt} label="Transaksi" value={String(summary.count)} />
+              <KpiCard icon={TrendingUp} label="Rata-rata / order" value={formatIDR(summary.aov)} />
+              <KpiCard icon={ShoppingBag} label="Item terjual" value={String(summary.itemsCount)} />
+            </div>
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              <ChartCard title="Penjualan harian" className="lg:col-span-2">
+                {dailySales.length === 0 ? <Empty /> : (
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={dailySales}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="label" fontSize={11} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={11} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}jt` : `${v/1000}rb`} />
+                      <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatIDR(v)} />
+                      <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+              <ChartCard title="Metode pembayaran">
+                {byPayment.length === 0 ? <Empty /> : (
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie data={byPayment} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={(d) => d.name}>
+                        {byPayment.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatIDR(v)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+            </div>
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <ChartCard title="Jam ramai (jumlah transaksi)">
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={byCategory} layout="vertical" margin={{ left: 60 }}>
+                  <BarChart data={hourly}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" fontSize={11} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}jt` : `${v/1000}rb`} />
-                    <YAxis type="category" dataKey="name" fontSize={11} stroke="hsl(var(--muted-foreground))" width={80} />
-                    <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatIDR(v)} />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    <XAxis dataKey="hour" fontSize={10} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis allowDecimals={false} fontSize={11} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} labelFormatter={(l) => `Jam ${l}:00`} />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              )}
-            </ChartCard>
-          </div>
+              </ChartCard>
+              <ChartCard title="Penjualan per kategori">
+                {byCategory.length === 0 ? <Empty /> : (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={byCategory} layout="vertical" margin={{ left: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis type="number" fontSize={11} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}jt` : `${v/1000}rb`} />
+                      <YAxis type="category" dataKey="name" fontSize={11} stroke="hsl(var(--muted-foreground))" width={80} />
+                      <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatIDR(v)} />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+            </div>
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <ChartCard title="10 menu terlaris">
+                {topMenus.length === 0 ? <Empty /> : (
+                  <table className="w-full text-sm">
+                    <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+                      <tr><th className="px-2 py-1.5 text-left">Menu</th><th className="px-2 py-1.5 text-right">Qty</th><th className="px-2 py-1.5 text-right">Omzet</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {topMenus.map((m, i) => (
+                        <tr key={i}><td className="px-2 py-2 font-medium">{m.name}</td><td className="px-2 py-2 text-right tabular-nums">{m.qty}</td><td className="px-2 py-2 text-right tabular-nums">{formatIDR(m.total)}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </ChartCard>
+              <ChartCard title="Kinerja kasir">
+                {byCashier.length === 0 ? <Empty /> : (
+                  <table className="w-full text-sm">
+                    <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+                      <tr><th className="px-2 py-1.5 text-left">Kasir</th><th className="px-2 py-1.5 text-right">Order</th><th className="px-2 py-1.5 text-right">Omzet</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {byCashier.map((c, i) => (
+                        <tr key={i}><td className="px-2 py-2 font-medium">{c.name}</td><td className="px-2 py-2 text-right tabular-nums">{c.count}</td><td className="px-2 py-2 text-right tabular-nums">{formatIDR(c.total)}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </ChartCard>
+            </div>
+          </>
+        );
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <ChartCard title="10 menu terlaris">
-              {topMenus.length === 0 ? (
-                <Empty />
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="text-xs uppercase tracking-wide text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left">Menu</th>
-                      <th className="px-2 py-1.5 text-right">Qty</th>
-                      <th className="px-2 py-1.5 text-right">Omzet</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {topMenus.map((m, i) => (
-                      <tr key={i}>
-                        <td className="px-2 py-2 font-medium">{m.name}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{m.qty}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{formatIDR(m.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </ChartCard>
-
-            <ChartCard title="Kinerja kasir">
-              {byCashier.length === 0 ? (
-                <Empty />
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="text-xs uppercase tracking-wide text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left">Kasir</th>
-                      <th className="px-2 py-1.5 text-right">Order</th>
-                      <th className="px-2 py-1.5 text-right">Omzet</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {byCashier.map((c, i) => (
-                      <tr key={i}>
-                        <td className="px-2 py-2 font-medium">{c.name}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{c.count}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{formatIDR(c.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </ChartCard>
-          </div>
-        </>
-      )}
+        if (extraTabs.length === 0) return SalesPanel;
+        return (
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="mb-4 flex-wrap h-auto">
+              <TabsTrigger value="sales">Penjualan</TabsTrigger>
+              {extraTabs.map(t => <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>)}
+            </TabsList>
+            <TabsContent value="sales">{SalesPanel}</TabsContent>
+            {cat === "rental" && shop && <TabsContent value="rental"><RentalReport shopId={shop.id} range={range} /></TabsContent>}
+            {cat === "travel" && shop && <TabsContent value="travel"><TravelReport shopId={shop.id} range={range} /></TabsContent>}
+            {cat === "kursus" && shop && <TabsContent value="kursus"><KursusReport shopId={shop.id} range={range} /></TabsContent>}
+            {cat === "klinik" && shop && <TabsContent value="klinik"><KlinikReport shopId={shop.id} range={range} /></TabsContent>}
+            {(cat === "jasa" || cat === "salon" || cat === "studio-foto") && shop && (
+              <TabsContent value="leads"><LeadConversionReport shopId={shop.id} range={range} /></TabsContent>
+            )}
+          </Tabs>
+        );
+      })()}
     </div>
   );
 }
