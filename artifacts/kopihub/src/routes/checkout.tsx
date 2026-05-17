@@ -584,7 +584,34 @@ function CheckoutPage() {
               </section>
 
               <section className="rounded-xl border border-border bg-card p-5">
-                <h2 className="mb-3 text-sm font-semibold">Pesanan</h2>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold">Pesanan</h2>
+                  {buyNowMode && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[11px] font-semibold">
+                      <Zap className="h-3 w-3" /> Mode Beli Sekarang
+                    </span>
+                  )}
+                </div>
+                {buyNowMode && (
+                  <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                    <p className="text-foreground">
+                      Checkout cepat untuk{" "}
+                      <span className="font-semibold">{buyNowMode.product_name ?? "item ini"}</span>
+                      {" "}× {buyNowMode.quantity}. Item lain di keranjang tidak ikut.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sessionStorage.removeItem("kh_buy_now");
+                        setBuyNowMode(null);
+                        if (user) loadCartAndProfile(user.id, isGuest).catch(() => {});
+                      }}
+                      className="inline-flex items-center gap-1 text-primary hover:underline shrink-0"
+                    >
+                      <X className="h-3 w-3" /> Batal
+                    </button>
+                  </div>
+                )}
                 <div className="space-y-4">
                   {Object.entries(grouped).map(([shopId, shopItems]) => {
                     const shop = shopItems[0].shop!;
