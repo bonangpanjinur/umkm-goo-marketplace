@@ -1317,7 +1317,25 @@ function AddToCartBlock({ product, shopSlug, shop, qty: qtyProp, onQtyChange }: 
   );
 }
 
-function ShopInfoCard({ shop }: { shop: Shop }) {
+function ShopInfoCard({ shop, loading }: { shop: Shop | null; loading?: boolean }) {
+  if (loading || !shop) {
+    return (
+      <div className="mt-5 rounded-2xl border border-border bg-card p-4" aria-busy="true">
+        <div className="flex items-start gap-3">
+          <div className="h-12 w-12 rounded-full bg-muted animate-pulse" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-48 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-24 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="h-8 rounded-md bg-muted animate-pulse" />
+          <div className="h-8 rounded-md bg-muted animate-pulse" />
+        </div>
+      </div>
+    );
+  }
   const verified = shop.verification_status === "verified";
   return (
     <div className="mt-5 rounded-2xl border border-border bg-card p-4">
@@ -1371,7 +1389,33 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
   const { user } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [cartTotal, setCartTotal] = useState<number | null>(null);
   const outOfStock = product.track_stock && (product.stock ?? 0) <= 0;
+
+  const refreshCount = async () => {
+    try {
+      const n = await fetchCartCount();
+      setCartTotal(n);
+    } catch {
+      setCartTotal(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) { setCartTotal(0); return; }
+    refreshCount();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "kh_cart_ts") refreshCount();
+    };
+    const onLocal = () => refreshCount();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("kh-cart-change", onLocal);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("kh-cart-change", onLocal);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const effectivePrice = (() => {
     const now = Date.now();
@@ -1385,7 +1429,7 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
     return flashActive ? Number(product.flash_price) : Number(product.price);
   })();
 
-  const handle = async (goCheckout: boolean) => {
+  const handle = async (mode: "cart" | "buynow") => {
     if (!user) {
       toast.info("Silakan masuk untuk berbelanja");
       navigate({ to: "/login" });
@@ -1399,8 +1443,23 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
         unit_price: effectivePrice,
         quantity: qty,
       });
-      toast.success(`${product.name} ditambahkan ke keranjang`);
-      if (goCheckout) navigate({ to: "/keranjang" });
+      try { window.dispatchEvent(new CustomEvent("kh-cart-change")); } catch {}
+      await refreshCount();
+      if (mode === "buynow") {
+        try {
+          sessionStorage.setItem("kh_buy_now", JSON.stringify({
+            product_id: product.id,
+            shop_id: product.shop_id,
+            quantity: qty,
+            unit_price: effectivePrice,
+            ts: Date.now(),
+          }));
+        } catch {}
+        toast.success("Lanjut ke checkout…");
+        navigate({ to: "/checkout" });
+      } else {
+        toast.success(`${product.name} ditambahkan ke keranjang`);
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Gagal menambahkan ke keranjang");
     } finally {
@@ -1415,18 +1474,23 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
           to="/toko/$slug/chat"
           params={{ slug: shop.slug }}
           className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
-          aria-label="Chat toko"
+          aria-label={`Chat toko ${shop.name}`}
         >
           <MessageCircle className="h-5 w-5" />
           <span className="text-[9px] leading-none mt-0.5 hidden sm:block">Chat</span>
         </Link>
         <Link
           to="/keranjang"
-          className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+          className="relative flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition"
           aria-label="Keranjang"
         >
           <ShoppingCart className="h-5 w-5" />
           <span className="text-[9px] leading-none mt-0.5 hidden sm:block">Keranjang</span>
+          {cartTotal != null && cartTotal > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-white text-[10px] font-bold flex items-center justify-center">
+              {cartTotal > 99 ? "99+" : cartTotal}
+            </span>
+          )}
         </Link>
         <div className="hidden md:flex flex-col flex-1 min-w-0 px-2">
           <span className="text-[10px] text-muted-foreground">Total ({qty})</span>
@@ -1437,14 +1501,14 @@ function StickyActionBar({ product, shop, qty }: { product: Product; shop: Shop;
         <Button
           variant="outline"
           className="flex-1 h-11 gap-1.5 border-primary/40 text-primary hover:bg-primary/5"
-          onClick={() => handle(false)}
+          onClick={() => handle("cart")}
           disabled={busy || outOfStock}
         >
           <Plus className="h-4 w-4" /> Keranjang
         </Button>
         <Button
           className="flex-1 h-11"
-          onClick={() => handle(true)}
+          onClick={() => handle("buynow")}
           disabled={busy || outOfStock}
         >
           {outOfStock ? "Stok Habis" : "Beli Sekarang"}
