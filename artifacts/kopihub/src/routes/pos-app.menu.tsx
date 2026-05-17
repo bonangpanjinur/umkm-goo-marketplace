@@ -161,7 +161,7 @@ function MenuPage() {
         .order("sort_order", { ascending: true }),
       supabase
         .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade")
+        .select("id, name, description, price, image_url, is_available, category_id, track_stock, recipe_yield, flash_price, flash_starts_at, flash_ends_at, accepts_custom_order, skin_type_tags, restock_deadline, nutrition_info, production_days, condition_grade, allergens, is_halal, available_modes")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false }),
       supabase
