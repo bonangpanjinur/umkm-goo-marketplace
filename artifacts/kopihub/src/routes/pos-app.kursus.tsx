@@ -486,48 +486,91 @@ function KursusPage() {
     }
   };
 
-  // ── Reorder helpers (swap sort_order with neighbour) ───────────
-  const swapSortOrder = async (
+  // ── Drag-and-drop reorder ──────────────────────────────────────
+  const persistOrder = async (
     table: "course_modules" | "course_lessons",
-    a: { id: string; sort_order: number },
-    b: { id: string; sort_order: number },
+    orderedIds: string[],
   ) => {
-    // Two-step swap via a temporary value to avoid uniqueness collisions
-    // (sort_order isn't unique here but keep the pattern defensive).
-    const tmp = -1 - Date.now() % 1000;
-    const c1 = await (supabase as any).from(table).update({ sort_order: tmp }).eq("id", a.id);
-    if (c1.error) { toast.error(c1.error.message); return false; }
-    const c2 = await (supabase as any).from(table).update({ sort_order: a.sort_order }).eq("id", b.id);
-    if (c2.error) { toast.error(c2.error.message); return false; }
-    const c3 = await (supabase as any).from(table).update({ sort_order: b.sort_order }).eq("id", a.id);
-    if (c3.error) { toast.error(c3.error.message); return false; }
-    return true;
+    // Update sort_order untuk semua item sesuai posisi baru.
+    // Dilakukan paralel — kalau salah satu gagal, kita revalidate.
+    const results = await Promise.all(
+      orderedIds.map((id, idx) =>
+        (supabase as any).from(table).update({ sort_order: idx }).eq("id", id),
+      ),
+    );
+    const firstErr = results.find((r) => r.error);
+    if (firstErr) toast.error(firstErr.error.message);
   };
 
-  const moveModule = async (idx: number, dir: -1 | 1) => {
+  const reorderModules = async (oldIndex: number, newIndex: number) => {
     if (!selectedCourse) return;
-    const target = modules[idx + dir];
-    const current = modules[idx];
-    if (!target || !current) return;
-    const ok = await swapSortOrder("course_modules",
-      { id: current.id, sort_order: current.sort_order },
-      { id: target.id, sort_order: target.sort_order });
-    if (ok) loadModules(selectedCourse.id);
+    if (oldIndex === newIndex) return;
+    const next = arrayMove(modules, oldIndex, newIndex).map((m, i) => ({ ...m, sort_order: i }));
+    setModules(next); // optimistic
+    await persistOrder("course_modules", next.map((m) => m.id));
   };
 
-  const moveLesson = async (moduleId: string, idx: number, dir: -1 | 1) => {
+  const reorderLessons = async (moduleId: string, oldIndex: number, newIndex: number) => {
+    if (oldIndex === newIndex) return;
     const list = lessons[moduleId] ?? [];
-    const current = list[idx];
-    const target = list[idx + dir];
-    if (!current || !target) return;
-    const ok = await swapSortOrder("course_lessons",
-      { id: current.id, sort_order: current.sort_order },
-      { id: target.id, sort_order: target.sort_order });
-    if (ok) {
-      loadLessons(moduleId);
-      if (selectedCourse) loadModules(selectedCourse.id);
-    }
+    const next = arrayMove(list, oldIndex, newIndex).map((l, i) => ({ ...l, sort_order: i }));
+    setLessons((prev) => ({ ...prev, [moduleId]: next }));
+    await persistOrder("course_lessons", next.map((l) => l.id));
   };
+
+  // ── Toggle status (modul/pelajaran) ─────────────────────────────
+  const toggleModuleStatus = async (m: Module) => {
+    const next: "draft" | "published" = m.status === "published" ? "draft" : "published";
+    const { error } = await (supabase as any).from("course_modules").update({ status: next }).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next === "published" ? "Modul ditayangkan" : "Modul jadi draft");
+    if (selectedCourse) loadModules(selectedCourse.id);
+  };
+
+  const toggleLessonStatus = async (l: Lesson) => {
+    const next: "draft" | "published" = l.status === "published" ? "draft" : "published";
+    const { error } = await (supabase as any).from("course_lessons").update({ status: next }).eq("id", l.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next === "published" ? "Pelajaran ditayangkan" : "Pelajaran jadi draft");
+    loadLessons(l.module_id);
+  };
+
+  const toggleCourseStatus = async (c: Course, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !c.is_available;
+    const { error } = await (supabase as any).from("menu_items").update({ is_available: next }).eq("id", c.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next ? "Kursus ditayangkan" : "Kursus jadi draft");
+    loadCourses();
+  };
+
+  // ── Preview ────────────────────────────────────────────────────
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLessonIdx, setPreviewLessonIdx] = useState(0);
+  const previewSequence = useMemo(() => {
+    // Flatten modul → pelajaran sesuai urutan saat ini.
+    const out: { module: Module; lesson: Lesson; moduleIdx: number; lessonIdx: number }[] = [];
+    modules.forEach((mod, mi) => {
+      const ls = lessons[mod.id] ?? [];
+      ls.forEach((l, li) => out.push({ module: mod, lesson: l, moduleIdx: mi, lessonIdx: li }));
+    });
+    return out;
+  }, [modules, lessons]);
+
+  const openPreview = async () => {
+    // Pastikan semua pelajaran sudah dimuat
+    for (const m of modules) {
+      if (!lessons[m.id]) await loadLessons(m.id);
+    }
+    setPreviewLessonIdx(0);
+    setPreviewOpen(true);
+  };
+
+  // ── Sensors (DnD) ──────────────────────────────────────────────
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
   const totalEnrollments = enrollStats.reduce((s, e) => s + e.count, 0);
   const activeCourses = courses.filter((c) => c.is_available).length;
   const totalLessons = Object.values(lessons).reduce((s, ls) => s + ls.length, 0);
