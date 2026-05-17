@@ -158,16 +158,35 @@ function AppearancePage() {
       </Card>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pilih Tema</h2>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pilih Tema</h2>
+          {recommendedKey && recommendedKey !== activeThemeKey && (
+            <Button size="sm" variant="outline" onClick={() => apply(recommendedKey)} disabled={busy === recommendedKey}>
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              Pakai Rekomendasi
+            </Button>
+          )}
+        </div>
+        {categoryName && recommendedKey && (
+          <p className="mb-3 text-xs text-muted-foreground">
+            Kategori toko: <strong>{categoryName}</strong> — kami rekomendasikan tema yang paling cocok.
+          </p>
+        )}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {themes.map((t) => {
+          {sortedThemes.map((t) => {
             const active = t.key === activeThemeKey;
+            const isRecommended = t.key === recommendedKey;
             return (
-              <Card key={t.key} className={`p-4 ${active ? "ring-2 ring-primary" : ""}`}>
+              <Card key={t.key} className={`p-4 relative ${active ? "ring-2 ring-primary" : ""} ${isRecommended && !active ? "ring-1 ring-amber-400" : ""}`}>
+                {isRecommended && (
+                  <span className="absolute -top-2 left-3 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 shadow-sm">
+                    <Sparkles className="h-3 w-3" />Rekomendasi
+                  </span>
+                )}
                 <div className="aspect-video rounded-lg bg-muted mb-3 overflow-hidden flex items-center justify-center text-muted-foreground text-xs">
                   {t.preview_image_url ? <img src={t.preview_image_url} alt={t.name} className="h-full w-full object-cover" /> : t.name}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-semibold">{t.name}</h3>
                   {active && <span className="text-xs text-primary inline-flex items-center gap-1"><Check className="h-3 w-3" />Aktif</span>}
                   {!t.allowed && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -186,7 +205,7 @@ function AppearancePage() {
               </Card>
             );
           })}
-          {themes.length === 0 && <p className="text-sm text-muted-foreground">Belum ada tema tersedia untuk paket ini.</p>}
+          {sortedThemes.length === 0 && <p className="text-sm text-muted-foreground">Belum ada tema tersedia untuk paket ini.</p>}
         </div>
       </div>
 
