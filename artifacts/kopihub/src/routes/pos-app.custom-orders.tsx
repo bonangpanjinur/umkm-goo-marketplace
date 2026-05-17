@@ -29,6 +29,18 @@ type Req = {
   created_at: string;
   delivery_file_url: string | null;
   delivery_note: string | null;
+  contract_id: string | null;
+};
+
+type ContractLite = {
+  id: string;
+  status: string;
+  sign_token: string | null;
+  signature_url: string | null;
+  signed_by_name: string | null;
+  signed_at: string | null;
+  total_value: number;
+  project_name: string;
 };
 
 const STATUS = [
