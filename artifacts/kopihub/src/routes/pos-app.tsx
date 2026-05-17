@@ -800,7 +800,17 @@ function AppLayoutInner() {
           <ErrorBoundary>
             <OwnerReminderBanner />
           </ErrorBoundary>
-          <Outlet />
+          {blockedItem ? (
+            <div className="p-6">
+              <FeatureBlocked
+                label={blockedItem.label}
+                requires={blockedItem.requires}
+                categoryName={capabilities.data?.categoryName ?? null}
+              />
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
       <CommandPaletteOwner />
