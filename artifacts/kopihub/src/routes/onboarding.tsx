@@ -19,7 +19,7 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const CATEGORIES = [
-  { id: "fnb",       label: "F&B / Kuliner",      icon:       desc: "Kafe, restoran, katering, cloud kitchen" },
+  { id: "fnb",       label: "F&B / Kuliner",      icon: Store,       desc: "Kafe, restoran, katering, cloud kitchen" },
   { id: "fashion",   label: "Fashion & Pakaian",   icon: Shirt,       desc: "Baju, celana, aksesoris, tas" },
   { id: "digital",   label: "Produk Digital",      icon: Laptop,      desc: "Template, e-book, kursus, software" },
   { id: "beauty",    label: "Kecantikan",           icon: Sparkles,    desc: "Skincare, makeup, perawatan diri" },
