@@ -588,6 +588,23 @@ function AppLayoutInner() {
     return visibleGroups[0]?.id ?? null;
   }, [visibleGroups, location.pathname]);
 
+  // Route-level guard: if user deep-links to a route whose `requires` is not
+  // satisfied by the shop's capabilities, render a friendly fallback instead of
+  // the page. Items without `requires` always pass.
+  const blockedItem = useMemo(() => {
+    if (!capabilities.ready || !capabilities.data) return null;
+    for (const g of NAV_GROUPS) {
+      for (const it of g.items) {
+        if (!it.requires || it.requires.length === 0) continue;
+        if (!matchItem(it, location.pathname)) continue;
+        if (!capabilities.hasAll(it.requires)) {
+          return { label: it.label, requires: it.requires };
+        }
+      }
+    }
+    return null;
+  }, [location.pathname, capabilities.ready, capabilities.data, capabilities]);
+
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   useEffect(() => {
