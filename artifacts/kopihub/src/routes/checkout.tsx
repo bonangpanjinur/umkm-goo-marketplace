@@ -287,6 +287,7 @@ function CheckoutPage() {
         return;
       }
       sessionStorage.removeItem("checkout_selected_ids");
+      sessionStorage.removeItem("kh_buy_now");
       toast.success(`${ids.length} pesanan berhasil dibuat`);
 
       if (saveNewAddress && user && !isGuest && address.trim()) {
