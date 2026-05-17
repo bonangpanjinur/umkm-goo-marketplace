@@ -313,7 +313,7 @@ function AuditLogsPage() {
                   const isOpen = expanded === l.id;
                   return (
                     <Fragment key={l.id}>
-                      <tr key={l.id} className="hover:bg-muted/30">
+                      <tr className="hover:bg-muted/30">
                         <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
                           {new Date(l.created_at).toLocaleString("id-ID", {
                             day: "2-digit", month: "short", year: "numeric",
