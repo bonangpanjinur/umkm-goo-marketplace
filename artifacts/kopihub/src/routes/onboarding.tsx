@@ -173,6 +173,7 @@ function OnboardingPage() {
   const submitStep3 = async () => {
     if (!outletName.trim()) { toast.error("Nama outlet harus diisi"); return; }
     setBusy(true);
+    let createdShopId: string | null = null;
     try {
       const baseSlug = slugify(shopName) || `shop-${user!.id.slice(0, 6)}`;
       const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
@@ -180,7 +181,7 @@ function OnboardingPage() {
       // Resolve category slug → UUID (business_category_id is a UUID FK)
       const { data: cat } = await supabase
         .from("business_categories")
-        .select("id")
+        .select("id, subtypes")
         .eq("slug", categoryId)
         .eq("is_active", true)
         .maybeSingle();
@@ -192,6 +193,11 @@ function OnboardingPage() {
         return;
       }
 
+      // Validate subtype belongs to category (if user selected one)
+      const validSubtype = !subtypeSlug
+        || ((cat as any).subtypes ?? []).some((s: any) => s?.slug === subtypeSlug);
+      const finalSubtype = validSubtype ? (subtypeSlug || null) : null;
+
       const { data: shop, error: shopErr } = await supabase
         .from("shops")
         .insert({
@@ -200,11 +206,12 @@ function OnboardingPage() {
           slug,
           description: description.trim() || null,
           business_category_id: cat.id,
-          business_subtype: subtypeSlug || null,
+          business_subtype: finalSubtype,
         } as any)
         .select("id")
         .single();
       if (shopErr || !shop) throw shopErr ?? new Error("Gagal membuat toko");
+      createdShopId = shop.id;
       setShopId(shop.id);
 
       const { data: outlet, error: outletErr } = await supabase
@@ -219,14 +226,22 @@ function OnboardingPage() {
         .single();
       if (outletErr || !outlet) throw outletErr ?? new Error("Gagal membuat outlet");
 
-      await Promise.all([
-        supabase.from("user_roles").insert({ user_id: user!.id, role: "owner", shop_id: shop.id }),
-        supabase.from("user_preferences").upsert({ user_id: user!.id, default_outlet_id: outlet.id }),
+      const [{ error: roleErr }] = await Promise.all([
+        supabase.from("user_roles").insert({ user_id: user!.id, role: "owner", shop_id: shop.id } as any),
+        supabase.from("user_preferences").upsert({ user_id: user!.id, default_outlet_id: outlet.id } as any),
       ]);
+      if (roleErr && !String(roleErr.message ?? "").toLowerCase().includes("duplicate")) {
+        throw roleErr;
+      }
 
       setStep(4);
     } catch (err: any) {
-      toast.error(err.message ?? "Terjadi kesalahan");
+      // Roll back partial shop so user can retry the wizard cleanly
+      if (createdShopId) {
+        await supabase.from("shops").delete().eq("id", createdShopId);
+        setShopId(null);
+      }
+      toast.error(err?.message ?? "Terjadi kesalahan saat membuat toko");
     } finally {
       setBusy(false);
     }
@@ -260,7 +275,15 @@ function OnboardingPage() {
     }
   };
 
-  const goToDashboard = () => navigate({ to: "/pos-app" });
+  const goToDashboard = async () => {
+    if (shopId) {
+      await (supabase as any)
+        .from("shops")
+        .update({ onboarded_at: new Date().toISOString() })
+        .eq("id", shopId);
+    }
+    navigate({ to: "/pos-app" });
+  };
 
   if (loading || checking) {
     return (

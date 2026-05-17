@@ -7509,6 +7509,7 @@ export type Database = {
           longitude: number | null
           marketplace_visible: boolean
           name: string
+          onboarded_at: string | null
           open_hours: Json
           owner_id: string
           payment_methods_enabled: string[]
@@ -7579,6 +7580,7 @@ export type Database = {
           longitude?: number | null
           marketplace_visible?: boolean
           name: string
+          onboarded_at?: string | null
           open_hours?: Json
           owner_id: string
           payment_methods_enabled?: string[]
@@ -7649,6 +7651,7 @@ export type Database = {
           longitude?: number | null
           marketplace_visible?: boolean
           name?: string
+          onboarded_at?: string | null
           open_hours?: Json
           owner_id?: string
           payment_methods_enabled?: string[]
