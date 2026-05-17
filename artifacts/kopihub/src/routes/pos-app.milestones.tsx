@@ -50,7 +50,7 @@ type MilestoneStep = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.project_milestones (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   order_id uuid REFERENCES public.orders(id) ON DELETE SET NULL,
   customer_name text NOT NULL,
   customer_phone text,

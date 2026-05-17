@@ -64,7 +64,7 @@ function CustomOrderStatusPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: s } = await supabase.from("coffee_shops").select("id, name").eq("slug", slug).maybeSingle();
+      const { data: s } = await supabase.from("shops").select("id, name").eq("slug", slug).maybeSingle();
       if (s) setShop(s);
       const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY(slug)) : null;
       if (saved) {

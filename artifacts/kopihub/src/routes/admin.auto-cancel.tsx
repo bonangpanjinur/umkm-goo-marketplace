@@ -65,7 +65,7 @@ function AdminAutoCancel() {
         .from("orders")
         .select(`
           id, order_number, created_at, status, payment_method, total_amount,
-          coffee_shops!inner(name),
+          shops!inner(name),
           customer_profiles(display_name)
         `)
         .in("status", ["pending", "awaiting_payment"] as any[])
@@ -85,7 +85,7 @@ function AdminAutoCancel() {
           status: o.status,
           payment_method: o.payment_method,
           total_amount: Number(o.total_amount),
-          shop_name: o.coffee_shops?.name ?? "—",
+          shop_name: o.shops?.name ?? "—",
           buyer_name: o.customer_profiles?.display_name ?? "Pembeli",
           minutes_elapsed: Math.round(elapsed),
           deadline_minutes: deadline,

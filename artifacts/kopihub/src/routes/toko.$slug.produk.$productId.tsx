@@ -283,7 +283,7 @@ function ProductDetailPage() {
     (async () => {
       setLoading(true);
       const { data: s } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, slug, name, logo_url")
         .eq("slug", slug)
         .maybeSingle();

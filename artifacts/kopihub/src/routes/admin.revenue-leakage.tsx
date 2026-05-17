@@ -95,7 +95,7 @@ export default function AdminRevenueLeakagePage() {
 
       if (shopIds.length > 0) {
         const { data: shops } = await supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("id, name, commission_rate_override")
           .in("id", shopIds);
         for (const s of shops ?? []) {

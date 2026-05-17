@@ -135,7 +135,7 @@ function CheckoutPage() {
     // Load deposit (DP) settings per shop
     try {
       const { data: shopRows } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, deposit_enabled, deposit_percent, deposit_min_total")
         .in("id", shopIds);
       if (shopRows) {

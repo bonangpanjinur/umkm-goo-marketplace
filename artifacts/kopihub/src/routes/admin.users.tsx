@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
     setDetailLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, order_no, total, status, created_at, shop:coffee_shops(name)")
+      .select("id, order_no, total, status, created_at, shop:shops(name)")
       .eq("customer_user_id", u.id)
       .order("created_at", { ascending: false })
       .limit(20);

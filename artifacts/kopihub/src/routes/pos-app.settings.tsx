@@ -101,7 +101,7 @@ function SettingsPage() {
     (async () => {
       setLoading(true);
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percent, deposit_min_total")
         .eq("id", shop.id)
         .maybeSingle();
@@ -210,7 +210,7 @@ function SettingsPage() {
       .filter((c) => (c.oldVal ?? "") !== (c.newVal ?? ""));
 
     const { error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .update({
         name: form.name,
         description: form.description,

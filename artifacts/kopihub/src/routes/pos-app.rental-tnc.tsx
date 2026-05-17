@@ -21,7 +21,7 @@ export const Route = createFileRoute("/pos-app/rental-tnc")({
 });
 
 const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor:
-ALTER TABLE public.coffee_shops
+ALTER TABLE public.shops
   ADD COLUMN IF NOT EXISTS rental_tnc text,
   ADD COLUMN IF NOT EXISTS rental_deposit_pct integer DEFAULT 30,
   ADD COLUMN IF NOT EXISTS rental_require_id boolean DEFAULT true,
@@ -79,7 +79,7 @@ function RentalTncPage() {
     if (!shop) return;
     setLoading(true);
     const { data, error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .select("rental_tnc, rental_deposit_pct, rental_require_id, rental_min_hours, rental_late_fee_pct")
       .eq("id", shop.id)
       .maybeSingle() as any;
@@ -108,7 +108,7 @@ function RentalTncPage() {
     if (!shop) return;
     setSaving(true);
     const { error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .update({
         rental_tnc: tnc.trim() || null,
         rental_deposit_pct: Number(depositPct) || 30,

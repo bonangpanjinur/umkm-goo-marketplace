@@ -40,7 +40,7 @@ export default function CohortAnalyticsPage() {
     setLoading(true);
     try {
       const { data: shops } = await supabase
-        .from("coffee_shops" as any)
+        .from("shops" as any)
         .select("id, created_at, subscription_plan")
         .order("created_at" as any);
 

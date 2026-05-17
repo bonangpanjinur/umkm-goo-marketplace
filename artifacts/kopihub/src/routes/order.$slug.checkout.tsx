@@ -46,7 +46,7 @@ function DineInCheckoutPage() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, payment_methods_enabled, qris_image_url")
         .eq("slug", slug)
         .maybeSingle();

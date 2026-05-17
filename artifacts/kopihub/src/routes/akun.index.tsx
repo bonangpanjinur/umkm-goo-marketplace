@@ -27,10 +27,10 @@ function ProfilePage() {
     (async () => {
       const [profileRes, orderRes, wishlistRes, notifRes, ratingsRes] = await Promise.all([
         supabase.from("customer_profiles").select("display_name, phone, email, birthday").eq("user_id", user.id).maybeSingle(),
-        supabase.from("orders").select("id, status, total, created_at, shop:coffee_shops(name, slug, logo_url)").eq("customer_user_id", user.id).like("order_no", "MKT-%").order("created_at", { ascending: false }).limit(3),
+        supabase.from("orders").select("id, status, total, created_at, shop:shops(name, slug, logo_url)").eq("customer_user_id", user.id).like("order_no", "MKT-%").order("created_at", { ascending: false }).limit(3),
         supabase.from("wishlists" as any).select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_user_id", user.id).is("read_at", null),
-        supabase.from("buyer_ratings" as any).select("id, rating, comment, created_at, shop:coffee_shops(name)").eq("rated_user_id", user.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("buyer_ratings" as any).select("id, rating, comment, created_at, shop:shops(name)").eq("rated_user_id", user.id).order("created_at", { ascending: false }).limit(20),
       ]);
 
       const allOrders = (orderRes.data as any[]) ?? [];

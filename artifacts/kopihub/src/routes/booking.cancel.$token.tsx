@@ -80,7 +80,7 @@ function BookingCancelPage() {
           voucher_code, voucher_discount,
           booking_slots!inner (
             id, service_name, slot_date, slot_time, duration_min, price, booked_count,
-            coffee_shops!inner ( id, name, slug, phone )
+            shops!inner ( id, name, slug, phone )
           )
         `)
         .eq("cancellation_token", token)
@@ -94,7 +94,7 @@ function BookingCancelPage() {
 
       const raw = data as any;
       const slot = raw.booking_slots;
-      const shop = slot.coffee_shops;
+      const shop = slot.shops;
 
       const parsed: BookingDetail = {
         id: raw.id,

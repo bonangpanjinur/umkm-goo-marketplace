@@ -36,7 +36,7 @@ export function useStaffRole(): StaffInfo {
     (async () => {
       // Check if user owns a shop
       const { data: shop } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id")
         .eq("owner_id", user.id)
         .maybeSingle();

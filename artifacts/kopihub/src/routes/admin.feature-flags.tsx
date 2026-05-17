@@ -129,7 +129,7 @@ export default function FeatureFlags() {
 
   async function searchShops(q: string) {
     if (!q.trim()) { setShopResults([]); return; }
-    const { data } = await supabase.from("coffee_shops").select("id,name").ilike("name", `%${q}%`).limit(5);
+    const { data } = await supabase.from("shops").select("id,name").ilike("name", `%${q}%`).limit(5);
     setShopResults(data ?? []);
   }
 

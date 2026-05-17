@@ -64,7 +64,7 @@ function AdminKycPage() {
   const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
-      .from("coffee_shops")
+      .from("shops")
       .select("id, name, slug, owner_id, kyc_status, kyc_document_url, kyc_submitted_at, kyc_reviewed_at, kyc_reviewer_id, kyc_reject_reason, created_at")
       .not("kyc_status", "is", null)
       .order("kyc_submitted_at", { ascending: false });
@@ -106,7 +106,7 @@ function AdminKycPage() {
   const markInReview = async (entry: KycEntry) => {
     setBusy(true);
     const { error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .update({ kyc_status: "in_review", kyc_reviewer_id: user?.id ?? null } as any)
       .eq("id", entry.id);
     if (error) { toast.error(error.message); setBusy(false); return; }
@@ -120,7 +120,7 @@ function AdminKycPage() {
     setBusy(true);
     const now = new Date().toISOString();
     const { error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .update({
         kyc_status: "approved",
         kyc_reviewed_at: now,
@@ -140,7 +140,7 @@ function AdminKycPage() {
     setBusy(true);
     const now = new Date().toISOString();
     const { error } = await supabase
-      .from("coffee_shops")
+      .from("shops")
       .update({
         kyc_status: "rejected",
         kyc_reviewed_at: now,

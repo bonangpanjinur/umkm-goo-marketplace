@@ -55,7 +55,7 @@ type Combo = {
 const SQL_HINT = `-- Jalankan di Supabase SQL Editor:
 CREATE TABLE IF NOT EXISTS public.fnb_combos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   name text NOT NULL,
   description text,
   image_url text,

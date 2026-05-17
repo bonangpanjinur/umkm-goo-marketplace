@@ -59,7 +59,7 @@ export default function AdminRevenuePage() {
     ] = await Promise.all([
       supabase.from("plan_invoices" as any).select("amount_idr, paid_at").eq("status", "paid").gte("paid_at", since),
       supabase.from("plan_invoices" as any).select("amount_idr").eq("status", "paid").gte("paid_at", prevSince).lt("paid_at", since),
-      supabase.from("orders").select("total, commission_fee, created_at, shop_id, shop:coffee_shops(name)").eq("status", "completed").gte("created_at", since),
+      supabase.from("orders").select("total, commission_fee, created_at, shop_id, shop:shops(name)").eq("status", "completed").gte("created_at", since),
       supabase.from("withdrawal_requests" as any).select("admin_fee, created_at").eq("status", "paid").gte("created_at", since),
     ]);
 

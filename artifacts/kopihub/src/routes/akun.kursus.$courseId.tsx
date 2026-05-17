@@ -110,7 +110,7 @@ function KursusPlayerPage() {
       // Course info
       const { data: courseData, error: ce } = await (supabase as any)
         .from("menu_items")
-        .select("id, name, description, image_url, shop:coffee_shops(name, slug)")
+        .select("id, name, description, image_url, shop:shops(name, slug)")
         .eq("id", courseId)
         .single();
       if (ce) throw ce;

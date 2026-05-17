@@ -73,7 +73,7 @@ function DigitalProductsPage() {
           .select(`
             id, quantity, unit_price, created_at,
             menu_item:menu_items!inner(name, is_digital, digital_file_url, digital_file_name, image_url),
-            order:orders!inner(id, status, payment_status, created_at, customer_user_id, shop:coffee_shops(name, slug))
+            order:orders!inner(id, status, payment_status, created_at, customer_user_id, shop:shops(name, slug))
           `)
           .eq("order.customer_user_id", user.id)
           .eq("menu_item.is_digital", true)

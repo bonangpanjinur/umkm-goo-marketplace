@@ -322,7 +322,7 @@ function SearchPage() {
     let prodQ = supabase
       .from("menu_items")
       .select(
-        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
+        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
         { count: "exact" },
       )
       .ilike("name", term)
@@ -347,7 +347,7 @@ function SearchPage() {
   const buildShopQuery = () => {
     const term = q ? `%${q}%` : "%";
     let shopQ = supabase
-      .from("coffee_shops")
+      .from("shops")
       .select(
         "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
         { count: "exact" },

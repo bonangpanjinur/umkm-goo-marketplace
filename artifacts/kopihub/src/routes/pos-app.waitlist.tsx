@@ -25,7 +25,7 @@ const WAITLIST_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.booking_waitlists (
   id uuid primary key default gen_random_uuid(),
   slot_id uuid not null references public.booking_slots(id) on delete cascade,
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   customer_name text not null,
   customer_phone text not null,
   party_size integer not null default 1,
@@ -36,8 +36,8 @@ create table if not exists public.booking_waitlists (
 );
 alter table public.booking_waitlists enable row level security;
 create policy "shop_all_wl" on public.booking_waitlists
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 create policy "public_insert_wl" on public.booking_waitlists
   for insert with check (true);`;
 

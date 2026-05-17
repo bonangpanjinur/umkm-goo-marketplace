@@ -61,7 +61,7 @@ export async function listCart(): Promise<CartItem[]> {
   const { data, error } = await supabase
     .from("marketplace_cart_items")
     .select(
-      "id, cart_id, shop_id, product_id, variant_id, quantity, unit_price, notes, options, product:menu_items(id, name, image_url, slug), shop:coffee_shops(id, name, slug, logo_url)",
+      "id, cart_id, shop_id, product_id, variant_id, quantity, unit_price, notes, options, product:menu_items(id, name, image_url, slug), shop:shops(id, name, slug, logo_url)",
     )
     .eq("cart_id", cart_id)
     .order("created_at");

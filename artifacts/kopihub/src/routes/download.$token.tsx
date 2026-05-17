@@ -65,7 +65,7 @@ export default function DownloadPage() {
       // Fetch order
       const { data: order } = await (supabase as any)
         .from("orders")
-        .select("id, order_number, payment_status, created_at, total_price, coffee_shops(name)")
+        .select("id, order_number, payment_status, created_at, total_price, shops(name)")
         .eq("id", orderId)
         .maybeSingle();
 
@@ -151,7 +151,7 @@ export default function DownloadPage() {
         product_id: productId,
         order_number: order.order_number,
         paid_at: order.created_at,
-        shop_name: (order as any).coffee_shops?.name ?? "Toko",
+        shop_name: (order as any).shops?.name ?? "Toko",
         price: product.price,
         license_type: product.license_type ?? null,
       });

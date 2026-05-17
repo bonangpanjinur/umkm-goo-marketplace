@@ -143,7 +143,7 @@ function OrdersListPage() {
     if (!user) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, created_at, updated_at, fulfillment, shop:coffee_shops(name, slug, logo_url)")
+      .select("id, order_no, status, payment_status, total, created_at, updated_at, fulfillment, shop:shops(name, slug, logo_url)")
       .eq("customer_user_id", user.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })

@@ -36,7 +36,7 @@ export const Route = createFileRoute("/pos-app/broadcast-wa")({
 const HISTORY_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.wa_broadcasts (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   segment_label text not null,
   message_template text not null,
   recipient_count integer not null default 0,
@@ -46,8 +46,8 @@ create table if not exists public.wa_broadcasts (
 );
 alter table public.wa_broadcasts enable row level security;
 create policy "owner_all_wab" on public.wa_broadcasts
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));`;
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));`;
 
 const SEGMENT_DEFS = [
   { value: "all",             label: "Semua Pelanggan",        hint: "Semua yang pernah order" },

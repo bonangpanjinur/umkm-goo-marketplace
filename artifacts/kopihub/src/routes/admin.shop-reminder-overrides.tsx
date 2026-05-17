@@ -77,7 +77,7 @@ function AdminShopReminderOverrides() {
 
   const reloadShops = async () => {
     const [shopsRes, settingsRes] = await Promise.all([
-      supabase.from("coffee_shops").select("id, name, owner_id, plan_expires_at, trial_ends_at").order("name").limit(500),
+      supabase.from("shops").select("id, name, owner_id, plan_expires_at, trial_ends_at").order("name").limit(500),
       supabase.from("expiry_reminder_shop_settings" as any).select("shop_id"),
     ]);
     setShops((shopsRes.data as Shop[]) ?? []);

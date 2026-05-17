@@ -84,7 +84,7 @@ export default function ChurnReengagementPage() {
     setLoading(true);
     try {
       const { data: shops } = await (supabase as any)
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, owner_email, subscription_plan")
         .eq("is_active", true)
         .limit(100);

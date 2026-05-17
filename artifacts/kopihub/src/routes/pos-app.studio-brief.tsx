@@ -40,7 +40,7 @@ type Brief = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_briefs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   client_name text NOT NULL,
   client_phone text,
   session_date date,

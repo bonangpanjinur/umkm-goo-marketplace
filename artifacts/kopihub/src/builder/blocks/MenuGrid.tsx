@@ -32,7 +32,7 @@ function MenuGridRender({ title, limit, columns, showPrice }: MenuGridProps) {
       return;
     }
     (async () => {
-      const { data: shop } = await supabase.from("coffee_shops").select("id").eq("slug", ctx.slug).maybeSingle();
+      const { data: shop } = await supabase.from("shops").select("id").eq("slug", ctx.slug).maybeSingle();
       if (!shop) { setLoading(false); return; }
       const { data } = await supabase
         .from("menu_items")

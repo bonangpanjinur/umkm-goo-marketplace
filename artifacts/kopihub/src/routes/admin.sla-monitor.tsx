@@ -34,7 +34,7 @@ export default function SlaMonitorPage() {
       const { data: orders } = await supabase.from("orders").select("id").limit(1);
       const apiLatency = Date.now() - start;
 
-      const { count: shopCount } = await supabase.from("coffee_shops" as any).select("id", { count: "exact", head: true });
+      const { count: shopCount } = await supabase.from("shops" as any).select("id", { count: "exact", head: true });
       const { count: orderCount } = await supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", new Date(Date.now() - 86400000).toISOString());
       const { count: pendingDisp } = await supabase.from("disputes" as any).select("id", { count: "exact", head: true }).eq("status", "open");
 

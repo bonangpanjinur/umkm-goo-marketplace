@@ -611,7 +611,7 @@ function BookingPage() {
     if (!shop?.id || depositLoaded) return;
     (async () => {
       const { data } = await (supabase as any)
-        .from("coffee_shops")
+        .from("shops")
         .select("require_deposit, deposit_percent, deposit_notes")
         .eq("id", shop.id)
         .maybeSingle();
@@ -628,7 +628,7 @@ function BookingPage() {
     if (!shop?.id) return;
     setSavingDeposit(true);
     const { error } = await (supabase as any)
-      .from("coffee_shops")
+      .from("shops")
       .update({
         require_deposit: depositEnabled,
         deposit_percent: Number(depositPercent),

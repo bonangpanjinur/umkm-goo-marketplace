@@ -39,7 +39,7 @@ function CustomOrderForm() {
 
   useEffect(() => {
     (async () => {
-      const { data: s } = await supabase.from("coffee_shops").select("id, name").eq("slug", slug).maybeSingle();
+      const { data: s } = await supabase.from("shops").select("id, name").eq("slug", slug).maybeSingle();
       if (s) {
         setShop(s);
         if (produk) {

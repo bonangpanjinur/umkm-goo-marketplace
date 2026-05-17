@@ -200,7 +200,7 @@ function ShopVouchersPage() {
             <pre className="mt-2 overflow-auto rounded bg-amber-100 p-3 text-xs text-amber-900">
 {`CREATE TABLE IF NOT EXISTS shop_vouchers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
   code text NOT NULL,
   description text,
   discount_type text NOT NULL CHECK (discount_type IN ('percent','nominal')),
@@ -219,7 +219,7 @@ function ShopVouchersPage() {
 ALTER TABLE shop_vouchers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "owner_all" ON shop_vouchers FOR ALL
   USING (shop_id IN (
-    SELECT id FROM coffee_shops WHERE owner_user_id = auth.uid()
+    SELECT id FROM shops WHERE owner_user_id = auth.uid()
   ));`}
             </pre>
           </div>

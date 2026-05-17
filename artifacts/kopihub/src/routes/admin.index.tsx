@@ -64,17 +64,17 @@ function AdminDashboard() {
       { count: newShopsWeek },
       { count: suspended },
     ] = await Promise.all([
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }),
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("plan", "pro"),
+      supabase.from("shops").select("id", { count: "exact", head: true }),
+      supabase.from("shops").select("id", { count: "exact", head: true }).eq("plan", "pro"),
       supabase.from("plan_invoices").select("id", { count: "exact", head: true }).eq("status", "awaiting_review"),
       supabase.from("plan_invoices").select("amount_idr").eq("status", "paid").gte("paid_at", monthStart.toISOString()),
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", sevenDays),
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }).not("custom_domain", "is", null).is("custom_domain_verified_at", null),
-      (supabase as any).from("coffee_shops").select("id", { count: "exact", head: true }).eq("kyc_status", "pending"),
+      supabase.from("shops").select("id", { count: "exact", head: true }).eq("plan", "pro").gte("plan_expires_at", now).lte("plan_expires_at", sevenDays),
+      supabase.from("shops").select("id", { count: "exact", head: true }).not("custom_domain", "is", null).is("custom_domain_verified_at", null),
+      (supabase as any).from("shops").select("id", { count: "exact", head: true }).eq("kyc_status", "pending"),
       supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("orders").select("id, total").gte("created_at", todayISO).eq("status", "completed"),
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }).gte("created_at", weekStart),
-      supabase.from("coffee_shops").select("id", { count: "exact", head: true }).not("suspended_at", "is", null),
+      supabase.from("shops").select("id", { count: "exact", head: true }).gte("created_at", weekStart),
+      supabase.from("shops").select("id", { count: "exact", head: true }).not("suspended_at", "is", null),
     ]);
 
     const mrr = (paidThisMonth ?? []).reduce((s: number, r: { amount_idr: number }) => s + Number(r.amount_idr), 0);

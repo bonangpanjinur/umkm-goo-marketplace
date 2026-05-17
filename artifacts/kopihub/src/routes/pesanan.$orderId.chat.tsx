@@ -36,14 +36,14 @@ export default function OrderChatPage() {
     (async () => {
       const { data: order } = await supabase
         .from("orders")
-        .select("id, order_number, status, coffee_shops(name)")
+        .select("id, order_number, status, shops(name)")
         .eq("id", orderId)
         .maybeSingle();
 
       if (!order) { setNotFound(true); setLoading(false); return; }
       setOrderNum((order as any).order_number ?? orderId.slice(0, 8).toUpperCase());
       setStatus((order as any).status ?? "");
-      setShopName((order as any).coffee_shops?.name ?? "Toko");
+      setShopName((order as any).shops?.name ?? "Toko");
 
       const { data: msgs } = await (supabase as any)
         .from("order_messages")

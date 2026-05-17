@@ -88,7 +88,7 @@ export default function AdminAdsPage() {
     setLoading(true);
     try {
       const { data, error } = await (supabase as any).from("ad_requests")
-        .select("*, coffee_shops(name, logo_url)")
+        .select("*, shops(name, logo_url)")
         .order("created_at", { ascending: false });
       if (error || !data) throw new Error();
       setAds(data as AdRequest[]);
@@ -381,7 +381,7 @@ export default function AdminAdsPage() {
           <p className="font-semibold mb-1">SQL untuk tabel ad_requests (jalankan di Supabase SQL Editor):</p>
           <pre className="mt-2 overflow-x-auto rounded bg-amber-100 p-3 text-xs leading-relaxed">{`create table if not exists ad_requests (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid references coffee_shops(id),
+  shop_id uuid references shops(id),
   ad_type text check (ad_type in ('product','shop')) default 'product',
   target_id uuid,
   target_name text,
@@ -409,15 +409,15 @@ alter table ad_requests enable row level security;
 -- Owner bisa buat & lihat iklan milik toko mereka
 create policy "owner insert" on ad_requests for insert
   with check (shop_id in (
-    select id from coffee_shops where owner_id = auth.uid()
+    select id from shops where owner_id = auth.uid()
   ));
 create policy "owner select" on ad_requests for select
   using (shop_id in (
-    select id from coffee_shops where owner_id = auth.uid()
+    select id from shops where owner_id = auth.uid()
   ));
 create policy "owner update payment" on ad_requests for update
   using (shop_id in (
-    select id from coffee_shops where owner_id = auth.uid()
+    select id from shops where owner_id = auth.uid()
   ));`}
           </pre>
         </div>

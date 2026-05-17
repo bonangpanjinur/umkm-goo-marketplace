@@ -37,7 +37,7 @@ type StudioPackage = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_packages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   name text NOT NULL,
   duration_minutes int NOT NULL DEFAULT 60,
   price numeric(12,2) NOT NULL DEFAULT 0,

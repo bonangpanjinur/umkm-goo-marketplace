@@ -84,7 +84,7 @@ export default function ReconciliationPage() {
         payment_status,
         status,
         created_at,
-        coffee_shops (name)
+        shops (name)
       `)
       .gte("created_at", dateFrom + "T00:00:00")
       .lte("created_at", dateTo + "T23:59:59")
@@ -96,7 +96,7 @@ export default function ReconciliationPage() {
 
     const mapped: Order[] = (data ?? []).map((o: any) => ({
       ...o,
-      shop_name: o.coffee_shops?.name ?? "—",
+      shop_name: o.shops?.name ?? "—",
     }));
 
     setOrders(simulateGatewayData(mapped));

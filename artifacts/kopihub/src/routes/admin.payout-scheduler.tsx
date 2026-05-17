@@ -69,7 +69,7 @@ export default function PayoutSchedulerPage() {
     setLoading(true);
     try {
       const { data: shops } = await (supabase as any)
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name")
         .eq("is_active", true)
         .limit(100);

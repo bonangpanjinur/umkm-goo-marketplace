@@ -106,7 +106,7 @@ export function CommandPalette({ open, onClose, role }: { open: boolean; onClose
       setSearching(true);
       if (role === "admin") {
         const { data: shops } = await supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("id, name, slug")
           .ilike("name", `%${query}%`)
           .limit(5);

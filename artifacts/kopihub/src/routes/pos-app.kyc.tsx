@@ -81,7 +81,7 @@ function KycPage() {
     if (!shop) return;
     setLoading(true);
     const { data } = await (supabase as any)
-      .from("coffee_shops")
+      .from("shops")
       .select("kyc_status, kyc_document_url, kyc_submitted_at, kyc_reviewed_at, kyc_reject_reason")
       .eq("id", shop.id)
       .maybeSingle();
@@ -113,7 +113,7 @@ function KycPage() {
       const docUrl = urlData.publicUrl;
 
       const { error: dbErr } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .update({
           kyc_document_url: docUrl,
           kyc_status: "pending",

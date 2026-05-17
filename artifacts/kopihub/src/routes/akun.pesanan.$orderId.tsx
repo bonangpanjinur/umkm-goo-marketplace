@@ -212,7 +212,7 @@ function OrderDetailPage() {
     if (!user) return;
     const { data: o } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, tracking_number, courier_name, tracking_url, tracking_set_at, shop:coffee_shops(id, name, slug, logo_url, whatsapp, phone)")
+      .select("id, order_no, status, payment_status, total, subtotal, delivery_fee, customer_name, customer_phone, delivery_address, fulfillment, note, created_at, updated_at, tracking_number, courier_name, tracking_url, tracking_set_at, shop:shops(id, name, slug, logo_url, whatsapp, phone)")
       .eq("id", orderId)
       .eq("customer_user_id", user.id)
       .maybeSingle();

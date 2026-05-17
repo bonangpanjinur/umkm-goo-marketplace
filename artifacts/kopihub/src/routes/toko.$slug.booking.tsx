@@ -218,7 +218,7 @@ export default function PublicBookingPage() {
   useEffect(() => {
     (async () => {
       const { data: s } = await supabase
-        .from("coffee_shops" as any)
+        .from("shops" as any)
         .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, require_deposit, deposit_percent, deposit_notes, require_id_upload")
         .eq("slug", slug)
         .eq("is_active", true)

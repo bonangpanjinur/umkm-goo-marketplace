@@ -26,7 +26,7 @@ export const Route = createFileRoute("/pos-app/portfolio")({
 const PORTFOLIO_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.shop_portfolio (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   image_url text not null,
   caption text,
   category text,
@@ -36,8 +36,8 @@ create table if not exists public.shop_portfolio (
 create index if not exists idx_portfolio_shop on public.shop_portfolio(shop_id, sort_order);
 alter table public.shop_portfolio enable row level security;
 create policy "owner_all_portfolio" on public.shop_portfolio
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 create policy "public_read_portfolio" on public.shop_portfolio
   for select using (true);`;
 

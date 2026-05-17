@@ -41,7 +41,7 @@ function CategoriesIndex() {
       // Counts of active shops per category
       const shopCountMap: Record<string, number> = {};
       const { data: shopsData } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("business_category_id")
         .eq("is_active", true);
       for (const r of (shopsData as any[]) ?? []) {

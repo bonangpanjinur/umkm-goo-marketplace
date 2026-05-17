@@ -30,7 +30,7 @@ export const Route = createFileRoute("/pos-app/happy-hour")({
 const HAPPY_HOUR_SQL = `-- Jalankan di Supabase SQL Editor:
 create table if not exists public.happy_hour_rules (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.coffee_shops(id) on delete cascade,
+  shop_id uuid not null references public.shops(id) on delete cascade,
   name text not null,
   days_of_week integer[] not null default '{1,2,3,4,5}',
   start_time time not null,
@@ -43,8 +43,8 @@ create table if not exists public.happy_hour_rules (
 );
 alter table public.happy_hour_rules enable row level security;
 create policy "owner_all_hh" on public.happy_hour_rules
-  using (shop_id in (select id from coffee_shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from coffee_shops where owner_id = auth.uid()));
+  using (shop_id in (select id from shops where owner_id = auth.uid()))
+  with check (shop_id in (select id from shops where owner_id = auth.uid()));
 create policy "public_read_hh" on public.happy_hour_rules
   for select using (true);`;
 

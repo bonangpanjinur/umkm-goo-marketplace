@@ -39,7 +39,7 @@ export default function ShippingLabelsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: shop } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, address, phone")
         .eq("owner_id", user.id)
         .maybeSingle();

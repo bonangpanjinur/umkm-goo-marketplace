@@ -52,7 +52,7 @@ function PromoPage() {
       const [fp, pv] = await Promise.all([
         supabase
           .from("menu_items")
-          .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:coffee_shops!inner(slug, name, is_active)")
+          .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops!inner(slug, name, is_active)")
           .eq("is_available", true)
           .not("flash_price", "is", null)
           .or(`flash_starts_at.is.null,flash_starts_at.lte.${nowIso}`)

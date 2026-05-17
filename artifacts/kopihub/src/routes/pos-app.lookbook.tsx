@@ -32,7 +32,7 @@ type LookItem = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_lookbook (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   title text,
   model_name text,
   tags text[] NOT NULL DEFAULT '{}',

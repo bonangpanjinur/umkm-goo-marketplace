@@ -124,7 +124,7 @@ function OnlineOrders() {
           .eq("is_active", true)
           .order("name"),
         supabase
-          .from("coffee_shops")
+          .from("shops")
           .select("auto_reply_enabled, auto_reply_message, open_hours, whatsapp")
           .eq("id", shop.id)
           .maybeSingle(),

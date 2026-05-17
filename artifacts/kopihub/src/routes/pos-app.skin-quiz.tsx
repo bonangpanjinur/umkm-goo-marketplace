@@ -45,7 +45,7 @@ type QuizConfig = {
 
 const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_skin_quiz (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE,
+  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
   title text NOT NULL DEFAULT 'Kenali Jenis Kulitmu',
   subtitle text,
   is_active boolean NOT NULL DEFAULT false,

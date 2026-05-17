@@ -49,7 +49,7 @@ function WishlistPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("wishlists" as any)
-      .select("id, menu_item_id, menu_item:menu_items(id, name, price, image_url, is_available, shop_id, shop:coffee_shops(slug, name))")
+      .select("id, menu_item_id, menu_item:menu_items(id, name, price, image_url, is_available, shop_id, shop:shops(slug, name))")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 

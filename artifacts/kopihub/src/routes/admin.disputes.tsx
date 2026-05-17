@@ -31,7 +31,7 @@ function AdminDisputesPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("order_disputes")
-      .select("id, status, reason, description, refund_amount, resolution, created_at, resolved_at, order:orders(id, order_no, total, customer_name), shop:coffee_shops(id, name, slug)")
+      .select("id, status, reason, description, refund_amount, resolution, created_at, resolved_at, order:orders(id, order_no, total, customer_name), shop:shops(id, name, slug)")
       .order("created_at", { ascending: false })
       .limit(200);
     if (!error) setRows(data || []);

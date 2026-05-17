@@ -104,7 +104,7 @@ export default function UlasanPage() {
       }
 
       const { data: shopData } = await (supabase as any)
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, logo_url")
         .eq("id", rec.shop_id)
         .maybeSingle();

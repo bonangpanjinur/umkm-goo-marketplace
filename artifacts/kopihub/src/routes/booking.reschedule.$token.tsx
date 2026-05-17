@@ -65,7 +65,7 @@ function BookingReschedulePage() {
 
         const { data: b } = await supabase
           .from("booking_reservations" as any)
-          .select("id, status, customer_name, party_size, slot:booking_slots!inner(id, service_name, slot_date, slot_time, duration_min, shop_id, shop:coffee_shops!inner(name, slug))")
+          .select("id, status, customer_name, party_size, slot:booking_slots!inner(id, service_name, slot_date, slot_time, duration_min, shop_id, shop:shops!inner(name, slug))")
           .eq("id", t.booking_id)
           .maybeSingle();
         if (!b) { setError("Booking tidak ditemukan."); return; }

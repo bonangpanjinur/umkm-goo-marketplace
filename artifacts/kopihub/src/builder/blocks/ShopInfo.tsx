@@ -15,7 +15,7 @@ function ShopInfoRender({ showAddress, showPhone, showHours }: ShopInfoProps) {
       setShop({ name: "Toko Contoh", address: "Jl. Contoh No. 123", phone: "08123456789", tagline: "Tagline contoh" });
       return;
     }
-    supabase.from("coffee_shops").select("name,address,phone,tagline").eq("slug", ctx.slug).maybeSingle()
+    supabase.from("shops").select("name,address,phone,tagline").eq("slug", ctx.slug).maybeSingle()
       .then(({ data }) => setShop(data as never));
   }, [ctx.slug]);
 

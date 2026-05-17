@@ -70,7 +70,7 @@ function LeaderboardPage() {
 
       // 1. Coffee shops
       const { data: shopData } = await supabase
-        .from("coffee_shops")
+        .from("shops")
         .select("id, name, slug, logo_url, tagline, is_kyc_verified")
         .eq("is_active", true)
         .order("created_at")

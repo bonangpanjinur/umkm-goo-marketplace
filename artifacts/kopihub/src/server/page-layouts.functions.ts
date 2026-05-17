@@ -33,7 +33,7 @@ async function requireShopId(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not_authenticated");
   const { data: shop, error } = await supabase
-    .from("coffee_shops")
+    .from("shops")
     .select("id")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: true })
@@ -177,7 +177,7 @@ export async function getPublishedLayoutForShop(opts: {
   page_type: PageLayout["page_type"];
   pageSlug?: string | null;
 }): Promise<PageLayout | null> {
-  const { data: shop } = await supabase.from("coffee_shops").select("id").eq("slug", opts.slug).maybeSingle();
+  const { data: shop } = await supabase.from("shops").select("id").eq("slug", opts.slug).maybeSingle();
   if (!shop) return null;
   let q = supabase
     .from("page_layouts")
