@@ -312,7 +312,7 @@ function AuditLogsPage() {
                   const target = l.target_name ?? l.target_email ?? (typeof meta?.menu_name === "string" ? meta.menu_name as string : null) ?? (typeof meta?.order_no === "string" ? `#${meta.order_no}` : null);
                   const isOpen = expanded === l.id;
                   return (
-                    <>
+                    <Fragment key={l.id}>
                       <tr key={l.id} className="hover:bg-muted/30">
                         <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
                           {new Date(l.created_at).toLocaleString("id-ID", {
