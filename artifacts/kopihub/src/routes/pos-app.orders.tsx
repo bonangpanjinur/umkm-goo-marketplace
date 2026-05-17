@@ -341,6 +341,27 @@ function OrdersPage() {
           }}
         />
       )}
+
+      <ReasonDialog
+        open={bulkReasonFor !== null}
+        onClose={() => setBulkReasonFor(null)}
+        onConfirm={async (reason) => {
+          if (bulkReasonFor) await bulkUpdateStatus(bulkReasonFor, reason);
+        }}
+        title={
+          bulkReasonFor === "refunded"
+            ? `Refund ${checkedIds.size} order`
+            : bulkReasonFor === "cancelled"
+              ? `Cancel ${checkedIds.size} order`
+              : `Void ${checkedIds.size} order`
+        }
+        description="Alasan akan tercatat di log audit dan tidak dapat diubah."
+        confirmLabel={
+          bulkReasonFor === "refunded" ? "Konfirmasi refund" :
+          bulkReasonFor === "cancelled" ? "Konfirmasi cancel" : "Konfirmasi void"
+        }
+        presets={["Salah input", "Pelanggan batal", "Stok habis", "Duplikat order"]}
+      />
       </div>
     </>
   );
