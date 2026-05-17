@@ -66,38 +66,56 @@ export function ModifierPicker({ open, onClose, menuItemId, menuItemName, menuIt
     setLoading(true);
     setReady(false);
     (async () => {
-      const { data: grps } = await supabase
-        .from("menu_item_option_groups")
-        .select("id, name, is_required, max_select, sort_order")
-        .eq("menu_item_id", menuItemId)
-        .eq("shop_id", shopId)
-        .order("sort_order", { ascending: true });
+      const [{ data: grps }, { data: vRows }] = await Promise.all([
+        supabase
+          .from("menu_item_option_groups")
+          .select("id, name, is_required, max_select, sort_order")
+          .eq("menu_item_id", menuItemId)
+          .eq("shop_id", shopId)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("menu_item_variants")
+          .select("id, name, price, stock, is_available, attributes, sort_order")
+          .eq("menu_item_id", menuItemId)
+          .eq("shop_id", shopId)
+          .order("sort_order", { ascending: true }),
+      ]);
 
-      if (!grps || grps.length === 0) {
+      const variantList = (vRows ?? []) as VariantRow[];
+      setVariants(variantList);
+      // Pilih varian default pertama yang tersedia (stok > 0 atau stok null)
+      const firstOk = variantList.find(
+        (v) => v.is_available && (v.stock === null || (v.stock ?? 0) > 0),
+      );
+      setVariantId(firstOk?.id ?? "");
+
+      if ((!grps || grps.length === 0) && variantList.length === 0) {
         setGroups([]);
         setLoading(false);
-        // No options — add to cart silently, never show the dialog
+        // Tidak ada opsi & tidak ada varian — masuk ke cart langsung
         onConfirm([]);
         onClose();
         return;
       }
 
-      const groupIds = grps.map((g) => g.id);
-      const { data: opts } = await supabase
-        .from("menu_item_options")
-        .select("id, group_id, name, price_adjustment, is_available, sort_order")
-        .in("group_id", groupIds)
-        .eq("is_available", true)
-        .order("sort_order", { ascending: true });
+      const groupIds = (grps ?? []).map((g) => g.id);
+      const { data: opts } = groupIds.length
+        ? await supabase
+            .from("menu_item_options")
+            .select("id, group_id, name, price_adjustment, is_available, sort_order")
+            .in("group_id", groupIds)
+            .eq("is_available", true)
+            .order("sort_order", { ascending: true })
+        : { data: [] as OptionChoice[] & { group_id: string }[] };
 
       const optMap = new Map<string, OptionChoice[]>();
-      for (const o of opts ?? []) {
+      for (const o of (opts as any[]) ?? []) {
         const list = optMap.get(o.group_id) ?? [];
         list.push(o as OptionChoice);
         optMap.set(o.group_id, list);
       }
 
-      const fullGroups: OptionGroup[] = grps.map((g) => ({
+      const fullGroups: OptionGroup[] = (grps ?? []).map((g) => ({
         ...g,
         options: optMap.get(g.id) ?? [],
       }));
