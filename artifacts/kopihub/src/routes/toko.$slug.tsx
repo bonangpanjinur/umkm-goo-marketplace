@@ -565,7 +565,7 @@ function ShopPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MarketplaceHeader />
+      <MarketplaceHeader shopId={shop?.id} />
 
       <section className="border-b border-border bg-gradient-to-b from-primary/5 to-background">
         <div className="mx-auto max-w-7xl px-4 py-8">
