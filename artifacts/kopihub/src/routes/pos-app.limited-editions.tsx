@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 import { Crown, Plus, Pencil, Trash2, Loader2, RefreshCw, Minus, Tag } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/pos-app/limited-editions")({
   head: () => ({ meta: [{ title: "Edisi Terbatas" }] }),
