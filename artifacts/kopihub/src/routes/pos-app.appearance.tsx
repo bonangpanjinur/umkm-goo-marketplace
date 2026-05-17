@@ -3,7 +3,7 @@ import { useEntitlements } from "@/lib/use-entitlements";
 import { useShop } from "@/lib/use-shop";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphone, RefreshCw, Sparkles } from "lucide-react";
+import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphone, RefreshCw, Sparkles, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
