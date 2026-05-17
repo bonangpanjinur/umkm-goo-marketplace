@@ -3044,7 +3044,7 @@ Daftar item yang teridentifikasi belum diimplementasi pada audit terhadap 271 fi
 
 | Item | Modul | Estimasi |
 |------|-------|----------|
-| F-16 Fase 3: Konsolidasi config deposit (deprecate `shops.booking_config.deposit_*` JSON) | Booking / Owner | 0.5 hari |
+| ~~F-16 Fase 3: Konsolidasi config deposit~~ | ✅ Selesai 17 Mei 2026 | — |
 | F-16 Fase 4: Cron `auto_cancel_pending_deposit_bookings` + audit log | Backend | 0.5 hari |
 | F-16 Fase 6: Midtrans Snap client init + redirect handler + hapus client `markDepositPaid` | Booking / Checkout | 2 hari |
 | F-16 Fase 5: Hardening RLS `USING(true)`, `search_path`, public bucket listing, extensions schema | Security | 1 hari |
