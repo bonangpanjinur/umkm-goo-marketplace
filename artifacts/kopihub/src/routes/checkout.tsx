@@ -172,15 +172,45 @@ function CheckoutPage() {
         return;
       }
 
+      // Hitung harga otoritatif server (flash price aktif > harga normal).
+      const nowTs = Date.now();
+      const fp = Number((prodCheck as any).flash_price ?? 0);
+      const fStart = (prodCheck as any).flash_starts_at ? new Date((prodCheck as any).flash_starts_at).getTime() : 0;
+      const fEnd = (prodCheck as any).flash_ends_at ? new Date((prodCheck as any).flash_ends_at).getTime() : Infinity;
+      const basePrice = Number((prodCheck as any).price);
+      const flashActive = fp > 0 && fp < basePrice && fStart <= nowTs && fEnd > nowTs;
+      const serverUnitPrice = flashActive ? fp : basePrice;
+      // Toleransi 1 rupiah untuk pembulatan; jika beda signifikan, beri tahu user.
+      if (Math.abs(serverUnitPrice - bn.unit_price) > 1) {
+        toast.info(
+          flashActive
+            ? `Harga flash diperbarui: Rp ${serverUnitPrice.toLocaleString("id-ID")}`
+            : `Harga produk diperbarui: Rp ${serverUnitPrice.toLocaleString("id-ID")}`,
+        );
+      }
+
       try {
         let row = allItems.find((it) => it.product_id === bn!.product_id && it.shop_id === bn!.shop_id && it.variant_id == null) ?? null;
         if (!row) {
-          await addToCart({ shop_id: bn.shop_id, product_id: bn.product_id, unit_price: bn.unit_price, quantity: bn.quantity });
+          await addToCart({ shop_id: bn.shop_id, product_id: bn.product_id, unit_price: serverUnitPrice, quantity: bn.quantity });
           allItems = await listCart();
           row = allItems.find((it) => it.product_id === bn!.product_id && it.shop_id === bn!.shop_id && it.variant_id == null) ?? null;
-        } else if (row.quantity !== bn.quantity) {
-          await updateCartItem(row.id, bn.quantity);
-          row = { ...row, quantity: bn.quantity };
+        }
+        if (row) {
+          // Sinkronkan qty + unit_price ke harga otoritatif server.
+          const needsQty = row.quantity !== bn.quantity;
+          const needsPrice = Math.abs(Number(row.unit_price) - serverUnitPrice) > 1;
+          if (needsQty || needsPrice) {
+            const patch: Record<string, number> = {};
+            if (needsQty) patch.quantity = bn.quantity;
+            if (needsPrice) patch.unit_price = serverUnitPrice;
+            const { error: upErr } = await supabase
+              .from("marketplace_cart_items")
+              .update(patch)
+              .eq("id", row.id);
+            if (upErr) throw upErr;
+            row = { ...row, quantity: bn.quantity, unit_price: serverUnitPrice };
+          }
         }
         if (!row) throw new Error("Item tidak tersedia di keranjang");
         d = [row];
