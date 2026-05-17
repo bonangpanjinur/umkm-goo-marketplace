@@ -352,6 +352,7 @@ function POSPage() {
     }
     setCarts((prev) => prev.filter((_, i) => i !== idx));
     setActiveIdx((prev) => (prev >= idx ? Math.max(0, prev - 1) : prev));
+    notifyParkedCartChange(outlet?.id);
   };
 
   const handleParkClick = () => {
