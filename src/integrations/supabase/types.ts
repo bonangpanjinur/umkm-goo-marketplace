@@ -868,6 +868,7 @@ export type Database = {
           is_active: boolean
           name: string
           product_attributes: Json
+          recommended_theme_key: string | null
           slug: string
           sort_order: number
           updated_at: string
@@ -887,6 +888,7 @@ export type Database = {
           is_active?: boolean
           name: string
           product_attributes?: Json
+          recommended_theme_key?: string | null
           slug: string
           sort_order?: number
           updated_at?: string
@@ -906,6 +908,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           product_attributes?: Json
+          recommended_theme_key?: string | null
           slug?: string
           sort_order?: number
           updated_at?: string
@@ -7022,6 +7025,7 @@ export type Database = {
           tagline: string | null
           tax_inclusive: boolean
           tax_percent: number
+          theme_key: string
           total_gmv: number
           total_sales_count: number
           trial_ends_at: string | null
@@ -7091,6 +7095,7 @@ export type Database = {
           tagline?: string | null
           tax_inclusive?: boolean
           tax_percent?: number
+          theme_key?: string
           total_gmv?: number
           total_sales_count?: number
           trial_ends_at?: string | null
@@ -7160,6 +7165,7 @@ export type Database = {
           tagline?: string | null
           tax_inclusive?: boolean
           tax_percent?: number
+          theme_key?: string
           total_gmv?: number
           total_sales_count?: number
           trial_ends_at?: string | null
@@ -8896,6 +8902,7 @@ export type Database = {
           tier_name: string
         }[]
       }
+      get_my_entitlements: { Args: never; Returns: Json }
       get_or_create_marketplace_cart: { Args: never; Returns: string }
       get_order_tracking: {
         Args: { _order_id: string }
