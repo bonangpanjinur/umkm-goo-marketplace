@@ -27,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ModifierManager } from "@/components/modifier-manager";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
+import { logStaffAction } from "@/lib/staff-audit";
 
 export const Route = createFileRoute("/pos-app/menu")({
   component: MenuPage,
@@ -466,9 +467,27 @@ function MenuPage() {
       condition_grade: conditionGrade || null,
     } as any;
     if (editing) {
+      const oldPrice = editing.price;
       const { error } = await supabase.from("menu_items").update(payload).eq("id", editing.id);
       if (error) toast.error(error.message);
-      else toast.success("Menu diperbarui");
+      else {
+        toast.success("Menu diperbarui");
+        // Audit: log perubahan harga (termasuk flash price) — best effort
+        if (shop && oldPrice !== priceNum) {
+          logStaffAction({
+            shopId: shop.id,
+            action: "menu.edit_price",
+            meta: {
+              menu_item_id: editing.id,
+              menu_name: editing.name,
+              old_price: oldPrice,
+              new_price: priceNum,
+              old_flash_price: editing.flash_price,
+              new_flash_price: fpNum,
+            },
+          });
+        }
+      }
     } else {
       const { error } = await supabase.from("menu_items").insert(payload);
       if (error) toast.error(error.message);
@@ -485,6 +504,13 @@ function MenuPage() {
     if (error) toast.error(error.message);
     else {
       toast.success("Menu dihapus");
+      if (shop) {
+        logStaffAction({
+          shopId: shop.id,
+          action: "menu.delete",
+          meta: { menu_item_id: it.id, menu_name: it.name, price: it.price },
+        });
+      }
       load();
     }
   }

@@ -105,6 +105,8 @@ type NavItem = {
   onlyFor?: string[];
   /** If set, only show for these business sub-types (sales-pro: 'umroh' | 'sales') */
   subtypeOnly?: ("umroh" | "sales")[];
+  /** If true, hide from staff (only owner sees) */
+  ownerOnly?: boolean;
 };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
@@ -203,6 +205,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Tim",
     items: [
       { to: "/pos-app/employees",  label: "Pegawai",       icon: Users },
+      { to: "/pos-app/permissions", label: "Hak Akses Staf", icon: ShieldCheck, ownerOnly: true },
       { to: "/pos-app/schedule",   label: "Jadwal",        icon: CalendarDays },
       { to: "/pos-app/booking",    label: "Booking Jadwal",icon: CalendarCheck, onlyFor: FNB_SVC },
       { to: "/pos-app/attendance", label: "Absensi",       icon: Clock },
@@ -533,6 +536,8 @@ function AppLayoutInner() {
   // Filter nav: by staff permissions AND by shop category type
   const visibleGroups = useMemo(() => {
     const allowed = (it: NavItem) => {
+      // Owner-only items hidden from staff
+      if (it.ownerOnly && !staff.isOwner) return false;
       // Staff permission check
       if (!staff.isOwner && staff.isStaff && !isModuleAllowed(it.to, staff.allowedModules)) return false;
       // Category type check — only filter if onlyFor is specified

@@ -144,6 +144,13 @@ function OrdersPage() {
 
   async function bulkUpdateStatus(status: string) {
     if (checkedIds.size === 0) { toast.error("Pilih pesanan terlebih dahulu"); return; }
+    const isSensitive = status === "voided" || status === "cancelled" || status === "refunded";
+    let reason = "";
+    if (isSensitive) {
+      const input = prompt(`Alasan ${status} (wajib untuk audit):`)?.trim() ?? "";
+      if (!input) { toast.error("Alasan wajib diisi untuk aksi sensitif"); return; }
+      reason = input;
+    }
     setBulkUpdating(true);
     const ids = Array.from(checkedIds);
     const { error } = await supabase
@@ -153,13 +160,13 @@ function OrdersPage() {
     if (error) { toast.error(error.message); } else {
       toast.success(`${checkedIds.size} pesanan diperbarui ke status "${status}"`);
       // Audit log untuk aksi sensitif (void / cancel / refund)
-      if (shop && (status === "voided" || status === "cancelled" || status === "refunded")) {
+      if (shop && isSensitive) {
         const action = status === "refunded" ? "order.refund" : "order.void";
         for (const id of ids) {
           logStaffAction({
             shopId: shop.id,
             action,
-            meta: { order_id: id, status, bulk: true, count: ids.length },
+            meta: { order_id: id, status, reason, bulk: true, count: ids.length },
           });
         }
       }
@@ -528,7 +535,8 @@ function DetailDialog({
                 className="text-destructive hover:text-destructive"
                 disabled={voiding}
                 onClick={async () => {
-                  const reason = prompt("Alasan void? (opsional)") ?? "";
+                  const reason = prompt("Alasan void (wajib untuk audit):")?.trim() ?? "";
+                  if (!reason) { toast.error("Alasan wajib diisi"); return; }
                   if (!confirm(`Void order #${order.order_no}? Stok & poin akan dibalik.`)) return;
                   setVoiding(true);
                   const { error } = await supabase.rpc("void_order", { _order_id: order.id, _reason: reason });
