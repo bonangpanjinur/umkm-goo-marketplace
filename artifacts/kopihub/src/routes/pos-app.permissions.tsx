@@ -86,7 +86,7 @@ function PermissionsPage() {
     const { data: profiles } = userIds.length
       ? await supabase
           .from("profiles")
-          .select("id, full_name, email")
+          .select("id, display_name")
           .in("id", userIds)
       : { data: [] as any[] };
     const profileMap = new Map(
@@ -107,8 +107,8 @@ function PermissionsPage() {
         shop_id: rr.shop_id,
         role: rr.role,
         allowed_modules: perm?.allowed_modules ?? null,
-        name: prof?.full_name ?? prof?.email ?? rr.user_id.slice(0, 8),
-        email: prof?.email ?? "",
+        name: prof?.display_name ?? rr.user_id.slice(0, 8),
+        email: "",
       };
       grouped[rr.shop_id] = [...(grouped[rr.shop_id] ?? []), row];
     }
