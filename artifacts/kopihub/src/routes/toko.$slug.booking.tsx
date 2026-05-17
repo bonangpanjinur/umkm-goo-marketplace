@@ -219,7 +219,7 @@ export default function PublicBookingPage() {
     (async () => {
       const { data: s } = await supabase
         .from("shops" as any)
-        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, deposit_required, deposit_percentage, deposit_notes, require_id_upload")
+        .select("id, name, slug, logo_url, tagline, address, phone, rating_avg, rating_count, kyc_status, deposit_enabled, deposit_percentage, deposit_notes, require_id_upload")
         .eq("slug", slug)
         .eq("is_active", true)
         .maybeSingle();
