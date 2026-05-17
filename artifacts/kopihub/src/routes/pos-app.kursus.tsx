@@ -912,14 +912,19 @@ function KursusPage() {
                 className="mt-1"
               />
             </div>
-            <div>
-              <Label>Urutan</Label>
-              <Input
-                type="number" min={0}
-                value={moduleForm.sort_order}
-                onChange={(e) => setModuleForm((f) => ({ ...f, sort_order: e.target.value }))}
-                className="mt-1"
+            <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+              <Switch
+                checked={moduleForm.status === "published"}
+                onCheckedChange={(v) => setModuleForm((f) => ({ ...f, status: v ? "published" : "draft" }))}
               />
+              <div className="flex-1">
+                <Label>{moduleForm.status === "published" ? "Tayang" : "Draft"}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {moduleForm.status === "published"
+                    ? "Modul ini terlihat oleh pembeli"
+                    : "Modul disimpan tapi belum terlihat oleh pembeli"}
+                </p>
+              </div>
             </div>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={() => setModuleDialog(false)}>Batal</Button>
