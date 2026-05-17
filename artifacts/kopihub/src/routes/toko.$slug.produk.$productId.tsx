@@ -653,7 +653,7 @@ function ProductDetailPage() {
           </section>
         )}
       </div>
-      <MarketplaceFooter />
+      <MarketplaceFooter shopId={product?.shop_id} />
       {shop && product && <StickyActionBar product={product} shop={shop} qty={cartQty} />}
     </div>
   );
