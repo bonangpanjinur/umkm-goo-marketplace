@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plane, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { UploadableImage } from "@/components/UploadableImage";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
