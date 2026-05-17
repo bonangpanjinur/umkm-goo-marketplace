@@ -2211,7 +2211,7 @@ export default function PublicBookingPage() {
                     <span className="text-primary">{formatIDR(effectivePrice)}</span>
                   </p>
                 )}
-                {shop?.deposit_required && depositAmount > 0 && (
+                {shop?.deposit_enabled && depositAmount > 0 && (
                   <p className="flex items-center gap-1.5 font-medium text-emerald-700">
                     <Check className="h-3.5 w-3.5" /> DP {formatIDR(depositAmount)} sudah dikonfirmasi
                   </p>
