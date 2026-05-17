@@ -726,7 +726,7 @@ function ShopPage() {
         toggleCompare={toggleCompare}
       />
 
-      <MarketplaceFooter />
+      <MarketplaceFooter shopId={shop?.id} />
 
       <CompareFloatingBar
         compareIds={compareIds}
