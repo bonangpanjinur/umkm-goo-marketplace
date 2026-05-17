@@ -208,5 +208,6 @@ export async function checkout(args: {
     _platform_voucher_code: args.platform_voucher_code ?? undefined,
   });
   if (error) throw error;
+  notifyCartChange();
   return ((data as any)?.order_ids as string[]) ?? [];
 }
