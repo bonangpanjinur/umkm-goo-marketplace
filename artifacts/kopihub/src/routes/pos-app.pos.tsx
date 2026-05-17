@@ -77,6 +77,8 @@ type LocalCart = {
   label: string;
   items: CartItem[];
   discount: number;
+  /** Stable idempotency key for the current checkout attempt. */
+  idemKey?: string | null;
 };
 
 const MAX_CARTS = 6;
