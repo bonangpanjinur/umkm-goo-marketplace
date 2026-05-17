@@ -83,14 +83,29 @@ function OnboardingPage() {
 
   // Kategori bisnis dari DB
   const [categories, setCategories] = useState<CategoryRow[]>([]);
-  useEffect(() => {
-    supabase
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const loadCategories = async () => {
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    const { data, error } = await supabase
       .from("business_categories")
       .select("id, slug, name, description")
       .eq("is_active", true)
-      .order("sort_order")
-      .then(({ data }) => setCategories((data as CategoryRow[]) ?? []));
-  }, []);
+      .order("sort_order");
+    if (error) {
+      setCategoriesError(error.message || "Gagal memuat kategori");
+      setCategories([]);
+    } else {
+      const rows = (data as CategoryRow[]) ?? [];
+      setCategories(rows);
+      if (rows.length === 0) {
+        setCategoriesError("Daftar kategori kosong. Hubungi admin.");
+      }
+    }
+    setCategoriesLoading(false);
+  };
+  useEffect(() => { loadCategories(); }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -122,6 +137,14 @@ function OnboardingPage() {
   };
 
   const submitStep2 = () => {
+    if (categoriesLoading) {
+      toast.error("Daftar kategori masih dimuat, mohon tunggu");
+      return;
+    }
+    if (categoriesError) {
+      toast.error(categoriesError);
+      return;
+    }
     if (categories.length === 0) {
       toast.error("Daftar kategori belum siap, mohon tunggu sebentar");
       return;
@@ -313,36 +336,52 @@ function OnboardingPage() {
               <h1 className="text-2xl font-bold tracking-tight">Kategori bisnis Anda?</h1>
               <p className="mt-1.5 text-sm text-muted-foreground">Ini membantu kami menyesuaikan fitur dan tampilan toko Anda.</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {categories.map(cat => {
-                const Icon = CATEGORY_ICON[cat.slug] ?? Package;
-                const active = categoryId === cat.slug;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategoryId(cat.slug)}
-                    className={`relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
-                      active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-accent"
-                    }`}
-                  >
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                      <Icon className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{cat.name}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{cat.description ?? ""}</p>
-                    </div>
-                    {active && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
-                  </button>
-                );
-              })}
-            </div>
+            {categoriesLoading ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed p-8 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Memuat daftar kategori…
+              </div>
+            ) : categoriesError ? (
+              <div className="space-y-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
+                <p className="font-medium text-destructive">Gagal memuat kategori</p>
+                <p className="text-muted-foreground">{categoriesError}</p>
+                <Button size="sm" variant="outline" onClick={loadCategories}>Coba lagi</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {categories.map(cat => {
+                  const Icon = CATEGORY_ICON[cat.slug] ?? Package;
+                  const active = categoryId === cat.slug;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCategoryId(cat.slug)}
+                      className={`relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
+                        active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-accent"
+                      }`}
+                    >
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                        <Icon className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{cat.name}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{cat.description ?? ""}</p>
+                      </div>
+                      {active && <Check className="absolute right-3 top-3 h-4 w-4 text-primary" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <div className="flex gap-3">
               <Button variant="outline" className="h-11 flex-1 gap-2" onClick={() => setStep(1)}>
                 <ChevronLeft className="h-4 w-4" /> Kembali
               </Button>
-              <Button className="h-11 flex-1 gap-2" onClick={submitStep2} disabled={!categoryId}>
-                Lanjut <ChevronRight className="h-4 w-4" />
+              <Button
+                className="h-11 flex-1 gap-2"
+                onClick={submitStep2}
+                disabled={!categoryId || categoriesLoading || !!categoriesError || categories.length === 0}
+              >
+                {categoriesLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Lanjut <ChevronRight className="h-4 w-4" /></>}
               </Button>
             </div>
           </div>
