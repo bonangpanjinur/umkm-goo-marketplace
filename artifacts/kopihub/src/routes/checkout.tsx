@@ -144,7 +144,7 @@ function CheckoutPage() {
       // Pastikan produk masih ada & milik shop yang sesuai (validasi konsistensi server-side).
       const { data: prodCheck, error: prodErr } = await supabase
         .from("menu_items")
-        .select("id, name, shop_id, price, stock, track_stock, is_active")
+        .select("id, name, shop_id, price, stock, track_stock, is_active, flash_price, flash_starts_at, flash_ends_at")
         .eq("id", bn.product_id)
         .maybeSingle();
       if (prodErr || !prodCheck) {
