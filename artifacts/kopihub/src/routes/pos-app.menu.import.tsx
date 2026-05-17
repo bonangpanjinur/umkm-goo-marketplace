@@ -27,8 +27,8 @@ type ParsedRow = {
 
 const TEMPLATE_HEADERS = ["name", "description", "price", "category", "is_available"];
 const TEMPLATE_ROWS = [
-  ["Kopi Susu", "Kopi susu enak", "25000", "Coffee", "true"],
-  ["Matcha Latte", "Matcha premium", "30000", "Tea", "true"],
+  ["Produk A", "Deskripsi produk A", "25000", "Minuman", "true"],
+  ["Produk B", "Deskripsi produk B", "30000", "Minuman", "true"],
   ["Croissant", "Roti croissant butter", "18000", "Food", "true"],
 ];
 

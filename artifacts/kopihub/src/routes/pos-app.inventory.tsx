@@ -55,7 +55,7 @@ type SupplierOpt = { id: string; name: string };
 
 const NO_SUPPLIER = "__none__";
 const NO_CATEGORY = "__none_cat__";
-const ING_CATEGORIES = ["Coffee", "Dairy", "Syrup", "Tea", "Food", "Packaging", "Other"];
+const ING_CATEGORIES = ["Bahan Baku", "Dairy", "Syrup", "Minuman", "Makanan", "Kemasan", "Lainnya"];
 
 const UNITS = ["pcs", "g", "kg", "ml", "L", "shot", "scoop"];
 
