@@ -93,6 +93,7 @@ import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
+import { useShopCapabilities } from "@/lib/use-shop-capabilities";
 
 export const Route = createFileRoute("/pos-app")({
   component: AppLayout,
@@ -388,6 +389,7 @@ function AppLayoutInner() {
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
   const [shopCategoryType, setShopCategoryType] = useState<string>("general");
   const [shopSubtype, setShopSubtype] = useState<string | null>(null);
+  const capabilities = useShopCapabilities(shop?.id ?? null);
 
   useEffect(() => {
     if (loading) return;
