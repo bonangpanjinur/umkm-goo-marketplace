@@ -139,10 +139,7 @@ function CategoryPage() {
           .order("total_sold", { ascending: false, nullsFirst: false })
           .limit(24);
         // Boost produk dari toko unggulan ke atas (stable partition).
-        const raw = (prods as any[]) ?? [];
-        const feat = raw.filter(p => p.shop?.is_featured);
-        const rest = raw.filter(p => !p.shop?.is_featured);
-        setProducts([...feat, ...rest]);
+        setProducts(applyFeaturedBoostProducts(((prods as any[]) ?? [])));
       }
       setLoading(false);
     })();
