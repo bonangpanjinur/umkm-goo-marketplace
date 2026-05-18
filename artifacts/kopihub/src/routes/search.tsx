@@ -389,7 +389,14 @@ function SearchPage() {
     else if (sort === "termahal") prodQ = prodQ.order("price",       { ascending: false });
     else if (sort === "terbaru")  prodQ = prodQ.order("created_at",  { ascending: false });
     else if (sort === "terlaris") prodQ = prodQ.order("total_sold",  { ascending: false, nullsFirst: false });
-    else                          prodQ = prodQ.order("rating_avg",  { ascending: false, nullsFirst: false });
+    else if (sort === "rating")   prodQ = prodQ.order("rating_avg",  { ascending: false, nullsFirst: false });
+    else /* relevan */ {
+      // Rekomendasi: rating tinggi DAN laku — beda dari sort "rating" murni.
+      prodQ = prodQ
+        .order("rating_avg",  { ascending: false, nullsFirst: false })
+        .order("total_sold",  { ascending: false, nullsFirst: false })
+        .order("created_at",  { ascending: false });
+    }
     return prodQ;
   };
 
