@@ -86,7 +86,7 @@ function CategoryCityPage() {
         .order("is_featured", { ascending: false, nullsFirst: false })
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(24);
-      const list = (shopsData as Shop[]) ?? [];
+      const list = applyFeaturedBoostShops(((shopsData as Shop[]) ?? []));
       setShops(list);
 
       const ids = list.map((s) => s.id);
@@ -97,10 +97,7 @@ function CategoryCityPage() {
           .in("shop_id", ids).eq("is_available", true)
           .order("rating_avg", { ascending: false, nullsFirst: false })
           .limit(18);
-        const raw = (prods as any[]) ?? [];
-        const feat = raw.filter(p => p.shop?.is_featured);
-        const rest = raw.filter(p => !p.shop?.is_featured);
-        setProducts([...feat, ...rest]);
+        setProducts(applyFeaturedBoostProducts(((prods as any[]) ?? [])));
       } else {
         setProducts([]);
       }
