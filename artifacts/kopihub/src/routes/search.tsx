@@ -447,7 +447,8 @@ function SearchPage() {
       const res = await buildProductQuery().range(0, PRODUCT_PAGE_SIZE - 1).abortSignal(ctrl.signal);
       if (ctrl.signal.aborted) return;
       if (res.error) throw res.error;
-      const list = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
+      const raw = ((res.data as any[]) ?? []).filter(p => p.shop?.is_active !== false);
+      const list = applyFeaturedBoostProducts(raw);
       const total = res.count ?? 0;
       setProducts(list);
       setProductTotal(total);
@@ -473,7 +474,8 @@ function SearchPage() {
       const res = await buildShopQuery().range(0, SHOP_PAGE_SIZE - 1).abortSignal(ctrl.signal);
       if (ctrl.signal.aborted) return;
       if (res.error) throw res.error;
-      const list = (res.data as any[]) ?? [];
+      const raw = (res.data as any[]) ?? [];
+      const list = applyFeaturedBoostShops(raw);
       const total = res.count ?? 0;
       setShops(list);
       setShopTotal(total);
