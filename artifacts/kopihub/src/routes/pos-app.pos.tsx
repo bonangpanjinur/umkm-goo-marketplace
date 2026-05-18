@@ -287,14 +287,18 @@ function POSPage() {
           refreshParked();
           // Notify when another kasir confirms a new Open Bill
           if (payload.eventType === "INSERT") {
-            const row = payload.new as { label?: string; created_by?: string | null };
+            const row = payload.new as ParkedCart & { created_by?: string | null };
             if (row?.created_by && row.created_by !== user?.id) {
-              const items = (payload.new?.items ?? []) as CartItem[];
+              const items = (row.items ?? []) as CartItem[];
               const count = cartCount(items);
               const total = cartTotal(items);
               toast.success(`Open Bill baru: ${row.label ?? "(tanpa label)"}`, {
-                description: `${count} item · ${formatIDR(total)} — dari kasir lain`,
-                duration: 6000,
+                description: `${count} item · ${formatIDR(total)} — dari kasir lain. Klik "Buka" untuk lihat detail.`,
+                duration: 10000,
+                action: {
+                  label: "Buka",
+                  onClick: () => restoreParked(row as ParkedCart),
+                },
               });
               try {
                 _posBeep();
