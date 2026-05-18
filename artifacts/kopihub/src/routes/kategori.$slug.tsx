@@ -216,13 +216,20 @@ function CategoryPage() {
             </div>
             <div>
               <Label className="text-xs">Kota / Lokasi</Label>
-              <Input
-                className="mt-1 h-9"
-                value={cityDraft}
-                onChange={(e) => setCityDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyQuickFilter(); }}
-                placeholder="Jakarta, Bandung…"
-              />
+              <Select
+                value={cityDraft || "all"}
+                onValueChange={(v) => setCityDraft(v === "all" ? "" : v)}
+              >
+                <SelectTrigger className="mt-1 h-9">
+                  <SelectValue placeholder="Semua kota" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua kota</SelectItem>
+                  {CITIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-end">
               <Button onClick={applyQuickFilter} className="h-9 w-full md:w-auto gap-1.5">
@@ -262,7 +269,12 @@ function CategoryPage() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{s.name}</div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="truncate text-sm font-semibold">{s.name}</span>
+                      {s.is_featured && (
+                        <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Toko unggulan" />
+                      )}
+                    </div>
                     {s.rating_avg ? (
                       <div className="text-xs text-muted-foreground">
                         ★ {Number(s.rating_avg).toFixed(1)} ({s.rating_count ?? 0})
