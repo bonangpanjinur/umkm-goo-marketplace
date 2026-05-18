@@ -101,9 +101,10 @@ function CategoryPage() {
 
       const { data: shopsData } = await supabase
         .from("shops")
-        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, business_subtype")
+        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, business_subtype, is_featured")
         .eq("business_category_id", (c as any).id)
         .eq("is_active", true)
+        .order("is_featured", { ascending: false, nullsFirst: false })
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(24);
       const shopList = (shopsData as any[]) ?? [];
@@ -114,10 +115,11 @@ function CategoryPage() {
       if (shopIds.length > 0) {
         const { data: prods } = await supabase
           .from("menu_items")
-          .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name)")
+          .select("id, shop_id, name, price, image_url, slug, rating_avg, total_sold, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name, is_featured)")
           .in("shop_id", shopIds)
           .eq("is_available", true)
           .order("rating_avg", { ascending: false, nullsFirst: false })
+          .order("total_sold", { ascending: false, nullsFirst: false })
           .limit(24);
         setProducts((prods as any[]) ?? []);
       }

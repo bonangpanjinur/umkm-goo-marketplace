@@ -30,3 +30,11 @@
 - Tidak ada perubahan DB.
 - Sitemap akan mulai populated otomatis begitu deploy; crawler bisa discovery via `public/robots.txt` (sudah `Sitemap: /sitemap.xml`).
 - Allow-list kota disimpan inline di `sitemap[.]xml.ts` (`CITIES` const) — gampang extend nanti.
+
+## I.4 — Sorting & ranking marketplace ✅ SELESAI
+
+- Tambah opsi sort `terlaris` di `searchSchema` (`routes/search.tsx`).
+- Boost `is_featured` shop selalu di posisi teratas — sebelum sort lain — di `buildShopQuery` & `buildProductQuery` (via `foreignTable: "shop"`).
+- Produk: sort `terlaris` → `total_sold desc`. Toko: `terlaris` → `rating_count desc` (proxy popularitas).
+- `routes/kategori.$slug.tsx`: order chain shops sekarang `is_featured desc → rating_avg desc`; produk pilihan tambahkan tiebreak `total_sold desc`.
+- Tidak ada migration DB (kolom `is_featured`, `total_sold`, `rating_count` sudah ada).

@@ -29,7 +29,7 @@ const searchSchema = z.object({
   q:       z.string().optional().default(""),
   cat:     z.string().optional().default(""),
   subtype: z.string().optional().default(""),
-  sort:    z.enum(["relevan", "termurah", "termahal", "rating", "terbaru"]).optional().default("relevan"),
+  sort:    z.enum(["relevan", "termurah", "termahal", "rating", "terbaru", "terlaris"]).optional().default("relevan"),
   min:     z.coerce.number().optional(),
   max:     z.coerce.number().optional(),
   minRating: z.coerce.number().optional(),
@@ -361,7 +361,7 @@ function SearchPage() {
     let prodQ = supabase
       .from("menu_items")
       .select(
-        "id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops!inner(slug, name, is_active, business_category_id, address, payment_methods_enabled)",
+        "id, shop_id, name, price, image_url, slug, rating_avg, total_sold, flash_price, flash_starts_at, flash_ends_at, shop:shops!inner(slug, name, is_active, is_featured, business_category_id, address, payment_methods_enabled)",
         { count: "exact" },
       )
       .ilike("name", term)
@@ -377,10 +377,13 @@ function SearchPage() {
       if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
     }
     if (subtype) prodQ = (prodQ as any).eq("shop.business_subtype", subtype);
-    if (sort === "termurah")      prodQ = prodQ.order("price",      { ascending: true  });
-    else if (sort === "termahal") prodQ = prodQ.order("price",      { ascending: false });
-    else if (sort === "terbaru")  prodQ = prodQ.order("created_at", { ascending: false });
-    else                          prodQ = prodQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    // Featured shops always boosted first via embedded shop relation
+    prodQ = (prodQ as any).order("is_featured", { ascending: false, nullsFirst: false, foreignTable: "shop" });
+    if (sort === "termurah")      prodQ = prodQ.order("price",       { ascending: true  });
+    else if (sort === "termahal") prodQ = prodQ.order("price",       { ascending: false });
+    else if (sort === "terbaru")  prodQ = prodQ.order("created_at",  { ascending: false });
+    else if (sort === "terlaris") prodQ = prodQ.order("total_sold",  { ascending: false, nullsFirst: false });
+    else                          prodQ = prodQ.order("rating_avg",  { ascending: false, nullsFirst: false });
     return prodQ;
   };
 
@@ -389,7 +392,7 @@ function SearchPage() {
     let shopQ = supabase
       .from("shops")
       .select(
-        "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled",
+        "id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, address, payment_methods_enabled, is_featured",
         { count: "exact" },
       )
       .eq("is_active", true);
@@ -403,8 +406,11 @@ function SearchPage() {
     if (city) shopQ = shopQ.ilike("address", `%${city}%`);
     if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
     if (verified) shopQ = shopQ.eq("kyc_status", "approved");
-    if (sort === "terbaru") shopQ = shopQ.order("created_at", { ascending: false });
-    else                    shopQ = shopQ.order("rating_avg", { ascending: false, nullsFirst: false });
+    // Featured shops always pinned to top
+    shopQ = shopQ.order("is_featured", { ascending: false, nullsFirst: false });
+    if (sort === "terbaru")       shopQ = shopQ.order("created_at",   { ascending: false });
+    else if (sort === "terlaris") shopQ = shopQ.order("rating_count", { ascending: false, nullsFirst: false });
+    else                          shopQ = shopQ.order("rating_avg",   { ascending: false, nullsFirst: false });
     return shopQ;
   };
 
@@ -749,6 +755,7 @@ function SearchPage() {
                   <SelectContent>
                     <SelectItem value="relevan">Paling relevan</SelectItem>
                     <SelectItem value="rating">Rating tertinggi</SelectItem>
+                    <SelectItem value="terlaris">Terlaris</SelectItem>
                     <SelectItem value="terbaru">Terbaru</SelectItem>
                     <SelectItem value="termurah">Harga terendah</SelectItem>
                     <SelectItem value="termahal">Harga tertinggi</SelectItem>
