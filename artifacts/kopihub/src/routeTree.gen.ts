@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -283,6 +284,7 @@ import { Route as PosAppKeuanganTarikRouteImport } from './routes/pos-app.keuang
 import { Route as PesananOrderIdChatRouteImport } from './routes/pesanan.$orderId.chat'
 import { Route as OrderSlugCheckoutRouteImport } from './routes/order.$slug.checkout'
 import { Route as OrderSlugCartRouteImport } from './routes/order.$slug.cart'
+import { Route as KategoriSlugCityRouteImport } from './routes/kategori.$slug.$city'
 import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.sukses.$orderId'
 import { Route as BookingRescheduleTokenRouteImport } from './routes/booking.reschedule.$token'
 import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
@@ -300,6 +302,11 @@ import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
 import { Route as ApiPublicWebhooksPlanBillingProviderRouteImport } from './routes/api/public/webhooks/plan-billing.$provider'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -1682,6 +1689,11 @@ const OrderSlugCartRoute = OrderSlugCartRouteImport.update({
   path: '/cart',
   getParentRoute: () => OrderSlugRoute,
 } as any)
+const KategoriSlugCityRoute = KategoriSlugCityRouteImport.update({
+  id: '/$city',
+  path: '/$city',
+  getParentRoute: () => KategoriSlugRoute,
+} as any)
 const CheckoutSuksesOrderIdRoute = CheckoutSuksesOrderIdRouteImport.update({
   id: '/sukses/$orderId',
   path: '/sukses/$orderId',
@@ -1786,6 +1798,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/affiliate': typeof AdminAffiliateRoute
@@ -1861,7 +1874,7 @@ export interface FileRoutesByFullPath {
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
-  '/kategori/$slug': typeof KategoriSlugRoute
+  '/kategori/$slug': typeof KategoriSlugRouteWithChildren
   '/kontrak/$token': typeof KontrakTokenRoute
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
@@ -2025,6 +2038,7 @@ export interface FileRoutesByFullPath {
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/kategori/$slug/$city': typeof KategoriSlugCityRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
@@ -2074,6 +2088,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/affiliate': typeof AdminAffiliateRoute
@@ -2149,7 +2164,7 @@ export interface FileRoutesByTo {
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
-  '/kategori/$slug': typeof KategoriSlugRoute
+  '/kategori/$slug': typeof KategoriSlugRouteWithChildren
   '/kontrak/$token': typeof KontrakTokenRoute
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
@@ -2311,6 +2326,7 @@ export interface FileRoutesByTo {
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/kategori/$slug/$city': typeof KategoriSlugCityRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
@@ -2365,6 +2381,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/affiliate': typeof AdminAffiliateRoute
@@ -2440,7 +2457,7 @@ export interface FileRoutesById {
   '/download/$token': typeof DownloadTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/katalog/$slug': typeof KatalogSlugRoute
-  '/kategori/$slug': typeof KategoriSlugRoute
+  '/kategori/$slug': typeof KategoriSlugRouteWithChildren
   '/kontrak/$token': typeof KontrakTokenRoute
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
@@ -2604,6 +2621,7 @@ export interface FileRoutesById {
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
   '/checkout/sukses/$orderId': typeof CheckoutSuksesOrderIdRoute
+  '/kategori/$slug/$city': typeof KategoriSlugCityRoute
   '/order/$slug/cart': typeof OrderSlugCartRoute
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
@@ -2659,6 +2677,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/admin/activity'
     | '/admin/ads'
     | '/admin/affiliate'
@@ -2898,6 +2917,7 @@ export interface FileRouteTypes {
     | '/booking/cancel/$token'
     | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
+    | '/kategori/$slug/$city'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
@@ -2947,6 +2967,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/admin/activity'
     | '/admin/ads'
     | '/admin/affiliate'
@@ -3184,6 +3205,7 @@ export interface FileRouteTypes {
     | '/booking/cancel/$token'
     | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
+    | '/kategori/$slug/$city'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
@@ -3237,6 +3259,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/admin/activity'
     | '/admin/ads'
     | '/admin/affiliate'
@@ -3476,6 +3499,7 @@ export interface FileRouteTypes {
     | '/booking/cancel/$token'
     | '/booking/reschedule/$token'
     | '/checkout/sukses/$orderId'
+    | '/kategori/$slug/$city'
     | '/order/$slug/cart'
     | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
@@ -3530,11 +3554,12 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DTokenRoute: typeof DTokenRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
   KatalogSlugRoute: typeof KatalogSlugRoute
-  KategoriSlugRoute: typeof KategoriSlugRoute
+  KategoriSlugRoute: typeof KategoriSlugRouteWithChildren
   KontrakTokenRoute: typeof KontrakTokenRoute
   OrderSlugRoute: typeof OrderSlugRouteWithChildren
   PesananOrderIdRoute: typeof PesananOrderIdRouteWithChildren
@@ -3553,6 +3578,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -5471,6 +5503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderSlugCartRouteImport
       parentRoute: typeof OrderSlugRoute
     }
+    '/kategori/$slug/$city': {
+      id: '/kategori/$slug/$city'
+      path: '/$city'
+      fullPath: '/kategori/$slug/$city'
+      preLoaderRoute: typeof KategoriSlugCityRouteImport
+      parentRoute: typeof KategoriSlugRoute
+    }
     '/checkout/sukses/$orderId': {
       id: '/checkout/sukses/$orderId'
       path: '/sukses/$orderId'
@@ -6176,6 +6215,18 @@ const PosAppRouteChildren: PosAppRouteChildren = {
 const PosAppRouteWithChildren =
   PosAppRoute._addFileChildren(PosAppRouteChildren)
 
+interface KategoriSlugRouteChildren {
+  KategoriSlugCityRoute: typeof KategoriSlugCityRoute
+}
+
+const KategoriSlugRouteChildren: KategoriSlugRouteChildren = {
+  KategoriSlugCityRoute: KategoriSlugCityRoute,
+}
+
+const KategoriSlugRouteWithChildren = KategoriSlugRoute._addFileChildren(
+  KategoriSlugRouteChildren,
+)
+
 interface OrderSlugRouteChildren {
   OrderSlugCartRoute: typeof OrderSlugCartRoute
   OrderSlugCheckoutRoute: typeof OrderSlugCheckoutRoute
@@ -6288,11 +6339,12 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   DTokenRoute: DTokenRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
   KatalogSlugRoute: KatalogSlugRoute,
-  KategoriSlugRoute: KategoriSlugRoute,
+  KategoriSlugRoute: KategoriSlugRouteWithChildren,
   KontrakTokenRoute: KontrakTokenRoute,
   OrderSlugRoute: OrderSlugRouteWithChildren,
   PesananOrderIdRoute: PesananOrderIdRouteWithChildren,
