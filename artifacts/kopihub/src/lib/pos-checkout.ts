@@ -15,6 +15,8 @@ export type CheckoutPayload = {
   client_idempotency_key: string;
   customer_name?: string | null;
   table_label?: string | null;
+  delivery_fee?: number;
+  delivery_address?: string | null;
   items: Array<{
     menu_item_id: string | null;
     name: string;
