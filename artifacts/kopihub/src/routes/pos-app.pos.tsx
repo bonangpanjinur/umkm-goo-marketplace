@@ -536,7 +536,23 @@ function POSPage() {
   const handleCheckout = async (
     method: string,
     _amount: number,
-    extras?: { customer_name?: string | null; table_label?: string | null }
+    extras?: {
+      customer_name?: string | null;
+      table_label?: string | null;
+      delivery?: {
+        courier_id: string;
+        courier_name: string;
+        service_type: string;
+        distance_km: number;
+        base_fee: number;
+        per_km_fee: number;
+        fee: number;
+        is_free: boolean;
+        eta_min: number;
+        eta_max: number;
+        address: string | null;
+      } | null;
+    }
   ) => {
     if (!outlet || !user) return;
 
@@ -548,6 +564,10 @@ function POSPage() {
               : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
       if (!cart.idemKey) updateCart((c) => ({ ...c, idemKey }));
 
+      const deliveryFee = extras?.delivery?.fee ?? 0;
+      const deliveryAddress = extras?.delivery?.address ?? null;
+      const finalTotal = charges.total + deliveryFee;
+
       const result = await submitCheckout({
         shop_id: shop!.id,
         outlet_id: outlet.id,
@@ -556,13 +576,15 @@ function POSPage() {
         discount,
         service_charge: charges.service_charge,
         tax: charges.tax,
-        total: charges.total,
+        total: finalTotal,
         payment_method: method,
         amount_tendered: _amount,
-        change_due: Math.max(0, _amount - charges.total),
+        change_due: Math.max(0, _amount - finalTotal),
         client_idempotency_key: idemKey,
         customer_name: extras?.customer_name ?? null,
         table_label: extras?.table_label ?? null,
+        delivery_fee: deliveryFee,
+        delivery_address: deliveryAddress,
         items: cart.items.map((it) => ({
           menu_item_id: it.menu_item_id,
           name: it.name,
