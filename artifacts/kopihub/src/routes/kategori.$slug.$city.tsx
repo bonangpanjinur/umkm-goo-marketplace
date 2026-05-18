@@ -5,6 +5,7 @@ import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/M
 import { ProductCard } from "./index";
 import { Store, Star } from "lucide-react";
 import { cityIlikeOr } from "@/lib/cities";
+import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
 
 function titleCase(s: string) {
   return s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
