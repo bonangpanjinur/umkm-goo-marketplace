@@ -283,7 +283,27 @@ function POSPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "parked_carts", filter: `outlet_id=eq.${outlet.id}` },
-        () => refreshParked(),
+        (payload: any) => {
+          refreshParked();
+          // Notify when another kasir confirms a new Open Bill
+          if (payload.eventType === "INSERT") {
+            const row = payload.new as { label?: string; created_by?: string | null };
+            if (row?.created_by && row.created_by !== user?.id) {
+              const items = (payload.new?.items ?? []) as CartItem[];
+              const count = cartCount(items);
+              const total = cartTotal(items);
+              toast.success(`Open Bill baru: ${row.label ?? "(tanpa label)"}`, {
+                description: `${count} item · ${formatIDR(total)} — dari kasir lain`,
+                duration: 6000,
+              });
+              try {
+                _posBeep();
+              } catch {
+                /* ignore */
+              }
+            }
+          }
+        },
       )
       .subscribe();
     // Cross-tab + local broadcast: refresh segera saat park/unpark/confirm
@@ -299,7 +319,7 @@ function POSPage() {
       window.removeEventListener("kh-pos-cart-change", onLocal);
       window.removeEventListener("storage", onStorage);
     };
-  }, [outlet?.id]);
+  }, [outlet?.id, user?.id]);
 
   const handleOpenShift = async () => {
     if (!outlet) return;
