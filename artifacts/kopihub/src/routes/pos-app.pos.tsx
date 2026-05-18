@@ -721,6 +721,9 @@ function POSPage() {
           parkedCount={parkedList.length}
           onOpenOrders={() => setOrdersDlgOpen(true)}
           ordersTodayCount={todayOrdersCount}
+          onRename={(idx, label) =>
+            setCarts((prev) => prev.map((c, i) => (i === idx ? { ...c, label } : c)))
+          }
         />
         <Button size="sm" variant="outline" className="ml-auto shrink-0 gap-1" onClick={() => setScannerOpen(true)}>
           <ScanLine className="h-4 w-4" /> Scan
