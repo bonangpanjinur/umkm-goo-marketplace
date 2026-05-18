@@ -15,6 +15,8 @@ export type CheckoutPayload = {
   client_idempotency_key: string;
   customer_name?: string | null;
   table_label?: string | null;
+  delivery_fee?: number;
+  delivery_address?: string | null;
   items: Array<{
     menu_item_id: string | null;
     name: string;
@@ -116,6 +118,8 @@ export async function submitCheckout(p: CheckoutPayload, maxAttempts = 3): Promi
           client_idempotency_key: p.client_idempotency_key,
           customer_name: p.customer_name ?? null,
           table_label: p.table_label ?? null,
+          delivery_fee: p.delivery_fee ?? 0,
+          delivery_address: p.delivery_address ?? null,
         })
         .select("id, order_no")
         .single();

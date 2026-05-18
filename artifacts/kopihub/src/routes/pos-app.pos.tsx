@@ -25,6 +25,11 @@ import {
   RotateCcw,
   Trash2,
   ScanLine,
+  Pencil,
+  UtensilsCrossed,
+  Truck,
+  Package,
+  Coffee,
 } from "lucide-react";
 import { ListOrdered } from "lucide-react";
 import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
@@ -278,7 +283,27 @@ function POSPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "parked_carts", filter: `outlet_id=eq.${outlet.id}` },
-        () => refreshParked(),
+        (payload: any) => {
+          refreshParked();
+          // Notify when another kasir confirms a new Open Bill
+          if (payload.eventType === "INSERT") {
+            const row = payload.new as { label?: string; created_by?: string | null };
+            if (row?.created_by && row.created_by !== user?.id) {
+              const items = (payload.new?.items ?? []) as CartItem[];
+              const count = cartCount(items);
+              const total = cartTotal(items);
+              toast.success(`Open Bill baru: ${row.label ?? "(tanpa label)"}`, {
+                description: `${count} item · ${formatIDR(total)} — dari kasir lain`,
+                duration: 6000,
+              });
+              try {
+                _posBeep();
+              } catch {
+                /* ignore */
+              }
+            }
+          }
+        },
       )
       .subscribe();
     // Cross-tab + local broadcast: refresh segera saat park/unpark/confirm
@@ -294,7 +319,7 @@ function POSPage() {
       window.removeEventListener("kh-pos-cart-change", onLocal);
       window.removeEventListener("storage", onStorage);
     };
-  }, [outlet?.id]);
+  }, [outlet?.id, user?.id]);
 
   const handleOpenShift = async () => {
     if (!outlet) return;
@@ -511,7 +536,23 @@ function POSPage() {
   const handleCheckout = async (
     method: string,
     _amount: number,
-    extras?: { customer_name?: string | null; table_label?: string | null }
+    extras?: {
+      customer_name?: string | null;
+      table_label?: string | null;
+      delivery?: {
+        courier_id: string;
+        courier_name: string;
+        service_type: string;
+        distance_km: number;
+        base_fee: number;
+        per_km_fee: number;
+        fee: number;
+        is_free: boolean;
+        eta_min: number;
+        eta_max: number;
+        address: string | null;
+      } | null;
+    }
   ) => {
     if (!outlet || !user) return;
 
@@ -523,6 +564,10 @@ function POSPage() {
               : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
       if (!cart.idemKey) updateCart((c) => ({ ...c, idemKey }));
 
+      const deliveryFee = extras?.delivery?.fee ?? 0;
+      const deliveryAddress = extras?.delivery?.address ?? null;
+      const finalTotal = charges.total + deliveryFee;
+
       const result = await submitCheckout({
         shop_id: shop!.id,
         outlet_id: outlet.id,
@@ -531,13 +576,15 @@ function POSPage() {
         discount,
         service_charge: charges.service_charge,
         tax: charges.tax,
-        total: charges.total,
+        total: finalTotal,
         payment_method: method,
         amount_tendered: _amount,
-        change_due: Math.max(0, _amount - charges.total),
+        change_due: Math.max(0, _amount - finalTotal),
         client_idempotency_key: idemKey,
         customer_name: extras?.customer_name ?? null,
         table_label: extras?.table_label ?? null,
+        delivery_fee: deliveryFee,
+        delivery_address: deliveryAddress,
         items: cart.items.map((it) => ({
           menu_item_id: it.menu_item_id,
           name: it.name,
@@ -571,10 +618,10 @@ function POSPage() {
         discount,
         serviceCharge: charges.service_charge,
         tax: charges.tax,
-        total: charges.total,
+        total: finalTotal,
         paymentMethod: (method === "qris" ? "qris" : "cash"),
         amountTendered: _amount,
-        changeDue: Math.max(0, _amount - charges.total),
+        changeDue: Math.max(0, _amount - finalTotal),
         customerName: extras?.customer_name ?? null,
         tableLabel: extras?.table_label ?? null,
       });
@@ -674,6 +721,9 @@ function POSPage() {
           parkedCount={parkedList.length}
           onOpenOrders={() => setOrdersDlgOpen(true)}
           ordersTodayCount={todayOrdersCount}
+          onRename={(idx, label) =>
+            setCarts((prev) => prev.map((c, i) => (i === idx ? { ...c, label } : c)))
+          }
         />
         <Button size="sm" variant="outline" className="ml-auto shrink-0 gap-1" onClick={() => setScannerOpen(true)}>
           <ScanLine className="h-4 w-4" /> Scan
@@ -693,6 +743,9 @@ function POSPage() {
             parkedCount={parkedList.length}
             onOpenOrders={() => setOrdersDlgOpen(true)}
             ordersTodayCount={todayOrdersCount}
+            onRename={(idx, label) =>
+              setCarts((prev) => prev.map((c, i) => (i === idx ? { ...c, label } : c)))
+            }
           />
           <Button size="sm" variant="outline" className="ml-auto shrink-0 gap-1" onClick={() => setScannerOpen(true)}>
             <ScanLine className="h-4 w-4" /> Scan Barcode
@@ -764,6 +817,7 @@ function POSPage() {
         serviceCharge={charges.service_charge}
         tax={charges.tax}
         total={charges.total}
+        outletId={outlet?.id ?? null}
         onConfirm={handleCheckout}
       />
 
@@ -977,6 +1031,14 @@ function POSPage() {
 }
 
 // ============ CartTabs sub-component ============
+function detectCartKind(label: string): { icon: typeof Coffee; tone: string } {
+  const l = label.toLowerCase();
+  if (/\b(meja|table|vip)\b/.test(l)) return { icon: UtensilsCrossed, tone: "text-emerald-600 dark:text-emerald-400" };
+  if (/(takeaway|take away|bawa pulang|tako|to[\s-]?go)/.test(l)) return { icon: Package, tone: "text-sky-600 dark:text-sky-400" };
+  if (/(deliver|antar|ojek|gojek|grab)/.test(l)) return { icon: Truck, tone: "text-orange-600 dark:text-orange-400" };
+  return { icon: Coffee, tone: "text-muted-foreground" };
+}
+
 function CartTabs({
   carts,
   activeIdx,
@@ -987,6 +1049,7 @@ function CartTabs({
   parkedCount,
   onOpenOrders,
   ordersTodayCount,
+  onRename,
 }: {
   carts: LocalCart[];
   activeIdx: number;
@@ -997,27 +1060,45 @@ function CartTabs({
   parkedCount: number;
   onOpenOrders: () => void;
   ordersTodayCount?: number;
+  onRename?: (idx: number, label: string) => void;
 }) {
   return (
     <>
       {carts.map((c, idx) => {
         const active = idx === activeIdx;
         const count = cartCount(c.items);
+        const total = cartTotal(c.items);
+        const { icon: Icon, tone } = detectCartKind(c.label);
         return (
           <div
             key={idx}
-            className={`group flex items-center gap-1 rounded-md border px-2 h-8 text-xs whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`group flex items-center gap-1.5 rounded-md border px-2 h-9 text-xs whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
               active
-                ? "border-primary bg-primary/5 text-primary font-medium"
+                ? "border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/40"
                 : "border-border bg-background hover:bg-muted/50"
             }`}
             onClick={() => onSelect(idx)}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              if (!onRename) return;
+              const next = window.prompt("Ganti label cart", c.label);
+              if (next && next.trim()) onRename(idx, next.trim().slice(0, 80));
+            }}
+            title="Klik untuk pilih · double-klik untuk ganti label"
           >
-            <span className="truncate max-w-[100px]">{c.label}</span>
+            <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : tone}`} />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="truncate max-w-[130px]">{c.label}</span>
+              {active && total > 0 && (
+                <span className="text-[9px] font-normal opacity-80 tabular-nums">
+                  {formatIDR(total)}
+                </span>
+              )}
+            </div>
             {count > 0 && (
               <span
-                className={`rounded-full px-1.5 text-[10px] ${
-                  active ? "bg-primary/20" : "bg-muted"
+                className={`rounded-full px-1.5 text-[10px] font-medium ${
+                  active ? "bg-primary/25 text-primary" : "bg-muted text-foreground"
                 }`}
               >
                 {count}
@@ -1025,6 +1106,20 @@ function CartTabs({
             )}
             {c.parkedId && (
               <StickyNote className="h-3 w-3 text-amber-500" aria-label="Tersimpan" />
+            )}
+            {onRename && active && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const next = window.prompt("Ganti label cart", c.label);
+                  if (next && next.trim()) onRename(idx, next.trim().slice(0, 80));
+                }}
+                className="rounded p-0.5 hover:bg-muted-foreground/10"
+                aria-label="Ganti label"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
             )}
             <button
               type="button"
@@ -1043,14 +1138,14 @@ function CartTabs({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 shrink-0"
+        className="h-9 w-9 shrink-0"
         onClick={onAdd}
         aria-label="Tab baru"
       >
         <Plus className="h-4 w-4" />
       </Button>
       <div className="mx-1 h-5 w-px bg-border shrink-0" />
-      <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenParked}>
+      <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-xs shrink-0" onClick={onOpenParked}>
         <StickyNote className="h-3.5 w-3.5" />
         Tersimpan
         {parkedCount > 0 && (
@@ -1059,7 +1154,7 @@ function CartTabs({
           </span>
         )}
       </Button>
-      <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
+      <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
         <ListOrdered className="h-3.5 w-3.5" />
         Pesanan
         {ordersTodayCount && ordersTodayCount > 0 ? (
@@ -1070,4 +1165,28 @@ function CartTabs({
       </Button>
     </>
   );
+}
+
+// Tiny Web Audio beep used when another kasir confirms an open bill.
+let _posBeepCtx: AudioContext | null = null;
+function _posBeep() {
+  if (typeof window === "undefined") return;
+  try {
+    _posBeepCtx ??= new (window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const ctx = _posBeepCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 720;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.36);
+  } catch {
+    /* ignore */
+  }
 }
