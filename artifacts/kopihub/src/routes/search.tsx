@@ -356,6 +356,18 @@ function SearchPage() {
     })();
   }, [cat, cats]);
 
+  // Stable partition: featured-shop items naik ke atas, urutan relatif tetap.
+  const applyFeaturedBoostProducts = (list: any[]) => {
+    const feat: any[] = []; const rest: any[] = [];
+    for (const p of list) (p.shop?.is_featured ? feat : rest).push(p);
+    return feat.length ? [...feat, ...rest] : list;
+  };
+  const applyFeaturedBoostShops = (list: any[]) => {
+    const feat: any[] = []; const rest: any[] = [];
+    for (const s of list) (s.is_featured ? feat : rest).push(s);
+    return feat.length ? [...feat, ...rest] : list;
+  };
+
   // ---- Query builders ----
   const buildProductQuery = () => {
     const term = q ? `%${q}%` : "%";
