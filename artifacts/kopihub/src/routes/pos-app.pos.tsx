@@ -811,6 +811,7 @@ function POSPage() {
         serviceCharge={charges.service_charge}
         tax={charges.tax}
         total={charges.total}
+        outletId={outlet?.id ?? null}
         onConfirm={handleCheckout}
       />
 
