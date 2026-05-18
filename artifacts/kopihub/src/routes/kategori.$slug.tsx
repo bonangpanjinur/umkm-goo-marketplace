@@ -3,11 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, Search as SearchIcon } from "lucide-react";
+import { Store, Search as SearchIcon, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { CITIES, cityIlikeOr } from "@/lib/cities";
 
 const SUBTYPE_LABEL: Record<string, string> = {
   "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
@@ -39,6 +39,19 @@ export const Route = createFileRoute("/kategori/$slug")({
         { property: "og:url", content: path },
       ],
       links: [{ rel: "canonical", href: path }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Kategori", item: "/kategori" },
+              { "@type": "ListItem", position: 2, name, item: path },
+            ],
+          }),
+        },
+      ],
     };
   },
   notFoundComponent: () => (
@@ -67,6 +80,8 @@ type Shop = {
   logo_url: string | null;
   rating_avg: number | null;
   rating_count: number | null;
+  is_featured?: boolean | null;
+  business_subtype?: string | null;
 };
 
 function CategoryPage() {
