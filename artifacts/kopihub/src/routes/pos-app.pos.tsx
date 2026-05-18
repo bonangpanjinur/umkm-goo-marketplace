@@ -618,10 +618,10 @@ function POSPage() {
         discount,
         serviceCharge: charges.service_charge,
         tax: charges.tax,
-        total: charges.total,
+        total: finalTotal,
         paymentMethod: (method === "qris" ? "qris" : "cash"),
         amountTendered: _amount,
-        changeDue: Math.max(0, _amount - charges.total),
+        changeDue: Math.max(0, _amount - finalTotal),
         customerName: extras?.customer_name ?? null,
         tableLabel: extras?.table_label ?? null,
       });
