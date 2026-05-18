@@ -80,6 +80,11 @@ export function CityCombobox({
               </div>
             ) : (
               <>
+                {usingFallback && (
+                  <div className="border-b px-3 py-2 text-[11px] text-amber-700 bg-amber-50">
+                    Daftar kota lengkap tidak bisa dimuat. Menampilkan {cities.length} kota utama.
+                  </div>
+                )}
                 <CommandEmpty>Kota tidak ditemukan.</CommandEmpty>
                 <CommandGroup className="max-h-72 overflow-auto">
                   {cities.map((c) => (
