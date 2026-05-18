@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 import { cityIlikeOr } from "@/lib/cities";
+import { CityCombobox } from "@/components/marketplace/CityCombobox";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -800,14 +801,14 @@ function SearchPage() {
               </div>
               <div>
                 <Label className="text-xs">Kota / Lokasi</Label>
-                <Input
-                  type="text"
-                  className="mt-1 h-9"
-                  value={cityDraft}
-                  onChange={e => setCityDraft(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") applyDrafts(); }}
-                  placeholder="Jakarta, Bandung…"
-                />
+                <div className="mt-1">
+                  <CityCombobox
+                    value={cityDraft}
+                    onChange={(v) => { setCityDraft(v); }}
+                    placeholder="Semua kota"
+                    size="sm"
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-xs">Metode Bayar</Label>

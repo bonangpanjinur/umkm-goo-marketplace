@@ -7,7 +7,8 @@ import { Store, Search as SearchIcon, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { CITIES, cityIlikeOr } from "@/lib/cities";
+import { cityIlikeOr } from "@/lib/cities";
+import { CityCombobox } from "@/components/marketplace/CityCombobox";
 
 const SUBTYPE_LABEL: Record<string, string> = {
   "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
@@ -216,20 +217,14 @@ function CategoryPage() {
             </div>
             <div>
               <Label className="text-xs">Kota / Lokasi</Label>
-              <Select
-                value={cityDraft || "all"}
-                onValueChange={(v) => setCityDraft(v === "all" ? "" : v)}
-              >
-                <SelectTrigger className="mt-1 h-9">
-                  <SelectValue placeholder="Semua kota" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua kota</SelectItem>
-                  {CITIES.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-1">
+                <CityCombobox
+                  value={cityDraft}
+                  onChange={setCityDraft}
+                  placeholder="Semua kota"
+                  size="sm"
+                />
+              </div>
             </div>
             <div className="flex items-end">
               <Button onClick={applyQuickFilter} className="h-9 w-full md:w-auto gap-1.5">

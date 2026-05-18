@@ -139,3 +139,13 @@ Setelah Anda konfirmasi (atau bilang "lanjut semua"), saya kerjakan A → B → 
 - **City filter hardening** — modul baru `src/lib/cities.ts` ekspos `CITIES` allow-list (15 kota) + helper `cityIlikeOr(city, column)` yang generate pattern `.or()` whole-word-ish (`% city`, `city %`, `, city`, dst) — hindari false positive "Solo" ↔ "Solok". Dipakai di sitemap, search.tsx (produk & toko), `kategori.$slug.$city.tsx`. Quick Filter di `kategori.$slug.tsx` jadi `<Select>` dari `CITIES` (bukan free-text lagi).
 
 ### Tidak ada migration DB.
+
+## I.5b — External API kota Indonesia ✅ SELESAI
+
+- **API**: `https://dev.farizdotid.com/api/daerahindonesia/kota` — gratis, tanpa key, all-in-one ±514 kota/kabupaten.
+- `src/lib/cities.ts` tambah:
+  - `fetchIndonesiaCities()` — fetch + normalize ("KOTA BANDUNG" → "Bandung"), sessionStorage cache 7 hari, dedupe inflight, fallback ke `CITIES` allow-list kalau API down.
+  - `useIndonesiaCities()` — React hook return `{ cities, loading }`.
+- `src/components/marketplace/CityCombobox.tsx` — combobox baru pakai shadcn Command + Popover, searchable, clear button, loading state.
+- `/search` (city filter) & `/kategori/$slug` (Quick Filter) ganti `<Input>`/`<Select>` jadi `<CityCombobox>`.
+- Sitemap **tetap** pakai `CITIES` allow-list (15 kota) supaya jumlah landing pages terkendali untuk SEO. List API hanya untuk UI filter.
