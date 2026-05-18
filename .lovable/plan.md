@@ -124,3 +124,18 @@ Tidak ada migration database di semua batch.
 3. Batch D city allow-list: 10 kota sekarang cukup, atau perlu ditambah (Pekanbaru, Banjarmasin, Manado, dll)?
 
 Setelah Anda konfirmasi (atau bilang "lanjut semua"), saya kerjakan A → B → C → D berurutan.
+
+## I.5 — Audit & perbaikan pasca I.2–I.4 ✅ SELESAI
+
+### Bug fix (P0)
+
+- **Featured boost produk** — `.order("is_featured", { foreignTable: "shop" })` di-hapus dari `buildProductQuery` (search.tsx) karena PostgREST opsi `foreignTable` hanya mengurut embedded rows, BUKAN parent. Ganti dengan stable-partition client-side: produk dari toko `shop.is_featured` naik ke atas setelah fetch (`applyFeaturedBoostProducts`). Sama untuk shops (`applyFeaturedBoostShops`) sebagai safety net. Pola identik di `kategori.$slug.tsx` & `kategori.$slug.$city.tsx`.
+- **Duplicate-content sitemap** — `routes/sitemap[.]xml.ts` tidak lagi emit `/s/{slug}`. Hanya `/toko/{slug}` yang kanonik. `s.$slug.tsx` sekarang punya `head().links` `<link rel="canonical" href="/toko/{slug}">`.
+
+### UX / SEO polish (P1)
+
+- **Badge "★ Unggulan"** dirender di ShopCard `/search`, `/kategori/$slug`, `/kategori/$slug/$city` (Star icon amber, di sebelah nama).
+- **JSON-LD `BreadcrumbList`** ditambahkan di `kategori.$slug.tsx` head() (Kategori → {nama}).
+- **City filter hardening** — modul baru `src/lib/cities.ts` ekspos `CITIES` allow-list (15 kota) + helper `cityIlikeOr(city, column)` yang generate pattern `.or()` whole-word-ish (`% city`, `city %`, `, city`, dst) — hindari false positive "Solo" ↔ "Solok". Dipakai di sitemap, search.tsx (produk & toko), `kategori.$slug.$city.tsx`. Quick Filter di `kategori.$slug.tsx` jadi `<Select>` dari `CITIES` (bukan free-text lagi).
+
+### Tidak ada migration DB.
