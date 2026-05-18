@@ -29,7 +29,7 @@ export function CityCombobox({
   size = "md",
 }: Props) {
   const [open, setOpen] = useState(false);
-  const { cities, loading } = useIndonesiaCities();
+  const { cities, loading, usingFallback } = useIndonesiaCities();
 
   const heightCls = size === "sm" ? "h-9" : "h-10";
 
