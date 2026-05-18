@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
+import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
 
 const SUBTYPE_LABEL: Record<string, string> = {
   "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
@@ -123,7 +124,7 @@ function CategoryPage() {
         .order("is_featured", { ascending: false, nullsFirst: false })
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(24);
-      const shopList = (shopsData as any[]) ?? [];
+      const shopList = applyFeaturedBoostShops(((shopsData as any[]) ?? []));
       setShops(shopList as Shop[]);
       setSubtypes(Array.from(new Set(shopList.map(s => s.business_subtype).filter(Boolean))).sort());
 
@@ -138,10 +139,7 @@ function CategoryPage() {
           .order("total_sold", { ascending: false, nullsFirst: false })
           .limit(24);
         // Boost produk dari toko unggulan ke atas (stable partition).
-        const raw = (prods as any[]) ?? [];
-        const feat = raw.filter(p => p.shop?.is_featured);
-        const rest = raw.filter(p => !p.shop?.is_featured);
-        setProducts([...feat, ...rest]);
+        setProducts(applyFeaturedBoostProducts(((prods as any[]) ?? [])));
       }
       setLoading(false);
     })();

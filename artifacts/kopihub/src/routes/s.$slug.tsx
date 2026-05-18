@@ -37,11 +37,15 @@ export const Route = createFileRoute("/s/$slug")({
   },
   component: ShopLayout,
   notFoundComponent: ShopNotFound,
-  head: ({ params }) => ({
-    // /s/{slug} adalah utility storefront pembeli; halaman discovery kanoniknya
-    // adalah /toko/{slug}. Canonical menghindari duplicate-content di SEO.
-    links: [{ rel: "canonical", href: `/toko/${params.slug}` }],
-  }),
+  head: ({ params, loaderData }) => {
+    // /s/{slug} = utility storefront. Canonical:
+    //  - jika toko punya custom_domain ter-verifikasi → pakai domain itu
+    //  - jika tidak → /toko/{slug} (halaman discovery marketplace)
+    const cd = (loaderData as any)?.shop?.custom_domain;
+    const cdVerified = (loaderData as any)?.shop?.custom_domain_verified_at;
+    const canonical = cd && cdVerified ? `https://${cd}/` : `/toko/${params.slug}`;
+    return { links: [{ rel: "canonical", href: canonical }] };
+  },
 });
 
 function ShopNotFound() {

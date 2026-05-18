@@ -95,14 +95,19 @@ export async function fetchIndonesiaCities(): Promise<string[]> {
           sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), list }));
         } catch {}
       }
-      return list;
+      return { list, fallback: false as const };
     } catch {
       // Fallback: pakai allow-list statik kalau API gagal.
-      return [...CITIES];
+      return { list: [...CITIES], fallback: true as const };
     } finally {
       _inflight = null;
     }
-  })();
+  })().then((r) => {
+    // Return only `list` to keep the public Promise<string[]> contract.
+    // Fallback flag is exposed via `useIndonesiaCities`.
+    (fetchIndonesiaCities as any)._lastFallback = r.fallback;
+    return r.list;
+  });
 
   return _inflight;
 }
@@ -110,19 +115,20 @@ export async function fetchIndonesiaCities(): Promise<string[]> {
 export function useIndonesiaCities() {
   const [cities, setCities] = useState<string[]>(() => [...CITIES]);
   const [loading, setLoading] = useState(true);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     let alive = true;
     fetchIndonesiaCities().then((list) => {
-      if (alive) {
-        setCities(list);
-        setLoading(false);
-      }
+      if (!alive) return;
+      setCities(list);
+      setUsingFallback(Boolean((fetchIndonesiaCities as any)._lastFallback));
+      setLoading(false);
     });
     return () => {
       alive = false;
     };
   }, []);
 
-  return { cities, loading };
+  return { cities, loading, usingFallback };
 }

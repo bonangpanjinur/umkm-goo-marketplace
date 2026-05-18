@@ -34,7 +34,7 @@ export const Route = createFileRoute("/")({
 
 type Category = { id: string; slug: string; name: string; description: string | null; icon_url: string | null };
 type Shop = { id: string; slug: string; name: string; tagline: string | null; logo_url: string | null; rating_avg: number | null; rating_count: number | null; is_featured?: boolean; kyc_status?: string; business_category_id?: string | null };
-type Product = { id: string; shop_id: string; name: string; price: number; image_url: string | null; slug: string | null; rating_avg: number | null; rating_count?: number | null; stock?: number | null; total_sold?: number | null; low_stock_threshold?: number | null; flash_price?: number | null; flash_starts_at?: string | null; flash_ends_at?: string | null; shop?: { slug: string; name: string; logo_url?: string | null; kyc_status?: string | null } };
+type Product = { id: string; shop_id: string; name: string; price: number; image_url: string | null; slug: string | null; rating_avg: number | null; rating_count?: number | null; stock?: number | null; total_sold?: number | null; low_stock_threshold?: number | null; flash_price?: number | null; flash_starts_at?: string | null; flash_ends_at?: string | null; shop?: { slug: string; name: string; logo_url?: string | null; kyc_status?: string | null; is_featured?: boolean | null } };
 type Banner = { id: string; title: string; subtitle: string | null; cta_text: string | null; cta_link: string | null; image_url: string | null; bg_color: string | null; sort_order: number };
 type AdSpot = { id: string; ad_type: "product" | "shop"; target_id: string; target_name: string; target_image: string | null; position: string; shop_name: string };
 
@@ -308,7 +308,7 @@ function MarketplaceHome() {
         supabase.from("business_categories").select("id, slug, name, description, icon_url").eq("is_active", true).order("sort_order"),
         (supabase as any).from("shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, is_featured, kyc_status, business_category_id").eq("is_active", true).eq("is_featured", true).order("rating_avg", { ascending: false, nullsFirst: false }).limit(32),
         (supabase as any).from("shops").select("id, slug, name, tagline, logo_url, rating_avg, rating_count, kyc_status, business_category_id").eq("is_active", true).order("created_at", { ascending: false }).limit(6),
-        supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, total_sold, low_stock_threshold, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name, logo_url, kyc_status)").eq("is_available", true).order("is_featured", { ascending: false }).order("rating_avg", { ascending: false, nullsFirst: false }).limit(12),
+        supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, total_sold, low_stock_threshold, is_featured, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name, logo_url, kyc_status, is_featured)").eq("is_available", true).order("is_featured", { ascending: false }).order("rating_avg", { ascending: false, nullsFirst: false }).limit(12),
         supabase.from("menu_items").select("id, shop_id, name, price, image_url, slug, rating_avg, rating_count, stock, total_sold, low_stock_threshold, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name, logo_url, kyc_status)").eq("is_available", true).not("flash_price", "is", null).lt("flash_starts_at", now).gt("flash_ends_at", now).order("flash_ends_at", { ascending: true }).limit(8),
         supabase.from("shops").select("id", { count: "exact", head: true }).eq("is_active", true),
         supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("is_available", true),
@@ -744,6 +744,11 @@ export function ProductCard({ product }: { product: Product }) {
           {flashActive && (
             <span className="flex items-center gap-0.5 rounded-md bg-gradient-to-r from-rose-500 to-orange-500 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white shadow-md animate-pulse">
               <Flame className="h-2.5 w-2.5" />-{discountPct}%
+            </span>
+          )}
+          {product.shop?.is_featured && (
+            <span className="flex items-center gap-0.5 rounded-md bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+              ★ Unggulan
             </span>
           )}
           {!flashActive && product.stock != null && product.stock > 0 && product.stock <= (product.low_stock_threshold ?? 5) && (

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
+import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -357,17 +358,7 @@ function SearchPage() {
     })();
   }, [cat, cats]);
 
-  // Stable partition: featured-shop items naik ke atas, urutan relatif tetap.
-  const applyFeaturedBoostProducts = (list: any[]) => {
-    const feat: any[] = []; const rest: any[] = [];
-    for (const p of list) (p.shop?.is_featured ? feat : rest).push(p);
-    return feat.length ? [...feat, ...rest] : list;
-  };
-  const applyFeaturedBoostShops = (list: any[]) => {
-    const feat: any[] = []; const rest: any[] = [];
-    for (const s of list) (s.is_featured ? feat : rest).push(s);
-    return feat.length ? [...feat, ...rest] : list;
-  };
+  // Stable partition: helper bersama di lib/featured-boost.ts
 
   // ---- Query builders ----
   const buildProductQuery = () => {
@@ -398,7 +389,14 @@ function SearchPage() {
     else if (sort === "termahal") prodQ = prodQ.order("price",       { ascending: false });
     else if (sort === "terbaru")  prodQ = prodQ.order("created_at",  { ascending: false });
     else if (sort === "terlaris") prodQ = prodQ.order("total_sold",  { ascending: false, nullsFirst: false });
-    else                          prodQ = prodQ.order("rating_avg",  { ascending: false, nullsFirst: false });
+    else if (sort === "rating")   prodQ = prodQ.order("rating_avg",  { ascending: false, nullsFirst: false });
+    else /* relevan */ {
+      // Rekomendasi: rating tinggi DAN laku — beda dari sort "rating" murni.
+      prodQ = prodQ
+        .order("rating_avg",  { ascending: false, nullsFirst: false })
+        .order("total_sold",  { ascending: false, nullsFirst: false })
+        .order("created_at",  { ascending: false });
+    }
     return prodQ;
   };
 
