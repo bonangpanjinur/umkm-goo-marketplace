@@ -1,40 +1,126 @@
-## I.2 — Marketplace filter: Kategori + Subtype + Lokasi ✅ SELESAI
+# Audit Pasca-Fase I (I.2 → I.4) & Rencana Perbaikan
 
-- `subtype` ditambahkan ke `searchSchema`, query, cacheKey, pills, dan localStorage di `routes/search.tsx`.
-- Quick filter (Subtype + Kota) di `routes/kategori.$slug.tsx` → navigate ke `/search` dengan filter aktif.
-- Tidak ada migration DB (kolom `business_subtype` sudah ada).
+Saya review ulang semua perubahan I.2/I.3/I.4 + alur yang ter-mirror (search, kategori, sitemap, sorting/featured). Berikut temuan + urutan perbaikannya.
 
-## I.3 — SEO: Sitemap dinamis & landing kota+kategori ✅ SELESAI
+---
 
-### Yang dikerjakan
+## Temuan
 
-1. **`routes/sitemap[.]xml.ts`** — Server route TanStack Start, replace static `public/sitemap.xml` (sudah dihapus).
-   - Include static routes (`/`, `/kategori`, `/search`, `/pricing`, `/features`).
-   - Loop semua `business_categories.is_active=true` → emit `/kategori/{slug}`.
-   - Loop allow-list 10 kota besar (Jakarta, Bandung, Surabaya, dst) × kategori → emit `/kategori/{slug}/{city}`.
-   - Loop semua `shops.is_active=true` → emit `/toko/{slug}` + `/s/{slug}` (limit 1000).
-   - `Cache-Control: public, max-age=3600`. Pakai `@supabase/supabase-js` createClient dgn anon key (read-only).
-   - `BASE_URL=""` (relative) sampai custom domain di-set.
+### 🔴 P0 — Bug fungsional
 
-2. **`routes/kategori.$slug.$city.tsx`** — Landing page baru kategori × kota.
-   - Title: `{Kategori} di {Kota} — Marketplace UMKMgo`, description unik per kombinasi.
-   - `og:title`, `og:description`, `og:url`, canonical link.
-   - JSON-LD `BreadcrumbList` (Kategori → Sub-kategori → Kota).
-   - Konten: shops difilter via `address ilike %city%` + produk pilihan dari shop tsb.
-   - Empty state link balik ke `/kategori/{slug}`.
+**1. Boost `is_featured` pada query produk tidak bekerja**
+`routes/search.tsx` → `buildProductQuery()` memakai
+`.order("is_featured", { foreignTable: "shop" })`. Di supabase-js, opsi `foreignTable` hanya mengurutkan baris **embedded** (anak) — **bukan** parent. Artinya produk dari toko `is_featured=true` **tidak** naik ke atas seperti yang diharapkan di tab "Produk" maupun "Semua".
+Sumber: dok PostgREST/PostgrestTransformBuilder.order.
 
-3. **`routes/kategori.$slug.tsx`** — Tambah `head()` dengan title/desc/og/canonical per slug.
+**2. Sitemap menghasilkan duplicate-content URL**
+`routes/sitemap[.]xml.ts` emit DUA URL untuk shop yang sama:
 
-### Catatan
+- `/toko/{slug}` → halaman marketplace publik (sudah punya `toko.$slug.tsx`)
+- `/s/{slug}` → storefront mini untuk pembeli (utilitas, bukan halaman discovery)
 
-- Tidak ada perubahan DB.
-- Sitemap akan mulai populated otomatis begitu deploy; crawler bisa discovery via `public/robots.txt` (sudah `Sitemap: /sitemap.xml`).
-- Allow-list kota disimpan inline di `sitemap[.]xml.ts` (`CITIES` const) — gampang extend nanti.
+Google akan menganggap keduanya bersaing → split rangking & potensi penalti soft-duplicate.
 
-## I.4 — Sorting & ranking marketplace ✅ SELESAI
+### 🟡 P1 — UX/SEO gap
 
-- Tambah opsi sort `terlaris` di `searchSchema` (`routes/search.tsx`).
-- Boost `is_featured` shop selalu di posisi teratas — sebelum sort lain — di `buildShopQuery` & `buildProductQuery` (via `foreignTable: "shop"`).
-- Produk: sort `terlaris` → `total_sold desc`. Toko: `terlaris` → `rating_count desc` (proxy popularitas).
-- `routes/kategori.$slug.tsx`: order chain shops sekarang `is_featured desc → rating_avg desc`; produk pilihan tambahkan tiebreak `total_sold desc`.
-- Tidak ada migration DB (kolom `is_featured`, `total_sold`, `rating_count` sudah ada).
+**3. Badge "Unggulan" tidak pernah dirender**
+Kolom `is_featured` sudah di-select di `/search` & `/kategori/$slug`, tapi card toko tidak menampilkan indikator apapun. Admin tidak melihat efek toggle Star di `/admin/shops`.
+
+**4. `kategori.$slug.tsx` kurang JSON-LD**
+Hanya punya `head()` (title/desc/og). Tidak ada `BreadcrumbList` (sementara `kategori.$slug.$city.tsx` sudah punya) → inkonsistensi sinyal SEO.
+
+**5. Quick Filter city free-text rentan false-positive**
+`address ilike %city%` di `/search` & `kategori.$slug.tsx`:
+
+- "solo" cocok dengan "Solok" / "Banyak Solo"
+- input bebas user → typo bikin 0 hasil padahal data ada
+
+Sitemap sudah pakai allow-list `CITIES` (10 kota), tapi UI tidak.
+
+### 🟢 P2 — Polish (opsional, gak blocking)
+
+**6. Sort `relevan` & `rating` identik**
+Keduanya fallback ke `.order("rating_avg")`. Tidak ada penalti, hanya pengalaman bingung.
+
+**7. Produk di `kategori.$slug.tsx` tidak boost `is_featured`**
+Sama akar masalahnya dengan #1 — perlu strategi non-foreignTable.
+
+---
+
+## Rencana Perbaikan
+
+### Batch A — Bug fix (P0)
+
+**A1. Perbaiki featured-boost produk** (`routes/search.tsx`, `routes/kategori.$slug.tsx`)
+
+Strategi: **dua-pass ringan** alih-alih sort di SQL.
+
+1. Sebelum fetch produk, ambil `id` toko `is_featured=true` aktif (max 50, satu query cepat).
+2. Fetch produk seperti biasa (sort by rating/terlaris/terbaru).
+3. Setelah hasil datang, stable-sort di client: produk yang `shop_id ∈ featuredSet` naik ke atas (preserve relative order).
+
+Hapus baris `.order("is_featured", { foreignTable: "shop" })` yang tidak efektif.
+Alternatif yang ditolak: bikin RPC/view (overkill); ORDER lewat join (PostgREST tidak support).
+
+**A2. Sitemap: drop `/s/{slug}`, hanya emit `/toko/{slug}`** (`routes/sitemap[.]xml.ts`)
+
+Hapus loop kedua. `/s/{slug}` tetap reachable lewat link internal kalau perlu, tapi tidak diiklankan ke crawler. Sebagai pelengkap, tambahkan `<link rel="canonical" href="/toko/{slug}">` di `s.$slug.tsx` agar Google men-collapse keduanya kalau di-crawl manual.
+
+### Batch B — Featured visibility (P1)
+
+**B1. Badge "★ Unggulan"** pada ShopCard di:
+
+- `routes/search.tsx` (tab Toko)
+- `routes/kategori.$slug.tsx`
+- `routes/kategori.$slug.$city.tsx`
+
+Komponen kecil inline: `{shop.is_featured && <span className="...amber...">★ Unggulan</span>}`. Tidak perlu komponen baru — pola sama seperti badge `kyc_status="approved"` yang sudah ada.
+
+**B2. Badge "Unggulan" pada ProductCard** untuk produk dari toko featured (setelah A1 jalan, `shop.is_featured` sudah tersedia di payload).
+
+### Batch C — SEO consistency (P1)
+
+**C1. Tambah JSON-LD `BreadcrumbList` + `CollectionPage`** di `routes/kategori.$slug.tsx` `head()`:
+
+```
+Kategori → {Nama Kategori}
+```
+
+Plus `CollectionPage` dengan `mainEntity` minimal (URL kategori, jumlah hasil).
+
+### Batch D — Quick Filter hardening (P1)
+
+**D1. Ekspos `CITIES` allow-list sebagai modul shared** (`src/lib/cities.ts`) — dipakai oleh sitemap & UI.
+
+**D2. Ubah input kota di Quick Filter** (`kategori.$slug.tsx`) dari free-text `<Input>` jadi `<Select>` dengan opsi dari `CITIES` + opsi "Semua kota". `/search` tetap accept free-text (untuk power user via URL), tapi field UI-nya jadi select dengan opsi "Kota lain (ketik)" untuk fallback.
+
+**D3. Whole-word matching** di query: ganti `.ilike("address", "%city%")` jadi pattern yang lebih ketat — `.or("address.ilike.% city %,address.ilike.%, city%,address.ilike.city %")` — atau lebih bersih: tambah index `to_tsvector(address)` lalu pakai full-text (opsional, butuh migration).
+
+Untuk sekarang **D3 cukup tighten pattern** (`% city%` dgn leading space) — tidak butuh migration.
+
+### Batch E — Polish (P2, opsional, bisa dilewati)
+
+- **E1**: Sort `relevan` → boost `rating_avg desc` + tie-break `total_sold desc` supaya beda dari `rating`.
+- **E2**: Hapus opsi `rating` (duplikat) atau rename `relevan` jadi "Rekomendasi".
+
+---
+
+## Urutan Eksekusi yang Saya Usulkan
+
+1. **Batch A (P0)** — wajib, langsung perbaiki bug yang sudah live.
+2. **Batch B (P1)** — quick win, user akhirnya lihat efek admin Star.
+3. **Batch C (P1)** — SEO, hemat 1 turn.
+4. **Batch D (P1)** — perlu file baru (`src/lib/cities.ts`) + sedikit refactor UI.
+5. **Batch E** — skip dulu, lanjut ke Fase berikutnya.
+
+Tidak ada migration database di semua batch.
+
+---
+
+## Pertanyaan untuk Konfirmasi
+
+1. Setuju strategi **two-pass + client-side stable-sort** untuk featured boost (A1)? Atau prefer skip boost di produk dan cuma di toko saja (lebih simpel)?
+2. Drop `/s/{slug}` dari sitemap (A2) — Anda ingin storefront tetap discoverable lewat sitemap untuk tujuan tertentu (mis. landing share-link)?
+3. Batch D city allow-list: 10 kota sekarang cukup, atau perlu ditambah (Pekanbaru, Banjarmasin, Manado, dll)?
+
+Setelah Anda konfirmasi (atau bilang "lanjut semua"), saya kerjakan A → B → C → D berurutan.
