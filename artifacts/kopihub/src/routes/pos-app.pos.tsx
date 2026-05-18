@@ -1025,6 +1025,14 @@ function POSPage() {
 }
 
 // ============ CartTabs sub-component ============
+function detectCartKind(label: string): { icon: typeof Coffee; tone: string } {
+  const l = label.toLowerCase();
+  if (/\b(meja|table|vip)\b/.test(l)) return { icon: UtensilsCrossed, tone: "text-emerald-600 dark:text-emerald-400" };
+  if (/(takeaway|take away|bawa pulang|tako|to[\s-]?go)/.test(l)) return { icon: Package, tone: "text-sky-600 dark:text-sky-400" };
+  if (/(deliver|antar|ojek|gojek|grab)/.test(l)) return { icon: Truck, tone: "text-orange-600 dark:text-orange-400" };
+  return { icon: Coffee, tone: "text-muted-foreground" };
+}
+
 function CartTabs({
   carts,
   activeIdx,
@@ -1035,6 +1043,7 @@ function CartTabs({
   parkedCount,
   onOpenOrders,
   ordersTodayCount,
+  onRename,
 }: {
   carts: LocalCart[];
   activeIdx: number;
@@ -1045,27 +1054,45 @@ function CartTabs({
   parkedCount: number;
   onOpenOrders: () => void;
   ordersTodayCount?: number;
+  onRename?: (idx: number, label: string) => void;
 }) {
   return (
     <>
       {carts.map((c, idx) => {
         const active = idx === activeIdx;
         const count = cartCount(c.items);
+        const total = cartTotal(c.items);
+        const { icon: Icon, tone } = detectCartKind(c.label);
         return (
           <div
             key={idx}
-            className={`group flex items-center gap-1 rounded-md border px-2 h-8 text-xs whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`group flex items-center gap-1.5 rounded-md border px-2 h-9 text-xs whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
               active
-                ? "border-primary bg-primary/5 text-primary font-medium"
+                ? "border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/40"
                 : "border-border bg-background hover:bg-muted/50"
             }`}
             onClick={() => onSelect(idx)}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              if (!onRename) return;
+              const next = window.prompt("Ganti label cart", c.label);
+              if (next && next.trim()) onRename(idx, next.trim().slice(0, 80));
+            }}
+            title="Klik untuk pilih · double-klik untuk ganti label"
           >
-            <span className="truncate max-w-[100px]">{c.label}</span>
+            <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : tone}`} />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="truncate max-w-[130px]">{c.label}</span>
+              {active && total > 0 && (
+                <span className="text-[9px] font-normal opacity-80 tabular-nums">
+                  {formatIDR(total)}
+                </span>
+              )}
+            </div>
             {count > 0 && (
               <span
-                className={`rounded-full px-1.5 text-[10px] ${
-                  active ? "bg-primary/20" : "bg-muted"
+                className={`rounded-full px-1.5 text-[10px] font-medium ${
+                  active ? "bg-primary/25 text-primary" : "bg-muted text-foreground"
                 }`}
               >
                 {count}
@@ -1073,6 +1100,20 @@ function CartTabs({
             )}
             {c.parkedId && (
               <StickyNote className="h-3 w-3 text-amber-500" aria-label="Tersimpan" />
+            )}
+            {onRename && active && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const next = window.prompt("Ganti label cart", c.label);
+                  if (next && next.trim()) onRename(idx, next.trim().slice(0, 80));
+                }}
+                className="rounded p-0.5 hover:bg-muted-foreground/10"
+                aria-label="Ganti label"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
             )}
             <button
               type="button"
@@ -1091,14 +1132,14 @@ function CartTabs({
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 shrink-0"
+        className="h-9 w-9 shrink-0"
         onClick={onAdd}
         aria-label="Tab baru"
       >
         <Plus className="h-4 w-4" />
       </Button>
       <div className="mx-1 h-5 w-px bg-border shrink-0" />
-      <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenParked}>
+      <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-xs shrink-0" onClick={onOpenParked}>
         <StickyNote className="h-3.5 w-3.5" />
         Tersimpan
         {parkedCount > 0 && (
@@ -1107,7 +1148,7 @@ function CartTabs({
           </span>
         )}
       </Button>
-      <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
+      <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-xs shrink-0" onClick={onOpenOrders}>
         <ListOrdered className="h-3.5 w-3.5" />
         Pesanan
         {ordersTodayCount && ordersTodayCount > 0 ? (
@@ -1118,4 +1159,28 @@ function CartTabs({
       </Button>
     </>
   );
+}
+
+// Tiny Web Audio beep used when another kasir confirms an open bill.
+let _posBeepCtx: AudioContext | null = null;
+function _posBeep() {
+  if (typeof window === "undefined") return;
+  try {
+    _posBeepCtx ??= new (window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const ctx = _posBeepCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 720;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.36);
+  } catch {
+    /* ignore */
+  }
 }
