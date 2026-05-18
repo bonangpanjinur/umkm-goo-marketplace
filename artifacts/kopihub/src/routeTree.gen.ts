@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -300,6 +301,11 @@ import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api
 import { Route as AdminPlansIdMatrixRouteImport } from './routes/admin.plans.$id.matrix'
 import { Route as ApiPublicWebhooksPlanBillingProviderRouteImport } from './routes/api/public/webhooks/plan-billing.$provider'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -1786,6 +1792,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/affiliate': typeof AdminAffiliateRoute
@@ -2074,6 +2081,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/affiliate': typeof AdminAffiliateRoute
@@ -2365,6 +2373,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/affiliate': typeof AdminAffiliateRoute
@@ -2659,6 +2668,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/admin/activity'
     | '/admin/ads'
     | '/admin/affiliate'
@@ -2947,6 +2957,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/admin/activity'
     | '/admin/ads'
     | '/admin/affiliate'
@@ -3237,6 +3248,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/signup'
+    | '/sitemap.xml'
     | '/admin/activity'
     | '/admin/ads'
     | '/admin/affiliate'
@@ -3530,6 +3542,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DTokenRoute: typeof DTokenRoute
   DownloadTokenRoute: typeof DownloadTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
@@ -3553,6 +3566,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -6288,6 +6308,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   DTokenRoute: DTokenRoute,
   DownloadTokenRoute: DownloadTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
