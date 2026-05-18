@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
+import { cityIlikeOr } from "@/lib/cities";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -369,7 +370,7 @@ function SearchPage() {
     if (typeof min       === "number") prodQ = prodQ.gte("price", min);
     if (typeof max       === "number") prodQ = prodQ.lte("price", max);
     if (typeof minRating === "number") prodQ = prodQ.gte("rating_avg", minRating);
-    if (city) prodQ = (prodQ as any).ilike("shop.address", `%${city}%`);
+    if (city) prodQ = (prodQ as any).or(cityIlikeOr(city, "address"), { foreignTable: "shop" });
     if (pay)  prodQ = (prodQ as any).contains("shop.payment_methods_enabled", [pay]);
     if (verified) prodQ = (prodQ as any).eq("shop.kyc_status", "approved");
     if (cat) {
@@ -377,8 +378,9 @@ function SearchPage() {
       if (c) prodQ = (prodQ as any).eq("shop.business_category_id", c.id);
     }
     if (subtype) prodQ = (prodQ as any).eq("shop.business_subtype", subtype);
-    // Featured shops always boosted first via embedded shop relation
-    prodQ = (prodQ as any).order("is_featured", { ascending: false, nullsFirst: false, foreignTable: "shop" });
+    // NOTE: tidak boost is_featured di SQL — PostgREST .order({ foreignTable })
+    // hanya mengurut embedded rows, BUKAN parent. Boost dilakukan client-side
+    // setelah fetch via stable-sort di applyFeaturedBoost().
     if (sort === "termurah")      prodQ = prodQ.order("price",       { ascending: true  });
     else if (sort === "termahal") prodQ = prodQ.order("price",       { ascending: false });
     else if (sort === "terbaru")  prodQ = prodQ.order("created_at",  { ascending: false });
@@ -403,7 +405,7 @@ function SearchPage() {
     }
     if (subtype) shopQ = shopQ.eq("business_subtype", subtype);
     if (typeof minRating === "number") shopQ = shopQ.gte("rating_avg", minRating);
-    if (city) shopQ = shopQ.ilike("address", `%${city}%`);
+    if (city) shopQ = shopQ.or(cityIlikeOr(city, "address"));
     if (pay)  shopQ = shopQ.contains("payment_methods_enabled", [pay]);
     if (verified) shopQ = shopQ.eq("kyc_status", "approved");
     // Featured shops always pinned to top
