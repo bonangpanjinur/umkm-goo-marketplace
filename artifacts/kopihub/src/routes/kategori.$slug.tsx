@@ -25,6 +25,22 @@ function formatSubtype(s: string): string {
 
 export const Route = createFileRoute("/kategori/$slug")({
   component: CategoryPage,
+  head: ({ params }) => {
+    const name = params.slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    const title = `${name} — Marketplace UMKMgo`;
+    const desc = `Jelajahi toko ${name.toLowerCase()} terdaftar di marketplace UMKMgo. Bandingkan rating, lokasi, dan pesan langsung.`;
+    const path = `/kategori/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:url", content: path },
+      ],
+      links: [{ rel: "canonical", href: path }],
+    };
+  },
   notFoundComponent: () => (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
