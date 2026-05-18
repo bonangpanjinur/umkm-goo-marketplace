@@ -5,6 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -77,7 +78,7 @@ function SignupPage() {
         </div>
         <div>
           <Label htmlFor="password">Kata sandi</Label>
-          <Input id="password" type="password" autoComplete="new-password" required value={password}
+          <PasswordInput id="password" autoComplete="new-password" required value={password}
             onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
         </div>
         <Button type="submit" className="h-10 w-full" disabled={busy}>

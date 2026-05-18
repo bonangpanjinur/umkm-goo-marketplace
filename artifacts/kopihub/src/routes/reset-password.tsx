@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -67,9 +68,8 @@ function ResetPasswordPage() {
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
             <Label htmlFor="password">Kata sandi baru</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="new-password"
               required
               value={password}
@@ -79,9 +79,8 @@ function ResetPasswordPage() {
           </div>
           <div>
             <Label htmlFor="confirm">Konfirmasi kata sandi</Label>
-            <Input
+            <PasswordInput
               id="confirm"
-              type="password"
               autoComplete="new-password"
               required
               value={confirm}

@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { resolvePostLoginRoute } from "@/lib/post-login-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Store, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -69,7 +70,7 @@ function LoginPage() {
       </div>
       <div>
         <Label htmlFor="password">Kata sandi</Label>
-        <Input id="password" type="password" autoComplete="current-password" required value={password}
+        <PasswordInput id="password" autoComplete="current-password" required value={password}
           onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
       </div>
       <div className="flex justify-end">
