@@ -1,42 +1,32 @@
-## I.2 — Marketplace filter: Kategori + Subtype + Lokasi
+## I.2 — Marketplace filter: Kategori + Subtype + Lokasi ✅ SELESAI
 
-Tambah filter **business_subtype** (subtipe usaha, mis. `umroh`, `klinik-umum`, `studio-foto`) ke pencarian marketplace yang sudah ada, melengkapi filter kategori + kota yang sudah jalan. Kolom `shops.business_subtype` sudah ada di DB, tidak perlu migration.
+- `subtype` ditambahkan ke `searchSchema`, query, cacheKey, pills, dan localStorage di `routes/search.tsx`.
+- Quick filter (Subtype + Kota) di `routes/kategori.$slug.tsx` → navigate ke `/search` dengan filter aktif.
+- Tidak ada migration DB (kolom `business_subtype` sudah ada).
 
-### 1. `artifacts/kopihub/src/routes/search.tsx` — tambah dimensi `subtype`
+## I.3 — SEO: Sitemap dinamis & landing kota+kategori ✅ SELESAI
 
-- **Schema URL**: tambah `subtype: z.string().optional().default("")` di `searchSchema`.
-- **Load opsi subtype**: query `shops.business_subtype` (distinct) — filter ke `business_category_id` aktif kalau `cat` dipilih, supaya dropdown hanya menampilkan subtype relevan (mis. saat cat=`travel` → `umroh`, `tour`, `hajj`). Re-fetch saat `cat` berubah.
-- **buildProductQuery / buildShopQuery**: 
-  - shop: `.eq("business_subtype", subtype)`
-  - product: `.eq("shop.business_subtype", subtype)`
-- **UI Filter panel**: tambah `<Select>` "Subtipe usaha" di samping field Kategori. Disabled + placeholder "Pilih kategori dulu" jika `cat` kosong.
-- **Cache key, activePills, localStorage snapshot, reset-all, clearFilter**: tambahkan `subtype` di setiap tempat.
-- **Header hasil**: tambah label subtype di samping nama kategori bila aktif.
+### Yang dikerjakan
 
-### 2. `artifacts/kopihub/src/routes/kategori.$slug.tsx` — quick filter inline
+1. **`routes/sitemap[.]xml.ts`** — Server route TanStack Start, replace static `public/sitemap.xml` (sudah dihapus).
+   - Include static routes (`/`, `/kategori`, `/search`, `/pricing`, `/features`).
+   - Loop semua `business_categories.is_active=true` → emit `/kategori/{slug}`.
+   - Loop allow-list 10 kota besar (Jakarta, Bandung, Surabaya, dst) × kategori → emit `/kategori/{slug}/{city}`.
+   - Loop semua `shops.is_active=true` → emit `/toko/{slug}` + `/s/{slug}` (limit 1000).
+   - `Cache-Control: public, max-age=3600`. Pakai `@supabase/supabase-js` createClient dgn anon key (read-only).
+   - `BASE_URL=""` (relative) sampai custom domain di-set.
 
-Di halaman kategori (mis. `/kategori/travel`), tambah baris filter ringkas di bawah banner:
+2. **`routes/kategori.$slug.$city.tsx`** — Landing page baru kategori × kota.
+   - Title: `{Kategori} di {Kota} — Marketplace UMKMgo`, description unik per kombinasi.
+   - `og:title`, `og:description`, `og:url`, canonical link.
+   - JSON-LD `BreadcrumbList` (Kategori → Sub-kategori → Kota).
+   - Konten: shops difilter via `address ilike %city%` + produk pilihan dari shop tsb.
+   - Empty state link balik ke `/kategori/{slug}`.
 
-- `Select` Subtipe (subtype unik di kategori ini) 
-- `Input` Kota
-- Tombol "Cari" → `navigate({ to: "/search", search: { cat: slug, subtype, city } })`
+3. **`routes/kategori.$slug.tsx`** — Tambah `head()` dengan title/desc/og/canonical per slug.
 
-Tujuannya: dari landing kategori user langsung sampai ke hasil terfilter tanpa harus buka panel filter di /search.
+### Catatan
 
-### 3. Tidak ada perubahan DB & backend
-
-- Kolom `business_subtype` sudah tersedia di `shops`.
-- Tidak menyentuh server functions / RLS.
-- Pertahankan semua mekanisme cache + abort controller + retry yang sudah ada.
-
-### 4. Update `.lovable/plan.md`
-
-Tandai I.2 selesai.
-
-### Catatan teknis
-
-- Subtype option list pakai `select("business_subtype").not("business_subtype","is",null)` + dedupe di client (jumlah toko kecil, cukup). Jika nanti banyak, pindah ke RPC `list_subtypes_by_category`.
-- Label subtype: pakai map kecil di `src/lib/feature-keys.ts` atau inline label dictionary di filter (mis. `umroh → Umroh`, `studio-foto → Studio Foto`). Mulai dengan dictionary kecil; fallback ke raw slug bila tidak dikenal.
-- Cache key wajib include `subtype` agar hasil filter tidak bocor antar subtype.
-
-Setelah persetujuan, eksekusi langsung tanpa migrasi DB.
+- Tidak ada perubahan DB.
+- Sitemap akan mulai populated otomatis begitu deploy; crawler bisa discovery via `public/robots.txt` (sudah `Sitemap: /sitemap.xml`).
+- Allow-list kota disimpan inline di `sitemap[.]xml.ts` (`CITIES` const) — gampang extend nanti.
