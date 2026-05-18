@@ -108,3 +108,26 @@ pg_dump --data-only --inserts \
 2. **Untuk Bagian 2**: pilih **Solusi A** (file bootstrap untuk fresh clone, Cloud sekarang biarkan) atau **Solusi B** (paksa Cloud sekarang juga "anggap sudah diapply")?
 3. **Seed data**: konfirmasi 8 tabel referensi di atas, atau ada yang perlu ditambah/dikurangi?
 4. **Urutan kerja**: SQL konsolidasi dulu (besar, 1 turn fokus) lalu fixes P1, atau sebaliknya?
+
+---
+
+## I.6 — Konsolidasi SQL + perbaikan pasca-I.5b ✅ SELESAI
+
+### Konsolidasi SQL (Bagian 2)
+
+- File kanonik: `supabase/migrations/00000000000000_init_schema.sql` (~588 KB, ~18.1k baris).
+  - Sumber: `pg_dump --schema-only` dari Cloud sekarang (single source of truth).
+  - Isi: 15 enum, 115 function, 163 tabel, 119 trigger, 385 RLS policy, 23 storage bucket, 69 storage policy, seed 10 tabel referensi.
+  - Header berisi peringatan: **FRESH BOOTSTRAP ONLY — DO NOT APPLY TO EXISTING CLOUD**.
+- 126 file lama dipindah ke `supabase/migrations/_archive_pre_consolidation/` + `README.md` penjelasan.
+- Folder `_archive_*` tidak di-pick-up Supabase CLI (bukan pola timestamp standar).
+
+### Perbaikan pasca-audit (Bagian 1)
+
+- **P1.1 Badge "Unggulan" di ProductCard** — `index.tsx` ProductCard render `★ Unggulan` (amber) saat `product.shop?.is_featured`. Type `Product.shop.is_featured` ditambah; home page menu_items query ikut select `shop(is_featured)`.
+- **P1.2 Helper bersama** — `src/lib/featured-boost.ts` ekspor `applyFeaturedBoostShops` & `applyFeaturedBoostProducts`. 3 route (`search.tsx`, `kategori.$slug.tsx`, `kategori.$slug.$city.tsx`) tidak lagi duplikat logika.
+- **P1.3 CityCombobox offline feedback** — `useIndonesiaCities()` sekarang return `usingFallback`. Combobox tampilkan banner amber "Daftar kota lengkap tidak bisa dimuat" saat API down & jatuh ke 15 kota statik.
+- **P1.4 Canonical custom domain** — `s.$slug.tsx` `head()` cek `shop.custom_domain` + `custom_domain_verified_at` dari loaderData; canonical → `https://{domain}/` jika ada, fallback `/toko/{slug}`.
+- **P2.5 Sort `relevan` vs `rating` beda** — `search.tsx` `buildProductQuery`: `relevan` = `rating_avg desc → total_sold desc → created_at desc`; `rating` murni `rating_avg desc`.
+
+### Tidak ada migration DB di batch ini (semua frontend + 1 file SQL bootstrap).
