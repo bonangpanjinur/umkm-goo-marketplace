@@ -37,6 +37,11 @@ export const Route = createFileRoute("/s/$slug")({
   },
   component: ShopLayout,
   notFoundComponent: ShopNotFound,
+  head: ({ params }) => ({
+    // /s/{slug} adalah utility storefront pembeli; halaman discovery kanoniknya
+    // adalah /toko/{slug}. Canonical menghindari duplicate-content di SEO.
+    links: [{ rel: "canonical", href: `/toko/${params.slug}` }],
+  }),
 });
 
 function ShopNotFound() {

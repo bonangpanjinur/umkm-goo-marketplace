@@ -1,16 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import { CITIES } from "@/lib/cities";
 
 // TODO: replace with project domain once a custom domain is set.
 const BASE_URL = "";
-
-// Allow-listed major Indonesian cities for category × city landing pages.
-// Keep small & evergreen — generated routes match by address ilike %city%.
-const CITIES = [
-  "Jakarta", "Bandung", "Surabaya", "Yogyakarta", "Semarang",
-  "Medan", "Denpasar", "Makassar", "Palembang", "Malang",
-];
 
 interface SitemapEntry {
   path: string;
@@ -68,17 +62,15 @@ export const Route = createFileRoute("/sitemap.xml")({
             .select("slug, updated_at")
             .eq("is_active", true)
             .limit(1000);
+          // Only /toko/{slug} is canonical for SEO. /s/{slug} is a buyer-side
+          // mini-storefront utility; we link it via rel="canonical" on the page
+          // itself instead of advertising both URLs to crawlers.
           for (const s of shops ?? []) {
             entries.push({
               path: `/toko/${s.slug}`,
               changefreq: "weekly",
               priority: "0.7",
               lastmod: (s as any).updated_at?.slice(0, 10),
-            });
-            entries.push({
-              path: `/s/${s.slug}`,
-              changefreq: "weekly",
-              priority: "0.6",
             });
           }
         }

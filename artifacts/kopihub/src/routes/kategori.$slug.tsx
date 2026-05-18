@@ -3,11 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, Search as SearchIcon } from "lucide-react";
+import { Store, Search as SearchIcon, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { CITIES, cityIlikeOr } from "@/lib/cities";
 
 const SUBTYPE_LABEL: Record<string, string> = {
   "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
@@ -39,6 +39,19 @@ export const Route = createFileRoute("/kategori/$slug")({
         { property: "og:url", content: path },
       ],
       links: [{ rel: "canonical", href: path }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Kategori", item: "/kategori" },
+              { "@type": "ListItem", position: 2, name, item: path },
+            ],
+          }),
+        },
+      ],
     };
   },
   notFoundComponent: () => (
@@ -67,6 +80,8 @@ type Shop = {
   logo_url: string | null;
   rating_avg: number | null;
   rating_count: number | null;
+  is_featured?: boolean | null;
+  business_subtype?: string | null;
 };
 
 function CategoryPage() {
@@ -121,7 +136,11 @@ function CategoryPage() {
           .order("rating_avg", { ascending: false, nullsFirst: false })
           .order("total_sold", { ascending: false, nullsFirst: false })
           .limit(24);
-        setProducts((prods as any[]) ?? []);
+        // Boost produk dari toko unggulan ke atas (stable partition).
+        const raw = (prods as any[]) ?? [];
+        const feat = raw.filter(p => p.shop?.is_featured);
+        const rest = raw.filter(p => !p.shop?.is_featured);
+        setProducts([...feat, ...rest]);
       }
       setLoading(false);
     })();
@@ -197,13 +216,20 @@ function CategoryPage() {
             </div>
             <div>
               <Label className="text-xs">Kota / Lokasi</Label>
-              <Input
-                className="mt-1 h-9"
-                value={cityDraft}
-                onChange={(e) => setCityDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyQuickFilter(); }}
-                placeholder="Jakarta, Bandung…"
-              />
+              <Select
+                value={cityDraft || "all"}
+                onValueChange={(v) => setCityDraft(v === "all" ? "" : v)}
+              >
+                <SelectTrigger className="mt-1 h-9">
+                  <SelectValue placeholder="Semua kota" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua kota</SelectItem>
+                  {CITIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-end">
               <Button onClick={applyQuickFilter} className="h-9 w-full md:w-auto gap-1.5">
@@ -243,7 +269,12 @@ function CategoryPage() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{s.name}</div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="truncate text-sm font-semibold">{s.name}</span>
+                      {s.is_featured && (
+                        <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Toko unggulan" />
+                      )}
+                    </div>
                     {s.rating_avg ? (
                       <div className="text-xs text-muted-foreground">
                         ★ {Number(s.rating_avg).toFixed(1)} ({s.rating_count ?? 0})
