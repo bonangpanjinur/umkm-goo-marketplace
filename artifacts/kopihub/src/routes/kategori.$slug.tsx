@@ -136,7 +136,11 @@ function CategoryPage() {
           .order("rating_avg", { ascending: false, nullsFirst: false })
           .order("total_sold", { ascending: false, nullsFirst: false })
           .limit(24);
-        setProducts((prods as any[]) ?? []);
+        // Boost produk dari toko unggulan ke atas (stable partition).
+        const raw = (prods as any[]) ?? [];
+        const feat = raw.filter(p => p.shop?.is_featured);
+        const rest = raw.filter(p => !p.shop?.is_featured);
+        setProducts([...feat, ...rest]);
       }
       setLoading(false);
     })();
