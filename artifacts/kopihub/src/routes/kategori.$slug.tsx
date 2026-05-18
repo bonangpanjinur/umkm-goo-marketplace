@@ -124,7 +124,7 @@ function CategoryPage() {
         .order("is_featured", { ascending: false, nullsFirst: false })
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(24);
-      const shopList = (shopsData as any[]) ?? [];
+      const shopList = applyFeaturedBoostShops(((shopsData as any[]) ?? []));
       setShops(shopList as Shop[]);
       setSubtypes(Array.from(new Set(shopList.map(s => s.business_subtype).filter(Boolean))).sort());
 
