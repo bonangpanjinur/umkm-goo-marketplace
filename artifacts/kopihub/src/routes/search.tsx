@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
+import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
 import {
   AlertDialog,
   AlertDialogContent,
