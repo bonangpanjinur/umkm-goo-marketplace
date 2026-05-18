@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store } from "lucide-react";
+import { Store, Star } from "lucide-react";
+import { cityIlikeOr } from "@/lib/cities";
 
 function titleCase(s: string) {
   return s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -54,6 +55,7 @@ type Shop = {
   rating_avg: number | null;
   rating_count: number | null;
   address: string | null;
+  is_featured?: boolean | null;
 };
 
 function CategoryCityPage() {
@@ -76,10 +78,11 @@ function CategoryCityPage() {
 
       const { data: shopsData } = await supabase
         .from("shops")
-        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, address")
+        .select("id, slug, name, tagline, logo_url, rating_avg, rating_count, address, is_featured")
         .eq("business_category_id", (c as any).id)
         .eq("is_active", true)
-        .ilike("address", `%${cityName}%`)
+        .or(cityIlikeOr(cityName, "address"))
+        .order("is_featured", { ascending: false, nullsFirst: false })
         .order("rating_avg", { ascending: false, nullsFirst: false })
         .limit(24);
       const list = (shopsData as Shop[]) ?? [];
@@ -89,11 +92,14 @@ function CategoryCityPage() {
       if (ids.length > 0) {
         const { data: prods } = await supabase
           .from("menu_items")
-          .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name)")
+          .select("id, shop_id, name, price, image_url, slug, rating_avg, flash_price, flash_starts_at, flash_ends_at, shop:shops(slug, name, is_featured)")
           .in("shop_id", ids).eq("is_available", true)
           .order("rating_avg", { ascending: false, nullsFirst: false })
           .limit(18);
-        setProducts((prods as any[]) ?? []);
+        const raw = (prods as any[]) ?? [];
+        const feat = raw.filter(p => p.shop?.is_featured);
+        const rest = raw.filter(p => !p.shop?.is_featured);
+        setProducts([...feat, ...rest]);
       } else {
         setProducts([]);
       }
@@ -156,7 +162,12 @@ function CategoryCityPage() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{s.name}</div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="truncate text-sm font-semibold">{s.name}</span>
+                      {s.is_featured && (
+                        <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Toko unggulan" />
+                      )}
+                    </div>
                     {s.rating_avg ? (
                       <div className="text-xs text-muted-foreground">
                         ★ {Number(s.rating_avg).toFixed(1)} ({s.rating_count ?? 0})
