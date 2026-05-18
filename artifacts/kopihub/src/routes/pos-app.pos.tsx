@@ -25,6 +25,11 @@ import {
   RotateCcw,
   Trash2,
   ScanLine,
+  Pencil,
+  UtensilsCrossed,
+  Truck,
+  Package,
+  Coffee,
 } from "lucide-react";
 import { ListOrdered } from "lucide-react";
 import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
