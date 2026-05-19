@@ -231,13 +231,10 @@ function OnboardingPage() {
         .single();
       if (outletErr || !outlet) throw outletErr ?? new Error("Gagal membuat outlet");
 
-      const [{ error: roleErr }] = await Promise.all([
-        supabase.from("user_roles").insert({ user_id: user!.id, role: "owner", shop_id: shop.id } as any),
-        supabase.from("user_preferences").upsert({ user_id: user!.id, default_outlet_id: outlet.id } as any),
-      ]);
-      if (roleErr && !String(roleErr.message ?? "").toLowerCase().includes("duplicate")) {
-        throw roleErr;
-      }
+      const { error: prefErr } = await supabase
+        .from("user_preferences")
+        .upsert({ user_id: user!.id, default_outlet_id: outlet.id } as any);
+      if (prefErr) throw prefErr;
 
       setStep(4);
     } catch (err: any) {
