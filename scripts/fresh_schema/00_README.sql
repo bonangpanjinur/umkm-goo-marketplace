@@ -1,0 +1,28 @@
+-- ============================================================================
+-- UMKMgo — FRESH BOOTSTRAP SCHEMA (consolidated from 126 migrations)
+-- ============================================================================
+-- Generated: 2026-05-18
+-- Source: pg_dump --schema-only from production (single source of truth)
+--
+-- ⚠️  PERINGATAN — DO NOT APPLY TO EXISTING CLOUD INSTANCE
+-- File ini hanya untuk bootstrap project Supabase BARU / fresh clone.
+-- Cloud instance yang sekarang sudah berisi 126 migration history terapply.
+-- Apply ulang akan konflik (tabel sudah ada).
+--
+-- Cara pakai (untuk project baru):
+--   1. Buat project Supabase baru.
+--   2. Pindah/hapus folder _archive_pre_consolidation jika perlu.
+--   3. supabase db push (file ini akan jadi satu-satunya migrasi awal).
+--
+-- Isi:
+--   - 15 enum, 115 function, 163 tabel, 119 trigger, 385 RLS policy
+--   - 23 storage bucket + 69 storage policy
+--   - Seed data untuk 10 tabel referensi (business_categories, plans, dll)
+-- ============================================================================
+
+-- ============================================================
+-- SECTION 1 — SCHEMA (extensions, types, functions, tables, views, triggers, RLS policies)
+-- ============================================================
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 17.9
