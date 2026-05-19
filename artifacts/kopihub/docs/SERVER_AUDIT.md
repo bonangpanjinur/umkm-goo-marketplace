@@ -1,7 +1,21 @@
 # Audit Import `@/server/*` di Komponen Client
 
-Tanggal: 2026-05-19
-Status: **Tidak akan berfungsi di production** (Vite SPA, tanpa runtime server function)
+Tanggal: 2026-05-19 (update: cleanup selesai)
+Status: ✅ **Resolved** — semua `*.functions.ts` non-server sudah dipindah ke `src/lib/api/`.
+
+## Temuan ulang
+
+File `src/server/*.functions.ts` (non-`.server`) ternyata **tidak** pakai
+`createServerFn` — hanya wrapper tipis di atas `supabase` client browser-safe
+(`supabase.from`, `supabase.rpc`, `supabase.functions.invoke`). Jadi mereka
+sudah berjalan di SPA, hanya salah nama & lokasi.
+
+## Tindakan
+
+1. Semua `src/server/*.functions.ts` → `src/lib/api/*.functions.ts`.
+2. Semua importer `@/server/X.functions` → `@/lib/api/X.functions`.
+3. File `src/server/*.functions.server.ts` dibiarkan — diblok plugin
+   `block-server-only-imports` dari client bundle, tidak diimport client.
 
 ## File client yang mengimport `@/server/*.functions`
 
