@@ -289,6 +289,7 @@ import { Route as CheckoutSuksesOrderIdRouteImport } from './routes/checkout.suk
 import { Route as BookingRescheduleTokenRouteImport } from './routes/booking.reschedule.$token'
 import { Route as BookingCancelTokenRouteImport } from './routes/booking.cancel.$token'
 import { Route as BookingIdPaymentCallbackRouteImport } from './routes/booking.$id.payment-callback'
+import { Route as ApiPublicHealthDbRouteImport } from './routes/api/public/health-db'
 import { Route as AkunPesananOrderIdRouteImport } from './routes/akun.pesanan.$orderId'
 import { Route as AkunKursusCourseIdRouteImport } from './routes/akun.kursus.$courseId'
 import { Route as AdminShopsIdRouteImport } from './routes/admin.shops.$id'
@@ -1715,6 +1716,11 @@ const BookingIdPaymentCallbackRoute =
     path: '/booking/$id/payment-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHealthDbRoute = ApiPublicHealthDbRouteImport.update({
+  id: '/api/public/health-db',
+  path: '/api/public/health-db',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AkunPesananOrderIdRoute = AkunPesananOrderIdRouteImport.update({
   id: '/pesanan/$orderId',
   path: '/pesanan/$orderId',
@@ -2034,6 +2040,7 @@ export interface FileRoutesByFullPath {
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/api/public/health-db': typeof ApiPublicHealthDbRoute
   '/booking/$id/payment-callback': typeof BookingIdPaymentCallbackRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
@@ -2322,6 +2329,7 @@ export interface FileRoutesByTo {
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/api/public/health-db': typeof ApiPublicHealthDbRoute
   '/booking/$id/payment-callback': typeof BookingIdPaymentCallbackRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
@@ -2617,6 +2625,7 @@ export interface FileRoutesById {
   '/admin/shops/$id': typeof AdminShopsIdRoute
   '/akun/kursus/$courseId': typeof AkunKursusCourseIdRoute
   '/akun/pesanan/$orderId': typeof AkunPesananOrderIdRoute
+  '/api/public/health-db': typeof ApiPublicHealthDbRoute
   '/booking/$id/payment-callback': typeof BookingIdPaymentCallbackRoute
   '/booking/cancel/$token': typeof BookingCancelTokenRoute
   '/booking/reschedule/$token': typeof BookingRescheduleTokenRoute
@@ -2913,6 +2922,7 @@ export interface FileRouteTypes {
     | '/admin/shops/$id'
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
+    | '/api/public/health-db'
     | '/booking/$id/payment-callback'
     | '/booking/cancel/$token'
     | '/booking/reschedule/$token'
@@ -3201,6 +3211,7 @@ export interface FileRouteTypes {
     | '/admin/shops/$id'
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
+    | '/api/public/health-db'
     | '/booking/$id/payment-callback'
     | '/booking/cancel/$token'
     | '/booking/reschedule/$token'
@@ -3495,6 +3506,7 @@ export interface FileRouteTypes {
     | '/admin/shops/$id'
     | '/akun/kursus/$courseId'
     | '/akun/pesanan/$orderId'
+    | '/api/public/health-db'
     | '/booking/$id/payment-callback'
     | '/booking/cancel/$token'
     | '/booking/reschedule/$token'
@@ -3568,6 +3580,7 @@ export interface RootRouteChildren {
   TokoSlugRoute: typeof TokoSlugRouteWithChildren
   TrackOrderIdRoute: typeof TrackOrderIdRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
+  ApiPublicHealthDbRoute: typeof ApiPublicHealthDbRoute
   BookingIdPaymentCallbackRoute: typeof BookingIdPaymentCallbackRoute
   BookingCancelTokenRoute: typeof BookingCancelTokenRoute
   BookingRescheduleTokenRoute: typeof BookingRescheduleTokenRoute
@@ -5538,6 +5551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingIdPaymentCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health-db': {
+      id: '/api/public/health-db'
+      path: '/api/public/health-db'
+      fullPath: '/api/public/health-db'
+      preLoaderRoute: typeof ApiPublicHealthDbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/akun/pesanan/$orderId': {
       id: '/akun/pesanan/$orderId'
       path: '/pesanan/$orderId'
@@ -6353,6 +6373,7 @@ const rootRouteChildren: RootRouteChildren = {
   TokoSlugRoute: TokoSlugRouteWithChildren,
   TrackOrderIdRoute: TrackOrderIdRoute,
   KategoriIndexRoute: KategoriIndexRoute,
+  ApiPublicHealthDbRoute: ApiPublicHealthDbRoute,
   BookingIdPaymentCallbackRoute: BookingIdPaymentCallbackRoute,
   BookingCancelTokenRoute: BookingCancelTokenRoute,
   BookingRescheduleTokenRoute: BookingRescheduleTokenRoute,

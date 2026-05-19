@@ -18,6 +18,7 @@ import { slugify } from "@/lib/format";
 import { toast } from "sonner";
 import { FEATURE_LABEL, FLOW_TYPE_LABEL, type FeatureKey, type FlowType } from "@/lib/feature-keys";
 import { seedSampleData } from "@/lib/seed-sample-data";
+import { DbHealthBadge } from "@/components/db-health-badge";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
@@ -391,6 +392,7 @@ function OnboardingPage() {
               <h1 className="text-2xl font-bold tracking-tight">Kategori bisnis Anda?</h1>
               <p className="mt-1.5 text-sm text-muted-foreground">Ini membantu kami menyesuaikan fitur dan tampilan toko Anda.</p>
             </div>
+            <DbHealthBadge />
             {categoriesLoading ? (
               <div className="grid grid-cols-2 gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
