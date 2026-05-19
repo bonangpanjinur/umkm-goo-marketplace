@@ -10167,6 +10167,19 @@ export type Database = {
           revenue: number
         }[]
       }
+      get_public_waitlist_summary: {
+        Args: { _shop_id: string }
+        Returns: {
+          created_at: string
+          estimated_wait_minutes: number
+          id: string
+          party_size: number
+          queue_number: number
+          requested_date: string
+          served_at: string
+          status: string
+        }[]
+      }
       get_shop_entitlements: { Args: { _shop_id: string }; Returns: Json }
       get_shop_marketplace_daily: {
         Args: { _from: string; _shop_id: string; _to: string }
@@ -10356,6 +10369,15 @@ export type Database = {
           discount: number
           error: string
           promo_id: string
+        }[]
+      }
+      verify_certificate: {
+        Args: { _cert_number: string }
+        Returns: {
+          certificate_number: string
+          course_title: string
+          issued_at: string
+          shop_name: string
         }[]
       }
       void_order: {
