@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider, createRouter, useRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
@@ -7,6 +7,22 @@ import "./styles.css";
 const queryClient = new QueryClient();
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  const isNotFoundError = /not_found|not found|404/i.test(error.message);
+
+  if (isNotFoundError && typeof window !== "undefined") {
+    const currentPath = router.state.location.pathname;
+    const fallback = currentPath.startsWith("/admin")
+      ? "/admin"
+      : currentPath.startsWith("/pos-app") || currentPath.startsWith("/app")
+        ? "/pos-app"
+        : currentPath.startsWith("/akun")
+          ? "/akun"
+          : "/";
+
+    window.location.replace(fallback);
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
