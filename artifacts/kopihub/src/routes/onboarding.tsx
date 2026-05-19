@@ -18,6 +18,7 @@ import { slugify } from "@/lib/format";
 import { toast } from "sonner";
 import { FEATURE_LABEL, FLOW_TYPE_LABEL, type FeatureKey, type FlowType } from "@/lib/feature-keys";
 import { seedSampleData } from "@/lib/seed-sample-data";
+import { DbHealthBadge } from "@/components/db-health-badge";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
