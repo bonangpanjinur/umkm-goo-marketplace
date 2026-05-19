@@ -12,7 +12,7 @@ import {
   getVersion,
   type PageLayout,
   type PageLayoutVersion,
-} from "@/server/page-layouts.functions";
+} from "@/lib/api/page-layouts.functions";
 import { BuilderProvider } from "@/builder/BuilderContext";
 import { builderConfig } from "@/builder/config";
 import { diffPuckData } from "@/builder/diff";

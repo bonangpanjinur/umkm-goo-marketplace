@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { shopStatus } from "@/lib/shop-hours";
 import { ThemedHome } from "@/components/storefront/themes/registry";
 import type { StorefrontItem } from "@/components/storefront/themes/types";
-import { getPublishedLayoutForShop, type PageLayout } from "@/server/page-layouts.functions";
+import { getPublishedLayoutForShop, type PageLayout } from "@/lib/api/page-layouts.functions";
 import { BuilderProvider } from "@/builder/BuilderContext";
 import { builderConfig } from "@/builder/config";
 

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { uploadBuilderImage } from "@/server/page-layouts.functions";
+import { uploadBuilderImage } from "@/lib/api/page-layouts.functions";
 import { validateAndCompressImage } from "./image-compress";
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";

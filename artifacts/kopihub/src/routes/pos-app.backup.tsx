@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Database, Download, Loader2, Trash2, RefreshCw, Calendar, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-// import { listShopBackups, getBackupSchedule, requestShopBackup, getBackupDownloadUrl, deleteBackup, upsertBackupSchedule } from "@/server/backup.functions";
+// import { listShopBackups, getBackupSchedule, requestShopBackup, getBackupDownloadUrl, deleteBackup, upsertBackupSchedule } from "@/lib/api/backup.functions";
 
 export const Route = createFileRoute("/pos-app/backup")({ component: BackupPage });
 
@@ -43,7 +43,7 @@ function BackupPage() {
 
   const reload = async () => {
     try {
-      const { listShopBackups, getBackupSchedule } = await import("@/server/backup.functions");
+      const { listShopBackups, getBackupSchedule } = await import("@/lib/api/backup.functions");
       const list = await listShopBackups();
       setItems(Array.isArray(list) ? (list as unknown as Backup[]) : []);
       const sched = await getBackupSchedule();
@@ -71,7 +71,7 @@ function BackupPage() {
     if (!shopId) return;
     setBusy(true);
     try {
-      const { requestShopBackup } = await import("@/server/backup.functions");
+      const { requestShopBackup } = await import("@/lib/api/backup.functions");
       const res = await requestShopBackup({ data: { shopId } });
       void res;
       toast.success("Backup berhasil diminta. Proses berjalan di background.");
@@ -85,7 +85,7 @@ function BackupPage() {
 
   const download = async (id: string) => {
     try {
-      const { getBackupDownloadUrl } = await import("@/server/backup.functions");
+      const { getBackupDownloadUrl } = await import("@/lib/api/backup.functions");
       const { url } = await getBackupDownloadUrl({ data: { backupId: id } });
       window.open(url, "_blank");
     } catch (e) {
@@ -96,7 +96,7 @@ function BackupPage() {
   const remove = async (id: string) => {
     if (!confirm("Hapus backup ini? Tindakan tidak bisa dibatalkan.")) return;
     try {
-      const { deleteBackup } = await import("@/server/backup.functions");
+      const { deleteBackup } = await import("@/lib/api/backup.functions");
       await deleteBackup({ data: { backupId: id } });
       toast.success("Backup dihapus");
       await reload();
@@ -107,7 +107,7 @@ function BackupPage() {
 
   const saveSchedule = async () => {
     try {
-      const { upsertBackupSchedule } = await import("@/server/backup.functions");
+      const { upsertBackupSchedule } = await import("@/lib/api/backup.functions");
       await upsertBackupSchedule({ data: { frequency: freq, retentionDays: retention } });
       toast.success("Jadwal backup tersimpan");
       await reload();
