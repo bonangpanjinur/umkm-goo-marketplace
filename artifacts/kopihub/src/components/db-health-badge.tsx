@@ -10,7 +10,6 @@ type HealthState = {
 };
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const EXPECTED_REF = "umuycjajkkzkrqlbqhgb";
 
 function extractRef(url: string | undefined): string {
   if (!url) return "(unset)";
@@ -63,9 +62,7 @@ export function DbHealthBadge({ className = "" }: { className?: string }) {
 
   if (!data) return null;
 
-  const refMismatch =
-    data.project_ref !== EXPECTED_REF && data.project_ref !== "(unset)";
-  const ok = data.ok && !refMismatch;
+  const ok = data.ok;
 
   return (
     <div
@@ -92,9 +89,6 @@ export function DbHealthBadge({ className = "" }: { className?: string }) {
       <span className="ml-auto inline-flex items-center gap-1 text-muted-foreground">
         <Database className="h-3 w-3" />
         ref: {data.project_ref}
-        {refMismatch && (
-          <span className="ml-1 text-destructive">≠ {EXPECTED_REF}</span>
-        )}
       </span>
       <button
         onClick={load}
