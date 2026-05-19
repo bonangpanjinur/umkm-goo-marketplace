@@ -3987,6 +3987,37 @@ $$;
 -- Name: set_order_no(); Type: FUNCTION; Schema: public; Owner: -
 --
 
+CREATE FUNCTION public.set_order_no() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+    AS $_$
+DECLARE
+  v_date text;
+  v_seq int;
+BEGIN
+  IF NEW.order_no IS NOT NULL AND NEW.order_no <> '' THEN
+    RETURN NEW;
+  END IF;
+
+  v_date := to_char(COALESCE(NEW.business_date, (now() AT TIME ZONE 'Asia/Jakarta')::date), 'YYYYMMDD');
+
+  SELECT COALESCE(MAX(NULLIF(regexp_replace(order_no, '^.*-', ''), '')::int), 0) + 1
+    INTO v_seq
+  FROM public.orders
+  WHERE outlet_id = NEW.outlet_id
+    AND business_date = COALESCE(NEW.business_date, (now() AT TIME ZONE 'Asia/Jakarta')::date)
+    AND order_no ~ ('^' || v_date || '-[0-9]+$');
+
+  NEW.order_no := v_date || '-' || lpad(v_seq::text, 4, '0');
+  RETURN NEW;
+END;
+$_$;
+
+
+--
+-- Name: set_shop_theme(uuid, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
 CREATE FUNCTION public.set_shop_theme(_shop_id uuid, _theme_key text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
