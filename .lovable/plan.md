@@ -1,133 +1,102 @@
-# Rencana: Audit Sisa + Konsolidasi SQL Fresh
+# Analisis Error & Rencana Perbaikan UMKMgo
 
-## Bagian 1 — Analisis sisa yang perlu diperbaiki
+## 1. Akar Masalah Error yang Terjadi
 
-Setelah I.2–I.5b selesai, ini yang masih tertinggal (sengaja di-skip atau baru ketahuan):
+### A. Error Vercel: `business_categories` not found in schema cache
+**Bukan masalah database** — tabel ada (11 baris, verified via `read_query`). Penyebabnya: **environment variable di Vercel menunjuk ke project Supabase yang berbeda**.
 
-### 🟡 P1 — Konsistensi & UX
+- Lovable Cloud URL: `umuycjajkkzkrqlbqhgb.supabase.co`
+- URL yang dipakai Vercel (dari screenshot sebelumnya): `ttodwsivzskaogyewjzf.supabase.co`
 
-1. **Badge "Unggulan" di ProductCard belum dipasang** (B2 di audit lama). `is_featured` sudah ikut di payload produk lewat join `shop`, tapi `ProductCard` (di `routes/index.tsx`) belum render badge — admin tidak lihat dampak Star toggle pada level produk.
-2. **3 route duplikasi logika `applyFeaturedBoost*` + fetch featured set** (`search.tsx`, `kategori.$slug.tsx`, `kategori.$slug.$city.tsx`). Risiko drift saat aturan boost berubah. Ekstrak ke `src/lib/featured-boost.ts`.
-3. **CityCombobox tanpa offline/error feedback** — jika `dev.farizdotid.com` down dan cache kosong, user diam-diam dapat fallback 15 kota tanpa indikator. Tambah `error` state di hook + toast halus sekali per sesi.
-4. **`s.$slug.tsx` canonical statis ke `/toko/{slug}`** — bagus untuk SEO, tapi storefront yang sudah pakai custom domain (`shops.custom_domain`) seharusnya canonical ke domain itu, bukan ke marketplace. Cek dulu domain → fallback ke `/toko/`.
+Dua project Supabase berbeda → schema cache di project Vercel memang tidak punya tabel itu.
 
-### 🟢 P2 — Polish
+### B. Error pnpm lockfile mismatch (sudah diperbaiki)
+Sudah ditangani dengan regenerasi `pnpm-lock.yaml`.
 
-5. **Sort `relevan` vs `rating` masih identik** (E1 lama, di-skip). Quick fix: `relevan` = `rating_avg desc` + tie-break `total_sold desc, created_at desc`; `rating` murni `rating_avg desc`.
-6. **Sitemap belum punya `<image:image>`** untuk landing kategori×kota — opsional, tambah kalau mau Google Image traffic.
-7. **`kategori.$slug.$city.tsx` belum pakai `CityCombobox`** (UI kota di halaman city-specific) — saat ini tidak ada switcher kota di sana. Tambah link "Ganti kota" → `/kategori/{slug}` dengan combobox.
+### C. Endpoint `/api/public/health-db` TIDAK akan berfungsi
+**Critical finding**: project ini adalah **Vite SPA murni**, bukan TanStack Start. Bukti:
+- `package.json` hanya punya `@tanstack/react-router` (router-only), **bukan** `@tanstack/react-start`
+- Script build: `vite build` (frontend statis), tidak ada SSR/server bundle
+- Deploy ke Vercel sebagai static site
 
-### 🔵 Tidak ada P0 baru yang ditemukan.
+Konsekuensi:
+- File `src/routes/api/public/health-db.ts` dengan `server: { handlers }` **tidak akan dijalankan** sebagai HTTP endpoint. Vercel hanya men-serve static files dari `dist/public`. Memanggil `/api/public/health-db` di production → 404 atau fallback ke index.html.
+- Semua file `src/server/*.functions.ts` yang pakai `createServerFn` **tidak punya runtime**. Mereka di-bundle ke client, dan import `client.server` di dalamnya berpotensi bocor service-role key ke browser.
 
----
+### D. Folder `src/server/` melanggar konvensi TanStack
+Aturannya: file yang di-import client tidak boleh ada di `src/server/`. Beberapa file `.functions.ts` di sana ada pasangan `.server.ts`-nya — kalau client mengimport `.functions.ts` dan file itu transitively import `.server.ts`, plugin `block-server-only-imports` akan menggagalkan build.
 
-## Bagian 2 — Konsolidasi SQL jadi 1 file fresh
+## 2. Kekurangan Fitur (Yang Harus Diisi)
 
-### Kondisi sekarang
+### A. Backend layer hilang
+Project punya banyak server logic (admin, billing, tenant, observability) tapi **tidak ada runtime untuk menjalankannya**. Pilihan:
+- **Opsi 1 (recommended)**: Migrasi ke TanStack Start penuh (tambah `@tanstack/react-start`, ubah entry, deploy ke runtime yang support — Vercel functions/Cloudflare Workers)
+- **Opsi 2 (paling cepat)**: Pindahkan semua server logic ke **Supabase Edge Functions** (sudah didukung native Lovable Cloud)
+- **Opsi 3**: Buat server Node terpisah pakai `server/db.ts` (sudah ada Drizzle) — paling besar effort-nya
 
-- 126 file di `supabase/migrations/` (rentang `20260512` → `20260517`, plus banyak file ad-hoc tanpa timestamp seperti `fase3_bundle.sql`, `m05_booking_vouchers.sql`).
-- Database hidup berisi: **163 tabel**, **115 function**, **385 RLS policy**, **119 trigger**, **15 enum** di schema `public`.
-- Penamaan campuran (timestamp Lovable + manual) bikin urutan apply ambigu kalau di-replay di project baru.
+### B. Health/observability tidak terhubung
+`db-health-badge` memanggil endpoint yang tidak ada → akan selalu menampilkan "Database bermasalah" di production.
 
-### Strategi: dump dari DB hidup → 1 file kanonik
+### C. Auth & RLS belum diverifikasi end-to-end
+Roles infrastructure (has_role RPC) sudah ada, tapi belum dicek apakah semua route Owner/Staff/Courier/Customer benar-benar terlindungi RLS, atau hanya client-side gating (bisa dilewati).
 
-Pakai `pg_dump --schema-only` dari instance Supabase yang sekarang sebagai **single source of truth** (lebih akurat daripada concat 126 file — banyak yang saling overwrite).
+### D. Vercel env vars tidak konsisten dengan Lovable Cloud
+Tidak ada dokumentasi/script yang mengingatkan: "kalau deploy di Vercel, pakai VITE_SUPABASE_URL & KEY dari Lovable Cloud" — sehingga error ini akan terus berulang setiap deploy baru.
 
-Output: **satu file** `supabase/migrations/00000000000000_init_schema.sql` berisi semua DDL dalam urutan yang valid.
+## 3. Potensi Error Lain yang Saya Lihat
 
-### Langkah eksekusi
+1. **`supabase_migrations` table query di health-db.ts** — schema ini biasanya tidak exposed via PostgREST → query selalu gagal walau endpoint berjalan.
+2. **`src/server/*.functions.ts` di-import client** — jika ada komponen yang `import { x } from "@/server/billing.functions"`, build akan error karena `block-server-only-imports` plugin di `vite.config.ts`.
+3. **`server/db.ts` (root)** — pakai `pg` + Drizzle, tapi tidak ada Node server yang menjalankannya. Dead code yang membingungkan.
+4. **PWA & service worker** (`pwa.d.ts` ada) — bisa cache versi lama dengan URL Supabase lama, user butuh hard reload setelah env var diganti.
+5. **Routes sangat banyak (~250 file)** — risiko bundle size besar, perlu lazy-loading per role.
+6. **`google/gemini-3.x-preview` model di knowledge** — kalau ada kode yang memanggil model preview, bisa rate-limited/deprecated.
 
-**1. Dump skema penuh (read-only, aman).**
-```bash
-pg_dump \
-  --schema-only \
-  --no-owner --no-privileges --no-comments \
-  --schema=public \
-  --exclude-table='supabase_migrations.*' \
-  --file=/tmp/schema_raw.sql
-```
+## 4. Rencana Perbaikan (Prioritas)
 
-**2. Dump data seed kritis** (tabel referensi yang harus ada di project baru, bukan data user):
-- `business_categories`, `plans`, `plan_features`, `features`, `plan_themes`
-- `icd10_codes`, `themes`, `platform_settings`, `wallet_topup_presets`
-- `expiry_reminder_rules`, `delivery_zones` (kalau global)
+### Fase 1 — Stabilkan Production (urgent, hari ini)
+1. **Fix Vercel env vars** (manual oleh user):
+   - Vercel → Settings → Environment Variables → set `VITE_SUPABASE_URL=https://umuycjajkkzkrqlbqhgb.supabase.co` dan `VITE_SUPABASE_PUBLISHABLE_KEY=<anon key Lovable>`
+   - Redeploy dengan "Clear Build Cache"
+2. **Hapus / non-aktifkan endpoint yang tidak jalan**:
+   - Hapus `src/routes/api/public/health-db.ts` (atau migrasi ke Edge Function)
+   - Ubah `DbHealthBadge` agar query langsung ke Supabase: `supabase.from('business_categories').select('id', { count: 'exact', head: true })` — tanpa endpoint perantara
+3. **Audit `src/server/`**:
+   - Cari semua import dari `@/server/*.functions` di komponen client
+   - Untuk yang dipakai client → ubah jadi RPC Supabase atau Edge Function
+   - Untuk yang murni server (tapi tidak punya runtime) → hapus / arsipkan
 
-```bash
-pg_dump --data-only --inserts \
-  --table=public.business_categories \
-  --table=public.plans \
-  ... \
-  --file=/tmp/seed_data.sql
-```
+### Fase 2 — Pilih & Wire Backend Runtime (1–2 minggu)
+4. **Putuskan opsi backend**:
+   - **Rekomendasi: Supabase Edge Functions** (sudah ada infra Lovable Cloud, no extra deploy). Pindahkan logic dari `src/server/*.functions.ts` ke `supabase/functions/<name>/index.ts`.
+   - Atau migrasi ke TanStack Start penuh kalau ingin SSR.
+5. **Buat health Edge Function** `supabase/functions/health-db` yang cek tabel + return schema info. Update `DbHealthBadge` panggil itu via `supabase.functions.invoke()`.
+6. **Hapus `server/db.ts`** kalau tidak dipakai, atau dokumentasikan tujuannya.
 
-**3. Susun ulang ke satu file dengan section yang jelas:**
-```
-00000000000000_init_schema.sql
-├── -- ============ EXTENSIONS ============
-├── -- ============ ENUMS (15) ============
-├── -- ============ FUNCTIONS (helpers dulu: has_role, update_updated_at_column, dll) ============
-├── -- ============ TABLES (163) + INDEXES ============
-├── -- ============ VIEWS (menu_hpp_view, v_shop_capabilities, courier_earnings) ============
-├── -- ============ TRIGGERS (119) ============
-├── -- ============ RLS ENABLE + POLICIES (385) ============
-├── -- ============ STORAGE BUCKETS & POLICIES ============
-├── -- ============ REALTIME PUBLICATION ============
-└── -- ============ SEED DATA (reference tables) ============
-```
+### Fase 3 — Hardening (2–4 minggu)
+7. **Audit RLS** semua tabel terutama: `shops`, `orders`, `staff_audit_logs`, `user_roles`, `business_categories`. Pastikan tidak ada policy `USING (true)` di tabel sensitif.
+8. **Verifikasi role gating** server-side via `has_role` RPC di Edge Function (jangan cuma client-side di nav).
+9. **Lazy-load routes per role** (admin.*, pos-app.*, kurir.*, akun.*, s.*) untuk turunkan bundle awal.
+10. **Tambah CI check**: script yang gagal kalau ada client component import `*.server.ts` atau `@/server/*.functions` di luar pattern resmi.
+11. **PWA cache invalidation** — bump versi service worker tiap deploy supaya env baru kepake.
 
-**4. Arsipkan 126 file lama.**
-- Pindah ke `supabase/migrations/_archive_pre_consolidation/`.
-- Tambah `README.md` di folder itu yang menjelaskan tanggal konsolidasi & alasan.
-- Folder `_archive_*` di-ignore Supabase CLI karena tidak match pattern timestamp standar — tapi tetap di repo untuk audit historis.
+### Fase 4 — Dokumentasi
+12. Tambah `DEPLOYMENT.md` dengan checklist Vercel env vars + langkah verifikasi.
+13. Tambah `ARCHITECTURE.md` yang jelaskan: SPA vs Edge Function boundary, kapan pakai RPC vs Edge Function.
 
-**5. Verifikasi roundtrip:**
-- Buat database test kosong lokal (atau pakai `supabase db reset` di project terpisah).
-- Apply file baru → bandingkan `pg_dump --schema-only` hasil vs dump asli (diff harus kosong / hanya whitespace).
+## 5. Detail Teknis Penting
 
-### Hal yang akan saya jaga di file hasil
+- Stack saat ini: **Vite 7 + React 19 + TanStack Router (SPA)** — bukan TanStack Start
+- Deploy: Vercel sebagai static site, build `vite build` → `dist/public`
+- Backend: Supabase via Lovable Cloud (`umuycjajkkzkrqlbqhgb`)
+- Aturan: file `*.server.ts` tidak boleh diimport static dari client; node builtins hanya di `*.server.ts` — ditegakkan oleh plugin `block-server-only-imports` di `vite.config.ts`
+- Konsekuensi arsitektur: semua server-side logic harus pindah ke Supabase Edge Functions (atau RPC Postgres), karena tidak ada Node runtime di produksi.
 
-- **Urutan dependency**: ekstensi → enum → fungsi helper (`has_role`, `update_updated_at_column`) → tabel sesuai FK graph → trigger → policy. `pg_dump` sudah handle ini, saya cuma re-segment dengan komentar.
-- **`auth.users` tidak di-dump** (Supabase yang manage). FK ke `auth.users(id)` dipertahankan apa adanya.
-- **`storage.objects` policies**: dump terpisah dari schema `storage`, append ke section storage.
-- **Realtime**: dump `ALTER PUBLICATION supabase_realtime ADD TABLE ...` untuk tabel yang sudah di-enable (akan saya query dari `pg_publication_tables`).
-- **`security definer` & `search_path`**: pg_dump mempertahankan ini untuk fungsi — kritis untuk RLS jangan sampai hilang.
+## 6. Yang Saya Sarankan Dikerjakan Dulu (next message)
 
-### Risiko & catatan
+Fase 1 step 1–3 (sekitar 30 menit kerja):
+- Refactor `DbHealthBadge` agar query Supabase langsung (hilangkan dependensi endpoint API yang tidak jalan)
+- Hapus `src/routes/api/public/health-db.ts`
+- Sweep import `@/server/*` dari komponen client, list mana yang harus dipindah ke Edge Function
 
-- **Destruktif untuk history Supabase CLI**: tabel `supabase_migrations.schema_migrations` di Cloud sudah berisi 126 entry. File baru `00000000000000_init_schema.sql` akan punya timestamp lebih awal → CLI nganggap "belum diapply" dan akan coba apply ulang → konflik (tabel sudah ada).
-  - **Solusi A (rekomendasi)**: file baru hanya untuk **bootstrap project baru / fresh clone**. Tidak di-apply ke Cloud yang sekarang. Tambah comment besar di header file: `-- FRESH BOOTSTRAP ONLY — DO NOT APPLY TO EXISTING CLOUD`.
-  - **Solusi B**: setelah file dibuat, manual `INSERT INTO supabase_migrations.schema_migrations(version) VALUES('00000000000000')` di Cloud supaya CLI skip. Tapi 126 entry lama tetap di-record → tidak betul-betul "bersih".
-- **Generated columns & defaults yang pakai fungsi custom**: pg_dump kadang reorder. Saya akan manual cek section function ada di atas section table yang refer ke fungsi tsb.
-- **Tidak akan ada data user** di file ini (orders, products, dll) — hanya schema + reference seed.
-
----
-
-## Yang perlu Anda konfirmasi
-
-1. **Untuk Bagian 1**: kerjakan semua P1 (1–4) + P2 (5)? Atau cherry-pick?
-2. **Untuk Bagian 2**: pilih **Solusi A** (file bootstrap untuk fresh clone, Cloud sekarang biarkan) atau **Solusi B** (paksa Cloud sekarang juga "anggap sudah diapply")?
-3. **Seed data**: konfirmasi 8 tabel referensi di atas, atau ada yang perlu ditambah/dikurangi?
-4. **Urutan kerja**: SQL konsolidasi dulu (besar, 1 turn fokus) lalu fixes P1, atau sebaliknya?
-
----
-
-## I.6 — Konsolidasi SQL + perbaikan pasca-I.5b ✅ SELESAI
-
-### Konsolidasi SQL (Bagian 2)
-
-- File kanonik: `supabase/migrations/00000000000000_init_schema.sql` (~588 KB, ~18.1k baris).
-  - Sumber: `pg_dump --schema-only` dari Cloud sekarang (single source of truth).
-  - Isi: 15 enum, 115 function, 163 tabel, 119 trigger, 385 RLS policy, 23 storage bucket, 69 storage policy, seed 10 tabel referensi.
-  - Header berisi peringatan: **FRESH BOOTSTRAP ONLY — DO NOT APPLY TO EXISTING CLOUD**.
-- 126 file lama dipindah ke `supabase/migrations/_archive_pre_consolidation/` + `README.md` penjelasan.
-- Folder `_archive_*` tidak di-pick-up Supabase CLI (bukan pola timestamp standar).
-
-### Perbaikan pasca-audit (Bagian 1)
-
-- **P1.1 Badge "Unggulan" di ProductCard** — `index.tsx` ProductCard render `★ Unggulan` (amber) saat `product.shop?.is_featured`. Type `Product.shop.is_featured` ditambah; home page menu_items query ikut select `shop(is_featured)`.
-- **P1.2 Helper bersama** — `src/lib/featured-boost.ts` ekspor `applyFeaturedBoostShops` & `applyFeaturedBoostProducts`. 3 route (`search.tsx`, `kategori.$slug.tsx`, `kategori.$slug.$city.tsx`) tidak lagi duplikat logika.
-- **P1.3 CityCombobox offline feedback** — `useIndonesiaCities()` sekarang return `usingFallback`. Combobox tampilkan banner amber "Daftar kota lengkap tidak bisa dimuat" saat API down & jatuh ke 15 kota statik.
-- **P1.4 Canonical custom domain** — `s.$slug.tsx` `head()` cek `shop.custom_domain` + `custom_domain_verified_at` dari loaderData; canonical → `https://{domain}/` jika ada, fallback `/toko/{slug}`.
-- **P2.5 Sort `relevan` vs `rating` beda** — `search.tsx` `buildProductQuery`: `relevan` = `rating_avg desc → total_sold desc → created_at desc`; `rating` murni `rating_avg desc`.
-
-### Tidak ada migration DB di batch ini (semua frontend + 1 file SQL bootstrap).
+Setuju untuk lanjut ke Fase 1?
