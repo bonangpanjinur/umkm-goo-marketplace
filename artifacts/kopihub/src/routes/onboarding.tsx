@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
    Loader2, Store, ChevronRight, ChevronLeft,
   Check, Upload, FileImage, ShoppingBag, Shirt, Laptop,
@@ -391,14 +392,25 @@ function OnboardingPage() {
               <p className="mt-1.5 text-sm text-muted-foreground">Ini membantu kami menyesuaikan fitur dan tampilan toko Anda.</p>
             </div>
             {categoriesLoading ? (
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed p-8 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Memuat daftar kategori…
+              <div className="grid grid-cols-2 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-start gap-2 rounded-xl border border-border bg-card p-4">
+                    <Skeleton className="h-9 w-9 rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ))}
               </div>
             ) : categoriesError ? (
-              <div className="space-y-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
-                <p className="font-medium text-destructive">Gagal memuat kategori</p>
-                <p className="text-muted-foreground">{categoriesError}</p>
-                <Button size="sm" variant="outline" onClick={loadCategories}>Coba lagi</Button>
+              <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-destructive/40 bg-destructive/5 p-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                  <Package className="h-6 w-6 text-destructive" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-semibold text-destructive">Gagal memuat kategori usaha</p>
+                  <p className="text-sm text-muted-foreground">{categoriesError}</p>
+                </div>
+                <Button size="sm" variant="outline" onClick={loadCategories}>Coba Lagi</Button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
