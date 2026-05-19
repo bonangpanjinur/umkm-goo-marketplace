@@ -1,7 +1,7 @@
 # Audit Import `@/server/*` di Komponen Client
 
-Tanggal: 2026-05-19 (update: cleanup selesai)
-Status: ✅ **Resolved** — semua `*.functions.ts` non-server sudah dipindah ke `src/lib/api/`.
+Tanggal: 2026-05-19 (update: cleanup selesai + stub dihapus)
+Status: ✅ **Resolved** — semua `*.functions.ts` non-server sudah dipindah ke `src/lib/api/`, folder `src/server/` (berisi stub kosong) sudah dihapus.
 
 ## Temuan ulang
 
@@ -14,8 +14,8 @@ sudah berjalan di SPA, hanya salah nama & lokasi.
 
 1. Semua `src/server/*.functions.ts` → `src/lib/api/*.functions.ts`.
 2. Semua importer `@/server/X.functions` → `@/lib/api/X.functions`.
-3. File `src/server/*.functions.server.ts` dibiarkan — diblok plugin
-   `block-server-only-imports` dari client bundle, tidak diimport client.
+3. File `src/server/*.functions.server.ts` hanya berisi `export {}` (stub) —
+   tidak dipakai siapapun, folder `src/server/` dihapus seluruhnya.
 
 ## File client yang mengimport `@/server/*.functions`
 
