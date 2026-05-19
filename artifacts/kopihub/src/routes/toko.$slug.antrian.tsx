@@ -36,15 +36,30 @@ function AntrianPage() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async (shopId: string) => {
-    const today = new Date().toISOString().slice(0, 10);
-    const { data } = await supabase
-      .from("booking_waitlist")
-      .select("id, queue_number, party_size, status, estimated_wait_minutes, created_at, served_at, customer_user_id, customer_name, requested_date")
-      .eq("shop_id", shopId)
-      .in("status", ["waiting", "notified"])
-      .or(`requested_date.eq.${today},requested_date.is.null`)
-      .order("created_at", { ascending: true });
-    setItems((data ?? []) as never);
+    // Public safe summary (no name/phone). Logged-in customer's own entry
+    // is matched separately below via auth.uid().
+    const { data: summary } = await supabase
+      .rpc("get_public_waitlist_summary", { _shop_id: shopId });
+    const base = (summary ?? []) as Array<Item & { customer_user_id?: string | null; customer_name?: string }>;
+
+    // Fetch the current user's own row (if any) to know their position/name.
+    const { data: { user } } = await supabase.auth.getUser();
+    let withMine = base.map((r) => ({ ...r, customer_name: "" }));
+    if (user) {
+      const { data: mine } = await supabase
+        .from("booking_waitlist")
+        .select("id, customer_user_id, customer_name")
+        .eq("shop_id", shopId)
+        .eq("customer_user_id", user.id)
+        .in("status", ["waiting", "notified"])
+        .maybeSingle();
+      if (mine) {
+        withMine = withMine.map((r) =>
+          r.id === mine.id ? { ...r, customer_user_id: mine.customer_user_id, customer_name: mine.customer_name ?? "" } : r,
+        );
+      }
+    }
+    setItems(withMine as never);
   }, []);
 
   useEffect(() => {
