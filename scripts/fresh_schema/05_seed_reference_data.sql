@@ -1,3 +1,15 @@
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', 'public,storage', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
 INSERT INTO public.icd10_codes VALUES ('J00', 'Nasofaringitis akut (common cold)', 'Respirasi');
 INSERT INTO public.icd10_codes VALUES ('J02.9', 'Faringitis akut, tidak spesifik', 'Respirasi');
 INSERT INTO public.icd10_codes VALUES ('J03.9', 'Tonsilitis akut, tidak spesifik', 'Respirasi');
