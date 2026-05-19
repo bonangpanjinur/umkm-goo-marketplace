@@ -8,7 +8,7 @@ import {
   deleteLayout,
   listStarterTemplates,
   type PageLayout,
-} from "@/server/page-layouts.functions";
+} from "@/lib/api/page-layouts.functions";
 import { toast } from "sonner";
 import {
   Sparkles, Plus, Edit3, Trash2, ExternalLink, Eye, EyeOff, Lock, X, LayoutTemplate,

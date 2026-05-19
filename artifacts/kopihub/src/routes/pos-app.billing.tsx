@@ -57,7 +57,7 @@ function BillingPage() {
     setBusy(planCode);
     try {
       const method = methodFor[planCode] ?? "manual";
-      const { createPlanCheckout } = await import("@/server/plan-checkout.functions");
+      const { createPlanCheckout } = await import("@/lib/api/plan-checkout.functions");
       const res = await createPlanCheckout({ data: { planCode, provider: method } });
       if (res.checkoutUrl) {
         toast.success("Mengarahkan ke halaman pembayaran...");
@@ -88,7 +88,7 @@ function BillingPage() {
       if (upErr) throw upErr;
       
       // Store the storage path (not a signed URL) so admin & owner can re-sign on demand.
-      const { submitPaymentProof } = await import("@/server/billing.functions");
+      const { submitPaymentProof } = await import("@/lib/api/billing.functions");
       await submitPaymentProof({ data: { invoiceId: inv.id, proofUrl: path } });
       toast.success("Bukti terkirim. Menunggu review super admin.");
       await reload();
@@ -103,7 +103,7 @@ function BillingPage() {
     if (!confirm(`Batalkan tagihan ${inv.invoice_no}?`)) return;
     setBusy(inv.id);
     try {
-      const { cancelPlanInvoice } = await import("@/server/billing.functions");
+      const { cancelPlanInvoice } = await import("@/lib/api/billing.functions");
       await cancelPlanInvoice({ data: { invoiceId: inv.id } });
       toast.success("Tagihan dibatalkan");
       await reload();
@@ -113,7 +113,7 @@ function BillingPage() {
 
   const onViewProof = async (inv: Invoice) => {
     try {
-      const { getProofSignedUrl } = await import("@/server/billing.functions");
+      const { getProofSignedUrl } = await import("@/lib/api/billing.functions");
       const { url } = await getProofSignedUrl({ data: { invoiceId: inv.id } });
       if (url) window.open(url, "_blank"); else toast.error("Bukti tidak tersedia");
     } catch (e) { toast.error((e as Error).message); }
