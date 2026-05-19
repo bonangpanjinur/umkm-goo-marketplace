@@ -50,6 +50,26 @@ SET row_security = off;
 -- Name: app_role; Type: TYPE; Schema: public; Owner: -
 --
 
+-- bootstrap placeholder to satisfy early function compilation; dropped before real shops table
+CREATE TABLE public.shops__bootstrap_placeholder (
+    id uuid,
+    owner_id uuid,
+    name text,
+    slug text,
+    plan text,
+    plan_expires_at timestamp with time zone,
+    custom_domain text,
+    custom_domain_verified_at timestamp with time zone,
+    suspended_at timestamp with time zone,
+    suspended_reason text,
+    active_theme_key text,
+    theme_key text,
+    plan_started_at timestamp with time zone,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    business_category_id uuid
+);
+
 CREATE TYPE public.app_role AS ENUM (
     'super_admin',
     'owner',
@@ -296,13 +316,13 @@ BEGIN
   END IF;
 
   SELECT jsonb_build_object(
-    'shops', (SELECT count(*) FROM coffee_shops),
-    'pro', (SELECT count(*) FROM coffee_shops WHERE plan = 'pro'),
+    'shops', (SELECT count(*) FROM public.shops__bootstrap_placeholder),
+    'pro', (SELECT count(*) FROM public.shops__bootstrap_placeholder WHERE plan = 'pro'),
     'pending', (SELECT count(*) FROM plan_invoices WHERE status = 'awaiting_review'),
     'mrr', COALESCE((SELECT sum(amount_idr) FROM plan_invoices WHERE status = 'paid' AND paid_at >= month_start), 0),
-    'expiringSoon', (SELECT count(*) FROM coffee_shops WHERE plan = 'pro' AND plan_expires_at >= now() AND plan_expires_at <= seven_days),
-    'domainOffline', (SELECT count(*) FROM coffee_shops WHERE custom_domain IS NOT NULL AND custom_domain_verified_at IS NULL),
-    'suspended', (SELECT count(*) FROM coffee_shops WHERE suspended_at IS NOT NULL)
+    'expiringSoon', (SELECT count(*) FROM public.shops__bootstrap_placeholder WHERE plan = 'pro' AND plan_expires_at >= now() AND plan_expires_at <= seven_days),
+    'domainOffline', (SELECT count(*) FROM public.shops__bootstrap_placeholder WHERE custom_domain IS NOT NULL AND custom_domain_verified_at IS NULL),
+    'suspended', (SELECT count(*) FROM public.shops__bootstrap_placeholder WHERE suspended_at IS NOT NULL)
   ) INTO result;
 
   RETURN result;
@@ -357,9 +377,9 @@ BEGIN
     RAISE EXCEPTION 'invalid_plan';
   END IF;
 
-  SELECT plan, plan_expires_at INTO old_plan, old_exp FROM coffee_shops WHERE id = _shop_id;
+  SELECT plan, plan_expires_at INTO old_plan, old_exp FROM public.shops__bootstrap_placeholder WHERE id = _shop_id;
 
-  UPDATE coffee_shops
+  UPDATE public.shops__bootstrap_placeholder
     SET plan = _plan,
         plan_expires_at = CASE WHEN _plan = 'pro' THEN _expires_at ELSE NULL END,
         updated_at = now()
@@ -401,7 +421,7 @@ BEGIN
     'menu_count', (SELECT count(*) FROM menu_items WHERE shop_id = s.id),
     'last_order_at', (SELECT max(created_at) FROM orders WHERE shop_id = s.id)
   ) INTO result
-  FROM coffee_shops s
+  FROM public.shops__bootstrap_placeholder s
   LEFT JOIN profiles p ON p.id = s.owner_id
   WHERE s.id = _shop_id;
 
@@ -423,7 +443,7 @@ BEGIN
     RAISE EXCEPTION 'not_authorized';
   END IF;
 
-  UPDATE coffee_shops
+  UPDATE public.shops__bootstrap_placeholder
     SET suspended_at = now(), suspended_reason = _reason, is_active = false, updated_at = now()
     WHERE id = _shop_id;
 
@@ -453,7 +473,7 @@ BEGIN
     RAISE EXCEPTION 'not_authorized';
   END IF;
 
-  UPDATE coffee_shops
+  UPDATE public.shops__bootstrap_placeholder
     SET suspended_at = NULL, suspended_reason = NULL, is_active = true, updated_at = now()
     WHERE id = _shop_id;
 
@@ -644,7 +664,7 @@ BEGIN
 
   -- Extend from current expiry if still active, else from now
   SELECT GREATEST(COALESCE(plan_expires_at, now()), now()) INTO v_base
-    FROM coffee_shops WHERE id = v_inv.shop_id;
+    FROM public.shops__bootstrap_placeholder WHERE id = v_inv.shop_id;
   v_new_expiry := v_base + (v_plan.duration_days || ' days')::interval;
 
   UPDATE plan_invoices
@@ -653,7 +673,7 @@ BEGIN
         updated_at = now()
     WHERE id = _invoice_id;
 
-  UPDATE coffee_shops
+  UPDATE public.shops__bootstrap_placeholder
     SET plan = 'pro', plan_expires_at = v_new_expiry, updated_at = now()
     WHERE id = v_inv.shop_id;
 
@@ -680,7 +700,7 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'Top-up tidak ditemukan'; END IF;
   IF _topup.status <> 'pending' THEN RAISE EXCEPTION 'Top-up sudah diproses (status: %)', _topup.status; END IF;
 
-  SELECT EXISTS (SELECT 1 FROM public.coffee_shops WHERE id = _topup.shop_id AND owner_id = auth.uid()) INTO _is_owner;
+  SELECT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _topup.shop_id AND owner_id = auth.uid()) INTO _is_owner;
   IF NOT _is_owner AND NOT public.has_role(auth.uid(), 'super_admin'::app_role) THEN
     RAISE EXCEPTION 'Tidak diizinkan';
   END IF;
@@ -773,7 +793,7 @@ BEGIN
   -- Caller must be the courier's user OR have outlet access (owner/cashier assigning)
   IF NOT (
     v_courier.user_id = v_caller
-    OR EXISTS (SELECT 1 FROM coffee_shops s WHERE s.id = v_courier.shop_id AND s.owner_id = v_caller)
+    OR EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder s WHERE s.id = v_courier.shop_id AND s.owner_id = v_caller)
   ) THEN
     RAISE EXCEPTION 'not_authorized';
   END IF;
@@ -932,7 +952,7 @@ CREATE FUNCTION public.auto_unverify_domain(_shop_id uuid, _reason text) RETURNS
     SET search_path TO 'public'
     AS $$
 BEGIN
-  UPDATE public.coffee_shops
+  UPDATE public.shops__bootstrap_placeholder
     SET custom_domain_verified_at = NULL,
         last_dns_check_at = now(),
         updated_at = now()
@@ -970,7 +990,7 @@ BEGIN
     WHERE id = v_booking.id;
 
   PERFORM create_notification(
-    (SELECT owner_id FROM coffee_shops WHERE id = v_booking.shop_id),
+    (SELECT owner_id FROM public.shops__bootstrap_placeholder WHERE id = v_booking.shop_id),
     'booking_cancelled', 'Booking dibatalkan pelanggan',
     v_booking.customer_name || ' membatalkan booking',
     '/pos-app/booking', 'warning', v_booking.shop_id,
@@ -1428,7 +1448,7 @@ BEGIN
   END IF;
 
   IF NOT public.has_role(v_caller, 'super_admin')
-     AND NOT EXISTS (SELECT 1 FROM coffee_shops s WHERE s.id = v_order.shop_id AND s.owner_id = v_caller) THEN
+     AND NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder s WHERE s.id = v_order.shop_id AND s.owner_id = v_caller) THEN
     -- allow trigger / system call (no auth.uid())
     IF v_caller IS NOT NULL THEN RAISE EXCEPTION 'not_authorized'; END IF;
   END IF;
@@ -1469,7 +1489,7 @@ CREATE FUNCTION public.expire_overdue_plans() RETURNS TABLE(shop_id uuid)
 BEGIN
   RETURN QUERY
   WITH affected AS (
-    UPDATE public.coffee_shops
+    UPDATE public.shops__bootstrap_placeholder
       SET plan = 'free',
           custom_domain_verified_at = NULL,
           updated_at = now()
@@ -1583,7 +1603,7 @@ BEGIN
            'Plan Pro Anda akan berakhir pada ' || to_char(s.plan_expires_at AT TIME ZONE 'Asia/Jakarta', 'DD Mon YYYY HH24:MI'),
            '/app/billing', 'warning',
            'plan_expiring:' || to_char(s.plan_expires_at, 'YYYY-MM-DD')
-    FROM coffee_shops s
+    FROM public.shops__bootstrap_placeholder s
     WHERE s.plan = 'pro'
       AND s.plan_expires_at IS NOT NULL
       AND s.plan_expires_at > now()
@@ -1600,7 +1620,7 @@ BEGIN
            'Akun Anda otomatis turun ke Free. Custom domain dinonaktifkan sementara.',
            '/app/billing', 'danger',
            'plan_expired:' || to_char(COALESCE(s.plan_expires_at, now()), 'YYYY-MM-DD')
-    FROM coffee_shops s
+    FROM public.shops__bootstrap_placeholder s
     WHERE s.plan = 'free'
       AND s.plan_expires_at IS NOT NULL
       AND s.plan_expires_at < now()
@@ -1634,7 +1654,7 @@ BEGIN
            'Domain ' || s.custom_domain || ' tidak lagi terdeteksi. Periksa pengaturan DNS Anda.',
            '/app/domain', 'danger',
            'domain_offline:' || s.custom_domain || ':' || to_char(s.last_dns_check_at, 'YYYY-MM-DD')
-    FROM coffee_shops s
+    FROM public.shops__bootstrap_placeholder s
     WHERE s.custom_domain IS NOT NULL
       AND s.custom_domain_verified_at IS NULL
       AND s.last_dns_check_at IS NOT NULL
@@ -1693,7 +1713,7 @@ BEGIN
            where h.request_id = cor.id
          ), '[]'::jsonb) as history
   from public.custom_order_requests cor
-  join public.coffee_shops cs on cs.id = cor.shop_id
+  join public.shops__bootstrap_placeholder cs on cs.id = cor.shop_id
   left join public.menu_items mi on mi.id = cor.product_id
   where cs.slug = p_shop_slug
     and regexp_replace(cor.customer_contact, '\D', '', 'g')
@@ -1795,7 +1815,7 @@ BEGIN
     COALESCE(SUM(o.commission_amount), 0)::numeric AS commission,
     COUNT(*)::bigint AS orders
   FROM orders o
-  JOIN coffee_shops s ON s.id = o.shop_id
+  JOIN public.shops__bootstrap_placeholder s ON s.id = o.shop_id
   WHERE o.marketplace_order = true
     AND o.status NOT IN ('cancelled', 'pending')
     AND o.created_at >= _from
@@ -1847,7 +1867,7 @@ DECLARE
 BEGIN
   IF v_uid IS NULL THEN RETURN NULL; END IF;
   SELECT id, theme_key, plan_started_at INTO v_shop_id, v_theme_key, v_started
-    FROM public.shops WHERE owner_id = v_uid LIMIT 1;
+    FROM public.shops__bootstrap_placeholder WHERE owner_id = v_uid LIMIT 1;
   IF v_started IS NOT NULL THEN
     v_months := EXTRACT(EPOCH FROM (now() - v_started)) / (60*60*24*30);
   END IF;
@@ -1912,7 +1932,7 @@ BEGIN
     c.name, c.phone, c.plate_number,
     o.delivery_proof_url, o.delivered_at
   FROM public.orders o
-  JOIN public.coffee_shops s ON s.id = o.shop_id
+  JOIN public.shops__bootstrap_placeholder s ON s.id = o.shop_id
   LEFT JOIN public.couriers c ON c.id = o.courier_id
   WHERE o.id = _order_id
     AND o.channel = 'online';
@@ -1935,7 +1955,7 @@ DECLARE
   v_orders int := 0;
 BEGIN
   IF v_caller IS NULL THEN RAISE EXCEPTION 'not_authenticated'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops WHERE id = _shop_id AND owner_id = v_caller)
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = v_caller)
      AND NOT public.has_role(v_caller, 'super_admin') THEN
     RAISE EXCEPTION 'not_authorized';
   END IF;
@@ -1984,7 +2004,7 @@ DECLARE
   v_caller uuid := auth.uid();
 BEGIN
   IF v_caller IS NULL THEN RAISE EXCEPTION 'not_authenticated'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops WHERE id = _shop_id AND owner_id = v_caller)
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = v_caller)
      AND NOT public.has_role(v_caller, 'super_admin') THEN
     RAISE EXCEPTION 'not_authorized';
   END IF;
@@ -2029,14 +2049,14 @@ CREATE FUNCTION public.get_shop_entitlements(_shop_id uuid) RETURNS jsonb
     SET search_path TO 'public'
     AS $$
 DECLARE
-  v_shop coffee_shops%ROWTYPE;
+  v_shop record;
   v_plan_code text;
   v_effective_plan_id uuid;
   v_months_active numeric;
   v_features jsonb;
   v_themes jsonb;
 BEGIN
-  SELECT * INTO v_shop FROM coffee_shops WHERE id = _shop_id;
+  SELECT * INTO v_shop FROM public.shops__bootstrap_placeholder WHERE id = _shop_id;
   IF NOT FOUND THEN
     RETURN jsonb_build_object('error', 'shop_not_found');
   END IF;
@@ -2111,7 +2131,7 @@ CREATE FUNCTION public.get_shop_marketplace_daily(_shop_id uuid, _from timestamp
     SET search_path TO 'public'
     AS $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops WHERE id = _shop_id AND owner_id = auth.uid())
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = auth.uid())
      AND NOT has_role(auth.uid(), 'super_admin'::app_role) THEN
     RAISE EXCEPTION 'unauthorized';
   END IF;
@@ -2144,7 +2164,7 @@ CREATE FUNCTION public.get_shop_marketplace_stats(_shop_id uuid, _from timestamp
 DECLARE
   v_result jsonb;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops WHERE id = _shop_id AND owner_id = auth.uid())
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = auth.uid())
      AND NOT has_role(auth.uid(), 'super_admin'::app_role) THEN
     RAISE EXCEPTION 'unauthorized';
   END IF;
@@ -2180,7 +2200,7 @@ CREATE FUNCTION public.get_shop_marketplace_top_products(_shop_id uuid, _from ti
     SET search_path TO 'public'
     AS $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops WHERE id = _shop_id AND owner_id = auth.uid())
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = auth.uid())
      AND NOT has_role(auth.uid(), 'super_admin'::app_role) THEN
     RAISE EXCEPTION 'unauthorized';
   END IF;
@@ -2264,7 +2284,7 @@ DECLARE
 BEGIN
   SELECT EXISTS (
     SELECT 1 FROM public.outlets o
-    JOIN public.coffee_shops s ON s.id = o.shop_id
+    JOIN public.shops__bootstrap_placeholder s ON s.id = o.shop_id
     WHERE o.id = _outlet_id
       AND (
         s.owner_id = _user_id
@@ -2367,7 +2387,7 @@ DECLARE
   _result boolean;
 BEGIN
   SELECT EXISTS (
-    SELECT 1 FROM public.shops WHERE id = _shop_id AND owner_id = _user_id
+    SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = _user_id
   ) INTO _result;
   RETURN _result;
 END;
@@ -2418,7 +2438,7 @@ BEGIN
     AND o.status IN ('ready', 'preparing')
     AND (
       c.user_id = auth.uid()
-      OR EXISTS (SELECT 1 FROM coffee_shops s WHERE s.id = c.shop_id AND s.owner_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder s WHERE s.id = c.shop_id AND s.owner_id = auth.uid())
     )
   ORDER BY o.created_at ASC
   LIMIT 50;
@@ -2660,7 +2680,7 @@ BEGIN
   FOR _shop IN
     SELECT ci.shop_id, s.commission_rate_override, s.business_category_id
     FROM marketplace_cart_items ci
-    JOIN coffee_shops s ON s.id = ci.shop_id
+    JOIN public.shops__bootstrap_placeholder s ON s.id = ci.shop_id
     WHERE ci.cart_id = _cart_id
     GROUP BY ci.shop_id, s.commission_rate_override, s.business_category_id
   LOOP
@@ -2862,7 +2882,7 @@ CREATE FUNCTION public.notify_dispute_event() RETURNS trigger
       BEGIN
         SELECT * INTO v_order FROM orders WHERE id = NEW.order_id;
         IF NOT FOUND THEN RETURN NEW; END IF;
-        SELECT owner_id INTO v_owner FROM coffee_shops WHERE id = v_order.shop_id;
+        SELECT owner_id INTO v_owner FROM public.shops__bootstrap_placeholder WHERE id = v_order.shop_id;
 
         IF TG_OP = 'INSERT' THEN
           PERFORM public.create_notification(
@@ -2935,7 +2955,7 @@ DECLARE
   _tier_name TEXT;
 BEGIN
   SELECT name, owner_user_id INTO _shop_name, _owner_id
-  FROM coffee_shops WHERE id = NEW.shop_id;
+  FROM public.shops__bootstrap_placeholder WHERE id = NEW.shop_id;
   SELECT name INTO _tier_name FROM shop_membership_tiers WHERE id = NEW.tier_id;
 
   IF TG_OP = 'INSERT' THEN
@@ -2978,7 +2998,7 @@ CREATE FUNCTION public.notify_new_marketplace_order() RETURNS trigger
 DECLARE v_owner UUID;
 BEGIN
   IF NEW.marketplace_order = true THEN
-    SELECT owner_id INTO v_owner FROM coffee_shops WHERE id = NEW.shop_id;
+    SELECT owner_id INTO v_owner FROM public.shops__bootstrap_placeholder WHERE id = NEW.shop_id;
     PERFORM public.create_notification(
       v_owner,
       'order_new',
@@ -3051,7 +3071,7 @@ DECLARE
   _customer_name TEXT;
 BEGIN
   SELECT name, owner_user_id INTO _shop_name, _owner_id
-  FROM coffee_shops WHERE id = NEW.shop_id;
+  FROM public.shops__bootstrap_placeholder WHERE id = NEW.shop_id;
 
   IF TG_OP = 'INSERT' AND _owner_id IS NOT NULL THEN
     -- Notify owner of new pending topup
@@ -3105,7 +3125,7 @@ CREATE FUNCTION public.notify_withdrawal_status() RETURNS trigger
       DECLARE v_owner UUID;
       BEGIN
         IF OLD.status IS NOT DISTINCT FROM NEW.status THEN RETURN NEW; END IF;
-        SELECT owner_id INTO v_owner FROM coffee_shops WHERE id = NEW.shop_id;
+        SELECT owner_id INTO v_owner FROM public.shops__bootstrap_placeholder WHERE id = NEW.shop_id;
         IF NEW.status IN ('approved','paid') THEN
           PERFORM public.create_notification(
             v_owner, 'withdrawal_'||NEW.status,
@@ -3216,7 +3236,7 @@ DECLARE
 BEGIN
   FOR v_booking IN
     SELECT b.id, b.customer_user_id, b.shop_id, s.service_name, s.slot_date, s.slot_time, cs.name AS shop_name
-    FROM bookings b JOIN booking_slots s ON s.id=b.slot_id JOIN coffee_shops cs ON cs.id=b.shop_id
+    FROM bookings b JOIN booking_slots s ON s.id=b.slot_id JOIN public.shops__bootstrap_placeholder cs ON cs.id=b.shop_id
     WHERE b.status IN ('pending','confirmed') AND b.reminded_h1_at IS NULL AND b.customer_user_id IS NOT NULL
       AND (s.slot_date + s.slot_time) BETWEEN (now() + interval '23 hours') AND (now() + interval '25 hours')
   LOOP
@@ -3230,7 +3250,7 @@ BEGIN
 
   FOR v_booking IN
     SELECT b.id, b.customer_user_id, b.shop_id, s.service_name, s.slot_date, s.slot_time, cs.name AS shop_name
-    FROM bookings b JOIN booking_slots s ON s.id=b.slot_id JOIN coffee_shops cs ON cs.id=b.shop_id
+    FROM bookings b JOIN booking_slots s ON s.id=b.slot_id JOIN public.shops__bootstrap_placeholder cs ON cs.id=b.shop_id
     WHERE b.status IN ('pending','confirmed') AND b.reminded_h1h_at IS NULL AND b.customer_user_id IS NOT NULL
       AND (s.slot_date + s.slot_time) BETWEEN (now() + interval '50 minutes') AND (now() + interval '70 minutes')
   LOOP
@@ -3244,7 +3264,7 @@ BEGIN
 
   FOR v_booking IN
     SELECT b.id, b.customer_user_id, b.customer_phone, b.shop_id, s.service_name, cs.name AS shop_name
-    FROM bookings b JOIN booking_slots s ON s.id=b.slot_id JOIN coffee_shops cs ON cs.id=b.shop_id
+    FROM bookings b JOIN booking_slots s ON s.id=b.slot_id JOIN public.shops__bootstrap_placeholder cs ON cs.id=b.shop_id
     LEFT JOIN booking_reviews r ON r.booking_id = b.id
     WHERE b.status IN ('confirmed','completed') AND b.feedback_requested_at IS NULL AND r.id IS NULL
       AND (s.slot_date + s.slot_time + (s.duration_minutes || ' minutes')::interval) < (now() - interval '2 hours')
@@ -3346,7 +3366,7 @@ BEGIN
   SELECT * INTO v_po FROM purchase_orders WHERE id = _po_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'po_not_found'; END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops s WHERE s.id = v_po.shop_id AND s.owner_id = v_caller) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder s WHERE s.id = v_po.shop_id AND s.owner_id = v_caller) THEN
     RAISE EXCEPTION 'not_authorized';
   END IF;
 
@@ -3397,7 +3417,7 @@ BEGIN
     rating_count = COALESCE((SELECT COUNT(*) FROM product_reviews WHERE product_id = v_product AND NOT is_hidden), 0)
   WHERE id = v_product;
 
-  UPDATE public.coffee_shops SET
+  UPDATE public.shops__bootstrap_placeholder SET
     rating_avg = COALESCE((SELECT ROUND(AVG(rating)::numeric, 2) FROM product_reviews WHERE shop_id = v_shop AND NOT is_hidden), 0),
     rating_count = COALESCE((SELECT COUNT(*) FROM product_reviews WHERE shop_id = v_shop AND NOT is_hidden), 0)
   WHERE id = v_shop;
@@ -3501,7 +3521,7 @@ BEGIN
   SELECT * INTO _topup FROM public.wallet_topups WHERE id = _topup_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Top-up tidak ditemukan'; END IF;
   IF _topup.status <> 'pending' THEN RAISE EXCEPTION 'Top-up sudah diproses'; END IF;
-  SELECT EXISTS (SELECT 1 FROM public.coffee_shops WHERE id = _topup.shop_id AND owner_id = auth.uid()) INTO _is_owner;
+  SELECT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _topup.shop_id AND owner_id = auth.uid()) INTO _is_owner;
   IF NOT _is_owner AND NOT public.has_role(auth.uid(), 'super_admin'::app_role) THEN
     RAISE EXCEPTION 'Tidak diizinkan';
   END IF;
@@ -3573,7 +3593,7 @@ DECLARE
   v_id UUID;
 BEGIN
   IF v_caller IS NULL THEN RAISE EXCEPTION 'not_authenticated'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM coffee_shops WHERE id = _shop_id AND owner_id = v_caller) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = v_caller) THEN
     RAISE EXCEPTION 'not_authorized';
   END IF;
 
@@ -3623,7 +3643,7 @@ BEGIN
   SELECT * INTO v_d FROM order_disputes WHERE id = _dispute_id;
   IF v_d.id IS NULL THEN RAISE EXCEPTION 'Sengketa tidak ditemukan'; END IF;
   v_is_admin := has_role(auth.uid(), 'super_admin'::app_role);
-  SELECT EXISTS (SELECT 1 FROM coffee_shops WHERE id = v_d.shop_id AND owner_id = auth.uid())
+  SELECT EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = v_d.shop_id AND owner_id = auth.uid())
     INTO v_is_owner;
   IF NOT (v_is_owner OR v_is_admin) THEN
     RAISE EXCEPTION 'Tidak berwenang';
@@ -3676,7 +3696,7 @@ BEGIN
     SELECT cs.id, cs.name, cs.owner_id, cs.plan_expires_at, cs.trial_ends_at,
            COALESCE(p.code,'free') AS plan_code, COALESCE(p.name,'Free') AS plan_name,
            COALESCE(s.override_rules, FALSE) AS override_rules
-    FROM public.coffee_shops cs
+    FROM public.shops__bootstrap_placeholder cs
     LEFT JOIN public.plans p ON p.id = cs.plan_id
     LEFT JOIN public.expiry_reminder_shop_settings s ON s.shop_id = cs.id
     WHERE cs.plan_expires_at IS NOT NULL OR cs.trial_ends_at IS NOT NULL
@@ -3794,7 +3814,7 @@ BEGIN
            c.name AS shop_name
     FROM bookings b
     JOIN booking_slots s ON s.id = b.slot_id
-    JOIN coffee_shops c ON c.id = b.shop_id
+    JOIN public.shops__bootstrap_placeholder c ON c.id = b.shop_id
     WHERE b.status = 'confirmed'
       AND b.reminded_h1_at IS NULL
       AND b.customer_user_id IS NOT NULL
@@ -3817,7 +3837,7 @@ BEGIN
            c.name AS shop_name
     FROM bookings b
     JOIN booking_slots s ON s.id = b.slot_id
-    JOIN coffee_shops c ON c.id = b.shop_id
+    JOIN public.shops__bootstrap_placeholder c ON c.id = b.shop_id
     WHERE b.status = 'confirmed'
       AND b.reminded_h3_at IS NULL
       AND b.customer_user_id IS NOT NULL
@@ -3867,7 +3887,7 @@ BEGIN
           AND (n.body LIKE '%' || cm.id::text || '%' OR n.link LIKE '%' || cm.shop_id::text || '%')
       )
   LOOP
-    SELECT name INTO _shop_name FROM coffee_shops WHERE id = _row.shop_id;
+    SELECT name INTO _shop_name FROM public.shops__bootstrap_placeholder WHERE id = _row.shop_id;
     _days := GREATEST(0, EXTRACT(DAY FROM (_row.expires_at - now()))::INTEGER);
     PERFORM create_notification(
       _row.customer_user_id,
@@ -3905,7 +3925,7 @@ BEGIN
   IF v_order.id IS NULL THEN RAISE EXCEPTION 'Order tidak ditemukan'; END IF;
   IF v_order.customer_user_id = auth.uid() THEN
     v_role := 'customer';
-  ELSIF EXISTS (SELECT 1 FROM coffee_shops WHERE id = v_order.shop_id AND owner_id = auth.uid()) THEN
+  ELSIF EXISTS (SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = v_order.shop_id AND owner_id = auth.uid()) THEN
     v_role := 'seller';
   ELSE
     RAISE EXCEPTION 'Bukan peserta percakapan';
@@ -3952,7 +3972,7 @@ BEGIN
   IF NOT public.has_role(auth.uid(), 'super_admin') THEN
     RAISE EXCEPTION 'not_authorized';
   END IF;
-  UPDATE coffee_shops
+  UPDATE public.shops__bootstrap_placeholder
     SET custom_domain_verified_at = CASE WHEN _verified THEN now() ELSE NULL END,
         updated_at = now()
     WHERE id = _shop_id;
@@ -3967,37 +3987,6 @@ $$;
 -- Name: set_order_no(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.set_order_no() RETURNS trigger
-    LANGUAGE plpgsql
-    SET search_path TO 'public'
-    AS $_$
-DECLARE
-  v_date text;
-  v_seq int;
-BEGIN
-  IF NEW.order_no IS NOT NULL AND NEW.order_no <> '' THEN
-    RETURN NEW;
-  END IF;
-
-  v_date := to_char(COALESCE(NEW.business_date, (now() AT TIME ZONE 'Asia/Jakarta')::date), 'YYYYMMDD');
-
-  SELECT COALESCE(MAX(NULLIF(regexp_replace(order_no, '^.*-', ''), '')::int), 0) + 1
-    INTO v_seq
-  FROM public.orders
-  WHERE outlet_id = NEW.outlet_id
-    AND business_date = COALESCE(NEW.business_date, (now() AT TIME ZONE 'Asia/Jakarta')::date)
-    AND order_no ~ ('^' || v_date || '-[0-9]+$');
-
-  NEW.order_no := v_date || '-' || lpad(v_seq::text, 4, '0');
-  RETURN NEW;
-END;
-$_$;
-
-
---
--- Name: set_shop_theme(uuid, text); Type: FUNCTION; Schema: public; Owner: -
---
-
 CREATE FUNCTION public.set_shop_theme(_shop_id uuid, _theme_key text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
@@ -4010,7 +3999,7 @@ DECLARE
 BEGIN
   IF v_caller IS NULL THEN RAISE EXCEPTION 'not_authenticated'; END IF;
 
-  SELECT owner_id INTO v_owner FROM coffee_shops WHERE id = _shop_id;
+  SELECT owner_id INTO v_owner FROM public.shops__bootstrap_placeholder WHERE id = _shop_id;
   IF v_owner IS NULL THEN RAISE EXCEPTION 'shop_not_found'; END IF;
   IF v_owner <> v_caller AND NOT public.has_role(v_caller, 'super_admin') THEN
     RAISE EXCEPTION 'not_authorized';
@@ -4026,7 +4015,7 @@ BEGIN
     RAISE EXCEPTION 'theme_not_entitled';
   END IF;
 
-  UPDATE coffee_shops SET active_theme_key = _theme_key, updated_at = now() WHERE id = _shop_id;
+  UPDATE public.shops__bootstrap_placeholder SET active_theme_key = _theme_key, updated_at = now() WHERE id = _shop_id;
 END;
 $$;
 
@@ -4063,7 +4052,7 @@ DECLARE
   v_blocked boolean := false;
 BEGIN
   SELECT s.id, o.id INTO v_shop, v_outlet
-  FROM public.coffee_shops s JOIN public.outlets o ON o.shop_id = s.id LIMIT 1;
+  FROM public.shops__bootstrap_placeholder s JOIN public.outlets o ON o.shop_id = s.id LIMIT 1;
   IF v_shop IS NULL THEN RETURN 'skipped — no shop/outlet'; END IF;
 
   INSERT INTO public.orders (shop_id, outlet_id, channel, fulfillment, order_source, table_label, payment_method, status)
@@ -4199,7 +4188,7 @@ DECLARE
   _result boolean;
 BEGIN
   SELECT EXISTS (
-    SELECT 1 FROM public.coffee_shops WHERE id = _shop_id AND owner_id = _user_id
+    SELECT 1 FROM public.shops__bootstrap_placeholder WHERE id = _shop_id AND owner_id = _user_id
   ) OR EXISTS (
     SELECT 1 FROM public.staff_permissions WHERE shop_id = _shop_id AND user_id = _user_id
   ) INTO _result;
@@ -6953,6 +6942,12 @@ CREATE TABLE public.shop_customers (
 
 
 --
+-- Name: shops__bootstrap_placeholder cleanup; Type: TABLE; Schema: public; Owner: -
+--
+
+DROP TABLE public.shops__bootstrap_placeholder;
+
+
 -- Name: shops; Type: TABLE; Schema: public; Owner: -
 --
 
