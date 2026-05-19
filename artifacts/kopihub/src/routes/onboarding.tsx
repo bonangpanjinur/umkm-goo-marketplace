@@ -391,6 +391,7 @@ function OnboardingPage() {
               <h1 className="text-2xl font-bold tracking-tight">Kategori bisnis Anda?</h1>
               <p className="mt-1.5 text-sm text-muted-foreground">Ini membantu kami menyesuaikan fitur dan tampilan toko Anda.</p>
             </div>
+            <DbHealthBadge />
             {categoriesLoading ? (
               <div className="grid grid-cols-2 gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
