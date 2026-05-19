@@ -15,6 +15,54 @@ if (Number.isNaN(port) || port <= 0) {
 const basePath = process.env.BASE_PATH ?? "/";
 
 /**
+ * Supabase env resolver — supaya repo otomatis sinkron dengan
+ * Vercel ↔ Supabase Integration tanpa perlu manual set VITE_* lagi.
+ *
+ * Vercel integration inject nama TANPA prefix VITE_:
+ *   SUPABASE_URL, SUPABASE_ANON_KEY, NEXT_PUBLIC_SUPABASE_URL, dst.
+ *
+ * Vite hanya bundle var ber-prefix VITE_*, jadi kita mapping di sini
+ * (resolve saat build) dengan urutan prioritas:
+ *   1. VITE_SUPABASE_*  (manual override)
+ *   2. NEXT_PUBLIC_SUPABASE_*  (Vercel-Supabase integration default)
+ *   3. SUPABASE_*  (server-side names dari Vercel)
+ */
+const pickEnv = (...names: string[]) => {
+  for (const n of names) {
+    const v = process.env[n];
+    if (v && v.length > 0) return v;
+  }
+  return "";
+};
+
+const SUPABASE_URL = pickEnv(
+  "VITE_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_URL",
+);
+const SUPABASE_PUBLISHABLE_KEY = pickEnv(
+  "VITE_SUPABASE_PUBLISHABLE_KEY",
+  "VITE_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "SUPABASE_ANON_KEY",
+  "SUPABASE_PUBLISHABLE_KEY",
+);
+const SUPABASE_PROJECT_ID = pickEnv(
+  "VITE_SUPABASE_PROJECT_ID",
+  "NEXT_PUBLIC_SUPABASE_PROJECT_ID",
+  "SUPABASE_PROJECT_ID",
+);
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  // Warning saja — biar build dev tetep jalan, tapi production wajib.
+  console.warn(
+    "[vite.config] Supabase env belum lengkap. Set VITE_SUPABASE_URL / " +
+    "NEXT_PUBLIC_SUPABASE_URL / SUPABASE_URL di Vercel Project Settings → Environment Variables.",
+  );
+}
+
+/**
  * block-server-only-imports
  *
  * Failsafe agar modul server-only (Node built-ins seperti `node:crypto`,
@@ -78,6 +126,13 @@ function blockServerOnlyImports(): Plugin {
 
 export default defineConfig({
   base: basePath,
+  define: {
+    // Inject ke client bundle. Override hasil dari `import.meta.env.VITE_*`
+    // sehingga Vercel-Supabase integration langsung kepakai tanpa rename env.
+    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(SUPABASE_URL),
+    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(SUPABASE_PUBLISHABLE_KEY),
+    "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(SUPABASE_PROJECT_ID),
+  },
   plugins: [
     blockServerOnlyImports(),
     TanStackRouterVite({ routesDirectory: "./src/routes", generatedRouteTree: "./src/routeTree.gen.ts" }),
