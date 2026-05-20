@@ -277,23 +277,40 @@ function KDSPage() {
   }, [outlet]);
 
   const filteredOrders = useMemo(() => {
-    if (activeStation === "all") return orders;
-    return orders.filter(order => {
-      const orderItems = items[order.id] || [];
-      return orderItems.some(item => item.kds_station === activeStation);
-    });
+    const base = activeStation === "all"
+      ? orders
+      : orders.filter(order => {
+          const orderItems = items[order.id] || [];
+          return orderItems.some(item => item.kds_station === activeStation);
+        });
+    return base;
   }, [orders, items, activeStation]);
+
+  const activeOrders = useMemo(
+    () => filteredOrders.filter((o) => o.status === "pending" || o.status === "preparing"),
+    [filteredOrders]
+  );
+  const readyOrders = useMemo(
+    () => filteredOrders.filter((o) => o.status === "ready"),
+    [filteredOrders]
+  );
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase
       .from("orders")
       .update({ status: status as any })
       .eq("id", id);
-    
+
     if (error) {
       toast.error("Gagal memperbarui status");
     } else {
-      toast.success(`Pesanan ${status === "preparing" ? "mulai diproses" : "siap"}`);
+      const msg: Record<string, string> = {
+        preparing: "Pesanan mulai diproses",
+        ready: "Pesanan siap saji",
+        pending: "Pesanan dikembalikan ke antrian",
+        completed: "Pesanan diselesaikan",
+      };
+      toast.success(msg[status] ?? "Status diperbarui");
     }
   };
 
