@@ -187,14 +187,11 @@ body[data-receipt-paper="80"] .receipt-58 {
   --r-fs-sm: 11px;
 }
 
-@media print {
-  body * { visibility: hidden !important; }
-  .print-area, .print-area * { visibility: visible !important; }
-  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-}
-/* Off-screen wrapper for hidden receipts. We can't use display:none
-   because then the print layer has nothing to render — keep it in the
-   layout but pushed off-screen. */
+/* Print struk sekarang ditangani via popup window khusus (lihat
+   src/lib/receipt-printer.ts → printThermal). Dashboard TIDAK pernah
+   ikut ter-print, sehingga tidak perlu lagi trik `body * { visibility:hidden }`
+   di sini. .print-host tetap dipakai sebagai off-screen container untuk
+   menampung markup struk agar bisa di-ref dari React. */
 .print-host {
   position: fixed;
   left: -10000px;
@@ -203,16 +200,10 @@ body[data-receipt-paper="80"] .receipt-58 {
   pointer-events: none;
 }
 @media print {
-  .print-host { position: absolute; left: 0; top: 0; }
-}
-/* Receipt paper size — @page can't read body attributes, so we expose
-   two named pages and let JS pick which one via the `page:` property
-   on .print-area (set in receipt-printer.ts before window.print()). */
-@page receipt-58 { size: 58mm auto; margin: 0; }
-@page receipt-80 { size: 80mm auto; margin: 0; }
-@media print {
-  .print-area { page: receipt-58; }
-  body[data-receipt-paper="80"] .print-area { page: receipt-80; }
+  /* Cegah seluruh dashboard tercetak jika user iseng menekan Ctrl+P
+     di halaman POS — popup printThermal punya CSS sendiri. */
+  body > *:not(.print-host) { display: none !important; }
+  .print-host { position: static; left: 0; }
 }
 
 

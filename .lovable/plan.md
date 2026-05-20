@@ -1,102 +1,111 @@
-# Analisis Error & Rencana Perbaikan UMKMgo
+## Tujuan
 
-## 1. Akar Masalah Error yang Terjadi
+Hilangkan masalah print struk yang masih ikut layout A4 / banyak whitespace dengan memisahkan total proses print dari halaman dashboard. Struk dirender di **popup window khusus** dengan CSS thermal kaku (58 mm / 80 mm), auto-print, auto-close.
 
-### A. Error Vercel: `business_categories` not found in schema cache
-**Bukan masalah database** — tabel ada (11 baris, verified via `read_query`). Penyebabnya: **environment variable di Vercel menunjuk ke project Supabase yang berbeda**.
+## Akar masalah saat ini
 
-- Lovable Cloud URL: `umuycjajkkzkrqlbqhgb.supabase.co`
-- URL yang dipakai Vercel (dari screenshot sebelumnya): `ttodwsivzskaogyewjzf.supabase.co`
+`src/lib/receipt-printer.ts` → `printReceiptNode()` memakai trik `body * { visibility:hidden }` + `window.print()` dari halaman POS. Di banyak browser/printer driver hal ini tetap memakai ukuran kertas default printer (A4/Letter), menyebabkan struk kecil di tengah + banyak whitespace. `openReceiptInNewWindow()` sudah ada tapi menyalin `outerHTML` node bersama seluruh Tailwind/CSS dashboard (termasuk warna gelap & shadow) sehingga hasilnya tidak bersih, dan tidak auto-close.
 
-Dua project Supabase berbeda → schema cache di project Vercel memang tidak punya tabel itu.
+## Solusi
 
-### B. Error pnpm lockfile mismatch (sudah diperbaiki)
-Sudah ditangani dengan regenerasi `pnpm-lock.yaml`.
+### 1. `src/lib/receipt-printer.ts` — tambah `printThermal()`
 
-### C. Endpoint `/api/public/health-db` TIDAK akan berfungsi
-**Critical finding**: project ini adalah **Vite SPA murni**, bukan TanStack Start. Bukti:
-- `package.json` hanya punya `@tanstack/react-router` (router-only), **bukan** `@tanstack/react-start`
-- Script build: `vite build` (frontend statis), tidak ada SSR/server bundle
-- Deploy ke Vercel sebagai static site
+API baru:
 
-Konsekuensi:
-- File `src/routes/api/public/health-db.ts` dengan `server: { handlers }` **tidak akan dijalankan** sebagai HTTP endpoint. Vercel hanya men-serve static files dari `dist/public`. Memanggil `/api/public/health-db` di production → 404 atau fallback ke index.html.
-- Semua file `src/server/*.functions.ts` yang pakai `createServerFn` **tidak punya runtime**. Mereka di-bundle ke client, dan import `client.server` di dalamnya berpotensi bocor service-role key ke browser.
+```ts
+printThermal({
+  node: HTMLElement,        // sumber markup struk (komponen Receipt yang sudah ada)
+  paper?: "58" | "80",      // default getReceiptPaper(scopeKey)
+  scopeKey?: string,
+  autoClose?: boolean,      // default true
+}): "ok" | "blocked"
+```
 
-### D. Folder `src/server/` melanggar konvensi TanStack
-Aturannya: file yang di-import client tidak boleh ada di `src/server/`. Beberapa file `.functions.ts` di sana ada pasangan `.server.ts`-nya — kalau client mengimport `.functions.ts` dan file itu transitively import `.server.ts`, plugin `block-server-only-imports` akan menggagalkan build.
+Implementasi:
+- `window.open("", "_blank", "width=420,height=640,noopener=no")` — kalau `null` → return `"blocked"` (caller fallback ke preview modal).
+- Tulis dokumen HTML minimal: **tidak** menyalin stylesheet dashboard. Inline-kan CSS thermal kaku (lihat §3) + `data-receipt-paper` di `<body>` + `<div class="receipt-container">{node.outerHTML}</div>`.
+- Skrip di popup:
+  ```html
+  <script>
+    window.addEventListener('load', () => {
+      requestAnimationFrame(() => {
+        window.focus(); window.print();
+      });
+    });
+    window.addEventListener('afterprint', () => window.close());
+    // fallback close jika afterprint tidak fire (Safari)
+    setTimeout(() => window.close(), 8000);
+  </script>
+  ```
+- Tetap pertahankan `printReceiptNode` & `openReceiptInNewWindow` untuk back-compat, tapi internal-nya delegasi ke `printThermal`. Hilangkan trik `visibility:hidden` lama agar dashboard tidak pernah ikut ke print pipeline.
 
-## 2. Kekurangan Fitur (Yang Harus Diisi)
+### 2. `src/components/pos/ReceiptThermal.tsx` — wrapper baru (opsional, tipis)
 
-### A. Backend layer hilang
-Project punya banyak server logic (admin, billing, tenant, observability) tapi **tidak ada runtime untuk menjalankannya**. Pilihan:
-- **Opsi 1 (recommended)**: Migrasi ke TanStack Start penuh (tambah `@tanstack/react-start`, ubah entry, deploy ke runtime yang support — Vercel functions/Cloudflare Workers)
-- **Opsi 2 (paling cepat)**: Pindahkan semua server logic ke **Supabase Edge Functions** (sudah didukung native Lovable Cloud)
-- **Opsi 3**: Buat server Node terpisah pakai `server/db.ts` (sudah ada Drizzle) — paling besar effort-nya
+Wrapper yang membungkus komponen struk yang sudah ada (`<Receipt/>`, `<KitchenTicket/>`, dst.) dengan `<div className="receipt-container">…</div>`. Caller di POS cukup render komponen struk seperti biasa di dalam `<div ref>` lalu panggil `printThermal({ node: ref.current })`. Tidak perlu mengubah komponen struk yang sudah ada.
 
-### B. Health/observability tidak terhubung
-`db-health-badge` memanggil endpoint yang tidak ada → akan selalu menampilkan "Database bermasalah" di production.
+### 3. CSS thermal kaku (di-inline di popup, BUKAN di `styles.css`)
 
-### C. Auth & RLS belum diverifikasi end-to-end
-Roles infrastructure (has_role RPC) sudah ada, tapi belum dicek apakah semua route Owner/Staff/Courier/Customer benar-benar terlindungi RLS, atau hanya client-side gating (bisa dilewati).
+```css
+@page { size: 80mm auto; margin: 0; }
+body[data-receipt-paper="58"] @page { size: 58mm auto; }
 
-### D. Vercel env vars tidak konsisten dengan Lovable Cloud
-Tidak ada dokumentasi/script yang mengingatkan: "kalau deploy di Vercel, pakai VITE_SUPABASE_URL & KEY dari Lovable Cloud" — sehingga error ini akan terus berulang setiap deploy baru.
+html, body {
+  width: 80mm;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff;
+  color: #000;
+  font-family: ui-monospace, "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+body[data-receipt-paper="58"], body[data-receipt-paper="58"] html { width: 58mm; }
 
-## 3. Potensi Error Lain yang Saya Lihat
+.receipt-container { width: 72mm; padding: 4mm 4mm; box-sizing: border-box; }
+body[data-receipt-paper="58"] .receipt-container { width: 50mm; padding: 3mm; }
 
-1. **`supabase_migrations` table query di health-db.ts** — schema ini biasanya tidak exposed via PostgREST → query selalu gagal walau endpoint berjalan.
-2. **`src/server/*.functions.ts` di-import client** — jika ada komponen yang `import { x } from "@/server/billing.functions"`, build akan error karena `block-server-only-imports` plugin di `vite.config.ts`.
-3. **`server/db.ts` (root)** — pakai `pg` + Drizzle, tapi tidak ada Node server yang menjalankannya. Dead code yang membingungkan.
-4. **PWA & service worker** (`pwa.d.ts` ada) — bisa cache versi lama dengan URL Supabase lama, user butuh hard reload setelah env var diganti.
-5. **Routes sangat banyak (~250 file)** — risiko bundle size besar, perlu lazy-loading per role.
-6. **`google/gemini-3.x-preview` model di knowledge** — kalau ada kode yang memanggil model preview, bisa rate-limited/deprecated.
+.receipt-container * {
+  color: #000 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: #000 !important;
+}
+.receipt-container img { max-width: 100%; filter: grayscale(1) contrast(1.2); }
+.no-print { display: none !important; }
+```
 
-## 4. Rencana Perbaikan (Prioritas)
+Karena `@page` di dalam at-rule conditional tidak bisa baca atribut, kita pilih ukuran dengan menulis HTML berbeda per paper (`@page { size: 58mm auto; … }` atau `80mm`) — sudah ada akses ke `paper` di `printThermal`, jadi cukup string-template-kan ukuran sebelum di-write ke popup.
 
-### Fase 1 — Stabilkan Production (urgent, hari ini)
-1. **Fix Vercel env vars** (manual oleh user):
-   - Vercel → Settings → Environment Variables → set `VITE_SUPABASE_URL=https://umuycjajkkzkrqlbqhgb.supabase.co` dan `VITE_SUPABASE_PUBLISHABLE_KEY=<anon key Lovable>`
-   - Redeploy dengan "Clear Build Cache"
-2. **Hapus / non-aktifkan endpoint yang tidak jalan**:
-   - Hapus `src/routes/api/public/health-db.ts` (atau migrasi ke Edge Function)
-   - Ubah `DbHealthBadge` agar query langsung ke Supabase: `supabase.from('business_categories').select('id', { count: 'exact', head: true })` — tanpa endpoint perantara
-3. **Audit `src/server/`**:
-   - Cari semua import dari `@/server/*.functions` di komponen client
-   - Untuk yang dipakai client → ubah jadi RPC Supabase atau Edge Function
-   - Untuk yang murni server (tapi tidak punya runtime) → hapus / arsipkan
+### 4. Migrasi call site
 
-### Fase 2 — Pilih & Wire Backend Runtime (1–2 minggu)
-4. **Putuskan opsi backend**:
-   - **Rekomendasi: Supabase Edge Functions** (sudah ada infra Lovable Cloud, no extra deploy). Pindahkan logic dari `src/server/*.functions.ts` ke `supabase/functions/<name>/index.ts`.
-   - Atau migrasi ke TanStack Start penuh kalau ingin SSR.
-5. **Buat health Edge Function** `supabase/functions/health-db` yang cek tabel + return schema info. Update `DbHealthBadge` panggil itu via `supabase.functions.invoke()`.
-6. **Hapus `server/db.ts`** kalau tidak dipakai, atau dokumentasikan tujuannya.
+Yang harus dipindah ke `printThermal`:
+- `src/routes/pos-app.orders.tsx` (baris 430, 832)
+- `src/routes/pos-app.pos.tsx` (auto-print setelah checkout, lihat baris ~890)
+- `src/components/orders/OrdersTodayDialog.tsx` (baris 331, 1175)
+- `src/components/ReceiptPreviewModal.tsx` — tombol "Cetak Sekarang" → panggil `printThermal` (hapus iframe handler, gunakan popup baru). "Buka di Tab Baru" tetap pakai popup tanpa auto-print.
 
-### Fase 3 — Hardening (2–4 minggu)
-7. **Audit RLS** semua tabel terutama: `shops`, `orders`, `staff_audit_logs`, `user_roles`, `business_categories`. Pastikan tidak ada policy `USING (true)` di tabel sensitif.
-8. **Verifikasi role gating** server-side via `has_role` RPC di Edge Function (jangan cuma client-side di nav).
-9. **Lazy-load routes per role** (admin.*, pos-app.*, kurir.*, akun.*, s.*) untuk turunkan bundle awal.
-10. **Tambah CI check**: script yang gagal kalau ada client component import `*.server.ts` atau `@/server/*.functions` di luar pattern resmi.
-11. **PWA cache invalidation** — bump versi service worker tiap deploy supaya env baru kepake.
+Pola pemanggilan baru:
+```ts
+const res = printThermal({ node: hiddenReceiptRef.current, paper, scopeKey });
+if (res === "blocked") setPreviewOpen(true); // fallback modal preview
+```
 
-### Fase 4 — Dokumentasi
-12. Tambah `DEPLOYMENT.md` dengan checklist Vercel env vars + langkah verifikasi.
-13. Tambah `ARCHITECTURE.md` yang jelaskan: SPA vs Edge Function boundary, kapan pakai RPC vs Edge Function.
+`window.print()` langsung di halaman lain (`pos-app.online-orders.tsx`, `pos-app.purchase-orders.$poId.tsx`, `pos-app.medical-invoice.tsx`, `pos-app.certificates.tsx`, `pos-app.contracts.tsx`, `pos-app.table-qr.tsx`, `pos-app.rental-checklist.tsx`) **tidak dalam scope** karena itu dokumen A4/format lain (PO, sertifikat, kontrak, invoice medis, QR meja). Permintaan ini eksplisit untuk struk thermal POS.
 
-## 5. Detail Teknis Penting
+### 5. Cleanup `styles.css`
 
-- Stack saat ini: **Vite 7 + React 19 + TanStack Router (SPA)** — bukan TanStack Start
-- Deploy: Vercel sebagai static site, build `vite build` → `dist/public`
-- Backend: Supabase via Lovable Cloud (`umuycjajkkzkrqlbqhgb`)
-- Aturan: file `*.server.ts` tidak boleh diimport static dari client; node builtins hanya di `*.server.ts` — ditegakkan oleh plugin `block-server-only-imports` di `vite.config.ts`
-- Konsekuensi arsitektur: semua server-side logic harus pindah ke Supabase Edge Functions (atau RPC Postgres), karena tidak ada Node runtime di produksi.
+- Hapus blok `@media print { body * { visibility:hidden } … }` (baris 190-194) dan `.print-host` print override (205-216) supaya halaman dashboard **tidak pernah** ikut ter-print. `.print-host` cukup tetap sebagai off-screen container untuk ref.
+- `@page receipt-58/80` tidak lagi dibutuhkan di dokumen utama (ukuran sekarang di-set di popup) — hapus.
 
-## 6. Yang Saya Sarankan Dikerjakan Dulu (next message)
+### 6. Verifikasi
 
-Fase 1 step 1–3 (sekitar 30 menit kerja):
-- Refactor `DbHealthBadge` agar query Supabase langsung (hilangkan dependensi endpoint API yang tidak jalan)
-- Hapus `src/routes/api/public/health-db.ts`
-- Sweep import `@/server/*` dari komponen client, list mana yang harus dipindah ke Edge Function
+1. Buka `/pos-app/orders`, klik "Cetak Struk" → muncul popup kecil, dialog print tampil dengan ukuran 80 mm (atau 58 mm sesuai picker), tidak ada halaman dashboard di belakang preview, popup menutup otomatis setelah print/cancel.
+2. Checkout di `/pos-app/pos` → auto-print via popup, tidak ada whitespace.
+3. Jika popup di-block browser → muncul preview modal lama sebagai fallback.
+4. Test 58 mm vs 80 mm: width struk full lebar kertas, font monospace, hitam-putih.
 
-Setuju untuk lanjut ke Fase 1?
+## Catatan untuk user
+
+Browser tetap mengingat ukuran kertas yang dipilih per printer. Saat **pertama kali** mencetak di printer thermal, di dialog print Chrome pilih "More settings → Paper size: 80mm × 297mm" (atau ukuran kustom 58mm) dan centang "Background graphics" sekali — setelah itu Chrome akan menggunakan setting ini otomatis. `@page size` mengontrol layout, tapi driver fisik perlu printer yang benar dipilih.
