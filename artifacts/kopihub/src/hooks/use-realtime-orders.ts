@@ -49,6 +49,7 @@ export function useRealtimeOrders(
 
           if (optsRef.current.playSound) playBeep();
           optsRef.current.onInsert?.(o);
+          optsRef.current.onChange?.();
         },
       )
       .on(
