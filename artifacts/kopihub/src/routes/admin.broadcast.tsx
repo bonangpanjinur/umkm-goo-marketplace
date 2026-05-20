@@ -43,14 +43,12 @@ function AdminBroadcast() {
           .limit(5000);
         if (!buyers || buyers.length === 0) { toast.error("Tidak ada pembeli ditemukan"); setSending(false); return; }
         const notifications = buyers.map((b: any) => ({
-          user_id: b.user_id,
+          recipient_user_id: b.user_id,
           type: "broadcast",
           title: title.trim(),
           body: body.trim(),
           severity,
           link: link.trim() || null,
-          is_read: false,
-          created_at: new Date().toISOString(),
         }));
         const { error } = await (supabase as any).from("notifications").insert(notifications);
         if (error) throw error;

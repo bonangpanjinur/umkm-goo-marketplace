@@ -53,7 +53,7 @@ export default function KitchenLoadPage() {
   const load = useCallback(async (shopId: string) => {
     const { data } = await (supabase as any)
       .from("orders")
-      .select("id, order_number, created_at, status, order_items(id, name, quantity, notes)")
+      .select("id, order_no, created_at, status, order_items(id, name, quantity, note)")
       .eq("shop_id", shopId)
       .in("status", ["confirmed", "processing"])
       .order("created_at");
@@ -66,7 +66,7 @@ export default function KitchenLoadPage() {
         prep_time: savedAvg,
       }));
       const total = items.reduce((s, i) => s + i.prep_time * i.qty, 0);
-      return { id: String(o.id), order_number: o.order_number as string | null, created_at: String(o.created_at), items, total_prep_minutes: total, status: String(o.status) };
+      return { id: String(o.id), order_number: (o.order_no as string | null) ?? null, created_at: String(o.created_at), items, total_prep_minutes: total, status: String(o.status) };
     });
     setOrders(rows);
     setLoading(false);
