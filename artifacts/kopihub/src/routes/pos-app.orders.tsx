@@ -425,21 +425,16 @@ function DetailDialog({
 
   function tryPrint(
     kind: "receipt" | "ticket" | "courier",
-    node: HTMLElement | null,
+    _node: HTMLElement | null,
   ) {
-    const res = printReceiptNode(node, undefined, scopeKey);
-    if (res !== "ok") {
-      // Dialog blocked or unavailable — try popup, then inline fallback.
-      const popped = openReceiptInNewWindow(node, undefined, scopeKey);
-      if (!popped) {
-        toast.error("Dialog cetak diblokir. Buka pratinjau lalu cetak manual.");
-        setFallbackOpen(kind);
-      }
-    }
+    // Selalu tampilkan modal pratinjau dulu (UX seperti aplikasi POS native).
+    // User klik "Cetak Sekarang" di modal untuk membuka dialog printer.
+    setFallbackOpen(kind);
   }
   const handlePrint = () => tryPrint("receipt", printRef.current);
   const handlePrintTicket = () => tryPrint("ticket", ticketRef.current);
   const handlePrintCourier = () => tryPrint("courier", courierRef.current);
+
 
   async function handleRefund() {
     const amt = Number(refundAmount || 0);
