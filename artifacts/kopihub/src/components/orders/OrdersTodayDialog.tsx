@@ -102,7 +102,7 @@ type Props = {
   shopPhone?: string | null;
 };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 30; // server-side keyset pagination
 type SortDir = "newest" | "oldest";
 type StatusFilter = "all" | "active" | "voided";
 type PayFilter = "all" | "cash" | "qris";
@@ -157,10 +157,11 @@ export function OrdersTodayDialog({
   const [sortDir, setSortDir] = useState<SortDir>(
     () => (lsGet(sortKey, "newest") as SortDir) || "newest",
   );
-  const [page, setPage] = useState<number>(() => {
-    const p = parseInt(lsGet(pageKey, "1"), 10);
-    return Number.isFinite(p) && p > 0 ? p : 1;
-  });
+  // Cursor-based pagination: stack of {created_at, id} markers per visited page.
+  // page 1 = cursorStack [] (no cursor), page N = cursorStack[N-2].
+  type Cursor = { created_at: string; id: string };
+  const [cursorStack, setCursorStack] = useState<Cursor[]>([]);
+  const page = cursorStack.length + 1;
 
   // Edit state for table_label in detail view
   const [editingTable, setEditingTable] = useState(false);
@@ -214,7 +215,7 @@ export function OrdersTodayDialog({
     if (selected?.id) loadAudit(selected.id);
   }, [selected?.id]);
 
-  // Persist sort & page
+  // Persist sort
   useEffect(() => {
     lsSet(sortKey, sortDir);
   }, [sortDir, sortKey]);
@@ -222,34 +223,84 @@ export function OrdersTodayDialog({
     lsSet(pageKey, String(page));
   }, [page, pageKey]);
 
-  // Phase 2: React Query + limit(300) + staleTime 30s untuk hindari refetch berulang
+  // Reset cursor saat outlet / dialog dibuka kembali / sort berubah
+  useEffect(() => {
+    setCursorStack([]);
+  }, [outletId, open, sortDir]);
+
+  // Phase 2: server-side keyset pagination + staleTime 30s
   const businessDate = useMemo(() => {
     const t = new Date();
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
   }, [open]);
 
+  const cursor = cursorStack[cursorStack.length - 1] ?? null;
+  const ascending = sortDir === "oldest";
+
   const ordersQuery = useQuery({
-    queryKey: ["orders-today", outletId, businessDate],
+    queryKey: [
+      "orders-today",
+      outletId,
+      businessDate,
+      ascending ? "asc" : "desc",
+      cursor?.created_at ?? null,
+      cursor?.id ?? null,
+    ],
     enabled: !!open && !!outletId,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase
+      // Ambil PAGE_SIZE+1 → baris ekstra hanya jadi indikator "ada next"
+      let q = supabase
         .from("orders")
         .select(
           "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order, order_source",
         )
         .eq("outlet_id", outletId)
         .eq("business_date", businessDate)
-        .order("created_at", { ascending: false })
-        .limit(300);
-      return (data ?? []) as Order[];
+        .order("created_at", { ascending })
+        .order("id", { ascending })
+        .limit(PAGE_SIZE + 1);
+
+      if (cursor) {
+        // Keyset cursor: (created_at, id) berikutnya setelah cursor
+        // newest (desc): created_at < X OR (created_at = X AND id < Y)
+        // oldest (asc) : created_at > X OR (created_at = X AND id > Y)
+        if (ascending) {
+          q = q.or(
+            `created_at.gt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.gt.${cursor.id})`,
+          );
+        } else {
+          q = q.or(
+            `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`,
+          );
+        }
+      }
+
+      const { data, error } = await q;
+      if (error) throw error;
+      const rows = (data ?? []) as Order[];
+      const hasMore = rows.length > PAGE_SIZE;
+      return { rows: rows.slice(0, PAGE_SIZE), hasMore };
     },
+    placeholderData: (prev) => prev, // keep previous page while loading next
   });
 
   useEffect(() => {
-    setOrders(ordersQuery.data ?? []);
-    setLoading(ordersQuery.isLoading);
-  }, [ordersQuery.data, ordersQuery.isLoading]);
+    setOrders(ordersQuery.data?.rows ?? []);
+    setLoading(ordersQuery.isLoading || ordersQuery.isFetching);
+  }, [ordersQuery.data, ordersQuery.isLoading, ordersQuery.isFetching]);
+
+  const hasMore = ordersQuery.data?.hasMore ?? false;
+
+  function goNext() {
+    const last = ordersQuery.data?.rows[ordersQuery.data.rows.length - 1];
+    if (!last || !hasMore) return;
+    setCursorStack((s) => [...s, { created_at: last.created_at, id: last.id }]);
+  }
+  function goPrev() {
+    setCursorStack((s) => s.slice(0, -1));
+  }
+
 
 
   useEffect(() => {
@@ -311,14 +362,14 @@ export function OrdersTodayDialog({
     return list;
   }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir, qrUnlockedOnly, qrUnlockedIds]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  // Server sudah sort & paginate; filter di sini hanya menyaring halaman saat ini.
+  const pageItems = filtered;
 
-  // Reset to page 1 when filters/search change
+  // Reset cursor saat filter berubah (data baru perlu di-page ulang dari awal)
   useEffect(() => {
-    setPage(1);
+    setCursorStack([]);
   }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter, qrUnlockedOnly]);
+
 
   async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
@@ -737,19 +788,21 @@ export function OrdersTodayDialog({
               )}
             </div>
 
-            {/* Pagination */}
-            {filtered.length > PAGE_SIZE && (
+            {/* Pagination — cursor based, server-side (limit 30 per halaman) */}
+            {(page > 1 || hasMore) && (
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
                 <span>
-                  Hal. {safePage} dari {totalPages}
+                  Hal. {page}
+                  {hasMore ? "" : " (terakhir)"} · {pageItems.length} ditampilkan
                 </span>
                 <div className="flex gap-1">
                   <Button
                     size="sm"
                     variant="outline"
                     className="h-7 w-7 p-0"
-                    disabled={safePage <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || loading}
+                    onClick={goPrev}
+                    aria-label="Halaman sebelumnya"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </Button>
@@ -757,8 +810,9 @@ export function OrdersTodayDialog({
                     size="sm"
                     variant="outline"
                     className="h-7 w-7 p-0"
-                    disabled={safePage >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={!hasMore || loading}
+                    onClick={goNext}
+                    aria-label="Halaman berikutnya"
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
                   </Button>
