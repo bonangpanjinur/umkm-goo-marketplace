@@ -75,6 +75,10 @@ export function useRealtimeOrders(
             });
             if (optsRef.current.playSound) playBeep();
             optsRef.current.onInsert?.(o);
+            optsRef.current.onChange?.();
+          } else {
+            // status lain tetap perlu invalidate cache list owner
+            optsRef.current.onChange?.();
           }
         },
       )
