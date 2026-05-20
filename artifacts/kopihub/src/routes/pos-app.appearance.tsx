@@ -129,6 +129,10 @@ function AppearancePage() {
             {refreshing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
             {refreshing ? "Memuat ulang…" : "Refresh tema"}
           </Button>
+          <Button variant="outline" size="sm" onClick={seedThemes} disabled={seeding}>
+            {seeding ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Database className="h-4 w-4 mr-1.5" />}
+            {seeding ? "Menyemai…" : "Seed tema"}
+          </Button>
           {storefrontUrl && (
             <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm">
