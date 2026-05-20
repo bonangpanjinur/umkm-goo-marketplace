@@ -57,12 +57,18 @@ function BuilderListPage() {
     if (!tpl) return;
     setCreating(templateId);
     try {
+      // Cek apakah sudah ada halaman utama. Jika sudah, buat sebagai halaman custom
+      // dengan slug unik agar tidak menabrak unique index (shop_id, page_type, slug).
+      const hasHome = layouts.some((l) => l.page_type === "home" && !l.slug);
+      const isHome = !hasHome;
+      const uniqueSlug = `${tpl.id}-${Date.now().toString(36)}`;
       const layout = await createLayout({
-        page_type: "home",
-        title: `Halaman Utama — ${tpl.name}`,
+        page_type: isHome ? "home" : "custom",
+        slug: isHome ? null : uniqueSlug,
+        title: isHome ? `Halaman Utama — ${tpl.name}` : `${tpl.name}`,
         puck_data: tpl.data,
       });
-      toast.success("Halaman dibuat dari template");
+      toast.success(isHome ? "Halaman utama dibuat" : "Halaman baru dibuat dari template");
       window.location.href = `/pos-app/website-builder/${layout.id}`;
     } catch (e) {
       toast.error((e as Error).message);
