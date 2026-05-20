@@ -75,24 +75,69 @@ function concat(parts: Uint8Array[]): Uint8Array {
   return out;
 }
 
-function padBetween(left: string, right: string, w: number) {
-  left = left.replace(/\s+/g, " ").trim();
-  right = right.replace(/\s+/g, " ").trim();
-  if (left.length + right.length + 1 > w) {
-    // wrap: left on its own line, right right-aligned next line
-    const l = left.slice(0, w);
-    const r = right.slice(0, w).padStart(w, " ");
-    return `${l}\n${r}`;
+function wrapWords(s: string, w: number): string[] {
+  s = s.replace(/\s+/g, " ").trim();
+  if (!s) return [""];
+  const out: string[] = [];
+  const words = s.split(" ");
+  let line = "";
+  for (const word of words) {
+    if (word.length > w) {
+      // hard split very long token
+      if (line) { out.push(line); line = ""; }
+      let rest = word;
+      while (rest.length > w) {
+        out.push(rest.slice(0, w));
+        rest = rest.slice(w);
+      }
+      line = rest;
+      continue;
+    }
+    const tentative = line ? line + " " + word : word;
+    if (tentative.length > w) {
+      out.push(line);
+      line = word;
+    } else {
+      line = tentative;
+    }
   }
-  const space = w - left.length - right.length;
-  return left + " ".repeat(space) + right;
+  if (line) out.push(line);
+  return out;
 }
 
-function centerLine(s: string, w: number) {
+function padBetween(left: string, right: string, w: number): string {
+  left = left.replace(/\s+/g, " ").trim();
+  right = right.replace(/\s+/g, " ").trim();
+  // Reserve right column; wrap left into remaining width.
+  const rightW = Math.min(right.length, w);
+  const leftW = Math.max(1, w - rightW - 1);
+  if (left.length <= leftW) {
+    const space = w - left.length - right.length;
+    return left + " ".repeat(Math.max(1, space)) + right;
+  }
+  const lines = wrapWords(left, leftW);
+  const last = lines.pop() as string;
+  const space = w - last.length - right.length;
+  const lastLine = last + " ".repeat(Math.max(1, space)) + right;
+  return [...lines, lastLine].join("\n");
+}
+
+function centerLine(s: string, w: number): string {
   s = s.replace(/\s+/g, " ").trim();
-  if (s.length >= w) return s.slice(0, w);
-  const pad = Math.floor((w - s.length) / 2);
-  return " ".repeat(pad) + s;
+  const lines = wrapWords(s, w);
+  return lines
+    .map((ln) => {
+      if (ln.length >= w) return ln;
+      const pad = Math.floor((w - ln.length) / 2);
+      return " ".repeat(pad) + ln;
+    })
+    .join("\n");
+}
+
+function leftLines(s: string, w: number, indent = 0): string {
+  const ind = " ".repeat(indent);
+  const eff = Math.max(1, w - indent);
+  return wrapWords(s, eff).map((ln) => ind + ln).join("\n");
 }
 
 // Walk a rendered Receipt DOM (uses r-row, r-center, r-bold, r-divider, r-item, r-small)
