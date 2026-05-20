@@ -140,6 +140,7 @@ export function OrdersTodayDialog({
   const sortKey = `pos:orders-sort:${scopeKey}`;
   const pageKey = `pos:orders-page:${scopeKey}`;
 
+  const qc = useQueryClient();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<OrderDetail | null>(null);
