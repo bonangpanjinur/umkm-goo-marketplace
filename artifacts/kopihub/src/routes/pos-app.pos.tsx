@@ -164,6 +164,7 @@ function POSPage() {
   const printRef = useRef<HTMLDivElement>(null);
   const pendingPrintRef = useRef(false);
   const [printBlocked, setPrintBlocked] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const scopeKey = buildScopeKey(outlet?.id, user?.id);
 
