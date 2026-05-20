@@ -51,6 +51,7 @@ import {
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
 import { PrinterPicker } from "@/components/pos/printer-picker";
 import { OrdersTodayDialog } from "@/components/orders/OrdersTodayDialog";
+import { ReceiptPreviewModal } from "@/components/ReceiptPreviewModal";
 
 import { MenuGrid } from "@/components/pos/refactor/MenuGrid";
 import { CartPanel } from "@/components/pos/refactor/CartPanel";
