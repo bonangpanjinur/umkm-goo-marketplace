@@ -24,6 +24,7 @@ function AppearancePage() {
   const { shop } = useShop();
   const [busy, setBusy] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [iframeKey, setIframeKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
