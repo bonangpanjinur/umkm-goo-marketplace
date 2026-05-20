@@ -96,6 +96,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/NotificationBell";
+import { InstallPWAButton } from "@/components/InstallPWAButton";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useShopCapabilities } from "@/lib/use-shop-capabilities";
 import { FEATURE_LABEL, type FeatureKey } from "@/lib/feature-keys";
@@ -814,7 +815,8 @@ function AppLayoutInner() {
             </div>
             <span className="truncate text-sm font-semibold">{shop?.name ?? "UMKMgo"}</span>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <InstallPWAButton />
             <NotificationBell />
           </div>
         </header>
