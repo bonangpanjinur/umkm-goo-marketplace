@@ -85,6 +85,13 @@ function KDSPage() {
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
   const serviceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  // Tick setiap 15 detik agar timer aging hidup
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(t);
+  }, []);
+
   // Derive stations reaktif dari items aktif (otomatis bersih saat order selesai)
   const stations = useMemo(() => {
     const set = new Set<string>();
