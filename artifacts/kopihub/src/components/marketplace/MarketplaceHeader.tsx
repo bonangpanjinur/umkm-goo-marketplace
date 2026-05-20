@@ -79,14 +79,14 @@ export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
+    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-foreground text-background">
             <Store className="h-4 w-4" />
           </div>
-          <span className="hidden text-sm font-semibold tracking-tight sm:inline">
-            Marketplace
+          <span className="hidden text-[15px] font-semibold tracking-tight sm:inline">
+            UMKMgo
           </span>
         </Link>
         <form onSubmit={submit} className="relative flex-1 max-w-2xl">
@@ -94,8 +94,8 @@ export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Cari produk, toko, atau kategori…"
-            className="pl-9 h-9"
+            placeholder="Cari produk atau toko"
+            className="pl-9 h-10 rounded-full bg-muted/60 border-transparent focus-visible:bg-background focus-visible:border-border placeholder:text-muted-foreground/70"
           />
         </form>
         <Link to="/kategori" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">
@@ -105,20 +105,20 @@ export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
           Promo
         </Link>
         <Link to="/keranjang" className="relative" aria-label="Keranjang">
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <ShoppingCart className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
+            <ShoppingCart className="h-[18px] w-[18px]" />
           </Button>
           {count > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-              {count}
+            <span className="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground ring-2 ring-background">
+              {count > 99 ? "99+" : count}
             </span>
           )}
         </Link>
-        {user && <ChatInboxButton userId={user.id} />}
-        {user && <NotificationBell />}
+        {user && <span className="hidden sm:inline"><ChatInboxButton userId={user.id} /></span>}
+        {user && <span className="hidden sm:inline"><NotificationBell /></span>}
         {user ? (
           <>
-            <Link to="/akun">
+            <Link to="/akun" className="hidden sm:inline">
               <Button size="sm" variant="ghost" className="gap-1.5">
                 <User className="h-3.5 w-3.5" /> Akun
               </Button>
@@ -131,12 +131,12 @@ export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
           </>
         ) : (
           <>
-            <Link to="/login">
+            <Link to="/login" className="hidden sm:inline">
               <Button size="sm" variant="ghost" className="gap-1.5">
                 <User className="h-3.5 w-3.5" /> Masuk
               </Button>
             </Link>
-            <Link to="/signup">
+            <Link to="/signup" className="hidden sm:inline">
               <Button size="sm">Daftar</Button>
             </Link>
           </>
