@@ -60,23 +60,32 @@ export default function BroadcastBuyersPage() {
   const [showSql, setShowSql] = useState(false);
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState({ title: "", message: "", target: "all" as BroadcastRecord["target"], channel: "in_app" as BroadcastRecord["channel"] });
-  const [buyerCount, setBuyerCount] = useState(0);
+  const [segments, setSegments] = useState({ total: 0, active: 0, inactive: 0, new_buyers: 0 });
 
   const load = async () => {
     setLoading(true);
-    const [broadRes, countRes] = await Promise.all([
+    const [broadRes, segRes] = await Promise.all([
       (supabase as any).from("buyer_broadcasts").select("*").order("created_at", { ascending: false }).limit(20),
-      supabase.auth.admin.listUsers().catch(() => ({ data: { users: [] } })),
+      (supabase as any).rpc("admin_buyer_segments"),
     ]);
-    if (broadRes.error?.message?.includes("exist")) setShowSql(true);
+    if (broadRes.error?.message?.toLowerCase().includes("does not exist")) setShowSql(true);
     setBroadcasts((broadRes.data ?? []) as BroadcastRecord[]);
-    setBuyerCount((countRes as { data: { users: unknown[] } }).data.users?.length ?? 0);
+    const row = Array.isArray(segRes.data) ? segRes.data[0] : segRes.data;
+    if (row) setSegments({
+      total: Number(row.total ?? 0),
+      active: Number(row.active ?? 0),
+      inactive: Number(row.inactive ?? 0),
+      new_buyers: Number(row.new_buyers ?? 0),
+    });
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const estCount = form.target === "all" ? buyerCount : form.target === "active" ? Math.round(buyerCount * 0.4) : form.target === "new" ? Math.round(buyerCount * 0.1) : Math.round(buyerCount * 0.3);
+  const estCount = form.target === "all" ? segments.total
+    : form.target === "active" ? segments.active
+    : form.target === "new" ? segments.new_buyers
+    : segments.inactive;
 
   const send = async () => {
     if (!form.title.trim() || !form.message.trim()) { toast.error("Judul dan pesan wajib diisi"); return; }
