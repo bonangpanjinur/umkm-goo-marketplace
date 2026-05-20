@@ -25,6 +25,8 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
   const [pickerOpen, setPickerOpen] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [mode, setMode] = useState(getPreferredMode());
+  const [view, setView] = useState<"visual" | "mono">("visual");
+  const [monoLines, setMonoLines] = useState<ReceiptTextLine[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -32,6 +34,19 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
       setMode(getPreferredMode());
     }
   }, [open, paper, scopeKey]);
+
+  // Recompute mono preview whenever view toggles to mono, paper changes, or DOM updates.
+  useEffect(() => {
+    if (!open) return;
+    const node = previewRef.current?.querySelector(".receipt-thermal-inner > *") as HTMLElement | null
+      ?? previewRef.current?.querySelector(".receipt-thermal-inner") as HTMLElement | null;
+    if (!node) { setMonoLines([]); return; }
+    // Defer one frame so child receipt is fully rendered.
+    const id = requestAnimationFrame(() => setMonoLines(buildReceiptLines(node, paper)));
+    return () => cancelAnimationFrame(id);
+  }, [open, paper, view, children]);
+
+  const monoCols = useMemo(() => (paper === "80" ? 48 : 32), [paper]);
 
   function changePaper(p: ReceiptPaper) {
     setPaper(p);
