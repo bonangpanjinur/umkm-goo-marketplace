@@ -7,6 +7,7 @@ import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphon
 import { toast } from "sonner";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/appearance")({ component: AppearancePage });
 
