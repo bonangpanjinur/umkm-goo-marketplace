@@ -23,12 +23,26 @@ function AppearancePage() {
   const { entitlements, themes, activeThemeKey, planCode, monthsActive, loading, reload } = useEntitlements();
   const { shop } = useShop();
   const [busy, setBusy] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [iframeKey, setIframeKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [recommendedKey, setRecommendedKey] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string | null>(null);
   const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
+
+  const refreshAll = async () => {
+    setRefreshing(true);
+    try {
+      await reload();
+      setIframeKey((k) => k + 1);
+      toast.success("Daftar tema & pratinjau dimuat ulang");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (!shop?.id) return;
