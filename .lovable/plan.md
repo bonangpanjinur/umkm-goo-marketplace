@@ -1,111 +1,106 @@
-## Tujuan
+# Analisis & Rencana Perbaikan
 
-Hilangkan masalah print struk yang masih ikut layout A4 / banyak whitespace dengan memisahkan total proses print dari halaman dashboard. Struk dirender di **popup window khusus** dengan CSS thermal kaku (58 mm / 80 mm), auto-print, auto-close.
+## Root cause tiap error
 
-## Akar masalah saat ini
+### 1. `400 Bad Request` di `orders?select=...order_number,...,order_items(...,notes)`
+Skema asli tabel:
+- `orders.order_no` (TEXT) — **bukan** `order_number`
+- `order_items.note`, `quantity`, `unit_price` — **bukan** `notes`, `qty`, `price`
+- `orders.total` — **bukan** `total_price`
+- `orders.delivery_address` — **bukan** `customer_address`
 
-`src/lib/receipt-printer.ts` → `printReceiptNode()` memakai trik `body * { visibility:hidden }` + `window.print()` dari halaman POS. Di banyak browser/printer driver hal ini tetap memakai ukuran kertas default printer (A4/Letter), menyebabkan struk kecil di tengah + banyak whitespace. `openReceiptInNewWindow()` sudah ada tapi menyalin `outerHTML` node bersama seluruh Tailwind/CSS dashboard (termasuk warna gelap & shadow) sehingga hasilnya tidak bersih, dan tidak auto-close.
+File yang masih pakai kolom lama (penyebab 400 / silent break):
+- `routes/pos-app.kitchen-load.tsx` → `order_number`, `order_items(...notes)`
+- `routes/admin.auto-cancel.tsx` → `order_number`, `total_amount`
+- `routes/admin.reconciliation.tsx` → `order_number`
+- `routes/pesanan.$orderId.chat.tsx` → `order_number`
+- `routes/download.$token.tsx` → `order_number`, `total_price`
+- `routes/pos-app.invoice.tsx` → `order_number`, `total_price`, `notes`, `customer_address`, `order_items(qty, price)`
+- `routes/pos-app.shipping-labels.tsx` → `order_number`
+- `routes/pos-app.digital-licenses.tsx` → `order_number`
 
-## Solusi
+### 2. `400 Bad Request` di `notifications?...user_id=eq...`
+Skema asli `public.notifications` cuma punya: `recipient_user_id, shop_id, type, title, body, link, severity, read_at, dedupe_key, created_at`.
 
-### 1. `src/lib/receipt-printer.ts` — tambah `printThermal()`
+Code masih pakai kolom yang **tidak ada**:
+- `lib/api/notifications.functions.ts` → filter pakai `user_id` & update `dismissed_at` (tidak ada kolom ini)
+- `routes/pos-app.notifikasi.tsx` → select `action_url`, filter `recipient_shop_id` (tidak ada)
+- `routes/admin.broadcast.tsx` → kemungkinan insert kolom yang tidak ada
 
-API baru:
+### 3. Warning Radix `Missing Description for {DialogContent}`
+Beberapa `<DialogContent>` belum punya `<DialogDescription>` atau `aria-describedby`. Tidak crash, tapi mengotori console & a11y. Akan ditambahkan `DialogDescription` (boleh `sr-only`) di dialog yang terpengaruh — khususnya `ThermalPrinterPickerDialog`, `ReceiptPreviewModal`, dan dialog di halaman orders.
 
-```ts
-printThermal({
-  node: HTMLElement,        // sumber markup struk (komponen Receipt yang sudah ada)
-  paper?: "58" | "80",      // default getReceiptPaper(scopeKey)
-  scopeKey?: string,
-  autoClose?: boolean,      // default true
-}): "ok" | "blocked"
-```
+### 4. `Chooser dialog is not displaying a port blocked by the Serial blocklist … YS-708`
+Chrome **memblokir** printer Bluetooth (YS-708, mayoritas RPP/MPT/Goojprt) di Web **Serial** karena UUID-nya termasuk daftar blok keamanan. Solusi:
+- Untuk printer Bluetooth thermal, **wajib** lewat **Web Bluetooth** (GATT) — yang sudah kita punya di `escpos-printer.ts`.
+- Di `ThermalPrinterPickerDialog`, tegas pisahkan: USB → Web Serial, Bluetooth → Web Bluetooth. Tambahkan keterangan jelas: "Jika printer Bluetooth tidak muncul di USB, pakai tombol Bluetooth di bawah".
+- Filter `pickSerialPort` agar request hanya port USB-Serial (`filters: [{ usbVendorId }]` opsional) supaya tidak iseng nampilkan device BT yang akan diblok.
 
-Implementasi:
-- `window.open("", "_blank", "width=420,height=640,noopener=no")` — kalau `null` → return `"blocked"` (caller fallback ke preview modal).
-- Tulis dokumen HTML minimal: **tidak** menyalin stylesheet dashboard. Inline-kan CSS thermal kaku (lihat §3) + `data-receipt-paper` di `<body>` + `<div class="receipt-container">{node.outerHTML}</div>`.
-- Skrip di popup:
-  ```html
-  <script>
-    window.addEventListener('load', () => {
-      requestAnimationFrame(() => {
-        window.focus(); window.print();
-      });
-    });
-    window.addEventListener('afterprint', () => window.close());
-    // fallback close jika afterprint tidak fire (Safari)
-    setTimeout(() => window.close(), 8000);
-  </script>
-  ```
-- Tetap pertahankan `printReceiptNode` & `openReceiptInNewWindow` untuk back-compat, tapi internal-nya delegasi ke `printThermal`. Hilangkan trik `visibility:hidden` lama agar dashboard tidak pernah ikut ke print pipeline.
+### 5. Kenapa app terasa lambat
+Temuan saat scan kode:
+- Banyak halaman owner (orders, marketplace-orders, kitchen-load, dashboard) melakukan `select *` atau select banyak kolom + multiple realtime channel + `fetch` setiap mount tanpa cache.
+- `useNotifications` polling + subscribe per user, tapi query gagal 400 → retry loop bikin network sibuk.
+- Tidak ada React Query untuk data umum → setiap navigasi refetch dari nol.
+- Beberapa list (orders, transactions) tidak pakai pagination/limit memadai (limit 150–1000).
+- Bundle besar: `radix-vendor` + recharts + framer-motion + html2canvas + qrcode dimuat di route awal.
+- Tidak ada `React.lazy` untuk halaman berat (reports, recharts).
 
-### 2. `src/components/pos/ReceiptThermal.tsx` — wrapper baru (opsional, tipis)
+## Rencana perbaikan (urut prioritas)
 
-Wrapper yang membungkus komponen struk yang sudah ada (`<Receipt/>`, `<KitchenTicket/>`, dst.) dengan `<div className="receipt-container">…</div>`. Caller di POS cukup render komponen struk seperti biasa di dalam `<div ref>` lalu panggil `printThermal({ node: ref.current })`. Tidak perlu mengubah komponen struk yang sudah ada.
+### A. Hotfix skema (hilangkan 400, ini juga penyebab loading lambat karena retry/fallback)
+1. **Notifications hook & API** (`hooks/use-notifications.ts`, `lib/api/notifications.functions.ts`, `routes/pos-app.notifikasi.tsx`, `routes/admin.broadcast.tsx`):
+   - Ganti `user_id` → `recipient_user_id`.
+   - Hapus pemakaian `dismissed_at` → pakai `read_at` saja (atau tambah kolom via migration jika memang perlu fitur "dismiss" terpisah). Sementara: alias dismiss = set `read_at`.
+   - Ganti `action_url` → `link`.
+   - Hapus filter `recipient_shop_id` di owner notifikasi → gunakan `recipient_user_id = owner.id` + filter di client by `shop_id`. (Atau tambah migration kolom `recipient_shop_id` kalau memang perlu broadcast per toko — keputusan terpisah.)
+2. **Orders / order_items** di file-file di atas:
+   - `order_number` → `order_no`
+   - `order_items(..., notes)` → `order_items(..., note)`
+   - `total_price` → `total`; `qty/price` → `quantity/unit_price`; `customer_address` → `delivery_address`
+   - Sesuaikan render (alias supaya UI tetap pakai variable lama bila perlu).
 
-### 3. CSS thermal kaku (di-inline di popup, BUKAN di `styles.css`)
+### B. A11y dialog
+Tambahkan `<DialogDescription className="sr-only">…</DialogDescription>` di:
+- `ThermalPrinterPickerDialog`
+- `ReceiptPreviewModal`
+- Dialog konfirmasi void / refund di `pos-app.orders.tsx`
+- Audit cepat dialog lain via `rg "<DialogContent"` lalu pastikan tiap satu punya Title + Description.
 
-```css
-@page { size: 80mm auto; margin: 0; }
-body[data-receipt-paper="58"] @page { size: 58mm auto; }
+### C. Printer Bluetooth (YS-708 dsb.)
+- Di `escpos-printer.ts → pickSerialPort` tambah `filters` (atau biarkan kosong) + log jelas; di UI tegaskan "Untuk printer Bluetooth, gunakan tombol Bluetooth".
+- Pada `pickBluetoothPrinter`, tambah service UUID umum (`000018f0-0000-1000-8000-00805f9b34fb`, `0000ff00-…`, dll.) supaya YS-708 muncul.
+- Tampilkan tooltip alasan kenapa BT diblok di Serial (tidak men-spam toast error).
 
-html, body {
-  width: 80mm;
-  margin: 0 !important;
-  padding: 0 !important;
-  background: #fff;
-  color: #000;
-  font-family: ui-monospace, "Courier New", monospace;
-  font-size: 11px;
-  line-height: 1.35;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-body[data-receipt-paper="58"], body[data-receipt-paper="58"] html { width: 58mm; }
+### D. Optimasi kecepatan
+1. **React Query (sudah dependency)** — bungkus query owner yang sering dipakai (`useShop`, `useOutlet`, `useNotifications`, `orders today`, `dashboard summary`) dengan `useQuery` + `staleTime: 30_000`.
+2. **Code-splitting per route berat**: `pos-app.reports.tsx`, `admin.*`, halaman builder, `marketplace-orders` → `const X = lazy(() => import(...))` di route module saat dimuat (TanStack Router otomatis split per route file kalau import statis dipindah ke dynamic).
+3. **Trim select kolom** — banyak query masih ambil 30+ kolom; ambil kolom yang dipakai saja.
+4. **Pagination orders/transactions** — default 30 rows + tombol "Muat lagi" (atau infinite query). Saat ini bisa 150–1000.
+5. **Realtime channel reuse** — `pos-app.orders` & `useRealtimeOrders` membuat channel terpisah. Konsolidasi jadi 1 channel per `shop_id` di provider.
+6. **Hapus polling redundan**: `useNotifications` punya BroadcastChannel + supabase realtime + interval; cukup realtime saja.
+7. **Index DB** — verifikasi index untuk query panas:
+   - `orders(shop_id, status, created_at desc)` — ada `business_date` index. Tambah composite kalau perlu (migration terpisah).
+   - `notifications(recipient_user_id, created_at desc)` — sudah ada.
+8. **Bundle**:
+   - Lazy `html2canvas`/`qrcode` (hanya saat user klik cetak/QR).
+   - Pisah `recharts` ke chunk lazy.
+9. **Service Worker** — pastikan `sw.js` cache aset statis (sudah ada manifest, perlu cek strategi caching).
 
-.receipt-container { width: 72mm; padding: 4mm 4mm; box-sizing: border-box; }
-body[data-receipt-paper="58"] .receipt-container { width: 50mm; padding: 3mm; }
+### E. (Opsional) Migration kolom yang sering dibutuhkan
+Hanya jika user setuju:
+- `notifications.dismissed_at timestamptz null` (kalau mau pisahkan baca vs dibuang).
+- `notifications.recipient_shop_id uuid null` (kalau mau notifikasi level toko).
+- `notifications.action_url text null` (alias `link`).
+Tanpa ini, kita pakai skema existing dan mapping di client.
 
-.receipt-container * {
-  color: #000 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border-color: #000 !important;
-}
-.receipt-container img { max-width: 100%; filter: grayscale(1) contrast(1.2); }
-.no-print { display: none !important; }
-```
+## Urutan eksekusi yang saya usulkan
+1. **Fase 1 (kritis, langsung)**: A + B + C — hilangkan semua 400 & warning + printer BT.
+2. **Fase 2 (perf cepat)**: D1, D3, D4, D6 — efek besar dengan perubahan minimal.
+3. **Fase 3 (perf lanjutan)**: D2, D5, D8 — code-splitting, channel reuse, bundle.
+4. **Fase 4 (opsional)**: E — migration tambahan kalau memang dibutuhkan fitur dismiss / per-toko.
 
-Karena `@page` di dalam at-rule conditional tidak bisa baca atribut, kita pilih ukuran dengan menulis HTML berbeda per paper (`@page { size: 58mm auto; … }` atau `80mm`) — sudah ada akses ke `paper` di `printThermal`, jadi cukup string-template-kan ukuran sebelum di-write ke popup.
+## Pertanyaan singkat sebelum eksekusi
+- Untuk notifikasi "dismiss" di customer (`dismissAllNotifications`): apakah cukup ditandai sebagai `read_at` saja, atau kamu mau tabel beneran punya kolom `dismissed_at` (perlu migration)?
+- Notifikasi owner di `pos-app.notifikasi.tsx` saat ini filter by `recipient_shop_id`. Apakah kita lanjut tambah kolom `recipient_shop_id` (migration) atau ubah jadi notifikasi per-user owner (filter `recipient_user_id = owner.id`)?
 
-### 4. Migrasi call site
-
-Yang harus dipindah ke `printThermal`:
-- `src/routes/pos-app.orders.tsx` (baris 430, 832)
-- `src/routes/pos-app.pos.tsx` (auto-print setelah checkout, lihat baris ~890)
-- `src/components/orders/OrdersTodayDialog.tsx` (baris 331, 1175)
-- `src/components/ReceiptPreviewModal.tsx` — tombol "Cetak Sekarang" → panggil `printThermal` (hapus iframe handler, gunakan popup baru). "Buka di Tab Baru" tetap pakai popup tanpa auto-print.
-
-Pola pemanggilan baru:
-```ts
-const res = printThermal({ node: hiddenReceiptRef.current, paper, scopeKey });
-if (res === "blocked") setPreviewOpen(true); // fallback modal preview
-```
-
-`window.print()` langsung di halaman lain (`pos-app.online-orders.tsx`, `pos-app.purchase-orders.$poId.tsx`, `pos-app.medical-invoice.tsx`, `pos-app.certificates.tsx`, `pos-app.contracts.tsx`, `pos-app.table-qr.tsx`, `pos-app.rental-checklist.tsx`) **tidak dalam scope** karena itu dokumen A4/format lain (PO, sertifikat, kontrak, invoice medis, QR meja). Permintaan ini eksplisit untuk struk thermal POS.
-
-### 5. Cleanup `styles.css`
-
-- Hapus blok `@media print { body * { visibility:hidden } … }` (baris 190-194) dan `.print-host` print override (205-216) supaya halaman dashboard **tidak pernah** ikut ter-print. `.print-host` cukup tetap sebagai off-screen container untuk ref.
-- `@page receipt-58/80` tidak lagi dibutuhkan di dokumen utama (ukuran sekarang di-set di popup) — hapus.
-
-### 6. Verifikasi
-
-1. Buka `/pos-app/orders`, klik "Cetak Struk" → muncul popup kecil, dialog print tampil dengan ukuran 80 mm (atau 58 mm sesuai picker), tidak ada halaman dashboard di belakang preview, popup menutup otomatis setelah print/cancel.
-2. Checkout di `/pos-app/pos` → auto-print via popup, tidak ada whitespace.
-3. Jika popup di-block browser → muncul preview modal lama sebagai fallback.
-4. Test 58 mm vs 80 mm: width struk full lebar kertas, font monospace, hitam-putih.
-
-## Catatan untuk user
-
-Browser tetap mengingat ukuran kertas yang dipilih per printer. Saat **pertama kali** mencetak di printer thermal, di dialog print Chrome pilih "More settings → Paper size: 80mm × 297mm" (atau ukuran kustom 58mm) dan centang "Background graphics" sekali — setelah itu Chrome akan menggunakan setting ini otomatis. `@page size` mengontrol layout, tapi driver fisik perlu printer yang benar dipilih.
+Begitu kamu jawab 2 pertanyaan itu (atau bilang "pakai default: read_at + per-user"), saya langsung kerjakan Fase 1 + Fase 2.
