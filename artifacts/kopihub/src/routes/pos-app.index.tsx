@@ -410,7 +410,12 @@ function Shortcut({ to, icon: Icon, label }: { to: string; icon: React.ElementTy
 }
 
 function RealtimeOrdersToast({ shopId }: { shopId: string | null }) {
-  useRealtimeOrders(shopId, { label: "Order baru masuk", playSound: true });
+  const qc = useQueryClient();
+  useRealtimeOrders(shopId, {
+    label: "Order baru masuk",
+    playSound: true,
+    onChange: () => qc.invalidateQueries({ queryKey: ["dashboard:today", shopId] }),
+  });
   return null;
 }
 
