@@ -11,11 +11,11 @@ type TabDef = {
   feature: string | null;
 };
 
-const TABS: TabDef[] = [
-  { to: "/pos-app/appearance",         label: "Tema",               icon: Palette,         feature: null },
-  { to: "/pos-app/storefront-builder", label: "Section Storefront", icon: LayoutDashboard, feature: "storefront_builder" },
-  { to: "/pos-app/website-builder",    label: "Website Builder",    icon: Sparkles,        feature: "website_builder" },
-  { to: "/pos-app/custom-css",         label: "Custom CSS",         icon: Code2,           feature: "custom_css" },
+const TABS: (TabDef & { hint?: string })[] = [
+  { to: "/pos-app/appearance",         label: "Tema",               icon: Palette,         feature: null,                hint: "Pilih tampilan instan (cepat & mudah)" },
+  { to: "/pos-app/storefront-builder", label: "Section Storefront", icon: LayoutDashboard, feature: "storefront_builder", hint: "Atur urutan section di halaman toko" },
+  { to: "/pos-app/website-builder",    label: "Website Builder",    icon: Sparkles,        feature: "website_builder",    hint: "Bangun halaman bebas drag-and-drop" },
+  { to: "/pos-app/custom-css",         label: "Custom CSS",         icon: Code2,           feature: "custom_css",         hint: "Tambah CSS kustom (advanced)" },
 ];
 
 export function TampilanTabs() {
