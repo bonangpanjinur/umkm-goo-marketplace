@@ -12,7 +12,7 @@ export const Route = createFileRoute("/pos-app/shipping-labels")({ component: Sh
 
 type Order = {
   id: string;
-  order_number: string | null;
+  order_no: string | null;
   recipient_name: string;
   phone: string;
   address: string;
@@ -57,7 +57,7 @@ export default function ShippingLabelsPage() {
     setLoading(true);
     supabase
       .from("orders")
-      .select("id, order_number, recipient_name, phone, address, total_price, status, payment_method, created_at, tracking_number")
+      .select("id, order_no, recipient_name, phone, address, total_price, status, payment_method, created_at, tracking_number")
       .eq("shop_id", shopId)
       .in("status", ["confirmed", "processing", "shipped"] as any[])
       .eq("fulfillment", "delivery")
@@ -70,7 +70,7 @@ export default function ShippingLabelsPage() {
   }, [shopId]);
 
   const filtered = orders.filter(o =>
-    (o.order_number ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (o.order_no ?? "").toLowerCase().includes(search.toLowerCase()) ||
     o.recipient_name.toLowerCase().includes(search.toLowerCase()) ||
     o.address.toLowerCase().includes(search.toLowerCase())
   );
@@ -98,7 +98,7 @@ export default function ShippingLabelsPage() {
           LABEL PENGIRIMAN
         </div>
         <div style="font-size:10px;color:#666;margin-bottom:8px;">
-          Pesanan: <strong>${order.order_number ?? order.id.slice(0,8).toUpperCase()}</strong>
+          Pesanan: <strong>${order.order_no ?? order.id.slice(0,8).toUpperCase()}</strong>
           &nbsp;|&nbsp; ${new Date(order.created_at).toLocaleDateString("id-ID")}
         </div>
         <div style="border:1px solid #ccc;padding:8px;margin-bottom:8px;border-radius:4px;">
@@ -179,7 +179,7 @@ export default function ShippingLabelsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-sm font-semibold">{order.order_number ?? order.id.slice(0,8).toUpperCase()}</span>
+                    <span className="font-mono text-sm font-semibold">{order.order_no ?? order.id.slice(0,8).toUpperCase()}</span>
                     <Badge variant="secondary" className="text-xs">{order.status}</Badge>
                     {order.tracking_number && <Badge className="text-xs bg-green-600 hover:bg-green-600">Ada Resi</Badge>}
                   </div>

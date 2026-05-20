@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/reconciliation")({ component: Recon
 
 type Order = {
   id: string;
-  order_number: string | null;
+  order_no: string | null;
   total_price: number;
   payment_method: string | null;
   payment_status: string | null;
@@ -78,7 +78,7 @@ export default function ReconciliationPage() {
       .from("orders")
       .select(`
         id,
-        order_number,
+        order_no,
         total_price,
         payment_method,
         payment_status,
@@ -115,7 +115,7 @@ export default function ReconciliationPage() {
     if (tab !== "all" && tab === "issues" && o.recon_status === "matched") return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!(o.order_number ?? o.id).toLowerCase().includes(q) && !o.shop_name.toLowerCase().includes(q)) return false;
+      if (!(o.order_no ?? o.id).toLowerCase().includes(q) && !o.shop_name.toLowerCase().includes(q)) return false;
     }
     return true;
   });
@@ -132,7 +132,7 @@ export default function ReconciliationPage() {
     const rows = [
       ["Order ID", "No. Order", "Toko", "Metode Bayar", "Nominal Platform", "Nominal Gateway", "Status Rekonsiliasi", "Tanggal"],
       ...filtered.map(o => [
-        o.id, o.order_number ?? "-", o.shop_name, o.payment_method ?? "-",
+        o.id, o.order_no ?? "-", o.shop_name, o.payment_method ?? "-",
         o.total_price, o.gateway_amount ?? "-",
         STATUS_MAP[o.recon_status].label,
         fmtDate(o.created_at),
@@ -231,7 +231,7 @@ export default function ReconciliationPage() {
                     const diff = o.gateway_amount != null ? o.total_price - o.gateway_amount : null;
                     return (
                       <tr key={o.id} className="border-t hover:bg-muted/30">
-                        <td className="px-3 py-2.5 font-mono text-xs">{o.order_number ?? o.id.slice(0,8)}</td>
+                        <td className="px-3 py-2.5 font-mono text-xs">{o.order_no ?? o.id.slice(0,8)}</td>
                         <td className="px-3 py-2.5">{o.shop_name}</td>
                         <td className="px-3 py-2.5 capitalize text-xs">{o.payment_method ?? "—"}</td>
                         <td className="px-3 py-2.5">{formatIDR(o.total_price)}</td>

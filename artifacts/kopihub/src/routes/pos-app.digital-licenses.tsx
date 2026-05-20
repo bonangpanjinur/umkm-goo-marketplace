@@ -51,7 +51,7 @@ type License = {
   last_downloaded_at: string | null;
   is_active: boolean;
   customer_name: string | null;
-  order_number: string | null;
+  order_no: string | null;
   created_at: string;
   product_name?: string;
 };
@@ -133,7 +133,7 @@ function DigitalLicensesPage() {
     if (search) {
       const q = search.toLowerCase();
       if (!l.license_key.toLowerCase().includes(q) &&
-          !(l.order_number ?? "").toLowerCase().includes(q) &&
+          !(l.order_no ?? "").toLowerCase().includes(q) &&
           !(l.customer_name ?? "").toLowerCase().includes(q) &&
           !(l.product_name ?? "").toLowerCase().includes(q)) return false;
     }
@@ -357,8 +357,8 @@ function DigitalLicensesPage() {
                     <p className="text-sm font-medium truncate">{l.product_name}</p>
 
                     <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-1">
-                      {l.order_number && (
-                        <span>Order: <strong className="text-gray-700">{l.order_number}</strong></span>
+                      {l.order_no && (
+                        <span>Order: <strong className="text-gray-700">{l.order_no}</strong></span>
                       )}
                       {l.customer_name && (
                         <span>Pembeli: <strong className="text-gray-700">{l.customer_name}</strong></span>

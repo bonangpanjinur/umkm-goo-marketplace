@@ -23,11 +23,11 @@ export const Route = createFileRoute("/admin/auto-cancel")({ component: AdminAut
 
 type PendingOrder = {
   id: string;
-  order_number: string;
+  order_no: string;
   created_at: string;
   status: string;
   payment_method: string | null;
-  total_amount: number;
+  total: number;
   shop_name: string;
   buyer_name: string;
   minutes_elapsed: number;
@@ -64,7 +64,7 @@ function AdminAutoCancel() {
       const { data: orders, error } = await supabase
         .from("orders")
         .select(`
-          id, order_number, created_at, status, payment_method, total_amount,
+          id, order_no, created_at, status, payment_method, total,
           shops!inner(name),
           customer_profiles(display_name)
         `)
@@ -80,11 +80,11 @@ function AdminAutoCancel() {
         const pct = Math.min(100, (elapsed / deadline) * 100);
         return {
           id: o.id,
-          order_number: o.order_number,
+          order_no: o.order_no,
           created_at: o.created_at,
           status: o.status,
           payment_method: o.payment_method,
-          total_amount: Number(o.total_amount),
+          total: Number(o.total),
           shop_name: o.shops?.name ?? "—",
           buyer_name: o.customer_profiles?.display_name ?? "Pembeli",
           minutes_elapsed: Math.round(elapsed),
@@ -272,7 +272,7 @@ function AdminAutoCancel() {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-sm font-semibold">{o.order_number}</span>
+                        <span className="font-mono text-sm font-semibold">{o.order_no}</span>
                         <Badge
                           className={`text-[10px] ${
                             urg === "red"
@@ -292,7 +292,7 @@ function AdminAutoCancel() {
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {o.buyer_name} · {o.shop_name} ·{" "}
-                        <strong>Rp {o.total_amount.toLocaleString("id-ID")}</strong>
+                        <strong>Rp {o.total.toLocaleString("id-ID")}</strong>
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -311,7 +311,7 @@ function AdminAutoCancel() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => cancelOrder(o.id, o.order_number)}
+                      onClick={() => cancelOrder(o.id, o.order_no)}
                       disabled={cancelling === o.id}
                     >
                       <Ban className="h-3.5 w-3.5 mr-1" />
