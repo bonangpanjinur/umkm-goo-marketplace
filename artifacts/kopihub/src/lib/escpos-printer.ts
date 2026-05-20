@@ -249,6 +249,72 @@ export function buildEscPosFromReceiptDom(root: HTMLElement, paper: ReceiptPaper
 }
 
 // ============================================================
+// Plain-text preview (mirrors the ESC/POS column layout)
+// ============================================================
+
+/**
+ * Hasil: array baris {text, bold, center, big}. Dipakai oleh UI preview agar
+ * tampilan di layar PERSIS mengikuti hasil cetak thermal (wrap kolom sama,
+ * divider sama, dst).
+ */
+export type ReceiptTextLine = { text: string; bold?: boolean; center?: boolean; big?: boolean };
+
+export function buildReceiptLines(root: HTMLElement, paper: ReceiptPaper): ReceiptTextLine[] {
+  const w = widthChars(paper);
+  const lines: ReceiptTextLine[] = [];
+  const push = (text: string, opts: Omit<ReceiptTextLine, "text"> = {}) => {
+    for (const part of text.split("\n")) lines.push({ text: part, ...opts });
+  };
+  const txt = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
+
+  const walk = (el: Element) => {
+    const cls = el.classList;
+    if (cls.contains("r-divider")) { push("-".repeat(w)); return; }
+    if (cls.contains("r-row")) {
+      const kids = Array.from(el.children).filter(
+        (c) => c.tagName === "SPAN" || c.tagName === "DIV",
+      );
+      const bold = cls.contains("r-bold");
+      if (kids.length >= 2) {
+        push(padBetween(txt(kids[0]), txt(kids[kids.length - 1]), w), { bold });
+      } else {
+        push(leftLines(txt(el), w), { bold });
+      }
+      return;
+    }
+    if (cls.contains("r-center")) {
+      const bold = cls.contains("r-bold");
+      const effW = bold ? Math.max(1, Math.floor(w / 2)) : w;
+      push(centerLine(txt(el), effW), { center: true, bold, big: bold });
+      return;
+    }
+    if (cls.contains("r-item")) {
+      for (const child of Array.from(el.children)) {
+        if (!(child instanceof HTMLElement)) continue;
+        const c = child.classList;
+        if (c.contains("r-row") || c.contains("r-small") || c.contains("r-divider")) walk(child);
+        else push(leftLines(txt(child), w));
+      }
+      return;
+    }
+    if (cls.contains("r-small")) { push(leftLines(txt(el), w, 2)); return; }
+    const elChildren = Array.from(el.children);
+    if (elChildren.length > 0) for (const c of elChildren) walk(c);
+    else { const t = txt(el); if (t) push(leftLines(t, w)); }
+  };
+
+  const kids = Array.from(root.children);
+  if (kids.length === 0) push(txt(root));
+  else for (const c of kids) walk(c);
+
+  return lines;
+}
+
+export function buildReceiptText(root: HTMLElement, paper: ReceiptPaper): string {
+  return buildReceiptLines(root, paper).map((l) => l.text).join("\n");
+}
+
+// ============================================================
 // Web Serial transport
 // ============================================================
 
