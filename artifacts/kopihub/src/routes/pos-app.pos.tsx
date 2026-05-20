@@ -843,28 +843,50 @@ function POSPage() {
           )}
           <Button
             size="sm"
-            variant="outline"
-            onClick={() => {
-              const res = printReceiptNode(printRef.current, undefined, scopeKey);
-              if (res !== "ok") {
-                const popped = openReceiptInNewWindow(printRef.current, undefined, scopeKey);
-                if (!popped) {
-                  setPrintBlocked(true);
-                  toast.error("Dialog cetak masih diblokir. Izinkan popup atau tekan Ctrl/Cmd+P.");
-                } else {
-                  setPrintBlocked(false);
-                }
-              } else {
-                setPrintBlocked(false);
-              }
-            }}
+            variant="default"
+            onClick={() => setPreviewOpen(true)}
           >
-            Cetak ulang
+            Pratinjau & Cetak
           </Button>
           <Button size="sm" variant="ghost" onClick={() => { setLastReceipt(null); setPrintBlocked(false); }}>
             <X className="h-4 w-4" />
           </Button>
         </div>
+      )}
+
+      {/* Modal pratinjau struk thermal */}
+      {lastReceipt && (
+        <ReceiptPreviewModal
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          scopeKey={scopeKey}
+          title={`Struk #${lastReceipt.orderNo}`}
+        >
+          <Receipt
+            shopName={shop?.name ?? ""}
+            outletName={outlet?.name ?? ""}
+            shopLogoUrl={shop?.logo_url ?? null}
+            shopAddress={shop?.address ?? null}
+            shopPhone={shop?.phone ?? null}
+            orderNo={lastReceipt.orderNo}
+            cashierName="Kasir"
+            date={lastReceipt.date}
+            items={lastReceipt.items}
+            subtotal={lastReceipt.subtotal}
+            total={lastReceipt.total}
+            manualDiscount={lastReceipt.discount || undefined}
+            serviceCharge={lastReceipt.serviceCharge || undefined}
+            tax={lastReceipt.tax || undefined}
+            paymentMethod={lastReceipt.paymentMethod}
+            amountTendered={lastReceipt.amountTendered}
+            changeDue={lastReceipt.changeDue}
+            customerName={
+              [lastReceipt.tableLabel ? `Meja ${lastReceipt.tableLabel}` : null, lastReceipt.customerName]
+                .filter(Boolean)
+                .join(" · ") || undefined
+            }
+          />
+        </ReceiptPreviewModal>
       )}
 
       {/* Hidden receipt for window.print() */}
