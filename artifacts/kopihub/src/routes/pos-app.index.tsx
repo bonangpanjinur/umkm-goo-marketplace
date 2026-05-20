@@ -35,51 +35,50 @@ type DayStat = { date: string; label: string; total: number; count: number };
 
 function Dashboard() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [loading, setLoading] = useState(true);
-  const [todayTotal, setTodayTotal] = useState(0);
-  const [todayCount, setTodayCount] = useState(0);
-  const [openBills, setOpenBills] = useState(0);
-  const [topItems, setTopItems] = useState<{ name: string; qty: number }[]>([]);
-  const [recent, setRecent] = useState<Order[]>([]);
-  const [lowStock, setLowStock] = useState<{ id: string; name: string; current_stock: number; unit: string }[]>([]);
   const [lowOpen, setLowOpen] = useState(false);
   const [trendDays, setTrendDays] = useState<7 | 30 | 0>(7);
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
-  const [trend, setTrend] = useState<DayStat[]>([]);
+  const [customRange, setCustomRange] = useState<{ from: string; to: string } | null>(null);
 
-  useEffect(() => {
-    if (!shop) return;
-    (async () => {
-      setLoading(true);
-      const today = new Date();
-      const todayISO = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const todayISO = useMemo(() => {
+    const t = new Date();
+    return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }, []);
 
+  // ===== Today's KPIs (React Query, staleTime 30s, limit 300) =====
+  const { data: todayData, isLoading: loadingToday } = useQuery({
+    queryKey: ["dashboard:today", shop?.id, todayISO],
+    enabled: !!shop,
+    staleTime: 30_000,
+    queryFn: async () => {
       const [ordRes, obRes, lowRes] = await Promise.all([
         supabase
           .from("orders")
           .select("id, total, created_at")
-          .eq("shop_id", shop.id)
+          .eq("shop_id", shop!.id)
           .eq("status", "completed")
           .eq("business_date", todayISO)
-          .order("created_at", { ascending: false }),
-        supabase.from("open_bills").select("id", { count: "exact", head: true }).eq("shop_id", shop.id),
+          .order("created_at", { ascending: false })
+          .limit(300),
+        supabase.from("open_bills").select("id", { count: "exact", head: true }).eq("shop_id", shop!.id),
         supabase
           .from("ingredients")
           .select("id, name, current_stock, min_stock, unit")
-          .eq("shop_id", shop.id)
-          .eq("is_active", true),
+          .eq("shop_id", shop!.id)
+          .eq("is_active", true)
+          .limit(200),
       ]);
-
       const ords = (ordRes.data ?? []) as Order[];
-      setTodayTotal(ords.reduce((s, o) => s + Number(o.total), 0));
-      setTodayCount(ords.length);
-      setRecent(ords.slice(0, 5));
-      setOpenBills(obRes.count ?? 0);
-      setLowStock(((lowRes.data ?? []) as Array<{ id: string; name: string; current_stock: number; min_stock: number; unit: string }>)
+      const todayTotal = ords.reduce((s, o) => s + Number(o.total), 0);
+      const todayCount = ords.length;
+      const recent = ords.slice(0, 5);
+      const openBills = obRes.count ?? 0;
+      const lowStock = ((lowRes.data ?? []) as Array<{ id: string; name: string; current_stock: number; min_stock: number; unit: string }>)
         .filter((i) => i.min_stock > 0 && i.current_stock <= i.min_stock)
-        .slice(0, 5));
+        .slice(0, 5);
 
+      let topItems: { name: string; qty: number }[] = [];
       if (ords.length > 0) {
         const { data: items } = await supabase
           .from("order_items")
@@ -92,72 +91,80 @@ function Dashboard() {
           cur.qty += it.quantity;
           map.set(k, cur);
         });
-        setTopItems([...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5));
-      } else {
-        setTopItems([]);
+        topItems = [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
       }
-      setLoading(false);
-    })();
-  }, [shop]);
+      return { todayTotal, todayCount, recent, openBills, lowStock, topItems };
+    },
+  });
 
-  // Fetch trend data
-  useEffect(() => {
-    if (!shop) return;
-    if (trendDays === 0) return; // custom range triggered separately
-    (async () => {
-      const now = new Date();
-      const from = new Date(now);
-      from.setDate(from.getDate() - trendDays);
-      const fromISO = new Date(from.getTime() - from.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-      await fetchTrend(fromISO, now.toISOString().slice(0, 10), trendDays);
-    })();
-  }, [shop, trendDays]);
+  const todayTotal = todayData?.todayTotal ?? 0;
+  const todayCount = todayData?.todayCount ?? 0;
+  const openBills = todayData?.openBills ?? 0;
+  const recent = todayData?.recent ?? [];
+  const topItems = todayData?.topItems ?? [];
+  const lowStock = todayData?.lowStock ?? [];
 
-  async function fetchTrend(fromISO: string, toISO: string, days: number) {
-    const { data } = await supabase
-      .from("orders")
-      .select("total, business_date")
-      .eq("shop_id", shop!.id)
-      .eq("status", "completed")
-      .gte("business_date", fromISO)
-      .lte("business_date", toISO)
-      .order("business_date");
+  // ===== Trend (React Query, staleTime 60s) =====
+  const trendRange = useMemo(() => {
+    if (trendDays === 0) return customRange;
+    const now = new Date();
+    const from = new Date(now);
+    from.setDate(from.getDate() - trendDays);
+    const fromISO = new Date(from.getTime() - from.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    return { from: fromISO, to: now.toISOString().slice(0, 10) };
+  }, [trendDays, customRange]);
 
-    const byDate = new Map<string, { total: number; count: number }>();
-    // Pre-fill all dates in range
-    const start = new Date(fromISO + "T00:00:00");
-    for (let d = 0; d <= days; d++) {
-      const dt = new Date(start);
-      dt.setDate(dt.getDate() + d);
-      const key = dt.toISOString().slice(0, 10);
-      byDate.set(key, { total: 0, count: 0 });
-    }
-    (data ?? []).forEach((o: { total: number; business_date: string }) => {
-      const cur = byDate.get(o.business_date) ?? { total: 0, count: 0 };
-      cur.total += Number(o.total);
-      cur.count += 1;
-      byDate.set(o.business_date, cur);
-    });
-    const result: DayStat[] = [];
-    byDate.forEach((v, k) => {
-      const dt = new Date(k + "T00:00:00");
-      result.push({
-        date: k,
-        label: dt.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
-        total: v.total,
-        count: v.count,
+  const { data: trend = [] } = useQuery({
+    queryKey: ["dashboard:trend", shop?.id, trendRange?.from, trendRange?.to],
+    enabled: !!shop && !!trendRange,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { from, to } = trendRange!;
+      const days = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000);
+      const { data } = await supabase
+        .from("orders")
+        .select("total, business_date")
+        .eq("shop_id", shop!.id)
+        .eq("status", "completed")
+        .gte("business_date", from)
+        .lte("business_date", to)
+        .order("business_date");
+
+      const byDate = new Map<string, { total: number; count: number }>();
+      const start = new Date(from + "T00:00:00");
+      for (let d = 0; d <= days; d++) {
+        const dt = new Date(start);
+        dt.setDate(dt.getDate() + d);
+        const key = dt.toISOString().slice(0, 10);
+        byDate.set(key, { total: 0, count: 0 });
+      }
+      (data ?? []).forEach((o: { total: number; business_date: string }) => {
+        const cur = byDate.get(o.business_date) ?? { total: 0, count: 0 };
+        cur.total += Number(o.total);
+        cur.count += 1;
+        byDate.set(o.business_date, cur);
       });
-    });
-    result.sort((a, b) => a.date.localeCompare(b.date));
-    setTrend(result);
+      const result: DayStat[] = [];
+      byDate.forEach((v, k) => {
+        const dt = new Date(k + "T00:00:00");
+        result.push({
+          date: k,
+          label: dt.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+          total: v.total,
+          count: v.count,
+        });
+      });
+      result.sort((a, b) => a.date.localeCompare(b.date));
+      return result;
+    },
+  });
+
+  function applyCustomRange() {
+    if (!customFrom || !customTo || customTo < customFrom) return;
+    setCustomRange({ from: customFrom, to: customTo });
   }
 
-  async function applyCustomRange() {
-    if (!customFrom || !customTo) return;
-    if (customTo < customFrom) return;
-    const days = Math.round((new Date(customTo).getTime() - new Date(customFrom).getTime()) / 86400000);
-    await fetchTrend(customFrom, customTo, days);
-  }
+  const loading = loadingToday;
 
   // Period comparison
   const comparison = useMemo(() => {
