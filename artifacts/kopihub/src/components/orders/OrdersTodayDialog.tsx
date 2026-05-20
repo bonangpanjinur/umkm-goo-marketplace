@@ -788,19 +788,21 @@ export function OrdersTodayDialog({
               )}
             </div>
 
-            {/* Pagination */}
-            {filtered.length > PAGE_SIZE && (
+            {/* Pagination — cursor based, server-side (limit 30 per halaman) */}
+            {(page > 1 || hasMore) && (
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
                 <span>
-                  Hal. {safePage} dari {totalPages}
+                  Hal. {page}
+                  {hasMore ? "" : " (terakhir)"} · {pageItems.length} ditampilkan
                 </span>
                 <div className="flex gap-1">
                   <Button
                     size="sm"
                     variant="outline"
                     className="h-7 w-7 p-0"
-                    disabled={safePage <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || loading}
+                    onClick={goPrev}
+                    aria-label="Halaman sebelumnya"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </Button>
@@ -808,8 +810,9 @@ export function OrdersTodayDialog({
                     size="sm"
                     variant="outline"
                     className="h-7 w-7 p-0"
-                    disabled={safePage >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={!hasMore || loading}
+                    onClick={goNext}
+                    aria-label="Halaman berikutnya"
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
                   </Button>
