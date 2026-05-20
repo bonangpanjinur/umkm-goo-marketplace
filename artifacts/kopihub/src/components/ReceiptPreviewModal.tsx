@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer, X, Maximize2, Settings2 } from "lucide-react";
+import { Printer, X, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReceiptPaper } from "@/lib/receipt-printer";
 import { applyReceiptPaper, getReceiptPaper, printThermal, setReceiptPaper } from "@/lib/receipt-printer";
