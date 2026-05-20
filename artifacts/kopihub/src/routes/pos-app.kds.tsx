@@ -219,7 +219,7 @@ function KDSPage() {
         (payload) => {
           if (payload.eventType === "INSERT") {
             const newOrder = payload.new as Order;
-            if (["pending", "preparing"].includes(newOrder.status)) {
+            if (["pending", "preparing", "ready"].includes(newOrder.status)) {
               setOrders((prev) => [...prev, newOrder]);
               supabase
                 .from("order_items")
@@ -258,8 +258,11 @@ function KDSPage() {
             }
           } else if (payload.eventType === "UPDATE") {
             const updated = payload.new as Order;
-            if (["pending", "preparing"].includes(updated.status)) {
-              setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+            if (["pending", "preparing", "ready"].includes(updated.status)) {
+              setOrders((prev) => {
+                const exists = prev.some((o) => o.id === updated.id);
+                return exists ? prev.map((o) => (o.id === updated.id ? updated : o)) : [...prev, updated];
+              });
             } else {
               setOrders((prev) => prev.filter((o) => o.id !== updated.id));
             }
