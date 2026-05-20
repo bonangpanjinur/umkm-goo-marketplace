@@ -215,7 +215,7 @@ export function OrdersTodayDialog({
     if (selected?.id) loadAudit(selected.id);
   }, [selected?.id]);
 
-  // Persist sort & page
+  // Persist sort
   useEffect(() => {
     lsSet(sortKey, sortDir);
   }, [sortDir, sortKey]);
@@ -223,34 +223,84 @@ export function OrdersTodayDialog({
     lsSet(pageKey, String(page));
   }, [page, pageKey]);
 
-  // Phase 2: React Query + limit(300) + staleTime 30s untuk hindari refetch berulang
+  // Reset cursor saat outlet / dialog dibuka kembali / sort berubah
+  useEffect(() => {
+    setCursorStack([]);
+  }, [outletId, open, sortDir]);
+
+  // Phase 2: server-side keyset pagination + staleTime 30s
   const businessDate = useMemo(() => {
     const t = new Date();
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
   }, [open]);
 
+  const cursor = cursorStack[cursorStack.length - 1] ?? null;
+  const ascending = sortDir === "oldest";
+
   const ordersQuery = useQuery({
-    queryKey: ["orders-today", outletId, businessDate],
+    queryKey: [
+      "orders-today",
+      outletId,
+      businessDate,
+      ascending ? "asc" : "desc",
+      cursor?.created_at ?? null,
+      cursor?.id ?? null,
+    ],
     enabled: !!open && !!outletId,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase
+      // Ambil PAGE_SIZE+1 → baris ekstra hanya jadi indikator "ada next"
+      let q = supabase
         .from("orders")
         .select(
           "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order, order_source",
         )
         .eq("outlet_id", outletId)
         .eq("business_date", businessDate)
-        .order("created_at", { ascending: false })
-        .limit(300);
-      return (data ?? []) as Order[];
+        .order("created_at", { ascending })
+        .order("id", { ascending })
+        .limit(PAGE_SIZE + 1);
+
+      if (cursor) {
+        // Keyset cursor: (created_at, id) berikutnya setelah cursor
+        // newest (desc): created_at < X OR (created_at = X AND id < Y)
+        // oldest (asc) : created_at > X OR (created_at = X AND id > Y)
+        if (ascending) {
+          q = q.or(
+            `created_at.gt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.gt.${cursor.id})`,
+          );
+        } else {
+          q = q.or(
+            `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`,
+          );
+        }
+      }
+
+      const { data, error } = await q;
+      if (error) throw error;
+      const rows = (data ?? []) as Order[];
+      const hasMore = rows.length > PAGE_SIZE;
+      return { rows: rows.slice(0, PAGE_SIZE), hasMore };
     },
+    placeholderData: (prev) => prev, // keep previous page while loading next
   });
 
   useEffect(() => {
-    setOrders(ordersQuery.data ?? []);
-    setLoading(ordersQuery.isLoading);
-  }, [ordersQuery.data, ordersQuery.isLoading]);
+    setOrders(ordersQuery.data?.rows ?? []);
+    setLoading(ordersQuery.isLoading || ordersQuery.isFetching);
+  }, [ordersQuery.data, ordersQuery.isLoading, ordersQuery.isFetching]);
+
+  const hasMore = ordersQuery.data?.hasMore ?? false;
+
+  function goNext() {
+    const last = ordersQuery.data?.rows[ordersQuery.data.rows.length - 1];
+    if (!last || !hasMore) return;
+    setCursorStack((s) => [...s, { created_at: last.created_at, id: last.id }]);
+  }
+  function goPrev() {
+    setCursorStack((s) => s.slice(0, -1));
+  }
+
 
 
   useEffect(() => {
