@@ -812,7 +812,7 @@ function DetailDialog({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Dialog cetak browser tidak muncul (kemungkinan diblokir popup). Klik "Cetak Sekarang" untuk mencoba lagi, atau gunakan Ctrl/Cmd+P di pratinjau ini.
+              Pratinjau struk thermal. Klik "Cetak Sekarang" untuk membuka dialog printer.
             </p>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setFallbackOpen(null)}>Tutup</Button>
@@ -824,15 +824,16 @@ function DetailDialog({
                       : fallbackOpen === "courier"
                         ? courierRef.current
                         : printRef.current;
-                  const popped = openReceiptInNewWindow(node, undefined, scopeKey);
-                  if (!popped) {
-                    printReceiptNode(node, undefined, scopeKey);
+                  const res = printReceiptNode(node, undefined, scopeKey);
+                  if (res !== "ok") {
+                    openReceiptInNewWindow(node, undefined, scopeKey);
                   }
                 }}
               >
                 <Printer className="mr-2 h-4 w-4" /> Cetak Sekarang
               </Button>
             </DialogFooter>
+
           </DialogContent>
         </Dialog>
       </DialogContent>
