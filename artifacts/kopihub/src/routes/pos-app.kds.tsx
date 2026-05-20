@@ -62,13 +62,20 @@ function KDSPage() {
   const [items, setItems] = useState<Record<string, OrderItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [activeStation, setActiveStation] = useState<string>("all");
-  const [stations, setStations] = useState<string[]>([]);
   const [splitTarget, setSplitTarget] = useState<SplitTarget | null>(null);
 
-  // Service calls state
+  // Service calls state — single persistent channel ref
   const [serviceCalls, setServiceCalls] = useState<ServiceCall[]>([]);
+  const serviceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Subscribe to service calls broadcast
+  // Derive stations reaktif dari items aktif (otomatis bersih saat order selesai)
+  const stations = useMemo(() => {
+    const set = new Set<string>();
+    Object.values(items).forEach((arr) => arr.forEach((it) => set.add(it.kds_station || "general")));
+    return Array.from(set);
+  }, [items]);
+
+  // Subscribe to service calls broadcast (single channel)
   useEffect(() => {
     if (!shop?.id) return;
 
@@ -77,7 +84,6 @@ function KDSPage() {
       .on("broadcast", { event: "service_call" }, ({ payload }) => {
         const call = payload as ServiceCall;
         setServiceCalls((prev) => {
-          // Deduplicate by table_id — update if same table
           const existing = prev.findIndex((c) => c.table_id === call.table_id);
           if (existing >= 0) {
             const next = [...prev];
@@ -86,43 +92,38 @@ function KDSPage() {
           }
           return [call, ...prev];
         });
-        // Play sound
         const audio = new Audio("/notification.mp3");
         audio.play().catch(() => {});
-        // Toast
         toast.info(`🔔 ${call.table_name} memanggil pelayan!`, {
           duration: 8000,
           description: "Lihat panel panggilan di atas",
         });
       })
       .on("broadcast", { event: "dismiss_call" }, ({ payload }) => {
-        setServiceCalls((prev) => prev.filter((c) => c.id !== payload.id));
+        setServiceCalls((prev) => prev.filter((c) => c.id !== (payload as { id: string }).id));
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(ch); };
+    serviceChannelRef.current = ch;
+    return () => {
+      supabase.removeChannel(ch);
+      serviceChannelRef.current = null;
+    };
   }, [shop?.id]);
+
+  function broadcastDismiss(id: string) {
+    serviceChannelRef.current
+      ?.send({ type: "broadcast", event: "dismiss_call", payload: { id } })
+      .catch(() => {});
+  }
 
   function dismissCall(call: ServiceCall) {
     setServiceCalls((prev) => prev.filter((c) => c.id !== call.id));
-    // Broadcast dismiss so other KDS devices sync
-    if (shop?.id) {
-      const ch = supabase.channel(`service-calls-${shop.id}`);
-      ch.send({ type: "broadcast", event: "dismiss_call", payload: { id: call.id } }).then(() => {
-        supabase.removeChannel(ch);
-      });
-    }
+    broadcastDismiss(call.id);
   }
 
   function dismissAllCalls() {
-    if (shop?.id) {
-      serviceCalls.forEach((call) => {
-        const ch = supabase.channel(`service-calls-${shop.id}`);
-        ch.send({ type: "broadcast", event: "dismiss_call", payload: { id: call.id } }).then(() => {
-          supabase.removeChannel(ch);
-        });
-      });
-    }
+    serviceCalls.forEach((c) => broadcastDismiss(c.id));
     setServiceCalls([]);
   }
 
