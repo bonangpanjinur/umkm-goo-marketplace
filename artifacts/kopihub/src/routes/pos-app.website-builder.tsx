@@ -117,13 +117,22 @@ function BuilderListPage() {
             ditampilkan di storefront menggantikan tema bawaan.
           </p>
         </div>
-        <button
-          onClick={() => setPickerOpen(true)}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
-        >
-          <Plus className="w-4 h-4" />
-          Buat Halaman Baru
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/pos-app/website-builder/templates"
+            className="inline-flex items-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80"
+          >
+            <LayoutTemplate className="w-4 h-4" />
+            Kelola Template
+          </Link>
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+          >
+            <Plus className="w-4 h-4" />
+            Buat Halaman Baru
+          </button>
+        </div>
       </div>
 
       {loading ? (
