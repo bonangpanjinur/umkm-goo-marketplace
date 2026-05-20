@@ -83,6 +83,13 @@ export type Database = {
             foreignKeyName: "ad_requests_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -91,6 +98,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -357,6 +371,13 @@ export type Database = {
             foreignKeyName: "booking_reviews_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -365,6 +386,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -433,6 +461,13 @@ export type Database = {
             foreignKeyName: "booking_slots_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_slots_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -441,6 +476,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_slots_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -509,6 +551,13 @@ export type Database = {
             foreignKeyName: "booking_waitlist_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_waitlist_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -517,6 +566,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_waitlist_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -657,6 +713,13 @@ export type Database = {
             foreignKeyName: "bookings_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -665,6 +728,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -776,6 +846,13 @@ export type Database = {
             foreignKeyName: "bulk_pricing_rules_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_pricing_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -784,6 +861,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_pricing_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -1107,6 +1191,13 @@ export type Database = {
             foreignKeyName: "categories_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categories_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -1115,6 +1206,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categories_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -1225,6 +1323,13 @@ export type Database = {
             foreignKeyName: "course_certificates_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_certificates_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -1233,6 +1338,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_certificates_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -1480,6 +1592,13 @@ export type Database = {
             foreignKeyName: "custom_order_quotes_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_order_quotes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -1488,6 +1607,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_order_quotes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -1590,6 +1716,13 @@ export type Database = {
             foreignKeyName: "custom_order_requests_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_order_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -1598,6 +1731,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_order_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -1770,6 +1910,13 @@ export type Database = {
             foreignKeyName: "customer_memberships_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_memberships_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -1778,6 +1925,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_memberships_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -1925,6 +2079,13 @@ export type Database = {
             foreignKeyName: "customer_treatments_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_treatments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -1933,6 +2094,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_treatments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2030,6 +2198,13 @@ export type Database = {
             foreignKeyName: "customer_wallets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_wallets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2038,6 +2213,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_wallets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2178,6 +2360,13 @@ export type Database = {
             foreignKeyName: "domain_audit_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_audit_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2186,6 +2375,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_audit_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2326,6 +2522,13 @@ export type Database = {
             foreignKeyName: "expiry_reminder_shop_rules_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expiry_reminder_shop_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2334,6 +2537,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expiry_reminder_shop_rules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2390,6 +2600,13 @@ export type Database = {
             foreignKeyName: "expiry_reminder_shop_settings_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expiry_reminder_shop_settings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2398,6 +2615,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: true
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expiry_reminder_shop_settings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2511,6 +2735,13 @@ export type Database = {
             foreignKeyName: "flash_sales_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sales_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2519,6 +2750,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sales_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2578,6 +2816,13 @@ export type Database = {
             foreignKeyName: "flyers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flyers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2586,6 +2831,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flyers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2648,6 +2900,13 @@ export type Database = {
             foreignKeyName: "fnb_combos_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fnb_combos_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2656,6 +2915,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fnb_combos_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2739,6 +3005,13 @@ export type Database = {
             foreignKeyName: "freelance_contracts_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2747,6 +3020,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2899,6 +3179,13 @@ export type Database = {
             foreignKeyName: "job_deliverables_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_deliverables_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2907,6 +3194,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_deliverables_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -2969,6 +3263,13 @@ export type Database = {
             foreignKeyName: "leads_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -2977,6 +3278,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -3240,6 +3548,13 @@ export type Database = {
             foreignKeyName: "marketplace_cart_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_cart_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -3248,6 +3563,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_cart_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -3340,6 +3662,13 @@ export type Database = {
             foreignKeyName: "medications_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -3348,6 +3677,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -3511,6 +3847,13 @@ export type Database = {
             foreignKeyName: "menu_item_variants_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_item_variants_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -3519,6 +3862,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_item_variants_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -3729,6 +4079,13 @@ export type Database = {
             foreignKeyName: "menu_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -3737,6 +4094,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -3878,6 +4242,13 @@ export type Database = {
             foreignKeyName: "open_bills_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "open_bills_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -3886,6 +4257,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "open_bills_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -3965,6 +4343,13 @@ export type Database = {
             foreignKeyName: "order_audit_log_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -3973,6 +4358,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4375,6 +4767,13 @@ export type Database = {
             foreignKeyName: "orders_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4383,6 +4782,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4467,6 +4873,13 @@ export type Database = {
             foreignKeyName: "outlet_couriers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outlet_couriers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4475,6 +4888,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outlet_couriers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4525,6 +4945,13 @@ export type Database = {
             foreignKeyName: "outlets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outlets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4533,6 +4960,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outlets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4675,6 +5109,13 @@ export type Database = {
             foreignKeyName: "page_layouts_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_layouts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4683,6 +5124,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_layouts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4740,6 +5188,13 @@ export type Database = {
             foreignKeyName: "parked_carts_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parked_carts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4748,6 +5203,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parked_carts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4816,6 +5278,13 @@ export type Database = {
             foreignKeyName: "patient_records_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_records_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4824,6 +5293,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_records_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -4893,6 +5369,13 @@ export type Database = {
             foreignKeyName: "patient_visits_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_visits_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -4901,6 +5384,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_visits_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5024,6 +5514,13 @@ export type Database = {
             foreignKeyName: "plan_invoices_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_invoices_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5032,6 +5529,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_invoices_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5113,6 +5617,13 @@ export type Database = {
             foreignKeyName: "plan_subscriptions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_subscriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5121,6 +5632,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: true
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_subscriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5427,6 +5945,13 @@ export type Database = {
             foreignKeyName: "pos_audit_log_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5435,6 +5960,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_audit_log_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5552,6 +6084,13 @@ export type Database = {
             foreignKeyName: "prescriptions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5560,6 +6099,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5630,6 +6176,13 @@ export type Database = {
             foreignKeyName: "printers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "printers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5638,6 +6191,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "printers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5707,6 +6267,13 @@ export type Database = {
             foreignKeyName: "product_attribute_defs_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_attribute_defs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5715,6 +6282,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_attribute_defs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5795,6 +6369,13 @@ export type Database = {
             foreignKeyName: "product_qa_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_qa_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5803,6 +6384,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_qa_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5878,6 +6466,13 @@ export type Database = {
             foreignKeyName: "product_returns_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_returns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5886,6 +6481,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_returns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -5979,6 +6581,13 @@ export type Database = {
             foreignKeyName: "product_reviews_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -5987,6 +6596,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6336,6 +6952,13 @@ export type Database = {
             foreignKeyName: "push_subscriptions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6344,6 +6967,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6484,6 +7114,13 @@ export type Database = {
             foreignKeyName: "rental_bookings_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6492,6 +7129,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6559,6 +7203,13 @@ export type Database = {
             foreignKeyName: "rental_inspections_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_inspections_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6567,6 +7218,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_inspections_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6656,6 +7314,13 @@ export type Database = {
             foreignKeyName: "rental_units_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_units_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6664,6 +7329,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_units_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6732,6 +7404,13 @@ export type Database = {
             foreignKeyName: "restock_subscribers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restock_subscribers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6740,6 +7419,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restock_subscribers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6799,6 +7485,13 @@ export type Database = {
             foreignKeyName: "sales_offerings_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_offerings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6807,6 +7500,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_offerings_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -6907,6 +7607,13 @@ export type Database = {
             foreignKeyName: "service_bundles_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bundles_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -6915,6 +7622,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bundles_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7001,6 +7715,13 @@ export type Database = {
             foreignKeyName: "shop_about_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_about_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7009,6 +7730,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: true
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_about_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7111,6 +7839,13 @@ export type Database = {
             foreignKeyName: "shop_chat_messages_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chat_messages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7119,6 +7854,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chat_messages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7166,6 +7908,13 @@ export type Database = {
             foreignKeyName: "shop_chats_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chats_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7174,6 +7923,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_chats_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7287,6 +8043,13 @@ export type Database = {
             foreignKeyName: "shop_membership_tiers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_membership_tiers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7295,6 +8058,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_membership_tiers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7348,6 +8118,13 @@ export type Database = {
             foreignKeyName: "shop_portfolio_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_portfolio_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7356,6 +8133,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_portfolio_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7403,6 +8187,13 @@ export type Database = {
             foreignKeyName: "shop_size_charts_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_size_charts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7411,6 +8202,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_size_charts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7482,6 +8280,13 @@ export type Database = {
             foreignKeyName: "shop_verifications_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_verifications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7490,6 +8295,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_verifications_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7558,6 +8370,13 @@ export type Database = {
             foreignKeyName: "shop_vouchers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_vouchers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7566,6 +8385,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_vouchers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7613,6 +8439,13 @@ export type Database = {
             foreignKeyName: "shop_wallets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: true
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_wallets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7621,6 +8454,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: true
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_wallets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -7898,6 +8738,13 @@ export type Database = {
             foreignKeyName: "staff_audit_logs_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_audit_logs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -7906,6 +8753,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_audit_logs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8023,6 +8877,13 @@ export type Database = {
             foreignKeyName: "staff_members_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_members_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8031,6 +8892,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_members_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8075,6 +8943,13 @@ export type Database = {
             foreignKeyName: "staff_permissions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_permissions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8083,6 +8958,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_permissions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8269,6 +9151,13 @@ export type Database = {
             foreignKeyName: "studio_galleries_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_galleries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8277,6 +9166,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_galleries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8377,6 +9273,13 @@ export type Database = {
             foreignKeyName: "studio_locations_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_locations_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8385,6 +9288,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_locations_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8441,6 +9351,13 @@ export type Database = {
             foreignKeyName: "studio_packages_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8449,6 +9366,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8505,6 +9429,13 @@ export type Database = {
             foreignKeyName: "studio_photographers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_photographers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8513,6 +9444,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_photographers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8647,6 +9585,13 @@ export type Database = {
             foreignKeyName: "testimonials_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "testimonials_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8655,6 +9600,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "testimonials_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8773,6 +9725,13 @@ export type Database = {
             foreignKeyName: "travel_installments_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_installments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8781,6 +9740,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_installments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8847,6 +9813,13 @@ export type Database = {
             foreignKeyName: "travel_itineraries_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_itineraries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8855,6 +9828,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_itineraries_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -8921,6 +9901,13 @@ export type Database = {
             foreignKeyName: "travel_jamaah_documents_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_documents_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -8929,6 +9916,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_documents_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9019,6 +10013,13 @@ export type Database = {
             foreignKeyName: "travel_jamaah_manifest_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_manifest_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9027,6 +10028,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_jamaah_manifest_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9074,6 +10082,13 @@ export type Database = {
             foreignKeyName: "umroh_facilities_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_facilities_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9082,6 +10097,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_facilities_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9129,6 +10151,13 @@ export type Database = {
             foreignKeyName: "umroh_faqs_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_faqs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9137,6 +10166,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_faqs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9244,6 +10280,13 @@ export type Database = {
             foreignKeyName: "umroh_packages_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9252,6 +10295,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "umroh_packages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9361,6 +10411,13 @@ export type Database = {
             foreignKeyName: "wallet_topup_presets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_topup_presets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9369,6 +10426,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_topup_presets_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9441,6 +10505,13 @@ export type Database = {
             foreignKeyName: "wallet_topups_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_topups_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9449,6 +10520,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_topups_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9512,6 +10590,13 @@ export type Database = {
             foreignKeyName: "wallet_transactions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9520,6 +10605,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9667,6 +10759,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9681,6 +10780,13 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "v_shop_capabilities"
             referencedColumns: ["shop_id"]
           },
@@ -9688,6 +10794,233 @@ export type Database = {
       }
     }
     Views: {
+      coffee_shops: {
+        Row: {
+          active_theme_key: string | null
+          address: string | null
+          auto_reply_enabled: boolean | null
+          auto_reply_message: string | null
+          average_rating: number | null
+          business_category_id: string | null
+          business_subtype: string | null
+          city: string | null
+          commission_rate_override: number | null
+          created_at: string | null
+          currency: string | null
+          custom_domain: string | null
+          custom_domain_verified_at: string | null
+          custom_domain_verify_token: string | null
+          deposit_enabled: boolean | null
+          deposit_min_total: number | null
+          deposit_notes: string | null
+          deposit_percentage: number | null
+          description: string | null
+          email: string | null
+          feature_overrides: Json | null
+          id: string | null
+          instagram: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          kyc_document_url: string | null
+          kyc_reject_reason: string | null
+          kyc_reviewed_at: string | null
+          kyc_reviewer_id: string | null
+          kyc_status: string | null
+          kyc_submitted_at: string | null
+          last_dns_check_at: string | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          marketplace_visible: boolean | null
+          name: string | null
+          onboarded_at: string | null
+          open_hours: Json | null
+          owner_id: string | null
+          payment_methods_enabled: string[] | null
+          phone: string | null
+          plan: string | null
+          plan_expires_at: string | null
+          plan_started_at: string | null
+          prep_minutes: number | null
+          qris_image_url: string | null
+          qris_merchant_name: string | null
+          rating_avg: number | null
+          rating_count: number | null
+          receipt_footer: string | null
+          receipt_header: string | null
+          require_id_upload: boolean | null
+          review_count: number | null
+          service_charge_percent: number | null
+          slug: string | null
+          suspended_at: string | null
+          suspended_reason: string | null
+          tagline: string | null
+          tax_inclusive: boolean | null
+          tax_percent: number | null
+          theme_key: string | null
+          total_gmv: number | null
+          total_sales_count: number | null
+          trial_ends_at: string | null
+          updated_at: string | null
+          verification_status: string | null
+          verified_at: string | null
+          watermark_settings: Json | null
+          whatsapp: string | null
+        }
+        Insert: {
+          active_theme_key?: string | null
+          address?: string | null
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
+          average_rating?: number | null
+          business_category_id?: string | null
+          business_subtype?: string | null
+          city?: string | null
+          commission_rate_override?: number | null
+          created_at?: string | null
+          currency?: string | null
+          custom_domain?: string | null
+          custom_domain_verified_at?: string | null
+          custom_domain_verify_token?: string | null
+          deposit_enabled?: boolean | null
+          deposit_min_total?: number | null
+          deposit_notes?: string | null
+          deposit_percentage?: number | null
+          description?: string | null
+          email?: string | null
+          feature_overrides?: Json | null
+          id?: string | null
+          instagram?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          kyc_document_url?: string | null
+          kyc_reject_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_reviewer_id?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
+          last_dns_check_at?: string | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          marketplace_visible?: boolean | null
+          name?: string | null
+          onboarded_at?: string | null
+          open_hours?: Json | null
+          owner_id?: string | null
+          payment_methods_enabled?: string[] | null
+          phone?: string | null
+          plan?: string | null
+          plan_expires_at?: string | null
+          plan_started_at?: string | null
+          prep_minutes?: number | null
+          qris_image_url?: string | null
+          qris_merchant_name?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          require_id_upload?: boolean | null
+          review_count?: number | null
+          service_charge_percent?: number | null
+          slug?: string | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
+          tagline?: string | null
+          tax_inclusive?: boolean | null
+          tax_percent?: number | null
+          theme_key?: string | null
+          total_gmv?: number | null
+          total_sales_count?: number | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          watermark_settings?: Json | null
+          whatsapp?: string | null
+        }
+        Update: {
+          active_theme_key?: string | null
+          address?: string | null
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
+          average_rating?: number | null
+          business_category_id?: string | null
+          business_subtype?: string | null
+          city?: string | null
+          commission_rate_override?: number | null
+          created_at?: string | null
+          currency?: string | null
+          custom_domain?: string | null
+          custom_domain_verified_at?: string | null
+          custom_domain_verify_token?: string | null
+          deposit_enabled?: boolean | null
+          deposit_min_total?: number | null
+          deposit_notes?: string | null
+          deposit_percentage?: number | null
+          description?: string | null
+          email?: string | null
+          feature_overrides?: Json | null
+          id?: string | null
+          instagram?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          kyc_document_url?: string | null
+          kyc_reject_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_reviewer_id?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
+          last_dns_check_at?: string | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          marketplace_visible?: boolean | null
+          name?: string | null
+          onboarded_at?: string | null
+          open_hours?: Json | null
+          owner_id?: string | null
+          payment_methods_enabled?: string[] | null
+          phone?: string | null
+          plan?: string | null
+          plan_expires_at?: string | null
+          plan_started_at?: string | null
+          prep_minutes?: number | null
+          qris_image_url?: string | null
+          qris_merchant_name?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          require_id_upload?: boolean | null
+          review_count?: number | null
+          service_charge_percent?: number | null
+          slug?: string | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
+          tagline?: string | null
+          tax_inclusive?: boolean | null
+          tax_percent?: number | null
+          theme_key?: string | null
+          total_gmv?: number | null
+          total_sales_count?: number | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          watermark_settings?: Json | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffee_shops_business_category_id_fkey"
+            columns: ["business_category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courier_earnings: {
         Row: {
           courier_id: string | null
@@ -9716,6 +11049,13 @@ export type Database = {
             foreignKeyName: "menu_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9724,6 +11064,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9865,6 +11212,13 @@ export type Database = {
             foreignKeyName: "menu_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
             referencedRelation: "shop_health_score"
             referencedColumns: ["shop_id"]
           },
@@ -9873,6 +11227,13 @@ export type Database = {
             columns: ["shop_id"]
             isOneToOne: false
             referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
             referencedColumns: ["id"]
           },
           {
@@ -9899,6 +11260,233 @@ export type Database = {
           slug: string | null
         }
         Relationships: []
+      }
+      shops__bootstrap_placeholder: {
+        Row: {
+          active_theme_key: string | null
+          address: string | null
+          auto_reply_enabled: boolean | null
+          auto_reply_message: string | null
+          average_rating: number | null
+          business_category_id: string | null
+          business_subtype: string | null
+          city: string | null
+          commission_rate_override: number | null
+          created_at: string | null
+          currency: string | null
+          custom_domain: string | null
+          custom_domain_verified_at: string | null
+          custom_domain_verify_token: string | null
+          deposit_enabled: boolean | null
+          deposit_min_total: number | null
+          deposit_notes: string | null
+          deposit_percentage: number | null
+          description: string | null
+          email: string | null
+          feature_overrides: Json | null
+          id: string | null
+          instagram: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          kyc_document_url: string | null
+          kyc_reject_reason: string | null
+          kyc_reviewed_at: string | null
+          kyc_reviewer_id: string | null
+          kyc_status: string | null
+          kyc_submitted_at: string | null
+          last_dns_check_at: string | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          marketplace_visible: boolean | null
+          name: string | null
+          onboarded_at: string | null
+          open_hours: Json | null
+          owner_id: string | null
+          payment_methods_enabled: string[] | null
+          phone: string | null
+          plan: string | null
+          plan_expires_at: string | null
+          plan_started_at: string | null
+          prep_minutes: number | null
+          qris_image_url: string | null
+          qris_merchant_name: string | null
+          rating_avg: number | null
+          rating_count: number | null
+          receipt_footer: string | null
+          receipt_header: string | null
+          require_id_upload: boolean | null
+          review_count: number | null
+          service_charge_percent: number | null
+          slug: string | null
+          suspended_at: string | null
+          suspended_reason: string | null
+          tagline: string | null
+          tax_inclusive: boolean | null
+          tax_percent: number | null
+          theme_key: string | null
+          total_gmv: number | null
+          total_sales_count: number | null
+          trial_ends_at: string | null
+          updated_at: string | null
+          verification_status: string | null
+          verified_at: string | null
+          watermark_settings: Json | null
+          whatsapp: string | null
+        }
+        Insert: {
+          active_theme_key?: string | null
+          address?: string | null
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
+          average_rating?: number | null
+          business_category_id?: string | null
+          business_subtype?: string | null
+          city?: string | null
+          commission_rate_override?: number | null
+          created_at?: string | null
+          currency?: string | null
+          custom_domain?: string | null
+          custom_domain_verified_at?: string | null
+          custom_domain_verify_token?: string | null
+          deposit_enabled?: boolean | null
+          deposit_min_total?: number | null
+          deposit_notes?: string | null
+          deposit_percentage?: number | null
+          description?: string | null
+          email?: string | null
+          feature_overrides?: Json | null
+          id?: string | null
+          instagram?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          kyc_document_url?: string | null
+          kyc_reject_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_reviewer_id?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
+          last_dns_check_at?: string | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          marketplace_visible?: boolean | null
+          name?: string | null
+          onboarded_at?: string | null
+          open_hours?: Json | null
+          owner_id?: string | null
+          payment_methods_enabled?: string[] | null
+          phone?: string | null
+          plan?: string | null
+          plan_expires_at?: string | null
+          plan_started_at?: string | null
+          prep_minutes?: number | null
+          qris_image_url?: string | null
+          qris_merchant_name?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          require_id_upload?: boolean | null
+          review_count?: number | null
+          service_charge_percent?: number | null
+          slug?: string | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
+          tagline?: string | null
+          tax_inclusive?: boolean | null
+          tax_percent?: number | null
+          theme_key?: string | null
+          total_gmv?: number | null
+          total_sales_count?: number | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          watermark_settings?: Json | null
+          whatsapp?: string | null
+        }
+        Update: {
+          active_theme_key?: string | null
+          address?: string | null
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
+          average_rating?: number | null
+          business_category_id?: string | null
+          business_subtype?: string | null
+          city?: string | null
+          commission_rate_override?: number | null
+          created_at?: string | null
+          currency?: string | null
+          custom_domain?: string | null
+          custom_domain_verified_at?: string | null
+          custom_domain_verify_token?: string | null
+          deposit_enabled?: boolean | null
+          deposit_min_total?: number | null
+          deposit_notes?: string | null
+          deposit_percentage?: number | null
+          description?: string | null
+          email?: string | null
+          feature_overrides?: Json | null
+          id?: string | null
+          instagram?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          kyc_document_url?: string | null
+          kyc_reject_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_reviewer_id?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
+          last_dns_check_at?: string | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          marketplace_visible?: boolean | null
+          name?: string | null
+          onboarded_at?: string | null
+          open_hours?: Json | null
+          owner_id?: string | null
+          payment_methods_enabled?: string[] | null
+          phone?: string | null
+          plan?: string | null
+          plan_expires_at?: string | null
+          plan_started_at?: string | null
+          prep_minutes?: number | null
+          qris_image_url?: string | null
+          qris_merchant_name?: string | null
+          rating_avg?: number | null
+          rating_count?: number | null
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          require_id_upload?: boolean | null
+          review_count?: number | null
+          service_charge_percent?: number | null
+          slug?: string | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
+          tagline?: string | null
+          tax_inclusive?: boolean | null
+          tax_percent?: number | null
+          theme_key?: string | null
+          total_gmv?: number | null
+          total_sales_count?: number | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          watermark_settings?: Json | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffee_shops_business_category_id_fkey"
+            columns: ["business_category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_shop_capabilities: {
         Row: {
