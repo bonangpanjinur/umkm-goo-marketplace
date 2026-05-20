@@ -99,9 +99,23 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
           </button>
         </DialogHeader>
 
-        {/* Toolbar paper size */}
-        <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between gap-3">
-          <span className="text-xs text-slate-400 uppercase tracking-wider">Ukuran Kertas</span>
+        {/* Toolbar paper size + view toggle */}
+        <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+          <div className="inline-flex rounded-md border border-slate-700 overflow-hidden text-xs font-medium">
+            <button
+              onClick={() => setView("visual")}
+              className={`px-3 py-1.5 transition-colors ${view === "visual" ? "bg-primary text-primary-foreground" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+            >
+              Visual
+            </button>
+            <button
+              onClick={() => setView("mono")}
+              className={`px-3 py-1.5 transition-colors ${view === "mono" ? "bg-primary text-primary-foreground" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+              title="Pratinjau persis hasil cetak thermal (ESC/POS)"
+            >
+              Pratinjau Cetak
+            </button>
+          </div>
           <div className="inline-flex rounded-md border border-slate-700 overflow-hidden text-xs font-medium">
             <button
               onClick={() => changePaper("58")}
@@ -118,8 +132,9 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
           </div>
         </div>
 
-        {/* Preview area — kertas thermal cantik */}
+        {/* Preview area */}
         <div className="px-5 py-6 bg-gradient-to-b from-slate-900 to-slate-950 max-h-[60vh] overflow-y-auto flex justify-center">
+          {/* Visual paper — always mounted so ref can build mono preview; hidden off-screen when mono view aktif. */}
           <div
             ref={previewRef}
             className="receipt-thermal-paper"
@@ -133,36 +148,68 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
               fontFamily: 'ui-monospace, "Courier New", monospace',
               fontSize: "11px",
               lineHeight: 1.4,
-              position: "relative",
+              position: view === "mono" ? "absolute" : "relative",
+              left: view === "mono" ? "-99999px" : undefined,
+              top: view === "mono" ? "-99999px" : undefined,
+              visibility: view === "mono" ? "hidden" : "visible",
             }}
+            aria-hidden={view === "mono"}
           >
-            {/* Edge perforations */}
             <div style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: -6,
-              height: 12,
+              position: "absolute", left: 0, right: 0, top: -6, height: 12,
               backgroundImage: "radial-gradient(circle, #0f172a 3px, transparent 3px)",
-              backgroundSize: "10px 12px",
-              backgroundRepeat: "repeat-x",
-              backgroundPosition: "center",
+              backgroundSize: "10px 12px", backgroundRepeat: "repeat-x", backgroundPosition: "center",
             }} />
             <div style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: -6,
-              height: 12,
+              position: "absolute", left: 0, right: 0, bottom: -6, height: 12,
               backgroundImage: "radial-gradient(circle, #0f172a 3px, transparent 3px)",
-              backgroundSize: "10px 12px",
-              backgroundRepeat: "repeat-x",
-              backgroundPosition: "center",
+              backgroundSize: "10px 12px", backgroundRepeat: "repeat-x", backgroundPosition: "center",
             }} />
             <div className="receipt-thermal-inner">
               {children}
             </div>
           </div>
+
+          {view === "mono" && (
+            <div
+              className="receipt-thermal-paper"
+              style={{
+                background: "#fff",
+                color: "#000",
+                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)",
+                borderRadius: "2px",
+                padding: "14px 10px",
+                fontFamily: 'ui-monospace, "Courier New", monospace',
+                fontSize: paper === "80" ? "11px" : "12px",
+                lineHeight: 1.35,
+                whiteSpace: "pre",
+                minWidth: paper === "80" ? "360px" : "260px",
+              }}
+              title={`Lebar kolom: ${monoCols} karakter`}
+            >
+              {monoLines.length === 0 ? (
+                <div style={{ color: "#888" }}>Memuat pratinjau…</div>
+              ) : (
+                monoLines.map((l, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      fontWeight: l.bold ? 700 : 400,
+                      textAlign: l.center ? "center" : "left",
+                      fontSize: l.big ? "1.45em" : undefined,
+                      lineHeight: l.big ? 1.15 : undefined,
+                      letterSpacing: l.big ? "0.04em" : undefined,
+                    }}
+                  >
+                    {l.text || "\u00a0"}
+                  </div>
+                ))
+              )}
+              <div style={{ marginTop: 8, color: "#888", fontSize: "10px", textAlign: "center" }}>
+                — {paper} mm · {monoCols} kolom —
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Status printer thermal */}
