@@ -150,33 +150,44 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
           </div>
         </div>
 
+        {/* Status printer thermal */}
+        <div className="px-5 py-2 border-t border-slate-800 bg-slate-900/60 flex items-center justify-between text-xs">
+          <span className="text-slate-400">
+            {mode === "serial" && <span className="text-emerald-400">● Printer USB siap — cetak langsung</span>}
+            {mode === "bluetooth" && <span className="text-emerald-400">● Printer Bluetooth siap — cetak langsung</span>}
+            {mode === "none" && <span>Belum ada printer thermal terpilih → akan pakai dialog browser</span>}
+          </span>
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="inline-flex items-center gap-1 text-primary hover:underline"
+          >
+            <Settings2 className="w-3 h-3" /> Pilih Printer
+          </button>
+        </div>
+
         {/* Actions */}
         <div className="px-5 py-4 border-t border-slate-800 flex items-center justify-between gap-2 bg-slate-900">
           <Button
             variant="ghost"
             size="sm"
             className="text-slate-400 hover:text-white hover:bg-slate-800"
-            onClick={() => {
-              // Open di tab baru sebagai fallback
-              const node = previewRef.current?.querySelector(".receipt-thermal-inner") as HTMLElement | null;
-              if (!node) return;
-              const w = window.open("", "_blank", "width=420,height=700");
-              if (!w) return;
-              const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map(e => e.outerHTML).join("\n");
-              const widthMm = paper === "80" ? "80mm" : "58mm";
-              w.document.write(`<!doctype html><html><head><meta charset="utf-8">${styles}<style>@page{size:${widthMm} auto;margin:0}body{width:${widthMm};margin:0;padding:4mm 3mm;font-family:ui-monospace,monospace;font-size:11px;color:#000;background:#fff}</style></head><body data-receipt-paper="${paper}">${node.outerHTML}</body></html>`);
-              w.document.close();
-            }}
+            onClick={onClose}
           >
-            <Maximize2 className="w-4 h-4 mr-1.5" />
-            Buka di Tab Baru
+            <X className="w-4 h-4 mr-1.5" />
+            Tutup
           </Button>
-          <Button onClick={handlePrint} className="gap-2">
+          <Button onClick={handlePrint} disabled={printing} className="gap-2">
             <Printer className="w-4 h-4" />
-            Cetak Sekarang
+            {printing ? "Mencetak…" : "Cetak Sekarang"}
           </Button>
         </div>
       </DialogContent>
+
+      <ThermalPrinterPickerDialog
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPaired={() => setMode(getPreferredMode())}
+      />
     </Dialog>
   );
 }
