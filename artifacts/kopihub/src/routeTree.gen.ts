@@ -79,6 +79,7 @@ import { Route as PosAppSettingsRouteImport } from './routes/pos-app.settings'
 import { Route as PosAppServiceBundlesRouteImport } from './routes/pos-app.service-bundles'
 import { Route as PosAppScheduleRouteImport } from './routes/pos-app.schedule'
 import { Route as PosAppSalesOfferingsRouteImport } from './routes/pos-app.sales-offerings'
+import { Route as PosAppRoleMappingRouteImport } from './routes/pos-app.role-mapping'
 import { Route as PosAppReviewsRouteImport } from './routes/pos-app.reviews'
 import { Route as PosAppRestockNotifyRouteImport } from './routes/pos-app.restock-notify'
 import { Route as PosAppReservasiRouteImport } from './routes/pos-app.reservasi'
@@ -653,6 +654,11 @@ const PosAppScheduleRoute = PosAppScheduleRouteImport.update({
 const PosAppSalesOfferingsRoute = PosAppSalesOfferingsRouteImport.update({
   id: '/sales-offerings',
   path: '/sales-offerings',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppRoleMappingRoute = PosAppRoleMappingRouteImport.update({
+  id: '/role-mapping',
+  path: '/role-mapping',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppReviewsRoute = PosAppReviewsRouteImport.update({
@@ -1979,6 +1985,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/role-mapping': typeof PosAppRoleMappingRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
@@ -2268,6 +2275,7 @@ export interface FileRoutesByTo {
   '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/role-mapping': typeof PosAppRoleMappingRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
@@ -2562,6 +2570,7 @@ export interface FileRoutesById {
   '/pos-app/reservasi': typeof PosAppReservasiRoute
   '/pos-app/restock-notify': typeof PosAppRestockNotifyRoute
   '/pos-app/reviews': typeof PosAppReviewsRoute
+  '/pos-app/role-mapping': typeof PosAppRoleMappingRoute
   '/pos-app/sales-offerings': typeof PosAppSalesOfferingsRoute
   '/pos-app/schedule': typeof PosAppScheduleRoute
   '/pos-app/service-bundles': typeof PosAppServiceBundlesRoute
@@ -2858,6 +2867,7 @@ export interface FileRouteTypes {
     | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
+    | '/pos-app/role-mapping'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
     | '/pos-app/service-bundles'
@@ -3147,6 +3157,7 @@ export interface FileRouteTypes {
     | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
+    | '/pos-app/role-mapping'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
     | '/pos-app/service-bundles'
@@ -3440,6 +3451,7 @@ export interface FileRouteTypes {
     | '/pos-app/reservasi'
     | '/pos-app/restock-notify'
     | '/pos-app/reviews'
+    | '/pos-app/role-mapping'
     | '/pos-app/sales-offerings'
     | '/pos-app/schedule'
     | '/pos-app/service-bundles'
@@ -4066,6 +4078,13 @@ declare module '@tanstack/react-router' {
       path: '/sales-offerings'
       fullPath: '/pos-app/sales-offerings'
       preLoaderRoute: typeof PosAppSalesOfferingsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/role-mapping': {
+      id: '/pos-app/role-mapping'
+      path: '/role-mapping'
+      fullPath: '/pos-app/role-mapping'
+      preLoaderRoute: typeof PosAppRoleMappingRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/reviews': {
@@ -6023,6 +6042,7 @@ interface PosAppRouteChildren {
   PosAppReservasiRoute: typeof PosAppReservasiRoute
   PosAppRestockNotifyRoute: typeof PosAppRestockNotifyRoute
   PosAppReviewsRoute: typeof PosAppReviewsRoute
+  PosAppRoleMappingRoute: typeof PosAppRoleMappingRoute
   PosAppSalesOfferingsRoute: typeof PosAppSalesOfferingsRoute
   PosAppScheduleRoute: typeof PosAppScheduleRoute
   PosAppServiceBundlesRoute: typeof PosAppServiceBundlesRoute
@@ -6167,6 +6187,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppReservasiRoute: PosAppReservasiRoute,
   PosAppRestockNotifyRoute: PosAppRestockNotifyRoute,
   PosAppReviewsRoute: PosAppReviewsRoute,
+  PosAppRoleMappingRoute: PosAppRoleMappingRoute,
   PosAppSalesOfferingsRoute: PosAppSalesOfferingsRoute,
   PosAppScheduleRoute: PosAppScheduleRoute,
   PosAppServiceBundlesRoute: PosAppServiceBundlesRoute,
