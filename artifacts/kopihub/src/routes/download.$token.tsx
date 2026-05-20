@@ -65,7 +65,7 @@ export default function DownloadPage() {
       // Fetch order
       const { data: order } = await (supabase as any)
         .from("orders")
-        .select("id, order_no, payment_status, created_at, total_price, shops(name)")
+        .select("id, order_no, payment_status, created_at, total, shops(name)")
         .eq("id", orderId)
         .maybeSingle();
 

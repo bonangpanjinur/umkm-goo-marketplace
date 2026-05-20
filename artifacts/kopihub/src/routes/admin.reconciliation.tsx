@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin/reconciliation")({ component: Recon
 type Order = {
   id: string;
   order_no: string | null;
-  total_price: number;
+  total: number;
   payment_method: string | null;
   payment_status: string | null;
   status: string;
@@ -37,13 +37,13 @@ function simulateGatewayData(orders: Order[]): ReconRow[] {
     // Simulate: 85% matched, 5% missing, 5% amount mismatch, 5% missing from platform
     const rand = (i * 17 + 3) % 100;
     if (rand < 75) {
-      return { ...o, recon_status: "matched", gateway_amount: o.total_price };
+      return { ...o, recon_status: "matched", gateway_amount: o.total };
     } else if (rand < 82) {
       return { ...o, recon_status: "missing_gateway" };
     } else if (rand < 90) {
-      return { ...o, recon_status: "amount_mismatch", gateway_amount: o.total_price - 500 };
+      return { ...o, recon_status: "amount_mismatch", gateway_amount: o.total - 500 };
     } else {
-      return { ...o, recon_status: "matched", gateway_amount: o.total_price };
+      return { ...o, recon_status: "matched", gateway_amount: o.total };
     }
   });
 }
@@ -79,7 +79,7 @@ export default function ReconciliationPage() {
       .select(`
         id,
         order_no,
-        total_price,
+        total,
         payment_method,
         payment_status,
         status,
@@ -124,8 +124,8 @@ export default function ReconciliationPage() {
     total: orders.length,
     matched: orders.filter(o => o.recon_status === "matched").length,
     issues: orders.filter(o => o.recon_status !== "matched").length,
-    totalGmv: orders.reduce((s, o) => s + (o.total_price ?? 0), 0),
-    matchedGmv: orders.filter(o => o.recon_status === "matched").reduce((s, o) => s + (o.total_price ?? 0), 0),
+    totalGmv: orders.reduce((s, o) => s + (o.total ?? 0), 0),
+    matchedGmv: orders.filter(o => o.recon_status === "matched").reduce((s, o) => s + (o.total ?? 0), 0),
   };
 
   function exportCSV() {
@@ -133,7 +133,7 @@ export default function ReconciliationPage() {
       ["Order ID", "No. Order", "Toko", "Metode Bayar", "Nominal Platform", "Nominal Gateway", "Status Rekonsiliasi", "Tanggal"],
       ...filtered.map(o => [
         o.id, o.order_no ?? "-", o.shop_name, o.payment_method ?? "-",
-        o.total_price, o.gateway_amount ?? "-",
+        o.total, o.gateway_amount ?? "-",
         STATUS_MAP[o.recon_status].label,
         fmtDate(o.created_at),
       ]),
@@ -228,13 +228,13 @@ export default function ReconciliationPage() {
                   {filtered.map(o => {
                     const s = STATUS_MAP[o.recon_status];
                     const Icon = s.icon;
-                    const diff = o.gateway_amount != null ? o.total_price - o.gateway_amount : null;
+                    const diff = o.gateway_amount != null ? o.total - o.gateway_amount : null;
                     return (
                       <tr key={o.id} className="border-t hover:bg-muted/30">
                         <td className="px-3 py-2.5 font-mono text-xs">{o.order_no ?? o.id.slice(0,8)}</td>
                         <td className="px-3 py-2.5">{o.shop_name}</td>
                         <td className="px-3 py-2.5 capitalize text-xs">{o.payment_method ?? "—"}</td>
-                        <td className="px-3 py-2.5">{formatIDR(o.total_price)}</td>
+                        <td className="px-3 py-2.5">{formatIDR(o.total)}</td>
                         <td className="px-3 py-2.5">{o.gateway_amount != null ? formatIDR(o.gateway_amount) : <span className="text-muted-foreground">—</span>}</td>
                         <td className="px-3 py-2.5">
                           {diff != null && diff !== 0 ? (
