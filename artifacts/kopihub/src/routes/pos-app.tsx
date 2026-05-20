@@ -685,7 +685,7 @@ function AppLayoutInner() {
 
       <OutletSwitcher shopName={shop?.name} />
 
-      <nav className="flex-1 overflow-y-auto px-2 py-2">
+      <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-2 py-2">
         {visibleGroups.map((group) => {
           const isOpen = openGroups[group.id] ?? group.id === activeGroupId;
           return (
