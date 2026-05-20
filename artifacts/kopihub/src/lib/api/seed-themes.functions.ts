@@ -1,5 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabase } from "@/integrations/supabase/client";
 
 const THEMES = [
   { key: "classic",       name: "Classic",        component_id: "classic",       tier_hint: "free",     sort_order: 1,  description: "Tampilan default klasik untuk semua jenis usaha." },
@@ -17,20 +16,23 @@ const THEMES = [
   { key: "sales-pro",     name: "Sales Pro",      component_id: "sales-pro",     tier_hint: "business", sort_order: 23, description: "Tema konversi tinggi untuk landing." },
 ];
 
-export const seedThemesIfEmpty = createServerFn({ method: "POST" }).handler(async () => {
-  const { count, error: countError } = await supabaseAdmin
+export async function seedThemesIfEmpty() {
+  const { count, error: countError } = await supabase
     .from("themes")
     .select("*", { count: "exact", head: true });
   if (countError) throw countError;
 
   if ((count ?? 0) > 0) {
-    return { seeded: false, total: count ?? 0, message: "Tabel themes sudah berisi data, tidak perlu di-seed." };
+    return { seeded: false, total: count ?? 0, message: "Tabel tema sudah berisi data, tidak perlu di-seed." };
   }
 
-  const { error: upsertError } = await supabaseAdmin
+  const { error: upsertError } = await supabase
     .from("themes")
-    .upsert(THEMES.map((t) => ({ ...t, is_active: true })), { onConflict: "key" });
+    .upsert(
+      THEMES.map((t) => ({ ...t, is_active: true })),
+      { onConflict: "key" }
+    );
   if (upsertError) throw upsertError;
 
-  return { seeded: true, total: THEMES.length, message: `Berhasil seed ${THEMES.length} tema.` };
-});
+  return { seeded: true, total: THEMES.length, message: `Berhasil menambahkan ${THEMES.length} tema.` };
+}
