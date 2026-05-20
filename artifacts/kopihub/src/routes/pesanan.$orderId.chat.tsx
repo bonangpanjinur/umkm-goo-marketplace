@@ -36,12 +36,12 @@ export default function OrderChatPage() {
     (async () => {
       const { data: order } = await supabase
         .from("orders")
-        .select("id, order_number, status, shops(name)")
+        .select("id, order_no, status, shops(name)")
         .eq("id", orderId)
         .maybeSingle();
 
       if (!order) { setNotFound(true); setLoading(false); return; }
-      setOrderNum((order as any).order_number ?? orderId.slice(0, 8).toUpperCase());
+      setOrderNum((order as any).order_no ?? orderId.slice(0, 8).toUpperCase());
       setStatus((order as any).status ?? "");
       setShopName((order as any).shops?.name ?? "Toko");
 
@@ -56,7 +56,7 @@ export default function OrderChatPage() {
       } else {
         setMessages([{
           id: "sys-1",
-          content: `Chat ini khusus untuk pesanan #${(order as any).order_number ?? orderId.slice(0,8).toUpperCase()}. Tanyakan kendala pesanan, negosiasi, atau konfirmasi pengiriman di sini.`,
+          content: `Chat ini khusus untuk pesanan #${(order as any).order_no ?? orderId.slice(0,8).toUpperCase()}. Tanyakan kendala pesanan, negosiasi, atau konfirmasi pengiriman di sini.`,
           sender_type: "system",
           sender_id: null,
           created_at: new Date().toISOString(),

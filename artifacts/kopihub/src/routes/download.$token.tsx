@@ -32,7 +32,7 @@ type DownloadInfo = {
   expires_at: string | null;
   order_id: string;
   product_id: string;
-  order_number: string | null;
+  order_no: string | null;
   paid_at: string | null;
   shop_name: string;
   price: number;
@@ -65,7 +65,7 @@ export default function DownloadPage() {
       // Fetch order
       const { data: order } = await (supabase as any)
         .from("orders")
-        .select("id, order_number, payment_status, created_at, total_price, shops(name)")
+        .select("id, order_no, payment_status, created_at, total, shops(name)")
         .eq("id", orderId)
         .maybeSingle();
 
@@ -149,7 +149,7 @@ export default function DownloadPage() {
         expires_at: expiresAt,
         order_id: order.id,
         product_id: productId,
-        order_number: order.order_number,
+        order_no: order.order_no,
         paid_at: order.created_at,
         shop_name: (order as any).shops?.name ?? "Toko",
         price: product.price,
@@ -287,7 +287,7 @@ export default function DownloadPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Nomor Pesanan</span>
                   <span className="font-mono font-medium">
-                    {info.order_number ?? info.order_id.slice(0, 8)}
+                    {info.order_no ?? info.order_id.slice(0, 8)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">

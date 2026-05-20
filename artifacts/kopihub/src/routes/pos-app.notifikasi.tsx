@@ -19,7 +19,7 @@ type Notif = {
   type: string;
   title: string;
   body: string | null;
-  action_url: string | null;
+  link: string | null;
   read_at: string | null;
   created_at: string;
 };
@@ -89,13 +89,16 @@ function OwnerNotifikasiPage() {
   const [markingAll,setMarkingAll]= useState(false);
   const [filter,    setFilter]    = useState<FilterKey>("all");
 
+  // Notifikasi level-toko disimpan di tabel `owner_notifications`
+  // (skema: shop_id, type, title, body, link, severity, read_at, dismissed_at, created_at).
   const load = useCallback(async () => {
     if (!shop?.id) return;
     setLoading(true);
     const { data } = await supabase
-      .from("notifications" as any)
-      .select("id, type, title, body, action_url, read_at, created_at")
-      .eq("recipient_shop_id", shop.id)
+      .from("owner_notifications" as any)
+      .select("id, type, title, body, link, read_at, created_at")
+      .eq("shop_id", shop.id)
+      .is("dismissed_at", null)
       .order("created_at", { ascending: false })
       .limit(150);
     setNotifs((data as unknown as Notif[]) ?? []);
@@ -112,8 +115,8 @@ function OwnerNotifikasiPage() {
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
-        table: "notifications",
-        filter: `recipient_shop_id=eq.${shop.id}`,
+        table: "owner_notifications",
+        filter: `shop_id=eq.${shop.id}`,
       }, payload => {
         const n = payload.new as Notif;
         setNotifs(prev => [n, ...prev]);
@@ -124,14 +127,14 @@ function OwnerNotifikasiPage() {
   }, [shop?.id]);
 
   const markOne = async (id: string) => {
-    await supabase.from("notifications" as any).update({ read_at: new Date().toISOString() }).eq("id", id);
+    await supabase.from("owner_notifications" as any).update({ read_at: new Date().toISOString() }).eq("id", id);
     setNotifs(ns => ns.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
   };
 
   const markAll = async () => {
     setMarkingAll(true);
-    await supabase.from("notifications" as any).update({ read_at: new Date().toISOString() })
-      .eq("recipient_shop_id", shop!.id).is("read_at", null);
+    await supabase.from("owner_notifications" as any).update({ read_at: new Date().toISOString() })
+      .eq("shop_id", shop!.id).is("read_at", null);
     setMarkingAll(false);
     setNotifs(ns => ns.map(n => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
     toast.success("Semua notifikasi ditandai dibaca");

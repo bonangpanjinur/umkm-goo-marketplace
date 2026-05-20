@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer, X, Settings2 } from "lucide-react";
 import { toast } from "sonner";
@@ -90,6 +90,9 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
       <DialogContent className="max-w-md p-0 gap-0 overflow-hidden bg-slate-900 border-slate-800 text-white">
         <DialogHeader className="px-5 py-4 border-b border-slate-800 flex flex-row items-center justify-between space-y-0">
           <DialogTitle className="text-white text-base">{title ?? "Pratinjau Struk"}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Pratinjau struk thermal sebelum dicetak. Pilih ukuran kertas dan tekan Cetak Sekarang untuk mengirim ke printer.
+          </DialogDescription>
           <button
             onClick={onClose}
             className="rounded-md p-1 hover:bg-slate-800 transition-colors"
