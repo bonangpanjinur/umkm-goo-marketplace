@@ -23,12 +23,26 @@ function AppearancePage() {
   const { entitlements, themes, activeThemeKey, planCode, monthsActive, loading, reload } = useEntitlements();
   const { shop } = useShop();
   const [busy, setBusy] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [iframeKey, setIframeKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [recommendedKey, setRecommendedKey] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string | null>(null);
   const [previewThemeKey, setPreviewThemeKey] = useState<string | null>(null);
+
+  const refreshAll = async () => {
+    setRefreshing(true);
+    try {
+      await reload();
+      setIframeKey((k) => k + 1);
+      toast.success("Daftar tema & pratinjau dimuat ulang");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (!shop?.id) return;
@@ -90,14 +104,20 @@ function AppearancePage() {
           <Palette className="h-5 w-5" />
           <h1 className="text-2xl font-bold">Tampilan Toko</h1>
         </div>
-        {storefrontUrl && (
-          <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="sm">
-              <ExternalLink className="h-4 w-4 mr-1.5" />
-              Buka Storefront
-            </Button>
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
+            {refreshing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
+            {refreshing ? "Memuat ulang…" : "Refresh tema"}
+          </Button>
+          {storefrontUrl && (
+            <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm">
+                <ExternalLink className="h-4 w-4 mr-1.5" />
+                Buka Storefront
+              </Button>
+            </a>
+          )}
+        </div>
       </div>
 
       {previewUrl && (

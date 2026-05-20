@@ -277,6 +277,7 @@ import { Route as SSlugMeRouteImport } from './routes/s.$slug.me'
 import { Route as SSlugLoginRouteImport } from './routes/s.$slug.login'
 import { Route as SSlugCheckoutRouteImport } from './routes/s.$slug.checkout'
 import { Route as SSlugCartRouteImport } from './routes/s.$slug.cart'
+import { Route as PosAppWebsiteBuilderTemplatesRouteImport } from './routes/pos-app.website-builder.templates'
 import { Route as PosAppWebsiteBuilderLayoutIdRouteImport } from './routes/pos-app.website-builder.$layoutId'
 import { Route as PosAppReportsProfitRouteImport } from './routes/pos-app.reports.profit'
 import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.purchase-orders.$poId'
@@ -1653,6 +1654,12 @@ const SSlugCartRoute = SSlugCartRouteImport.update({
   path: '/cart',
   getParentRoute: () => SSlugRoute,
 } as any)
+const PosAppWebsiteBuilderTemplatesRoute =
+  PosAppWebsiteBuilderTemplatesRouteImport.update({
+    id: '/templates',
+    path: '/templates',
+    getParentRoute: () => PosAppWebsiteBuilderRoute,
+  } as any)
 const PosAppWebsiteBuilderLayoutIdRoute =
   PosAppWebsiteBuilderLayoutIdRouteImport.update({
     id: '/$layoutId',
@@ -2054,6 +2061,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
+  '/pos-app/website-builder/templates': typeof PosAppWebsiteBuilderTemplatesRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
@@ -2343,6 +2351,7 @@ export interface FileRoutesByTo {
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
+  '/pos-app/website-builder/templates': typeof PosAppWebsiteBuilderTemplatesRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
@@ -2639,6 +2648,7 @@ export interface FileRoutesById {
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
+  '/pos-app/website-builder/templates': typeof PosAppWebsiteBuilderTemplatesRoute
   '/s/$slug/cart': typeof SSlugCartRoute
   '/s/$slug/checkout': typeof SSlugCheckoutRoute
   '/s/$slug/login': typeof SSlugLoginRoute
@@ -2936,6 +2946,7 @@ export interface FileRouteTypes {
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
     | '/pos-app/website-builder/$layoutId'
+    | '/pos-app/website-builder/templates'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
@@ -3225,6 +3236,7 @@ export interface FileRouteTypes {
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
     | '/pos-app/website-builder/$layoutId'
+    | '/pos-app/website-builder/templates'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
@@ -3520,6 +3532,7 @@ export interface FileRouteTypes {
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
     | '/pos-app/website-builder/$layoutId'
+    | '/pos-app/website-builder/templates'
     | '/s/$slug/cart'
     | '/s/$slug/checkout'
     | '/s/$slug/login'
@@ -5466,6 +5479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugCartRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/pos-app/website-builder/templates': {
+      id: '/pos-app/website-builder/templates'
+      path: '/templates'
+      fullPath: '/pos-app/website-builder/templates'
+      preLoaderRoute: typeof PosAppWebsiteBuilderTemplatesRouteImport
+      parentRoute: typeof PosAppWebsiteBuilderRoute
+    }
     '/pos-app/website-builder/$layoutId': {
       id: '/pos-app/website-builder/$layoutId'
       path: '/$layoutId'
@@ -5934,10 +5954,12 @@ const PosAppReportsRouteWithChildren = PosAppReportsRoute._addFileChildren(
 
 interface PosAppWebsiteBuilderRouteChildren {
   PosAppWebsiteBuilderLayoutIdRoute: typeof PosAppWebsiteBuilderLayoutIdRoute
+  PosAppWebsiteBuilderTemplatesRoute: typeof PosAppWebsiteBuilderTemplatesRoute
 }
 
 const PosAppWebsiteBuilderRouteChildren: PosAppWebsiteBuilderRouteChildren = {
   PosAppWebsiteBuilderLayoutIdRoute: PosAppWebsiteBuilderLayoutIdRoute,
+  PosAppWebsiteBuilderTemplatesRoute: PosAppWebsiteBuilderTemplatesRoute,
 }
 
 const PosAppWebsiteBuilderRouteWithChildren =
