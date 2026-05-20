@@ -4,7 +4,7 @@ async function rpcWithSchemaRetry(fnName: string, args: Record<string, unknown>)
   const first = await supabase.rpc(fnName as any, args as any);
   if (!first.error || first.error.code !== "PGRST202") return first;
 
-  await supabase.rpc("reload_postgrest_schema" as any).catch(() => undefined);
+  try { await supabase.rpc("reload_postgrest_schema" as any); } catch { /* ignore */ }
   await new Promise((resolve) => setTimeout(resolve, 500));
   return supabase.rpc(fnName as any, args as any);
 }
