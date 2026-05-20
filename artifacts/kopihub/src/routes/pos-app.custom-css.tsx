@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Code2, Sparkles, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
+import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/custom-css")({ component: CustomCSSPage });
 
