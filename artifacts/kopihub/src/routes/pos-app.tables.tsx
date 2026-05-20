@@ -271,6 +271,7 @@ function TablesPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                 />
+                <p className="text-xs text-gray-500 mt-1">Nama ini muncul di QR pelanggan dan panel panggilan KDS.</p>
               </div>
               <div>
                 <Label htmlFor="capacity">Kapasitas</Label>
