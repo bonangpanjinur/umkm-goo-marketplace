@@ -9,6 +9,16 @@ async function rpcWithSchemaRetry(fnName: string, args: Record<string, unknown>)
   return supabase.rpc(fnName as any, args as any);
 }
 
+async function rpcFirstAvailable(fnNames: string[], args: Record<string, unknown>) {
+  let missingFunctionError: unknown = null;
+  for (const fnName of fnNames) {
+    const result = await rpcWithSchemaRetry(fnName, args);
+    if (!result.error || result.error.code !== "PGRST202") return result;
+    missingFunctionError = result.error;
+  }
+  return { data: null, error: missingFunctionError };
+}
+
 export async function createPlanInvoice({ data }: { data: { planCode: string } }) {
   const { data: result, error } = await supabase.rpc("create_plan_invoice" as any, { _plan_code: data.planCode });
   if (error) throw error;
@@ -22,13 +32,13 @@ export async function submitPaymentProof({ data }: { data: { invoiceId: string; 
 }
 
 export async function approveInvoice({ data }: { data: { invoiceId: string } }) {
-  const { error } = await rpcWithSchemaRetry("approve_invoice", { _invoice_id: data.invoiceId });
+  const { error } = await rpcFirstAvailable(["approve_plan_invoice", "approve_invoice"], { _invoice_id: data.invoiceId });
   if (error) throw error;
   return { ok: true };
 }
 
 export async function rejectInvoice({ data }: { data: { invoiceId: string; reason?: string } }) {
-  const { error } = await rpcWithSchemaRetry("reject_invoice", { _invoice_id: data.invoiceId, _reason: data.reason ?? null });
+  const { error } = await rpcFirstAvailable(["reject_plan_invoice", "reject_invoice"], { _invoice_id: data.invoiceId, _reason: data.reason ?? null });
   if (error) throw error;
   return { ok: true };
 }
