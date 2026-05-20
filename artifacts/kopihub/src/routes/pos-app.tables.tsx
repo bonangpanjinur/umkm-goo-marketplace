@@ -27,8 +27,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Edit2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit2, Loader2, QrCode, Info, Layers } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/pos-app/tables")({
   component: TablesPage,
@@ -46,6 +47,12 @@ function TablesPage() {
   const { shop } = useCurrentShop();
   const { outlet } = useCurrentOutlet();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [bulkPrefix, setBulkPrefix] = useState("Meja");
+  const [bulkFrom, setBulkFrom] = useState("1");
+  const [bulkTo, setBulkTo] = useState("10");
+  const [bulkCapacity, setBulkCapacity] = useState("2");
+  const [bulkRunning, setBulkRunning] = useState(false);
   const [formData, setFormData] = useState<TableFormData>({
     name: "",
     capacity: "2",
@@ -135,15 +142,110 @@ function TablesPage() {
     }
   };
 
+  const handleBulkCreate = async () => {
+    const from = parseInt(bulkFrom);
+    const to = parseInt(bulkTo);
+    const cap = parseInt(bulkCapacity);
+    if (isNaN(from) || isNaN(to) || from > to) {
+      toast.error("Rentang nomor tidak valid");
+      return;
+    }
+    if (to - from + 1 > 100) {
+      toast.error("Maksimal 100 meja per batch");
+      return;
+    }
+    setBulkRunning(true);
+    try {
+      for (let i = from; i <= to; i++) {
+        await new Promise<void>((resolve, reject) => {
+          createTable.mutate(
+            {
+              outletId: outlet.id,
+              shopId: shop.id,
+              name: `${bulkPrefix} ${i}`.trim(),
+              capacity: cap,
+              shape: "rectangle",
+              position_x: 0,
+              position_y: 0,
+              width: 1,
+              height: 1,
+            },
+            { onSuccess: () => resolve(), onError: (e) => reject(e) }
+          );
+        });
+      }
+      toast.success(`${to - from + 1} meja berhasil dibuat`);
+      setIsBulkOpen(false);
+    } catch (e: any) {
+      toast.error(`Gagal: ${e?.message ?? "unknown"}`);
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
+      {/* Onboarding info */}
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex gap-3">
+        <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="text-sm text-amber-900 space-y-1">
+          <p className="font-semibold">Alur 3 langkah untuk QR meja:</p>
+          <ol className="list-decimal list-inside space-y-0.5 text-amber-800">
+            <li>Buat meja di sini (nama meja akan jadi label di QR & panel KDS).</li>
+            <li>Buka <Link to="/pos-app/table-qr" className="underline font-medium">Cetak QR Meja</Link> untuk download/cetak.</li>
+            <li>Tempel QR di meja. QR berisi <em>ID meja</em>, jadi mengubah nama meja tidak membatalkan QR yang sudah tercetak.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-3xl font-bold">Manajemen Meja</h1>
           <p className="text-gray-600 mt-1">
             Kelola meja dan denah outlet Anda
           </p>
         </div>
+        <div className="flex gap-2">
+        <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Layers className="w-4 h-4" />
+              Buat Banyak
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Buat Meja Sekaligus</DialogTitle>
+              <DialogDescription>
+                Misal: prefix "Meja", dari 1 sampai 20 → membuat "Meja 1" sampai "Meja 20".
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label>Prefix Nama</Label>
+                <Input value={bulkPrefix} onChange={(e) => setBulkPrefix(e.target.value)} placeholder="Meja" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Dari nomor</Label>
+                  <Input type="number" min="1" value={bulkFrom} onChange={(e) => setBulkFrom(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Sampai nomor</Label>
+                  <Input type="number" min="1" value={bulkTo} onChange={(e) => setBulkTo(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label>Kapasitas tiap meja</Label>
+                <Input type="number" min="1" value={bulkCapacity} onChange={(e) => setBulkCapacity(e.target.value)} />
+              </div>
+              <Button onClick={handleBulkCreate} disabled={bulkRunning} className="w-full">
+                {bulkRunning && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Buat Meja
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
@@ -169,6 +271,7 @@ function TablesPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                 />
+                <p className="text-xs text-gray-500 mt-1">Nama ini muncul di QR pelanggan dan panel panggilan KDS.</p>
               </div>
               <div>
                 <Label htmlFor="capacity">Kapasitas</Label>
@@ -215,6 +318,7 @@ function TablesPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {isLoading ? (
@@ -233,7 +337,12 @@ function TablesPage() {
                       Kapasitas: {table.capacity} orang
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
+                    <Button asChild variant="ghost" size="sm" title="Cetak QR meja ini">
+                      <Link to="/pos-app/table-qr">
+                        <QrCode className="w-4 h-4 text-slate-600" />
+                      </Link>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
