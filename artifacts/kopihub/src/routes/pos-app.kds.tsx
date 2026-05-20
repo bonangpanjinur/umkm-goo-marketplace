@@ -179,8 +179,6 @@ function KDSPage() {
             }, {});
             setItems(grouped);
 
-            const uniqueStations = Array.from(new Set(processedItems.map(i => i.kds_station || "general")));
-            setStations(uniqueStations as string[]);
           }
         }
       }
