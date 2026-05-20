@@ -176,7 +176,7 @@ function AdminLayout() {
         <ShieldCheck className="h-5 w-5 text-amber-500" />
         <span className="text-sm font-semibold">Super Admin</span>
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
+      <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto overscroll-contain px-2 py-3">
         <div className="space-y-0.5">
           {PINNED.map(renderItem)}
         </div>
