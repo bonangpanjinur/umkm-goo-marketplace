@@ -159,7 +159,7 @@ function KDSPage() {
         .from("orders")
         .select("id, order_no, status, fulfillment, created_at, customer_name, note")
         .eq("outlet_id", outlet.id)
-        .in("status", ["pending", "preparing"])
+        .in("status", ["pending", "preparing", "ready"])
         .order("created_at", { ascending: true });
 
       if (error) {
