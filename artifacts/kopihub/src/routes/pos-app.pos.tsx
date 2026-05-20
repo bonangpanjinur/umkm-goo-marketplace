@@ -43,9 +43,7 @@ import { getActiveShift, openShift, type CashShift } from "@/lib/shift";
 import { submitCheckout, flushPendingCheckouts, loadPendingCheckouts } from "@/lib/pos-checkout";
 import { Receipt } from "@/components/pos/receipt";
 import {
-  printReceiptNode,
   applyReceiptPaper,
-  openReceiptInNewWindow,
   buildScopeKey,
 } from "@/lib/receipt-printer";
 import { ReceiptPaperPicker } from "@/components/pos/receipt-paper-picker";
