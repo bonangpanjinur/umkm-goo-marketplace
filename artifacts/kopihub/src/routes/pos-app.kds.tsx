@@ -413,8 +413,8 @@ function KDSPage() {
       </header>
 
       {/* Grid */}
-      <main className="flex-1 overflow-x-auto p-6">
-        {filteredOrders.length === 0 ? (
+      <main className="flex-1 overflow-x-auto p-6 pb-2">
+        {activeOrders.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-slate-500">
             <ChefHat className="mb-4 h-16 w-16 opacity-10" />
             <p className="text-lg font-medium">Belum ada pesanan masuk</p>
@@ -422,24 +422,29 @@ function KDSPage() {
           </div>
         ) : (
           <div className="flex gap-6 h-full items-start">
-            {filteredOrders.map((order) => (
+            {activeOrders.map((order) => {
+              const ageSec = Math.max(0, Math.floor((now - new Date(order.created_at).getTime()) / 1000));
+              const ageMin = Math.floor(ageSec / 60);
+              const age = ageStyle(ageMin);
+              return (
               <div
                 key={order.id}
-                className={`flex w-80 shrink-0 flex-col rounded-xl border-2 bg-slate-900 shadow-2xl transition-all ${
-                  order.status === "preparing" ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-800"
+                className={`flex w-80 shrink-0 flex-col rounded-xl border-2 bg-slate-900 shadow-2xl transition-all ring-2 ${age.ring} ${
+                  order.status === "preparing" ? "border-blue-500" : "border-slate-800"
                 }`}
               >
                 {/* Card Header */}
                 <div className={`p-4 rounded-t-lg ${order.status === "preparing" ? "bg-blue-600" : "bg-slate-800"}`}>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-black">#{order.order_no}</span>
-                    <div className="flex items-center gap-1 text-xs font-medium opacity-80">
+                    <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded border ${age.badge}`}>
                       <Clock className="h-3 w-3" />
-                      {format(new Date(order.created_at), "HH:mm")}
+                      {fmtElapsed(ageSec)}
                     </div>
                   </div>
-                  <div className="mt-1 text-xs font-bold uppercase tracking-wider opacity-90">
-                    {order.customer_name || "Pelanggan"} • {order.fulfillment}
+                  <div className="mt-1 text-xs font-bold uppercase tracking-wider opacity-90 flex justify-between">
+                    <span>{order.customer_name || "Pelanggan"} • {order.fulfillment}</span>
+                    <span className="opacity-70">{format(new Date(order.created_at), "HH:mm")}</span>
                   </div>
                 </div>
 
@@ -481,13 +486,27 @@ function KDSPage() {
                       MULAI PROSES
                     </Button>
                   ) : (
-                    <Button
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12"
-                      onClick={() => updateStatus(order.id, "ready")}
-                    >
-                      <CheckCircle2 className="mr-2 h-5 w-5" />
-                      SIAP SAJI
-                    </Button>
+                    <>
+                      <Button
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12"
+                        onClick={() => updateStatus(order.id, "ready")}
+                      >
+                        <CheckCircle2 className="mr-2 h-5 w-5" />
+                        SIAP SAJI
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10"
+                        onClick={() => {
+                          if (confirm("Batalkan proses dan kembalikan ke antrian?")) {
+                            updateStatus(order.id, "pending");
+                          }
+                        }}
+                      >
+                        Batalkan Proses
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="ghost"
@@ -521,10 +540,56 @@ function KDSPage() {
                   </Button>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </main>
+
+      {/* Bump Bar — Pesanan SIAP menunggu diambil */}
+      {readyOrders.length > 0 && (
+        <div className="border-t-2 border-green-500/50 bg-green-950/40 px-6 py-3 max-h-[40vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-400" />
+              <span className="text-sm font-bold text-green-300 uppercase tracking-wider">
+                Siap Diambil ({readyOrders.length})
+              </span>
+            </div>
+            <span className="text-[11px] text-green-400/70">Klik BUMP setelah diserahkan ke pelanggan</span>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            {readyOrders.map((order) => {
+              const ageSec = Math.max(0, Math.floor((now - new Date(order.created_at).getTime()) / 1000));
+              const ageMin = Math.floor(ageSec / 60);
+              const age = ageStyle(ageMin);
+              return (
+                <div
+                  key={order.id}
+                  className="flex items-center gap-3 rounded-lg border-2 border-green-500/40 bg-green-500/10 px-3 py-2"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-base font-black text-green-100">#{order.order_no}</span>
+                    <span className="text-[10px] text-green-300/80 uppercase">
+                      {order.customer_name || "Pelanggan"} • {order.fulfillment}
+                    </span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${age.badge}`}>
+                    {fmtElapsed(ageSec)}
+                  </span>
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold h-9"
+                    onClick={() => updateStatus(order.id, "completed")}
+                  >
+                    BUMP
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {splitTarget && (
         <SplitBillDialog
