@@ -26,6 +26,9 @@ export type AuditAction =
   | "shift.close"
   | "inventory.adjust"
   | "staff.permissions_update"
+  | "role.assign"
+  | "role.update"
+  | "role.revoke"
   | "booking.deposit.mark_paid_manual"
   | "booking.deposit.mark_refunded_manual";
 
