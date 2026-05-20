@@ -33,7 +33,10 @@ import {
   applyReceiptPaper,
   openReceiptInNewWindow,
   buildScopeKey,
+  getReceiptPaper,
 } from "@/lib/receipt-printer";
+import { getPreferredMode, printReceiptEscPos } from "@/lib/escpos-printer";
+import { ThermalPrinterPickerDialog } from "@/components/ThermalPrinterPickerDialog";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
 import { ReasonDialog } from "@/components/reason-dialog";
@@ -399,6 +402,44 @@ function DetailDialog({
   const ticketRef = useRef<HTMLDivElement>(null);
   const courierRef = useRef<HTMLDivElement>(null);
   const [fallbackOpen, setFallbackOpen] = useState<null | "receipt" | "ticket" | "courier">(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [thermalMode, setThermalMode] = useState(getPreferredMode());
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => {
+    if (fallbackOpen) setThermalMode(getPreferredMode());
+  }, [fallbackOpen]);
+  async function doDirectPrint() {
+    const node =
+      fallbackOpen === "ticket"
+        ? ticketRef.current
+        : fallbackOpen === "courier"
+          ? courierRef.current
+          : printRef.current;
+    if (!node) return;
+    setPrinting(true);
+    try {
+      if (getPreferredMode() !== "none") {
+        const res = await printReceiptEscPos(node, getReceiptPaper(scopeKey));
+        if (res === "ok") {
+          toast.success("Struk terkirim ke printer thermal");
+          setFallbackOpen(null);
+          return;
+        }
+        if (typeof res === "object" && "error" in res) {
+          toast.error(`Gagal cetak: ${res.error}`);
+          return;
+        }
+        if (res === "no-device") {
+          setPickerOpen(true);
+          return;
+        }
+      }
+      const r = printReceiptNode(node, undefined, scopeKey);
+      if (r !== "ok") openReceiptInNewWindow(node, undefined, scopeKey);
+    } finally {
+      setPrinting(false);
+    }
+  }
   useEffect(() => {
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
@@ -811,31 +852,37 @@ function DetailDialog({
                 )}
               </div>
             </div>
+            <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+              <span className="text-muted-foreground">
+                {thermalMode === "serial" && <span className="text-emerald-600">● Printer USB siap — cetak langsung</span>}
+                {thermalMode === "bluetooth" && <span className="text-emerald-600">● Printer Bluetooth siap — cetak langsung</span>}
+                {thermalMode === "none" && <span>Tidak ada printer thermal terpilih</span>}
+              </span>
+              <button
+                onClick={() => setPickerOpen(true)}
+                className="text-primary hover:underline"
+              >
+                Pilih Printer
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground">
-              Pratinjau struk thermal. Klik "Cetak Sekarang" untuk membuka dialog printer.
+              Klik <b>Cetak Sekarang</b> untuk kirim ke printer thermal langsung. Bila belum ada printer terpilih, akan
+              muncul dialog cetak browser sebagai cadangan.
             </p>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setFallbackOpen(null)}>Tutup</Button>
-              <Button
-                onClick={() => {
-                  const node =
-                    fallbackOpen === "ticket"
-                      ? ticketRef.current
-                      : fallbackOpen === "courier"
-                        ? courierRef.current
-                        : printRef.current;
-                  const res = printReceiptNode(node, undefined, scopeKey);
-                  if (res !== "ok") {
-                    openReceiptInNewWindow(node, undefined, scopeKey);
-                  }
-                }}
-              >
-                <Printer className="mr-2 h-4 w-4" /> Cetak Sekarang
+              <Button onClick={doDirectPrint} disabled={printing}>
+                <Printer className="mr-2 h-4 w-4" /> {printing ? "Mencetak…" : "Cetak Sekarang"}
               </Button>
             </DialogFooter>
 
           </DialogContent>
         </Dialog>
+        <ThermalPrinterPickerDialog
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          onPaired={() => setThermalMode(getPreferredMode())}
+        />
       </DialogContent>
     </Dialog>
   );
