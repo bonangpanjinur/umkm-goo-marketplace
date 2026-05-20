@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import {
   Sparkles, Plus, Edit3, Trash2, ExternalLink, Eye, EyeOff, Lock, X, LayoutTemplate,
 } from "lucide-react";
+import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/website-builder")({
   component: BuilderListPage,
@@ -74,8 +75,9 @@ function BuilderListPage() {
 
   if (!allowed) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
-        <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-4">
+      <div className="p-6 max-w-5xl mx-auto">
+        <TampilanTabs />
+        <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-4 max-w-2xl mx-auto">
           <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 grid place-items-center">
             <Lock className="w-7 h-7 text-primary" />
           </div>
@@ -98,6 +100,7 @@ function BuilderListPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <TampilanTabs />
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

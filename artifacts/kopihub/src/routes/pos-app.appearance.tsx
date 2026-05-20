@@ -7,6 +7,7 @@ import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphon
 import { toast } from "sonner";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/appearance")({ component: AppearancePage });
 
@@ -83,6 +84,7 @@ function AppearancePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 space-y-8">
+      <TampilanTabs />
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-2">
           <Palette className="h-5 w-5" />

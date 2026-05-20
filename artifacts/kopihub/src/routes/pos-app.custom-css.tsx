@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Code2, Sparkles, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
+import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/custom-css")({ component: CustomCSSPage });
 
@@ -50,6 +51,7 @@ export default function CustomCSSPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-5 max-w-4xl mx-auto">
+      <TampilanTabs />
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
