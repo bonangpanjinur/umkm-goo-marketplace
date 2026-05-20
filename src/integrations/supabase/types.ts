@@ -11638,6 +11638,7 @@ export type Database = {
         }
         Returns: string
       }
+      create_plan_invoice: { Args: { _plan_code: string }; Returns: string }
       ensure_shop_wallet: { Args: { _shop_id: string }; Returns: undefined }
       escrow_hold_order: { Args: { _order_id: string }; Returns: Json }
       escrow_refund_order: {
