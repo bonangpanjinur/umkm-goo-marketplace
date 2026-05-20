@@ -130,53 +130,83 @@ export type PrintThermalOptions = {
 export function printThermal(opts: PrintThermalOptions): PrintResult {
   const { node, paper: paperOpt, scopeKey, autoPrint = true, autoClose = true, title = "Cetak Struk" } = opts;
   if (!node) return "no-node";
-  if (typeof window === "undefined") return "blocked";
+  if (typeof window === "undefined" || typeof document === "undefined") return "blocked";
 
   const paper = paperOpt ?? getReceiptPaper(scopeKey);
-  const w = window.open("", "_blank", "width=420,height=640");
-  if (!w) return "blocked";
-
   const css = buildThermalCss(paper);
   const innerHtml = node.outerHTML;
-  const closeScript = autoClose
-    ? `
-      window.addEventListener('afterprint', function(){ try { window.close(); } catch(e){} });
-      setTimeout(function(){ try { window.close(); } catch(e){} }, 8000);
-    `
-    : "";
-  const printScript = autoPrint
-    ? `
-      window.addEventListener('load', function(){
-        requestAnimationFrame(function(){
-          setTimeout(function(){
-            try { window.focus(); window.print(); } catch(e){}
-          }, 100);
-        });
-      });
-    `
-    : "";
 
-  const html = `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8" />
-<title>${title}</title>
-<style>${css}</style>
-</head>
-<body data-receipt-paper="${paper}">
-  <div class="receipt-container">${innerHtml}</div>
-  <script>${printScript}${closeScript}<\/script>
-</body>
-</html>`;
-
+  // ====== PRIMARY: hidden iframe (tidak diblokir popup blocker) ======
   try {
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText =
+      "position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none;";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument;
+    const win = iframe.contentWindow;
+    if (!doc || !win) {
+      iframe.remove();
+      throw new Error("no-iframe-doc");
+    }
+
+    const html = `<!doctype html>
+<html><head><meta charset="utf-8" /><title>${title}</title><style>${css}</style></head>
+<body data-receipt-paper="${paper}"><div class="receipt-container">${innerHtml}</div></body></html>`;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const cleanup = () => {
+      if (!autoClose) return;
+      setTimeout(() => { try { iframe.remove(); } catch {} }, 500);
+    };
+    const doPrint = () => {
+      try {
+        win.focus();
+        win.print();
+        win.addEventListener("afterprint", cleanup, { once: true });
+        setTimeout(cleanup, 10000);
+      } catch {
+        try { iframe.remove(); } catch {}
+      }
+    };
+
+    if (autoPrint) {
+      if (doc.readyState === "complete") {
+        requestAnimationFrame(() => setTimeout(doPrint, 100));
+      } else {
+        win.addEventListener("load", () =>
+          requestAnimationFrame(() => setTimeout(doPrint, 100)),
+        );
+        setTimeout(doPrint, 600);
+      }
+    }
+    return "ok";
   } catch {
-    return "blocked";
+    // ====== FALLBACK: popup window ======
+    const w = window.open("", "_blank", "width=420,height=640");
+    if (!w) return "blocked";
+    const closeScript = autoClose
+      ? `window.addEventListener('afterprint',function(){try{window.close();}catch(e){}});setTimeout(function(){try{window.close();}catch(e){}},8000);`
+      : "";
+    const printScript = autoPrint
+      ? `window.addEventListener('load',function(){requestAnimationFrame(function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},100);});});`
+      : "";
+    const html = `<!doctype html>
+<html><head><meta charset="utf-8" /><title>${title}</title><style>${css}</style></head>
+<body data-receipt-paper="${paper}"><div class="receipt-container">${innerHtml}</div>
+<script>${printScript}${closeScript}<\/script></body></html>`;
+    try {
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    } catch {
+      return "blocked";
+    }
+    return "ok";
   }
-  return "ok";
 }
 
 /**
