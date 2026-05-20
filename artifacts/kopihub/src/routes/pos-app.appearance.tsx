@@ -83,6 +83,7 @@ function AppearancePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 space-y-8">
+      <TampilanTabs />
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-2">
           <Palette className="h-5 w-5" />
