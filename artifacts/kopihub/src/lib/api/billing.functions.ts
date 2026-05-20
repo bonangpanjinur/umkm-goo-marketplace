@@ -31,6 +31,6 @@ export async function cancelPlanInvoice({ data }: { data: { invoiceId: string } 
 }
 
 export async function getProofSignedUrl({ data }: { data: { invoiceId: string } }) {
-  const { data: row } = await supabase.from("plan_invoices" as any).select("proof_url").eq("id", data.invoiceId).maybeSingle();
-  return { url: (row as any)?.proof_url ?? null };
+  const { data: row } = await supabase.from("plan_invoices" as any).select("payment_proof_url").eq("id", data.invoiceId).maybeSingle();
+  return { url: (row as any)?.payment_proof_url ?? null };
 }
