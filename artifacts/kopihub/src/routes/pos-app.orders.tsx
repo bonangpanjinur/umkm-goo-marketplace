@@ -33,7 +33,10 @@ import {
   applyReceiptPaper,
   openReceiptInNewWindow,
   buildScopeKey,
+  getReceiptPaper,
 } from "@/lib/receipt-printer";
+import { getPreferredMode, printReceiptEscPos } from "@/lib/escpos-printer";
+import { ThermalPrinterPickerDialog } from "@/components/ThermalPrinterPickerDialog";
 import type { CartItem } from "@/lib/cart";
 import { refundOrder } from "@/lib/shift";
 import { ReasonDialog } from "@/components/reason-dialog";
