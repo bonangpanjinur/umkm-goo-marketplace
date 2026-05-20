@@ -3,7 +3,7 @@ import { useEntitlements } from "@/lib/use-entitlements";
 import { useShop } from "@/lib/use-shop";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphone, RefreshCw, Sparkles, Eye, X } from "lucide-react";
+import { Loader2, Check, Lock, Palette, ExternalLink, Monitor, Tablet, Smartphone, RefreshCw, Sparkles, Eye, X, Database } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,7 @@ function AppearancePage() {
   const { shop } = useShop();
   const [busy, setBusy] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [iframeKey, setIframeKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -41,6 +42,25 @@ function AppearancePage() {
       toast.error((e as Error).message);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const seedThemes = async () => {
+    setSeeding(true);
+    try {
+      const { seedThemesIfEmpty } = await import("@/lib/api/seed-themes.functions");
+      const res = await seedThemesIfEmpty();
+      if (res.seeded) {
+        toast.success(res.message);
+        await reload();
+        setIframeKey((k) => k + 1);
+      } else {
+        toast.info(res.message);
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -108,6 +128,10 @@ function AppearancePage() {
           <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
             {refreshing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
             {refreshing ? "Memuat ulang…" : "Refresh tema"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={seedThemes} disabled={seeding}>
+            {seeding ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Database className="h-4 w-4 mr-1.5" />}
+            {seeding ? "Menyemai…" : "Seed tema"}
           </Button>
           {storefrontUrl && (
             <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
