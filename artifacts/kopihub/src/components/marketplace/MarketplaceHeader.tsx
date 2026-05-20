@@ -149,9 +149,9 @@ export function MarketplaceHeader({ shopId }: { shopId?: string } = {}) {
 export function MarketplaceFooter({ shopId }: { shopId?: string } = {}) {
   return (
     <>
-      <footer className="mb-14 mt-16 border-t border-border py-8 sm:mb-0">
+      <footer className="mb-20 mt-16 border-t border-border/60 py-8 sm:mb-0">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs text-muted-foreground sm:flex-row">
-          <span>© 2026 Marketplace · Buka toko gratis</span>
+          <span>© 2026 UMKMgo · Buka toko gratis</span>
           <div className="flex gap-4">
             <Link to="/signup" className="hover:text-foreground">Mulai berjualan</Link>
             <Link to="/pos-app" className="hover:text-foreground">Dashboard toko</Link>
