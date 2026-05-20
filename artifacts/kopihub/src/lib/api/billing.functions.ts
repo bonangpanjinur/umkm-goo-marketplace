@@ -1,5 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 
+async function rpcWithSchemaRetry(fnName: string, args: Record<string, unknown>) {
+  const first = await supabase.rpc(fnName as any, args as any);
+  if (!first.error || first.error.code !== "PGRST202") return first;
+
+  await supabase.rpc("reload_postgrest_schema" as any).catch(() => undefined);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return supabase.rpc(fnName as any, args as any);
+}
+
 export async function createPlanInvoice({ data }: { data: { planCode: string } }) {
   const { data: result, error } = await supabase.rpc("create_plan_invoice" as any, { _plan_code: data.planCode });
   if (error) throw error;
@@ -13,13 +22,13 @@ export async function submitPaymentProof({ data }: { data: { invoiceId: string; 
 }
 
 export async function approveInvoice({ data }: { data: { invoiceId: string } }) {
-  const { error } = await supabase.rpc("approve_invoice" as any, { _invoice_id: data.invoiceId });
+  const { error } = await rpcWithSchemaRetry("approve_invoice", { _invoice_id: data.invoiceId });
   if (error) throw error;
   return { ok: true };
 }
 
 export async function rejectInvoice({ data }: { data: { invoiceId: string; reason?: string } }) {
-  const { error } = await supabase.rpc("reject_invoice" as any, { _invoice_id: data.invoiceId, _reason: data.reason ?? null });
+  const { error } = await rpcWithSchemaRetry("reject_invoice", { _invoice_id: data.invoiceId, _reason: data.reason ?? null });
   if (error) throw error;
   return { ok: true };
 }
