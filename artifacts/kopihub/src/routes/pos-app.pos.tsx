@@ -187,23 +187,13 @@ function POSPage() {
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
 
-  // When a new receipt becomes available and auto-print was requested,
-  // fire window.print() on the next tick so the hidden Receipt is in the DOM.
+  // Saat receipt baru muncul + auto-print diminta, BUKA modal preview thermal
+  // (bukan window.print() langsung) supaya tampilannya cantik & ukuran benar.
   useEffect(() => {
     if (!lastReceipt || !pendingPrintRef.current) return;
     pendingPrintRef.current = false;
-    const t = setTimeout(() => {
-      const res = printReceiptNode(printRef.current, undefined, scopeKey);
-      if (res !== "ok") {
-        const popped = openReceiptInNewWindow(printRef.current, undefined, scopeKey);
-        if (!popped) {
-          setPrintBlocked(true);
-          toast.error("Dialog cetak diblokir. Klik 'Cetak ulang' untuk mencoba lagi.");
-        }
-      }
-    }, 80);
-    return () => clearTimeout(t);
-  }, [lastReceipt, scopeKey]);
+    setPreviewOpen(true);
+  }, [lastReceipt]);
 
   const cart = carts[activeIdx] ?? carts[0];
 
