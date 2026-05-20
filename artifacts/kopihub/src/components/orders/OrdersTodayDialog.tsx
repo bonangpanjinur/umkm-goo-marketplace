@@ -157,10 +157,11 @@ export function OrdersTodayDialog({
   const [sortDir, setSortDir] = useState<SortDir>(
     () => (lsGet(sortKey, "newest") as SortDir) || "newest",
   );
-  const [page, setPage] = useState<number>(() => {
-    const p = parseInt(lsGet(pageKey, "1"), 10);
-    return Number.isFinite(p) && p > 0 ? p : 1;
-  });
+  // Cursor-based pagination: stack of {created_at, id} markers per visited page.
+  // page 1 = cursorStack [] (no cursor), page N = cursorStack[N-2].
+  type Cursor = { created_at: string; id: string };
+  const [cursorStack, setCursorStack] = useState<Cursor[]>([]);
+  const page = cursorStack.length + 1;
 
   // Edit state for table_label in detail view
   const [editingTable, setEditingTable] = useState(false);
