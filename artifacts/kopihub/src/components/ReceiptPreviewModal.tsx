@@ -39,70 +39,9 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
   function handlePrint() {
     const node = previewRef.current?.querySelector(".receipt-thermal-inner") as HTMLElement | null;
     if (!node) return;
-
-    // Kumpulkan stylesheet aktif agar struk render identik di iframe
-    const styles = Array.from(
-      document.querySelectorAll('link[rel="stylesheet"], style')
-    )
-      .map((el) => el.outerHTML)
-      .join("\n");
-
-    const widthMm = paper === "80" ? "80mm" : "58mm";
-
-    const html = `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8" />
-<title>Cetak Struk</title>
-${styles}
-<style>
-  @page { size: ${widthMm} auto; margin: 0; }
-  html, body { margin: 0; padding: 0; background: #fff; }
-  body { width: ${widthMm}; font-family: ui-monospace, "Courier New", monospace; color: #000; }
-  .receipt-print-root { width: ${widthMm}; padding: 4mm 3mm; font-size: 11px; line-height: 1.35; }
-  .receipt-print-root * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
-</style>
-</head>
-<body data-receipt-paper="${paper}">
-  <div class="receipt-print-root">${node.outerHTML}</div>
-  <script>
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        window.focus();
-        window.print();
-        setTimeout(function() { window.close && window.close(); }, 300);
-      }, 200);
-    });
-  <\/script>
-</body>
-</html>`;
-
-    // Iframe tersembunyi → print → cleanup
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    iframe.setAttribute("aria-hidden", "true");
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!doc) {
-      document.body.removeChild(iframe);
-      return;
-    }
-    doc.open();
-    doc.write(html);
-    doc.close();
-
-    // Trigger print dari iframe sendiri, lalu hapus setelah jeda
-    const cleanup = () => {
-      try { document.body.removeChild(iframe); } catch { /* noop */ }
-    };
-    iframe.contentWindow?.addEventListener("afterprint", cleanup);
-    setTimeout(cleanup, 8000);
+    // Cetak via popup khusus (printThermal). Tidak menyalin stylesheet dashboard,
+    // ukuran kertas dipaksa via @page, dan popup auto-close setelah print.
+    printThermal({ node, paper, scopeKey, title: "Cetak Struk" });
   }
 
   return (
