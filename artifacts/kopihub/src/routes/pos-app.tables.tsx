@@ -337,7 +337,12 @@ function TablesPage() {
                       Kapasitas: {table.capacity} orang
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
+                    <Button asChild variant="ghost" size="sm" title="Cetak QR meja ini">
+                      <Link to="/pos-app/table-qr">
+                        <QrCode className="w-4 h-4 text-slate-600" />
+                      </Link>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
