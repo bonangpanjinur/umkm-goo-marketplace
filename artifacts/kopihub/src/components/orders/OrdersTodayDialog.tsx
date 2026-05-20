@@ -362,14 +362,14 @@ export function OrdersTodayDialog({
     return list;
   }, [orders, search, statusFilter, payFilter, sourceFilter, fulfillFilter, sortDir, qrUnlockedOnly, qrUnlockedIds]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  // Server sudah sort & paginate; filter di sini hanya menyaring halaman saat ini.
+  const pageItems = filtered;
 
-  // Reset to page 1 when filters/search change
+  // Reset cursor saat filter berubah (data baru perlu di-page ulang dari awal)
   useEffect(() => {
-    setPage(1);
+    setCursorStack([]);
   }, [search, statusFilter, payFilter, sourceFilter, fulfillFilter, qrUnlockedOnly]);
+
 
   async function fetchDetail(id: string): Promise<OrderDetail | null> {
     const { data } = await supabase
