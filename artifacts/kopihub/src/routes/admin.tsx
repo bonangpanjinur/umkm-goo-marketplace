@@ -71,7 +71,6 @@ const GROUPS: NavGroup[] = [
     items: [
       { to: "/admin/vouchers", label: "Voucher", icon: Ticket },
       { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
-      { to: "/admin/broadcast-buyers", label: "Broadcast Pembeli", icon: Megaphone },
       { to: "/admin/banners", label: "Banner Carousel", icon: Image },
       { to: "/admin/ads", label: "Kelola Iklan", icon: Tv2 },
       { to: "/admin/branding", label: "Branding Platform", icon: Palette },
