@@ -11661,6 +11661,15 @@ export type Database = {
     }
     Functions: {
       accept_staff_invitation: { Args: { _token: string }; Returns: Json }
+      admin_buyer_segments: {
+        Args: never
+        Returns: {
+          active: number
+          inactive: number
+          new_buyers: number
+          total: number
+        }[]
+      }
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_remove_plan_feature: {
         Args: { _feature_key: string; _plan_id: string }
