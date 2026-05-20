@@ -2324,6 +2324,94 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string | null
+          reason: string | null
+          refund_amount: number | null
+          resolution: string | null
+          resolved_at: string | null
+          shop_id: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          reason?: string | null
+          refund_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          shop_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          reason?: string | null
+          refund_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          shop_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "disputes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       domain_audit: {
         Row: {
           action: string
@@ -4541,6 +4629,7 @@ export type Database = {
           channel: Database["public"]["Enums"]["order_channel"]
           client_idempotency_key: string | null
           commission_amount: number | null
+          commission_fee: number | null
           commission_rate: number | null
           courier_id: string | null
           courier_name: string | null
@@ -4570,6 +4659,7 @@ export type Database = {
           note: string | null
           order_mode: string | null
           order_no: string
+          order_number: string | null
           order_source: string | null
           outlet_id: string
           paid_at: string | null
@@ -4597,6 +4687,8 @@ export type Database = {
           tax: number
           tip_amount: number
           total: number
+          total_amount: number | null
+          total_price: number | null
           tracking_number: string | null
           tracking_set_at: string | null
           tracking_url: string | null
@@ -4614,6 +4706,7 @@ export type Database = {
           channel?: Database["public"]["Enums"]["order_channel"]
           client_idempotency_key?: string | null
           commission_amount?: number | null
+          commission_fee?: number | null
           commission_rate?: number | null
           courier_id?: string | null
           courier_name?: string | null
@@ -4643,6 +4736,7 @@ export type Database = {
           note?: string | null
           order_mode?: string | null
           order_no: string
+          order_number?: string | null
           order_source?: string | null
           outlet_id: string
           paid_at?: string | null
@@ -4670,6 +4764,8 @@ export type Database = {
           tax?: number
           tip_amount?: number
           total?: number
+          total_amount?: number | null
+          total_price?: number | null
           tracking_number?: string | null
           tracking_set_at?: string | null
           tracking_url?: string | null
@@ -4687,6 +4783,7 @@ export type Database = {
           channel?: Database["public"]["Enums"]["order_channel"]
           client_idempotency_key?: string | null
           commission_amount?: number | null
+          commission_fee?: number | null
           commission_rate?: number | null
           courier_id?: string | null
           courier_name?: string | null
@@ -4716,6 +4813,7 @@ export type Database = {
           note?: string | null
           order_mode?: string | null
           order_no?: string
+          order_number?: string | null
           order_source?: string | null
           outlet_id?: string
           paid_at?: string | null
@@ -4743,6 +4841,8 @@ export type Database = {
           tax?: number
           tip_amount?: number
           total?: number
+          total_amount?: number | null
+          total_price?: number | null
           tracking_number?: string | null
           tracking_set_at?: string | null
           tracking_url?: string | null
@@ -6501,9 +6601,12 @@ export type Database = {
       }
       product_reviews: {
         Row: {
+          body: string | null
           comment: string | null
           created_at: string
+          flag_reason: string | null
           id: string
+          is_flagged: boolean
           is_hidden: boolean
           is_verified_purchase: boolean
           order_id: string | null
@@ -6517,9 +6620,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          body?: string | null
           comment?: string | null
           created_at?: string
+          flag_reason?: string | null
           id?: string
+          is_flagged?: boolean
           is_hidden?: boolean
           is_verified_purchase?: boolean
           order_id?: string | null
@@ -6533,9 +6639,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          body?: string | null
           comment?: string | null
           created_at?: string
+          flag_reason?: string | null
           id?: string
+          is_flagged?: boolean
           is_hidden?: boolean
           is_verified_purchase?: boolean
           order_id?: string | null
@@ -10646,6 +10755,45 @@ export type Database = {
           id?: string
           payload_summary?: Json | null
           provider?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          attempts: number
+          created_at: string
+          error_message: string | null
+          event_type: string | null
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          response: Json | null
+          source: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          response?: Json | null
+          source: string
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          response?: Json | null
+          source?: string
           status?: string
         }
         Relationships: []
