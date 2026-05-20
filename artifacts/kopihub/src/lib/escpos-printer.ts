@@ -75,24 +75,69 @@ function concat(parts: Uint8Array[]): Uint8Array {
   return out;
 }
 
-function padBetween(left: string, right: string, w: number) {
-  left = left.replace(/\s+/g, " ").trim();
-  right = right.replace(/\s+/g, " ").trim();
-  if (left.length + right.length + 1 > w) {
-    // wrap: left on its own line, right right-aligned next line
-    const l = left.slice(0, w);
-    const r = right.slice(0, w).padStart(w, " ");
-    return `${l}\n${r}`;
+function wrapWords(s: string, w: number): string[] {
+  s = s.replace(/\s+/g, " ").trim();
+  if (!s) return [""];
+  const out: string[] = [];
+  const words = s.split(" ");
+  let line = "";
+  for (const word of words) {
+    if (word.length > w) {
+      // hard split very long token
+      if (line) { out.push(line); line = ""; }
+      let rest = word;
+      while (rest.length > w) {
+        out.push(rest.slice(0, w));
+        rest = rest.slice(w);
+      }
+      line = rest;
+      continue;
+    }
+    const tentative = line ? line + " " + word : word;
+    if (tentative.length > w) {
+      out.push(line);
+      line = word;
+    } else {
+      line = tentative;
+    }
   }
-  const space = w - left.length - right.length;
-  return left + " ".repeat(space) + right;
+  if (line) out.push(line);
+  return out;
 }
 
-function centerLine(s: string, w: number) {
+function padBetween(left: string, right: string, w: number): string {
+  left = left.replace(/\s+/g, " ").trim();
+  right = right.replace(/\s+/g, " ").trim();
+  // Reserve right column; wrap left into remaining width.
+  const rightW = Math.min(right.length, w);
+  const leftW = Math.max(1, w - rightW - 1);
+  if (left.length <= leftW) {
+    const space = w - left.length - right.length;
+    return left + " ".repeat(Math.max(1, space)) + right;
+  }
+  const lines = wrapWords(left, leftW);
+  const last = lines.pop() as string;
+  const space = w - last.length - right.length;
+  const lastLine = last + " ".repeat(Math.max(1, space)) + right;
+  return [...lines, lastLine].join("\n");
+}
+
+function centerLine(s: string, w: number): string {
   s = s.replace(/\s+/g, " ").trim();
-  if (s.length >= w) return s.slice(0, w);
-  const pad = Math.floor((w - s.length) / 2);
-  return " ".repeat(pad) + s;
+  const lines = wrapWords(s, w);
+  return lines
+    .map((ln) => {
+      if (ln.length >= w) return ln;
+      const pad = Math.floor((w - ln.length) / 2);
+      return " ".repeat(pad) + ln;
+    })
+    .join("\n");
+}
+
+function leftLines(s: string, w: number, indent = 0): string {
+  const ind = " ".repeat(indent);
+  const eff = Math.max(1, w - indent);
+  return wrapWords(s, eff).map((ln) => ind + ln).join("\n");
 }
 
 // Walk a rendered Receipt DOM (uses r-row, r-center, r-bold, r-divider, r-item, r-small)
@@ -107,8 +152,9 @@ export function buildEscPosFromReceiptDom(root: HTMLElement, paper: ReceiptPaper
 
   const setBold = (on: boolean) => chunks.push(new Uint8Array([ESC, 0x45, on ? 1 : 0]));
   const setAlign = (n: 0 | 1 | 2) => chunks.push(new Uint8Array([ESC, 0x61, n]));
-  const setSize = (doubleHeight: boolean) =>
-    chunks.push(new Uint8Array([GS, 0x21, doubleHeight ? 0x01 : 0x00]));
+  const setSize = (doubleHW: boolean) =>
+    // GS ! n — 0x11 = double width + double height, 0x00 = normal
+    chunks.push(new Uint8Array([GS, 0x21, doubleHW ? 0x11 : 0x00]));
 
   const writeLine = (text: string) => {
     for (const part of text.split("\n")) {
@@ -126,7 +172,9 @@ export function buildEscPosFromReceiptDom(root: HTMLElement, paper: ReceiptPaper
       return;
     }
     if (cls.contains("r-row")) {
-      const kids = Array.from(el.children).filter((c) => c.tagName === "SPAN" || c.tagName === "DIV");
+      const kids = Array.from(el.children).filter(
+        (c) => c.tagName === "SPAN" || c.tagName === "DIV",
+      );
       const isBold = cls.contains("r-bold");
       if (isBold) setBold(true);
       if (kids.length >= 2) {
@@ -134,43 +182,54 @@ export function buildEscPosFromReceiptDom(root: HTMLElement, paper: ReceiptPaper
         const right = txt(kids[kids.length - 1]);
         writeLine(padBetween(left, right, w));
       } else {
-        writeLine(txt(el));
+        writeLine(leftLines(txt(el), w));
       }
       if (isBold) setBold(false);
       return;
     }
     if (cls.contains("r-center")) {
       const isBold = cls.contains("r-bold");
+      // Double-size text occupies 2 char cells → effective width halved.
+      const effW = isBold ? Math.max(1, Math.floor(w / 2)) : w;
+      setAlign(1);
       if (isBold) {
         setBold(true);
         setSize(true);
       }
-      setAlign(1);
-      writeLine(centerLine(txt(el), isBold ? Math.floor(w / 2) : w));
-      setAlign(0);
+      writeLine(centerLine(txt(el), effW));
       if (isBold) {
         setSize(false);
         setBold(false);
       }
+      setAlign(0);
       return;
     }
     if (cls.contains("r-item")) {
-      // recurse children
-      for (const child of Array.from(el.children)) walk(child);
+      // Item block: first DIV = item name (wrap full width),
+      // r-small = options/note (indented), r-row = qty x price / line total.
+      for (const child of Array.from(el.children)) {
+        if (!(child instanceof HTMLElement)) continue;
+        const c = child.classList;
+        if (c.contains("r-row") || c.contains("r-small") || c.contains("r-divider")) {
+          walk(child);
+        } else {
+          writeLine(leftLines(txt(child), w));
+        }
+      }
       return;
     }
     if (cls.contains("r-small")) {
-      // print as left-aligned plain
-      writeLine(txt(el));
+      // Slightly indented detail line.
+      writeLine(leftLines(txt(el), w, 2));
       return;
     }
-    // Generic container: if it has element children, recurse; else print text.
+    // Generic container: if it has element children, recurse; else print wrapped text.
     const elChildren = Array.from(el.children);
     if (elChildren.length > 0) {
       for (const child of elChildren) walk(child);
     } else {
       const t = txt(el);
-      if (t) writeLine(t);
+      if (t) writeLine(leftLines(t, w));
     }
   };
 
