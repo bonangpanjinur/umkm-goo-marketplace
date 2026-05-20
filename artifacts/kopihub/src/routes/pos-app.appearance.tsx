@@ -45,6 +45,25 @@ function AppearancePage() {
     }
   };
 
+  const seedThemes = async () => {
+    setSeeding(true);
+    try {
+      const { seedThemesIfEmpty } = await import("@/lib/api/seed-themes.functions");
+      const res = await seedThemesIfEmpty();
+      if (res.seeded) {
+        toast.success(res.message);
+        await reload();
+        setIframeKey((k) => k + 1);
+      } else {
+        toast.info(res.message);
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
