@@ -815,7 +815,8 @@ function AppLayoutInner() {
             </div>
             <span className="truncate text-sm font-semibold">{shop?.name ?? "UMKMgo"}</span>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <InstallPWAButton />
             <NotificationBell />
           </div>
         </header>
