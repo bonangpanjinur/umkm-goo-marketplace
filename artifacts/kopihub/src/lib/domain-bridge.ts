@@ -45,13 +45,17 @@ export async function verifyCustomDomainBridge(): Promise<VerifyResult> {
   };
 
   try {
-    const [txtRes, cnameRes] = await Promise.all([
+    const [txtRes, cnameRes, sslProbe] = await Promise.all([
       fetch(`https://1.1.1.1/dns-query?name=_umkmgo-verify.${domain}&type=TXT`, { headers: { Accept: "application/dns-json" } })
         .then((r) => r.json() as Promise<{ Answer?: Array<{ data: string }> }>)
         .catch(() => ({ Answer: [] as Array<{ data: string }> })),
       fetch(`https://1.1.1.1/dns-query?name=${domain}&type=CNAME`, { headers: { Accept: "application/dns-json" } })
         .then((r) => r.json() as Promise<{ Answer?: Array<{ data: string }> }>)
         .catch(() => ({ Answer: [] as Array<{ data: string }> })),
+      // SSL probe: kalau handshake TLS sukses (apapun status HTTP-nya), anggap SSL aktif.
+      fetch(`https://${domain}/`, { method: "HEAD", mode: "no-cors" })
+        .then(() => ({ ok: true as const, error: null as string | null }))
+        .catch((e: unknown) => ({ ok: false as const, error: e instanceof Error ? e.message : "ssl_handshake_failed" })),
     ]);
 
     const txtValues = (txtRes.Answer ?? []).map((a) => a.data.replace(/"/g, ""));
@@ -60,10 +64,16 @@ export async function verifyCustomDomainBridge(): Promise<VerifyResult> {
     const txtFound = txtValues.some((v) => v === expectedToken);
     const cnameOk = (cnameRes.Answer ?? []).some((a) => a.data.replace(/\.$/, "") === CNAME_TARGET);
     base.cnameOk = cnameOk;
+    base.sslOk = sslProbe.ok;
+    base.sslError = sslProbe.ok ? null : sslProbe.error;
 
     if (txtFound) {
       await supabase.from("shops").update({ custom_domain_verified_at: new Date().toISOString() }).eq("id", shop.id);
       base.verified = true;
+    } else {
+      // TXT hilang dari DNS → cabut verifikasi supaya status di UI akurat.
+      await supabase.from("shops").update({ custom_domain_verified_at: null }).eq("id", shop.id);
+      base.verified = false;
     }
 
     return base;
