@@ -1012,6 +1012,45 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_broadcasts: {
+        Row: {
+          channel: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          sent_at: string | null
+          sent_count: number
+          status: string
+          target: string
+          title: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          target?: string
+          title: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          target?: string
+          title?: string
+        }
+        Relationships: []
+      }
       campaign_recipients: {
         Row: {
           campaign_id: string
