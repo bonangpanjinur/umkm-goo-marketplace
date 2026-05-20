@@ -1,11 +1,11 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer, X, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReceiptPaper } from "@/lib/receipt-printer";
 import { applyReceiptPaper, getReceiptPaper, printThermal, setReceiptPaper } from "@/lib/receipt-printer";
-import { getPreferredMode, printReceiptEscPos } from "@/lib/escpos-printer";
+import { buildReceiptLines, getPreferredMode, printReceiptEscPos, type ReceiptTextLine } from "@/lib/escpos-printer";
 import { ThermalPrinterPickerDialog } from "@/components/ThermalPrinterPickerDialog";
 
 type Props = {
