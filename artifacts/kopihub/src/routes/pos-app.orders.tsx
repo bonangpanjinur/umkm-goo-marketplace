@@ -402,6 +402,44 @@ function DetailDialog({
   const ticketRef = useRef<HTMLDivElement>(null);
   const courierRef = useRef<HTMLDivElement>(null);
   const [fallbackOpen, setFallbackOpen] = useState<null | "receipt" | "ticket" | "courier">(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [thermalMode, setThermalMode] = useState(getPreferredMode());
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => {
+    if (fallbackOpen) setThermalMode(getPreferredMode());
+  }, [fallbackOpen]);
+  async function doDirectPrint() {
+    const node =
+      fallbackOpen === "ticket"
+        ? ticketRef.current
+        : fallbackOpen === "courier"
+          ? courierRef.current
+          : printRef.current;
+    if (!node) return;
+    setPrinting(true);
+    try {
+      if (getPreferredMode() !== "none") {
+        const res = await printReceiptEscPos(node, getReceiptPaper(scopeKey));
+        if (res === "ok") {
+          toast.success("Struk terkirim ke printer thermal");
+          setFallbackOpen(null);
+          return;
+        }
+        if (typeof res === "object" && "error" in res) {
+          toast.error(`Gagal cetak: ${res.error}`);
+          return;
+        }
+        if (res === "no-device") {
+          setPickerOpen(true);
+          return;
+        }
+      }
+      const r = printReceiptNode(node, undefined, scopeKey);
+      if (r !== "ok") openReceiptInNewWindow(node, undefined, scopeKey);
+    } finally {
+      setPrinting(false);
+    }
+  }
   useEffect(() => {
     applyReceiptPaper(undefined, scopeKey);
   }, [scopeKey]);
