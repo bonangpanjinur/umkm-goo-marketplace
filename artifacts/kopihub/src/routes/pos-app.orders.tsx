@@ -425,21 +425,16 @@ function DetailDialog({
 
   function tryPrint(
     kind: "receipt" | "ticket" | "courier",
-    node: HTMLElement | null,
+    _node: HTMLElement | null,
   ) {
-    const res = printReceiptNode(node, undefined, scopeKey);
-    if (res !== "ok") {
-      // Dialog blocked or unavailable — try popup, then inline fallback.
-      const popped = openReceiptInNewWindow(node, undefined, scopeKey);
-      if (!popped) {
-        toast.error("Dialog cetak diblokir. Buka pratinjau lalu cetak manual.");
-        setFallbackOpen(kind);
-      }
-    }
+    // Selalu tampilkan modal pratinjau dulu (UX seperti aplikasi POS native).
+    // User klik "Cetak Sekarang" di modal untuk membuka dialog printer.
+    setFallbackOpen(kind);
   }
   const handlePrint = () => tryPrint("receipt", printRef.current);
   const handlePrintTicket = () => tryPrint("ticket", ticketRef.current);
   const handlePrintCourier = () => tryPrint("courier", courierRef.current);
+
 
   async function handleRefund() {
     const amt = Number(refundAmount || 0);
@@ -817,7 +812,7 @@ function DetailDialog({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Dialog cetak browser tidak muncul (kemungkinan diblokir popup). Klik "Cetak Sekarang" untuk mencoba lagi, atau gunakan Ctrl/Cmd+P di pratinjau ini.
+              Pratinjau struk thermal. Klik "Cetak Sekarang" untuk membuka dialog printer.
             </p>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setFallbackOpen(null)}>Tutup</Button>
@@ -829,15 +824,16 @@ function DetailDialog({
                       : fallbackOpen === "courier"
                         ? courierRef.current
                         : printRef.current;
-                  const popped = openReceiptInNewWindow(node, undefined, scopeKey);
-                  if (!popped) {
-                    printReceiptNode(node, undefined, scopeKey);
+                  const res = printReceiptNode(node, undefined, scopeKey);
+                  if (res !== "ok") {
+                    openReceiptInNewWindow(node, undefined, scopeKey);
                   }
                 }}
               >
                 <Printer className="mr-2 h-4 w-4" /> Cetak Sekarang
               </Button>
             </DialogFooter>
+
           </DialogContent>
         </Dialog>
       </DialogContent>
