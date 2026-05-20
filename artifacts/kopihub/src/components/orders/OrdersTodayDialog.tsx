@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -221,27 +222,35 @@ export function OrdersTodayDialog({
     lsSet(pageKey, String(page));
   }, [page, pageKey]);
 
+  // Phase 2: React Query + limit(300) + staleTime 30s untuk hindari refetch berulang
+  const businessDate = useMemo(() => {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  }, [open]);
+
+  const ordersQuery = useQuery({
+    queryKey: ["orders-today", outletId, businessDate],
+    enabled: !!open && !!outletId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select(
+          "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order, order_source",
+        )
+        .eq("outlet_id", outletId)
+        .eq("business_date", businessDate)
+        .order("created_at", { ascending: false })
+        .limit(300);
+      return (data ?? []) as Order[];
+    },
+  });
+
   useEffect(() => {
-    if (!open || !outletId) return;
-    setLoading(true);
-    const today = new Date();
-    const y = today.getFullYear();
-    const m = String(today.getMonth() + 1).padStart(2, "0");
-    const d = String(today.getDate()).padStart(2, "0");
-    const businessDate = `${y}-${m}-${d}`;
-    supabase
-      .from("orders")
-      .select(
-        "id, order_no, total, payment_method, amount_tendered, change_due, status, created_at, customer_name, customer_phone, fulfillment, table_label, channel, marketplace_order, order_source",
-      )
-      .eq("outlet_id", outletId)
-      .eq("business_date", businessDate)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setOrders((data ?? []) as Order[]);
-        setLoading(false);
-      });
-  }, [open, outletId]);
+    setOrders(ordersQuery.data ?? []);
+    setLoading(ordersQuery.isLoading);
+  }, [ordersQuery.data, ordersQuery.isLoading]);
+
 
   useEffect(() => {
     applyReceiptPaper(undefined, scopeKey);

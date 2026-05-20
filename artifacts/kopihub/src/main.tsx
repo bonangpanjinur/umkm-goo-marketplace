@@ -4,7 +4,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,        // anggap fresh 30 detik → hindari refetch bertubi
+      gcTime: 5 * 60_000,       // simpan cache 5 menit
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();

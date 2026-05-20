@@ -18,6 +18,7 @@ export function useRealtimeOrders(
   opts: {
     statusFilter?: string[];
     onInsert?: (order: Record<string, unknown>) => void;
+    onChange?: () => void; // dipanggil di setiap INSERT/UPDATE yang lolos filter (untuk invalidate cache)
     playSound?: boolean;
     label?: string; // mis. "Order baru" / "Order siap diantar"
   } = {},
@@ -48,6 +49,7 @@ export function useRealtimeOrders(
 
           if (optsRef.current.playSound) playBeep();
           optsRef.current.onInsert?.(o);
+          optsRef.current.onChange?.();
         },
       )
       .on(
@@ -73,6 +75,10 @@ export function useRealtimeOrders(
             });
             if (optsRef.current.playSound) playBeep();
             optsRef.current.onInsert?.(o);
+            optsRef.current.onChange?.();
+          } else {
+            // status lain tetap perlu invalidate cache list owner
+            optsRef.current.onChange?.();
           }
         },
       )
