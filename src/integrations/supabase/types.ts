@@ -1012,6 +1012,45 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_broadcasts: {
+        Row: {
+          channel: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          sent_at: string | null
+          sent_count: number
+          status: string
+          target: string
+          title: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          target?: string
+          title: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          target?: string
+          title?: string
+        }
+        Relationships: []
+      }
       campaign_recipients: {
         Row: {
           campaign_id: string
@@ -11661,6 +11700,15 @@ export type Database = {
     }
     Functions: {
       accept_staff_invitation: { Args: { _token: string }; Returns: Json }
+      admin_buyer_segments: {
+        Args: never
+        Returns: {
+          active: number
+          inactive: number
+          new_buyers: number
+          total: number
+        }[]
+      }
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_remove_plan_feature: {
         Args: { _feature_key: string; _plan_id: string }
