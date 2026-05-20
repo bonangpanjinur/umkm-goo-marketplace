@@ -7,7 +7,7 @@ export async function createPlanInvoice({ data }: { data: { planCode: string } }
 }
 
 export async function submitPaymentProof({ data }: { data: { invoiceId: string; proofUrl: string; method?: string } }) {
-  const { error } = await supabase.from("plan_invoices" as any).update({ proof_url: data.proofUrl, payment_method: data.method ?? null, status: "pending_review" }).eq("id", data.invoiceId);
+  const { error } = await supabase.from("plan_invoices" as any).update({ payment_proof_url: data.proofUrl, payment_method: data.method ?? null, status: "awaiting_review" }).eq("id", data.invoiceId);
   if (error) throw error;
   return { ok: true };
 }
