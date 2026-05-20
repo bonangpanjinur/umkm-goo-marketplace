@@ -47,6 +47,12 @@ function TablesPage() {
   const { shop } = useCurrentShop();
   const { outlet } = useCurrentOutlet();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [bulkPrefix, setBulkPrefix] = useState("Meja");
+  const [bulkFrom, setBulkFrom] = useState("1");
+  const [bulkTo, setBulkTo] = useState("10");
+  const [bulkCapacity, setBulkCapacity] = useState("2");
+  const [bulkRunning, setBulkRunning] = useState(false);
   const [formData, setFormData] = useState<TableFormData>({
     name: "",
     capacity: "2",
