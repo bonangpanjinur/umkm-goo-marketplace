@@ -102,7 +102,7 @@ type Props = {
   shopPhone?: string | null;
 };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 30; // server-side keyset pagination
 type SortDir = "newest" | "oldest";
 type StatusFilter = "all" | "active" | "voided";
 type PayFilter = "all" | "cash" | "qris";
