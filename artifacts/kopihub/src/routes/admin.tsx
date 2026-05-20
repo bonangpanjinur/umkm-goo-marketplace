@@ -212,7 +212,7 @@ function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-sidebar-border bg-sidebar">
+      <aside className="hidden lg:flex sticky top-0 h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
         {SidebarBody}
       </aside>
 
