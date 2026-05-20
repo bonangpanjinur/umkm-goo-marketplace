@@ -4,8 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Star } from "lucide-react";
+import { Star, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin/shops")({
   component: AdminShops,
@@ -24,6 +32,8 @@ type Shop = {
   is_featured: boolean;
 };
 
+type PlanOption = { code: string; name: string; duration_days: number };
+
 type StatusFilter = "all" | "pro_active" | "expiring" | "expired" | "free" | "domain_offline";
 
 function getPlanStatus(s: Shop): { label: string; tone: "ok" | "warn" | "bad" | "muted" } {
@@ -39,11 +49,80 @@ function AdminShops() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [planOptions, setPlanOptions] = useState<PlanOption[]>([]);
+  const [editing, setEditing] = useState<Shop | null>(null);
+  const [editPlan, setEditPlan] = useState<string>("free");
+  const [editExpiry, setEditExpiry] = useState<string>("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     supabase.from("shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at, is_featured").order("is_featured", { ascending: false }).order("created_at", { ascending: false })
       .then(({ data }) => setShops((data as Shop[]) ?? []));
+    supabase.from("plans").select("code, name, duration_days").eq("is_active", true).order("sort_order")
+      .then(({ data }) => {
+        const opts: PlanOption[] = (data as PlanOption[]) ?? [];
+        // Pastikan "free" selalu tersedia sebagai pilihan
+        if (!opts.find((o) => o.code === "free")) opts.unshift({ code: "free", name: "Free", duration_days: 0 });
+        setPlanOptions(opts);
+      });
   }, []);
+
+  const openEdit = (e: React.MouseEvent, s: Shop) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditing(s);
+    setEditPlan(s.plan || "free");
+    setEditExpiry(s.plan_expires_at ? s.plan_expires_at.slice(0, 10) : "");
+  };
+
+  const onPlanChange = (code: string) => {
+    setEditPlan(code);
+    const opt = planOptions.find((o) => o.code === code);
+    if (opt && opt.duration_days > 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + opt.duration_days);
+      setEditExpiry(d.toISOString().slice(0, 10));
+    } else if (code === "free") {
+      setEditExpiry("");
+    }
+  };
+
+  const savePlan = async () => {
+    if (!editing) return;
+    setSaving(true);
+    const prevPlan = editing.plan;
+    const prevExp = editing.plan_expires_at;
+    const newExp = editPlan === "free" ? null : (editExpiry ? new Date(editExpiry + "T23:59:59").toISOString() : null);
+    const patch: Record<string, unknown> = {
+      plan: editPlan,
+      plan_expires_at: newExp,
+    };
+    if (prevPlan !== editPlan && editPlan !== "free") {
+      patch.plan_started_at = new Date().toISOString();
+    }
+    const { error } = await supabase.from("shops").update(patch).eq("id", editing.id);
+    if (error) { setSaving(false); toast.error(error.message); return; }
+
+    // Audit log
+    const { data: u } = await supabase.auth.getUser();
+    await supabase.from("staff_audit_logs").insert({
+      shop_id: editing.id,
+      actor_id: u.user?.id ?? null,
+      action: "shop.plan_change",
+      meta: {
+        from_plan: prevPlan,
+        to_plan: editPlan,
+        from_expires_at: prevExp,
+        to_expires_at: newExp,
+        source: "super_admin",
+      },
+    });
+
+    setShops((arr) => arr.map((x) => x.id === editing.id ? { ...x, plan: editPlan, plan_expires_at: newExp } : x));
+    toast.success(`Paket toko ${editing.name} diubah ke ${editPlan}`);
+    setEditing(null);
+    setSaving(false);
+  };
 
   const toggleFeatured = async (e: React.MouseEvent, s: Shop) => {
     e.preventDefault();
@@ -129,6 +208,13 @@ function AdminShops() {
                     >
                       <Star className={`h-4 w-4 ${s.is_featured ? "fill-amber-500" : ""}`} />
                     </button>
+                    <button
+                      onClick={(e) => openEdit(e, s)}
+                      title="Ubah paket"
+                      className="rounded-md p-1 text-muted-foreground hover:bg-muted"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${toneCls}`}>{st.label}</span>
                   </div>
                   {s.plan_expires_at && <div className="text-xs text-muted-foreground">s/d {new Date(s.plan_expires_at).toLocaleDateString("id-ID")}</div>}
@@ -140,6 +226,43 @@ function AdminShops() {
           );
         })}
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ubah Paket {editing?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div>
+              <Label>Paket</Label>
+              <Select value={editPlan} onValueChange={onPlanChange}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {planOptions.map((p) => (
+                    <SelectItem key={p.code} value={p.code}>{p.name} ({p.code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tanggal Kadaluarsa</Label>
+              <Input
+                type="date"
+                value={editExpiry}
+                onChange={(e) => setEditExpiry(e.target.value)}
+                disabled={editPlan === "free"}
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {editPlan === "free" ? "Paket Free tidak memerlukan tanggal kadaluarsa." : "Kosongkan untuk paket tanpa batas waktu."}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+            <Button onClick={savePlan} disabled={saving}>{saving ? "Menyimpan…" : "Simpan & Catat Audit"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
