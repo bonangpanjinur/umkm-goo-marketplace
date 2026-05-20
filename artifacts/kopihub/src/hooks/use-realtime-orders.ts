@@ -18,6 +18,7 @@ export function useRealtimeOrders(
   opts: {
     statusFilter?: string[];
     onInsert?: (order: Record<string, unknown>) => void;
+    onChange?: () => void; // dipanggil di setiap INSERT/UPDATE yang lolos filter (untuk invalidate cache)
     playSound?: boolean;
     label?: string; // mis. "Order baru" / "Order siap diantar"
   } = {},
