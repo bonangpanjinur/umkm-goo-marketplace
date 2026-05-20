@@ -317,6 +317,7 @@ function TablesPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {isLoading ? (
