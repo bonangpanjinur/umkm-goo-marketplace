@@ -28,7 +28,24 @@ type Order = {
   created_at: string;
   customer_name: string | null;
   note: string | null;
+  preparing_at?: string | null;
+  ready_at?: string | null;
 };
+
+// Aging color berdasarkan menit sejak created_at
+function ageStyle(minutes: number) {
+  if (minutes < 5) return { ring: "ring-emerald-500/30", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", label: "Baru" };
+  if (minutes < 10) return { ring: "ring-amber-500/30", badge: "bg-amber-500/20 text-amber-300 border-amber-500/40", label: "Normal" };
+  if (minutes < 15) return { ring: "ring-orange-500/40", badge: "bg-orange-500/20 text-orange-300 border-orange-500/40", label: "Lama" };
+  return { ring: "ring-red-500/60 animate-pulse", badge: "bg-red-500/20 text-red-300 border-red-500/40", label: "URGENT" };
+}
+
+function fmtElapsed(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m === 0) return `${s}d`;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 type OrderItem = {
   id: string;
