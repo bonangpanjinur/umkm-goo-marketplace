@@ -104,14 +104,20 @@ function AppearancePage() {
           <Palette className="h-5 w-5" />
           <h1 className="text-2xl font-bold">Tampilan Toko</h1>
         </div>
-        {storefrontUrl && (
-          <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="sm">
-              <ExternalLink className="h-4 w-4 mr-1.5" />
-              Buka Storefront
-            </Button>
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
+            {refreshing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
+            {refreshing ? "Memuat ulang…" : "Refresh tema"}
+          </Button>
+          {storefrontUrl && (
+            <a href={storefrontUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm">
+                <ExternalLink className="h-4 w-4 mr-1.5" />
+                Buka Storefront
+              </Button>
+            </a>
+          )}
+        </div>
       </div>
 
       {previewUrl && (
