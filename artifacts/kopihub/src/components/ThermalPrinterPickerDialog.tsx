@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Usb, Bluetooth, Loader2, CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -78,6 +78,11 @@ export function ThermalPrinterPickerDialog({ open, onClose, onPaired }: Props) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Pilih Printer Thermal</DialogTitle>
+          <DialogDescription>
+            Hubungkan printer thermal via USB-Serial atau Bluetooth. Setelah terhubung sekali, cetak langsung tanpa
+            dialog browser. Catatan: sebagian besar printer Bluetooth (RPP, MPT, YS-708, dll.) hanya bisa lewat tombol
+            <b> Bluetooth</b> — Chrome memblokir port BT di Web Serial.
+          </DialogDescription>
         </DialogHeader>
 
         {mode !== "none" && (
