@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import {
   Sparkles, Plus, Edit3, Trash2, ExternalLink, Eye, EyeOff, Lock, X, LayoutTemplate,
 } from "lucide-react";
+import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/website-builder")({
   component: BuilderListPage,
