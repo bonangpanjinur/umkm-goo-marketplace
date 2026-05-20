@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Printer, X, Maximize2 } from "lucide-react";
 import type { ReceiptPaper } from "@/lib/receipt-printer";
-import { applyReceiptPaper, getReceiptPaper, setReceiptPaper } from "@/lib/receipt-printer";
+import { applyReceiptPaper, getReceiptPaper, printThermal, setReceiptPaper } from "@/lib/receipt-printer";
 
 type Props = {
   open: boolean;
