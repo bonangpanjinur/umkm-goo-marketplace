@@ -225,8 +225,6 @@ function KDSPage() {
                       kds_station: item.menu_items?.categories?.kds_station || "general"
                     }));
                     setItems((prev) => ({ ...prev, [newOrder.id]: processed }));
-                    const newStations = processed.map(i => i.kds_station || "general");
-                    setStations(prev => Array.from(new Set([...prev, ...newStations])));
                   }
                 });
               
