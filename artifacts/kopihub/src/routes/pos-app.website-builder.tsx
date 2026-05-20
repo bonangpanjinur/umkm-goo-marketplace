@@ -75,8 +75,9 @@ function BuilderListPage() {
 
   if (!allowed) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
-        <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-4">
+      <div className="p-6 max-w-5xl mx-auto">
+        <TampilanTabs />
+        <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-4 max-w-2xl mx-auto">
           <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 grid place-items-center">
             <Lock className="w-7 h-7 text-primary" />
           </div>
