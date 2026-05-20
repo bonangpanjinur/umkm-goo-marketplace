@@ -1,9 +1,12 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer, X, Maximize2 } from "lucide-react";
+import { Printer, X, Maximize2, Settings2 } from "lucide-react";
+import { toast } from "sonner";
 import type { ReceiptPaper } from "@/lib/receipt-printer";
 import { applyReceiptPaper, getReceiptPaper, printThermal, setReceiptPaper } from "@/lib/receipt-printer";
+import { getPreferredMode, printReceiptEscPos } from "@/lib/escpos-printer";
+import { ThermalPrinterPickerDialog } from "@/components/ThermalPrinterPickerDialog";
 
 type Props = {
   open: boolean;
@@ -16,18 +19,18 @@ type Props = {
   title?: string;
 };
 
-/**
- * Modal pratinjau struk thermal yang cantik (mirip aplikasi POS native).
- * - Menampilkan struk di "kertas thermal" dengan shadow & shimmer.
- * - Tombol cetak menggunakan iframe tersembunyi dengan @page size eksplisit
- *   sehingga browser print ukuran 58mm/80mm tanpa membuka dialog full-page A4.
- */
 export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }: Props) {
   const [paper, setPaper] = useState<ReceiptPaper>(() => getReceiptPaper(scopeKey));
   const previewRef = useRef<HTMLDivElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const [mode, setMode] = useState(getPreferredMode());
 
   useEffect(() => {
-    if (open) applyReceiptPaper(paper, scopeKey);
+    if (open) {
+      applyReceiptPaper(paper, scopeKey);
+      setMode(getPreferredMode());
+    }
   }, [open, paper, scopeKey]);
 
   function changePaper(p: ReceiptPaper) {
@@ -36,13 +39,36 @@ export function ReceiptPreviewModal({ open, onClose, children, scopeKey, title }
     applyReceiptPaper(p, scopeKey);
   }
 
-  function handlePrint() {
-    const node = previewRef.current?.querySelector(".receipt-thermal-inner") as HTMLElement | null;
+  async function handlePrint() {
+    const node = previewRef.current?.querySelector(".receipt-thermal-inner > *") as HTMLElement | null
+      ?? previewRef.current?.querySelector(".receipt-thermal-inner") as HTMLElement | null;
     if (!node) return;
-    // Cetak via popup khusus (printThermal). Tidak menyalin stylesheet dashboard,
-    // ukuran kertas dipaksa via @page, dan popup auto-close setelah print.
-    printThermal({ node, paper, scopeKey, title: "Cetak Struk" });
+    setPrinting(true);
+    try {
+      if (getPreferredMode() !== "none") {
+        const res = await printReceiptEscPos(node, paper);
+        if (res === "ok") {
+          toast.success("Struk terkirim ke printer thermal");
+          onClose();
+          return;
+        }
+        if (typeof res === "object" && "error" in res) {
+          toast.error(`Gagal cetak: ${res.error}`);
+          return;
+        }
+        if (res === "no-device") {
+          toast.message("Printer belum dipilih — buka 'Pilih Printer Thermal' dulu.");
+          setPickerOpen(true);
+          return;
+        }
+      }
+      // Tidak ada thermal printer terpilih → fallback ke print dialog browser
+      printThermal({ node, paper, scopeKey, title: "Cetak Struk" });
+    } finally {
+      setPrinting(false);
+    }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
