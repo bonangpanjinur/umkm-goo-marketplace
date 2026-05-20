@@ -96,6 +96,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { OutletProvider, useOutletContext } from "@/lib/outlet-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/NotificationBell";
+import { InstallPWAButton } from "@/components/InstallPWAButton";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useShopCapabilities } from "@/lib/use-shop-capabilities";
 import { FEATURE_LABEL, type FeatureKey } from "@/lib/feature-keys";
