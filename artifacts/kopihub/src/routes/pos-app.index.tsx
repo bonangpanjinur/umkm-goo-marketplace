@@ -3,7 +3,7 @@ import { LowStockDialog } from "@/components/inventory/low-stock-dialog";
 import { SetupChecklist } from "@/components/owner/SetupChecklist";
 import { useRealtimeOrders } from "@/hooks/use-realtime-orders";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import {

@@ -44,7 +44,7 @@ export function MarketplaceBottomNav(_props: { shopId?: string } = {}) {
       const { count } = await (supabase as any)
         .from("orders").select("id", { count: "exact", head: true })
         .eq("buyer_user_id", user.id)
-        .in("status", ["pending", "paid", "processing", "shipped", "out_for_delivery"]);
+        .in("status", ["pending", "preparing", "ready", "delivering"]);
       if (mounted) setOrderActive(count ?? 0);
     };
     refreshChat(); refreshOrders();
