@@ -82,7 +82,7 @@ function WaitlistPage() {
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { error } = await (supabase as any).from("booking_waitlists").select("id").limit(1);
+      const { error } = await (supabase as any).from("booking_waitlist").select("id").limit(1);
       if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
         setTableExists(false);
         setLoading(false);
@@ -109,7 +109,7 @@ function WaitlistPage() {
   async function loadEntries() {
     if (!shop?.id) return;
     const { data, error } = await (supabase as any)
-      .from("booking_waitlists")
+      .from("booking_waitlist")
       .select(`
         id, slot_id, customer_name, customer_phone, party_size, status, notified_at, created_at,
         slot:booking_slots(service_name, slot_date, slot_time)
@@ -125,7 +125,7 @@ function WaitlistPage() {
     setUpdating(id);
     const patch: any = { status };
     if (status === "notified") patch.notified_at = new Date().toISOString();
-    const { error } = await (supabase as any).from("booking_waitlists").update(patch).eq("id", id);
+    const { error } = await (supabase as any).from("booking_waitlist").update(patch).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success(`Status diperbarui: ${STATUS_LABEL[status]}`); await loadEntries(); }
     setUpdating(null);

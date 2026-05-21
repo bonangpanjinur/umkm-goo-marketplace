@@ -745,7 +745,7 @@ export default function PublicBookingPage() {
     setWaitlistSaving(true);
     try {
       const { error } = await (supabase as any)
-        .from("booking_waitlists")
+        .from("booking_waitlist")
         .insert({
           slot_id: waitlistSlot.id,
           shop_id: shop.id,
