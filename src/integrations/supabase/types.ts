@@ -9458,6 +9458,75 @@ export type Database = {
           },
         ]
       }
+      shop_api_keys: {
+        Row: {
+          api_key: string
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          provider: string
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider: string
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider?: string
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_api_keys_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_api_keys_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_health_score"
+            referencedColumns: ["shop_id"]
+          },
+          {
+            foreignKeyName: "shop_api_keys_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_api_keys_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_api_keys_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       shop_backups: {
         Row: {
           completed_at: string | null
