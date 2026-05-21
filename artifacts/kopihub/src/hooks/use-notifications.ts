@@ -16,7 +16,9 @@ export type Notification = {
 
 type BroadcastMsg =
   | { kind: "read_one"; id: string; read_at: string }
-  | { kind: "read_all"; read_at: string };
+  | { kind: "read_all"; read_at: string }
+  | { kind: "dismiss_one"; id: string }
+  | { kind: "dismiss_all" };
 
 const CHANNEL_NAME = "umkmgo:notifications";
 const PAGE_SIZE = 30; // Phase 2: trim payload — 30 notif terbaru saja
@@ -27,6 +29,7 @@ async function fetchNotifications(uid: string): Promise<Notification[]> {
     .from("notifications")
     .select(COLS)
     .eq("recipient_user_id", uid)
+    .is("dismissed_at" as any, null)
     .order("created_at", { ascending: false })
     .limit(PAGE_SIZE);
   return (data ?? []) as Notification[];
