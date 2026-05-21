@@ -1,106 +1,129 @@
-# Analisis & Rencana Perbaikan
 
-## Root cause tiap error
+# Audit Fitur Owner (/pos-app)
 
-### 1. `400 Bad Request` di `orders?select=...order_number,...,order_items(...,notes)`
-Skema asli tabel:
-- `orders.order_no` (TEXT) — **bukan** `order_number`
-- `order_items.note`, `quantity`, `unit_price` — **bukan** `notes`, `qty`, `price`
-- `orders.total` — **bukan** `total_price`
-- `orders.delivery_address` — **bukan** `customer_address`
+Cakupan: 148 halaman di `artifacts/kopihub/src/routes/pos-app.*.tsx` + hook, lib, dan komponen pendukungnya. Dibandingkan dengan 162 tabel + 7 view di DB Supabase.
 
-File yang masih pakai kolom lama (penyebab 400 / silent break):
-- `routes/pos-app.kitchen-load.tsx` → `order_number`, `order_items(...notes)`
-- `routes/admin.auto-cancel.tsx` → `order_number`, `total_amount`
-- `routes/admin.reconciliation.tsx` → `order_number`
-- `routes/pesanan.$orderId.chat.tsx` → `order_number`
-- `routes/download.$token.tsx` → `order_number`, `total_price`
-- `routes/pos-app.invoice.tsx` → `order_number`, `total_price`, `notes`, `customer_address`, `order_items(qty, price)`
-- `routes/pos-app.shipping-labels.tsx` → `order_number`
-- `routes/pos-app.digital-licenses.tsx` → `order_number`
+Status singkat:
+- ~125 halaman sudah terintegrasi DB (CRUD nyata, hook, atau RPC).
+- ~7 halaman masih pakai data demo / `setTimeout` (tidak menyimpan apa-apa).
+- ~22 halaman query tabel yang **belum ada** di DB → fitur tampak ada, tapi pasti error 400/404 saat dipakai.
+- Beberapa skema duplikat / tidak konsisten yang harus diberesi.
 
-### 2. `400 Bad Request` di `notifications?...user_id=eq...`
-Skema asli `public.notifications` cuma punya: `recipient_user_id, shop_id, type, title, body, link, severity, read_at, dedupe_key, created_at`.
+---
 
-Code masih pakai kolom yang **tidak ada**:
-- `lib/api/notifications.functions.ts` → filter pakai `user_id` & update `dismissed_at` (tidak ada kolom ini)
-- `routes/pos-app.notifikasi.tsx` → select `action_url`, filter `recipient_shop_id` (tidak ada)
-- `routes/admin.broadcast.tsx` → kemungkinan insert kolom yang tidak ada
+## 1. Halaman yang masih demo / belum nyimpan ke DB
 
-### 3. Warning Radix `Missing Description for {DialogContent}`
-Beberapa `<DialogContent>` belum punya `<DialogDescription>` atau `aria-describedby`. Tidak crash, tapi mengotori console & a11y. Akan ditambahkan `DialogDescription` (boleh `sr-only`) di dialog yang terpengaruh — khususnya `ThermalPrinterPickerDialog`, `ReceiptPreviewModal`, dan dialog di halaman orders.
+Yang ditemukan pakai `new Promise(r => setTimeout)` atau array statis:
 
-### 4. `Chooser dialog is not displaying a port blocked by the Serial blocklist … YS-708`
-Chrome **memblokir** printer Bluetooth (YS-708, mayoritas RPP/MPT/Goojprt) di Web **Serial** karena UUID-nya termasuk daftar blok keamanan. Solusi:
-- Untuk printer Bluetooth thermal, **wajib** lewat **Web Bluetooth** (GATT) — yang sudah kita punya di `escpos-printer.ts`.
-- Di `ThermalPrinterPickerDialog`, tegas pisahkan: USB → Web Serial, Bluetooth → Web Bluetooth. Tambahkan keterangan jelas: "Jika printer Bluetooth tidak muncul di USB, pakai tombol Bluetooth di bawah".
-- Filter `pickSerialPort` agar request hanya port USB-Serial (`filters: [{ usbVendorId }]` opsional) supaya tidak iseng nampilkan device BT yang akan diblok.
+| Halaman | Masalah |
+|---|---|
+| `pos-app/custom-css` | "Simpan" cuma fake delay, CSS tidak disimpan ke `shops` / tabel lain |
+| `pos-app/outlets` | Daftar outlet pakai `DEMO_OUTLETS`; tambah outlet hanya update state lokal. Padahal tabel `outlets` sudah ada |
+| `pos-app/email-marketing` | Form kampanye tidak terhubung ke `marketing_campaigns` / `campaign_recipients` yang sudah ada |
+| `pos-app/rajaongkir` | Cek tarif pakai `DEMO_RESULTS`; belum panggil API RajaOngkir/JNE asli |
+| `pos-app/storefront-builder` | Save fake delay; belum tulis ke `page_layouts` |
+| `pos-app/digital-version` | Upload versi pakai delay; tidak tulis ke `digital_product_versions` (tabel pun belum ada) |
+| `pos-app/variants` | Sebagian aksi simpan fake delay; cek `menu_item_variants` |
 
-### 5. Kenapa app terasa lambat
-Temuan saat scan kode:
-- Banyak halaman owner (orders, marketplace-orders, kitchen-load, dashboard) melakukan `select *` atau select banyak kolom + multiple realtime channel + `fetch` setiap mount tanpa cache.
-- `useNotifications` polling + subscribe per user, tapi query gagal 400 → retry loop bikin network sibuk.
-- Tidak ada React Query untuk data umum → setiap navigasi refetch dari nol.
-- Beberapa list (orders, transactions) tidak pakai pagination/limit memadai (limit 150–1000).
-- Bundle besar: `radix-vendor` + recharts + framer-motion + html2canvas + qrcode dimuat di route awal.
-- Tidak ada `React.lazy` untuk halaman berat (reports, recharts).
+Prioritas: **outlets** & **email-marketing** paling urgent karena tabelnya sudah ada, tinggal wiring.
 
-## Rencana perbaikan (urut prioritas)
+---
 
-### A. Hotfix skema (hilangkan 400, ini juga penyebab loading lambat karena retry/fallback)
-1. **Notifications hook & API** (`hooks/use-notifications.ts`, `lib/api/notifications.functions.ts`, `routes/pos-app.notifikasi.tsx`, `routes/admin.broadcast.tsx`):
-   - Ganti `user_id` → `recipient_user_id`.
-   - Hapus pemakaian `dismissed_at` → pakai `read_at` saja (atau tambah kolom via migration jika memang perlu fitur "dismiss" terpisah). Sementara: alias dismiss = set `read_at`.
-   - Ganti `action_url` → `link`.
-   - Hapus filter `recipient_shop_id` di owner notifikasi → gunakan `recipient_user_id = owner.id` + filter di client by `shop_id`. (Atau tambah migration kolom `recipient_shop_id` kalau memang perlu broadcast per toko — keputusan terpisah.)
-2. **Orders / order_items** di file-file di atas:
-   - `order_number` → `order_no`
-   - `order_items(..., notes)` → `order_items(..., note)`
-   - `total_price` → `total`; `qty/price` → `quantity/unit_price`; `customer_address` → `delivery_address`
-   - Sesuaikan render (alias supaya UI tetap pakai variable lama bila perlu).
+## 2. Halaman yang query tabel yang **belum ada** di DB
 
-### B. A11y dialog
-Tambahkan `<DialogDescription className="sr-only">…</DialogDescription>` di:
-- `ThermalPrinterPickerDialog`
-- `ReceiptPreviewModal`
-- Dialog konfirmasi void / refund di `pos-app.orders.tsx`
-- Audit cepat dialog lain via `rg "<DialogContent"` lalu pastikan tiap satu punya Title + Description.
+Halaman ini akan gagal load / save dengan 400 atau "table not found":
 
-### C. Printer Bluetooth (YS-708 dsb.)
-- Di `escpos-printer.ts → pickSerialPort` tambah `filters` (atau biarkan kosong) + log jelas; di UI tegaskan "Untuk printer Bluetooth, gunakan tombol Bluetooth".
-- Pada `pickBluetoothPrinter`, tambah service UUID umum (`000018f0-0000-1000-8000-00805f9b34fb`, `0000ff00-…`, dll.) supaya YS-708 muncul.
-- Tampilkan tooltip alasan kenapa BT diblok di Serial (tidak men-spam toast error).
+| Halaman | Tabel hilang | Catatan |
+|---|---|---|
+| `pos-app/limited-editions` | `limited_editions` | Buat tabel, atau gabungkan ke `menu_items` (flag) |
+| `pos-app/antrian` | `queue_entries`, `queue_sessions` | Belum ada sama sekali |
+| `pos-app/rental-checklist` | `rental_checklists` | `rental_inspections` ada, tabel checklist belum |
+| `pos-app/lookbook` | `shop_lookbook` | |
+| `pos-app/promos` | `shop_follows` | Dipakai untuk segmentasi promo |
+| `pos-app/wip-gallery` | `wip_gallery` | |
+| `pos-app/happy-hour` | `happy_hour_rules` | |
+| `pos-app/medical-invoice` | `medical_invoices` | Modul klinik belum tersambung |
+| `pos-app/anamnesis` | `anamnesis_forms` | |
+| `pos-app/studio-brief` | `studio_briefs` | |
+| `pos-app/studio-delivery` | `studio_deliveries` | |
+| `pos-app/studio-photo-reviews` | `studio_photo_reviews` | |
+| `pos-app/broadcast-wa` | `wa_broadcasts` | |
+| `pos-app/certificates` | `authenticity_certificates` | |
+| `pos-app/digital-licenses` | `digital_licenses`, `digital_download_logs` | |
+| `pos-app/digital-version` | `digital_product_versions` | |
+| `pos-app/milestones` | `project_milestones` | |
+| `pos-app/waitlist` | `booking_waitlists` | Padahal ada `booking_waitlist` (singular) — typo / inkonsisten |
+| `pos-app/booking` | `booking_addons`, `booking_service_packages`, `booking_vouchers`, `booking_reschedule_logs` | Hanya `booking_reschedule_tokens` & `booking_slots` yang ada |
+| `pos-app/studio-addons` | `booking_addons` | |
+| `pos-app/reviews` | `buyer_ratings` | Sudah ada `product_reviews` & `booking_reviews` — kemungkinan duplikasi |
+| `pos-app/marketplace-orders` | `order_status_logs` | Sudah ada `order_audit_log` — pilih satu |
 
-### D. Optimasi kecepatan
-1. **React Query (sudah dependency)** — bungkus query owner yang sering dipakai (`useShop`, `useOutlet`, `useNotifications`, `orders today`, `dashboard summary`) dengan `useQuery` + `staleTime: 30_000`.
-2. **Code-splitting per route berat**: `pos-app.reports.tsx`, `admin.*`, halaman builder, `marketplace-orders` → `const X = lazy(() => import(...))` di route module saat dimuat (TanStack Router otomatis split per route file kalau import statis dipindah ke dynamic).
-3. **Trim select kolom** — banyak query masih ambil 30+ kolom; ambil kolom yang dipakai saja.
-4. **Pagination orders/transactions** — default 30 rows + tombol "Muat lagi" (atau infinite query). Saat ini bisa 150–1000.
-5. **Realtime channel reuse** — `pos-app.orders` & `useRealtimeOrders` membuat channel terpisah. Konsolidasi jadi 1 channel per `shop_id` di provider.
-6. **Hapus polling redundan**: `useNotifications` punya BroadcastChannel + supabase realtime + interval; cukup realtime saja.
-7. **Index DB** — verifikasi index untuk query panas:
-   - `orders(shop_id, status, created_at desc)` — ada `business_date` index. Tambah composite kalau perlu (migration terpisah).
-   - `notifications(recipient_user_id, created_at desc)` — sudah ada.
-8. **Bundle**:
-   - Lazy `html2canvas`/`qrcode` (hanya saat user klik cetak/QR).
-   - Pisah `recharts` ke chunk lazy.
-9. **Service Worker** — pastikan `sw.js` cache aset statis (sudah ada manifest, perlu cek strategi caching).
+Selain itu hook/lib pakai tabel yang juga belum ada:
+- `lib/loyalty-enhanced.ts` → `loyalty_rewards`, `loyalty_redemptions`, `loyalty_tiers`. Yang ada hanya `loyalty_points`, `loyalty_ledger`, `loyalty_settings`.
+- `lib/reservations.ts` → `reservations`, `reservation_slots`. Belum ada.
+- `akun/loyalty` → `loyalty_transactions`. Belum ada.
 
-### E. (Opsional) Migration kolom yang sering dibutuhkan
-Hanya jika user setuju:
-- `notifications.dismissed_at timestamptz null` (kalau mau pisahkan baca vs dibuang).
-- `notifications.recipient_shop_id uuid null` (kalau mau notifikasi level toko).
-- `notifications.action_url text null` (alias `link`).
-Tanpa ini, kita pakai skema existing dan mapping di client.
+---
 
-## Urutan eksekusi yang saya usulkan
-1. **Fase 1 (kritis, langsung)**: A + B + C — hilangkan semua 400 & warning + printer BT.
-2. **Fase 2 (perf cepat)**: D1, D3, D4, D6 — efek besar dengan perubahan minimal.
-3. **Fase 3 (perf lanjutan)**: D2, D5, D8 — code-splitting, channel reuse, bundle.
-4. **Fase 4 (opsional)**: E — migration tambahan kalau memang dibutuhkan fitur dismiss / per-toko.
+## 3. Inkonsistensi skema / duplikasi
 
-## Pertanyaan singkat sebelum eksekusi
-- Untuk notifikasi "dismiss" di customer (`dismissAllNotifications`): apakah cukup ditandai sebagai `read_at` saja, atau kamu mau tabel beneran punya kolom `dismissed_at` (perlu migration)?
-- Notifikasi owner di `pos-app.notifikasi.tsx` saat ini filter by `recipient_shop_id`. Apakah kita lanjut tambah kolom `recipient_shop_id` (migration) atau ubah jadi notifikasi per-user owner (filter `recipient_user_id = owner.id`)?
+- **Notifikasi**: `notifications` (per-user) vs `owner_notifications` (per-shop) — keduanya dipakai oleh halaman berbeda. `notifications` belum punya `dismissed_at`, sehingga "Tutup" hanya set `read_at` (sudah difilter sekarang). Standardkan.
+- **Booking waitlist**: kode pakai `booking_waitlists`, DB punya `booking_waitlist`. Rename salah satu.
+- **Review**: `product_reviews`, `booking_reviews`, `menu_reviews`, dan referensi `buyer_ratings` → terlalu banyak permukaan, susah diaudit.
+- **Order log**: `order_audit_log` (ada) vs `order_status_logs` (dipakai kode, belum ada). Pilih satu.
+- **Loyalty**: dua model paralel — `loyalty_points/ledger/settings` (terpakai) vs `loyalty_rewards/redemptions/tiers/transactions` (lib enhanced, belum ada di DB).
+- **Reservasi meja**: file `pos-app/reservasi.tsx` sudah redirect ke `/pos-app/booking` — pastikan tidak ada link lama yang menyesatkan, dan `lib/reservations.ts` (tabel `reservations`/`reservation_slots`) dimatikan/dimigrasikan.
+- **`coffee_shops` view**: masih ada sebagai legacy view, sementara kode sudah pakai `shops`. Tetapkan apakah perlu di-drop.
 
-Begitu kamu jawab 2 pertanyaan itu (atau bilang "pakai default: read_at + per-user"), saya langsung kerjakan Fase 1 + Fase 2.
+---
+
+## 4. Masalah cross-cutting yang sudah ketemu
+
+- **Banner notifikasi muncul terus walau di-close** → sudah diperbaiki dengan filter `is("read_at", null)` di `listMyNotifications`. Tetap perlu kolom `dismissed_at` resmi kalau mau bedakan "dibaca" vs "ditutup".
+- **`MarketplaceBottomNav` query 400** → enum status di-fix; lakukan audit serupa untuk semua filter `status=in.(...)` lain agar pakai enum valid (`pending|preparing|ready|delivering|completed|cancelled|refunded`).
+- **`useQueryClient is not defined`** → sudah ditambahkan import. Cari import lupa serupa: jalankan `tsc --noEmit` jadi bagian rutin.
+- **Pagination & staleTime** → sudah diterapkan ke Orders Today & Notifications. Halaman lain dengan list besar yang masih `limit(150)` / `limit(500)`: `pos-app/notifikasi` (150), `pos-app/orders`, `pos-app/customers`, `pos-app/inventory`, `pos-app/reviews`. Sebaiknya semua pakai pagination cursor seperti OrdersTodayDialog.
+- **Realtime channel**: beberapa halaman owner subscribe `postgres_changes` tanpa filter `shop_id` → bisa terima event toko lain. Audit semua `.channel(...).on("postgres_changes", ...)` di `pos-app/*`.
+
+---
+
+## 5. Halaman yang sudah OK (sample, untuk konfirmasi)
+
+`pos-app/pos`, `pos-app/menu`, `pos-app/orders`, `pos-app/customers`, `pos-app/inventory`, `pos-app/tables`, `pos-app/table-maps`, `pos-app/website-builder`, `pos-app/marketplace-analytics`, `pos-app/reports/profit`, `pos-app/rekening-bank` (setelah `shop_bank_accounts` dibuat), `pos-app/keuangan*`, `pos-app/kyc`, `pos-app/billing`, `pos-app/staff/employees/permissions/shifts/attendance`, `pos-app/printers`, `pos-app/kds`, semua SimpleCRUD (`testimonials`, `flyers`, `sales-offerings`, `umroh-*`, dll).
+
+---
+
+## Rekomendasi prioritas perbaikan
+
+**P0 — bikin halaman live yang sekarang error / fake:**
+1. `outlets` → wire ke tabel `outlets` (sudah ada).
+2. `email-marketing` → wire ke `marketing_campaigns` + `campaign_recipients`.
+3. `storefront-builder` & `custom-css` → simpan ke `page_layouts` / kolom baru di `shops`.
+4. Rename `booking_waitlists` → `booking_waitlist` (atau sebaliknya) supaya halaman waitlist hidup.
+5. Standardkan `order_status_logs` ↔ `order_audit_log` di `marketplace-orders`.
+
+**P1 — buat tabel yang hilang untuk fitur yang sudah punya UI:**
+- Modul antrian: `queue_entries`, `queue_sessions`.
+- Modul studio: `studio_briefs`, `studio_deliveries`, `studio_photo_reviews`, `studio_addons` (booking_addons).
+- Modul klinik: `medical_invoices`, `anamnesis_forms`.
+- Modul digital: `digital_licenses`, `digital_download_logs`, `digital_product_versions`, `authenticity_certificates`.
+- Modul kreatif: `wip_gallery`, `shop_lookbook`, `project_milestones`, `limited_editions`.
+- Modul promo: `shop_follows`, `happy_hour_rules`, `wa_broadcasts`.
+- Modul rental: `rental_checklists`.
+
+Semua tabel ini perlu RLS standar: pemilik = `shops.owner_id = auth.uid()` atau super_admin.
+
+**P2 — konsolidasi skema duplikat:**
+- Loyalty: pilih satu model (basic vs enhanced) dan migrasi.
+- Reviews: tentukan apakah `buyer_ratings` perlu, atau pakai `product_reviews` saja.
+- Notifikasi: tambah `dismissed_at` ke `notifications` agar konsisten dengan `owner_notifications`.
+
+**P3 — quality-of-life:**
+- Tambah `tsc --noEmit` ke CI agar kasus `useQueryClient` tidak terulang.
+- Audit filter `status=in.(...)` di semua route customer.
+- Tambah filter `shop_id` di setiap channel realtime owner.
+- Migrasikan list besar ke pagination cursor (pola OrdersTodayDialog).
+
+---
+
+Saya tunggu konfirmasi mau ambil prioritas yang mana dulu — P0 (5 fitur live), P1 (bikin tabel batch), atau jalan satu modul utuh (mis. studio / klinik) end-to-end.
