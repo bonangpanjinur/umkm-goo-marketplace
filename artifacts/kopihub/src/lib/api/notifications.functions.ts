@@ -12,6 +12,7 @@ export async function listMyNotifications() {
     .from("notifications" as any)
     .select("id, type, title, body, link, severity, read_at, created_at")
     .eq("recipient_user_id", user.id)
+    .is("read_at", null)
     .order("created_at", { ascending: false })
     .limit(50);
   return data ?? [];
