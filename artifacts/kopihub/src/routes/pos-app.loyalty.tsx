@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
@@ -194,11 +194,18 @@ function LoyaltyPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-      <header>
-        <h1 className="text-2xl font-semibold">Loyalty & Tier</h1>
-        <p className="text-sm text-muted-foreground">
-          Kelola poin, tier member, voucher ulang tahun, dan kadaluarsa poin.
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Loyalty & Tier</h1>
+          <p className="text-sm text-muted-foreground">
+            Kelola poin, tier member, voucher ulang tahun, dan kadaluarsa poin.
+          </p>
+        </div>
+        <Link to="/pos-app/loyalty/rewards">
+          <button className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium hover:bg-accent">
+            <Gift className="h-3.5 w-3.5" /> Tier & Reward
+          </button>
+        </Link>
       </header>
 
       {/* Tabs */}

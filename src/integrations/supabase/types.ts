@@ -4797,6 +4797,71 @@ export type Database = {
           },
         ]
       }
+      loyalty_analytics: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          new_members: number
+          points_issued: number
+          points_redeemed: number
+          referral_signups: number
+          rewards_claimed: number
+          shop_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          new_members?: number
+          points_issued?: number
+          points_redeemed?: number
+          referral_signups?: number
+          rewards_claimed?: number
+          shop_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          new_members?: number
+          points_issued?: number
+          points_redeemed?: number
+          referral_signups?: number
+          rewards_claimed?: number
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_analytics_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_analytics_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_analytics_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops__bootstrap_placeholder"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_analytics_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "v_shop_capabilities"
+            referencedColumns: ["shop_id"]
+          },
+        ]
+      }
       loyalty_ledger: {
         Row: {
           created_at: string
@@ -4863,6 +4928,8 @@ export type Database = {
           fulfilled_at: string | null
           id: string
           notes: string | null
+          order_id: string | null
+          points_redeemed: number | null
           points_used: number
           redeemed_at: string
           reward_id: string | null
@@ -4875,6 +4942,8 @@ export type Database = {
           fulfilled_at?: string | null
           id?: string
           notes?: string | null
+          order_id?: string | null
+          points_redeemed?: number | null
           points_used: number
           redeemed_at?: string
           reward_id?: string | null
@@ -4887,6 +4956,8 @@ export type Database = {
           fulfilled_at?: string | null
           id?: string
           notes?: string | null
+          order_id?: string | null
+          points_redeemed?: number | null
           points_used?: number
           redeemed_at?: string
           reward_id?: string | null
@@ -4895,6 +4966,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "loyalty_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "loyalty_redemptions_reward_id_fkey"
             columns: ["reward_id"]
@@ -4936,44 +5014,65 @@ export type Database = {
         Row: {
           cost_points: number
           created_at: string
+          current_redemptions: number
           description: string | null
           id: string
           image_url: string | null
           is_active: boolean
+          max_redemptions_per_customer: number | null
           name: string
+          points_required: number | null
+          reward_item_id: string | null
           reward_type: string
           reward_value: number | null
           shop_id: string
           stock: number | null
+          total_redemptions_limit: number | null
           updated_at: string
+          valid_from: string | null
+          valid_until: string | null
         }
         Insert: {
           cost_points: number
           created_at?: string
+          current_redemptions?: number
           description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          max_redemptions_per_customer?: number | null
           name: string
+          points_required?: number | null
+          reward_item_id?: string | null
           reward_type?: string
           reward_value?: number | null
           shop_id: string
           stock?: number | null
+          total_redemptions_limit?: number | null
           updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
         }
         Update: {
           cost_points?: number
           created_at?: string
+          current_redemptions?: number
           description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          max_redemptions_per_customer?: number | null
           name?: string
+          points_required?: number | null
+          reward_item_id?: string | null
           reward_type?: string
           reward_value?: number | null
           shop_id?: string
           stock?: number | null
+          total_redemptions_limit?: number | null
           updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
         }
         Relationships: [
           {
@@ -8882,10 +8981,17 @@ export type Database = {
       referral_programs: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           is_active: boolean
+          max_referrals_per_user: number | null
+          min_order_value_for_bonus: number | null
           min_referee_spend: number
           name: string
+          referee_bonus_points: number
+          referee_bonus_rupiah: number
+          referrer_bonus_points: number
+          referrer_bonus_rupiah: number
           reward_referee_cashback: number
           reward_referee_points: number
           reward_referrer_cashback: number
@@ -8895,10 +9001,17 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
+          max_referrals_per_user?: number | null
+          min_order_value_for_bonus?: number | null
           min_referee_spend?: number
           name?: string
+          referee_bonus_points?: number
+          referee_bonus_rupiah?: number
+          referrer_bonus_points?: number
+          referrer_bonus_rupiah?: number
           reward_referee_cashback?: number
           reward_referee_points?: number
           reward_referrer_cashback?: number
@@ -8908,10 +9021,17 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
+          max_referrals_per_user?: number | null
+          min_order_value_for_bonus?: number | null
           min_referee_spend?: number
           name?: string
+          referee_bonus_points?: number
+          referee_bonus_rupiah?: number
+          referrer_bonus_points?: number
+          referrer_bonus_rupiah?: number
           reward_referee_cashback?: number
           reward_referee_points?: number
           reward_referrer_cashback?: number
@@ -8953,12 +9073,15 @@ export type Database = {
       referrals: {
         Row: {
           code: string
+          converted_at: string | null
           created_at: string
           first_order_id: string | null
           id: string
+          program_id: string | null
           qualified_at: string | null
           referee_email: string | null
           referee_user_id: string | null
+          referral_code: string | null
           referrer_user_id: string
           reward_cashback: number
           reward_points: number
@@ -8968,12 +9091,15 @@ export type Database = {
         }
         Insert: {
           code: string
+          converted_at?: string | null
           created_at?: string
           first_order_id?: string | null
           id?: string
+          program_id?: string | null
           qualified_at?: string | null
           referee_email?: string | null
           referee_user_id?: string | null
+          referral_code?: string | null
           referrer_user_id: string
           reward_cashback?: number
           reward_points?: number
@@ -8983,12 +9109,15 @@ export type Database = {
         }
         Update: {
           code?: string
+          converted_at?: string | null
           created_at?: string
           first_order_id?: string | null
           id?: string
+          program_id?: string | null
           qualified_at?: string | null
           referee_email?: string | null
           referee_user_id?: string | null
+          referral_code?: string | null
           referrer_user_id?: string
           reward_cashback?: number
           reward_points?: number
@@ -9002,6 +9131,13 @@ export type Database = {
             columns: ["first_order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "referral_programs"
             referencedColumns: ["id"]
           },
           {

@@ -282,6 +282,7 @@ import { Route as PosAppWebsiteBuilderLayoutIdRouteImport } from './routes/pos-a
 import { Route as PosAppReportsProfitRouteImport } from './routes/pos-app.reports.profit'
 import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.purchase-orders.$poId'
 import { Route as PosAppMenuImportRouteImport } from './routes/pos-app.menu.import'
+import { Route as PosAppLoyaltyRewardsRouteImport } from './routes/pos-app.loyalty.rewards'
 import { Route as PosAppKeuanganTarikRouteImport } from './routes/pos-app.keuangan.tarik'
 import { Route as PesananOrderIdChatRouteImport } from './routes/pesanan.$orderId.chat'
 import { Route as OrderSlugCheckoutRouteImport } from './routes/order.$slug.checkout'
@@ -1682,6 +1683,11 @@ const PosAppMenuImportRoute = PosAppMenuImportRouteImport.update({
   path: '/import',
   getParentRoute: () => PosAppMenuRoute,
 } as any)
+const PosAppLoyaltyRewardsRoute = PosAppLoyaltyRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => PosAppLoyaltyRoute,
+} as any)
 const PosAppKeuanganTarikRoute = PosAppKeuanganTarikRouteImport.update({
   id: '/tarik',
   path: '/tarik',
@@ -1950,7 +1956,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
-  '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/loyalty': typeof PosAppLoyaltyRouteWithChildren
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/medical-invoice': typeof PosAppMedicalInvoiceRoute
@@ -2057,6 +2063,7 @@ export interface FileRoutesByFullPath {
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/loyalty/rewards': typeof PosAppLoyaltyRewardsRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
@@ -2241,7 +2248,7 @@ export interface FileRoutesByTo {
   '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
-  '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/loyalty': typeof PosAppLoyaltyRouteWithChildren
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/medical-invoice': typeof PosAppMedicalInvoiceRoute
@@ -2347,6 +2354,7 @@ export interface FileRoutesByTo {
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/loyalty/rewards': typeof PosAppLoyaltyRewardsRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
@@ -2537,7 +2545,7 @@ export interface FileRoutesById {
   '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
-  '/pos-app/loyalty': typeof PosAppLoyaltyRoute
+  '/pos-app/loyalty': typeof PosAppLoyaltyRouteWithChildren
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
   '/pos-app/marketplace-orders': typeof PosAppMarketplaceOrdersRoute
   '/pos-app/medical-invoice': typeof PosAppMedicalInvoiceRoute
@@ -2644,6 +2652,7 @@ export interface FileRoutesById {
   '/order/$slug/checkout': typeof OrderSlugCheckoutRoute
   '/pesanan/$orderId/chat': typeof PesananOrderIdChatRoute
   '/pos-app/keuangan/tarik': typeof PosAppKeuanganTarikRoute
+  '/pos-app/loyalty/rewards': typeof PosAppLoyaltyRewardsRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
@@ -2942,6 +2951,7 @@ export interface FileRouteTypes {
     | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
     | '/pos-app/keuangan/tarik'
+    | '/pos-app/loyalty/rewards'
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
@@ -3232,6 +3242,7 @@ export interface FileRouteTypes {
     | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
     | '/pos-app/keuangan/tarik'
+    | '/pos-app/loyalty/rewards'
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
@@ -3528,6 +3539,7 @@ export interface FileRouteTypes {
     | '/order/$slug/checkout'
     | '/pesanan/$orderId/chat'
     | '/pos-app/keuangan/tarik'
+    | '/pos-app/loyalty/rewards'
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
     | '/pos-app/reports/profit'
@@ -5514,6 +5526,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppMenuImportRouteImport
       parentRoute: typeof PosAppMenuRoute
     }
+    '/pos-app/loyalty/rewards': {
+      id: '/pos-app/loyalty/rewards'
+      path: '/rewards'
+      fullPath: '/pos-app/loyalty/rewards'
+      preLoaderRoute: typeof PosAppLoyaltyRewardsRouteImport
+      parentRoute: typeof PosAppLoyaltyRoute
+    }
     '/pos-app/keuangan/tarik': {
       id: '/pos-app/keuangan/tarik'
       path: '/tarik'
@@ -5917,6 +5936,18 @@ const PosAppKeuanganRouteWithChildren = PosAppKeuanganRoute._addFileChildren(
   PosAppKeuanganRouteChildren,
 )
 
+interface PosAppLoyaltyRouteChildren {
+  PosAppLoyaltyRewardsRoute: typeof PosAppLoyaltyRewardsRoute
+}
+
+const PosAppLoyaltyRouteChildren: PosAppLoyaltyRouteChildren = {
+  PosAppLoyaltyRewardsRoute: PosAppLoyaltyRewardsRoute,
+}
+
+const PosAppLoyaltyRouteWithChildren = PosAppLoyaltyRoute._addFileChildren(
+  PosAppLoyaltyRouteChildren,
+)
+
 interface PosAppMenuRouteChildren {
   PosAppMenuImportRoute: typeof PosAppMenuImportRoute
 }
@@ -6022,7 +6053,7 @@ interface PosAppRouteChildren {
   PosAppLessonProgressRoute: typeof PosAppLessonProgressRoute
   PosAppLimitedEditionsRoute: typeof PosAppLimitedEditionsRoute
   PosAppLookbookRoute: typeof PosAppLookbookRoute
-  PosAppLoyaltyRoute: typeof PosAppLoyaltyRoute
+  PosAppLoyaltyRoute: typeof PosAppLoyaltyRouteWithChildren
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
   PosAppMarketplaceOrdersRoute: typeof PosAppMarketplaceOrdersRoute
   PosAppMedicalInvoiceRoute: typeof PosAppMedicalInvoiceRoute
@@ -6167,7 +6198,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppLessonProgressRoute: PosAppLessonProgressRoute,
   PosAppLimitedEditionsRoute: PosAppLimitedEditionsRoute,
   PosAppLookbookRoute: PosAppLookbookRoute,
-  PosAppLoyaltyRoute: PosAppLoyaltyRoute,
+  PosAppLoyaltyRoute: PosAppLoyaltyRouteWithChildren,
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
   PosAppMarketplaceOrdersRoute: PosAppMarketplaceOrdersRoute,
   PosAppMedicalInvoiceRoute: PosAppMedicalInvoiceRoute,
