@@ -68,6 +68,10 @@ export function useNotifications() {
         patchCache((prev) => prev.map((n) => (n.id === msg.id ? { ...n, read_at: msg.read_at } : n)));
       } else if (msg.kind === "read_all") {
         patchCache((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? msg.read_at })));
+      } else if (msg.kind === "dismiss_one") {
+        patchCache((prev) => prev.filter((n) => n.id !== msg.id));
+      } else if (msg.kind === "dismiss_all") {
+        patchCache(() => []);
       }
     };
 
@@ -85,8 +89,12 @@ export function useNotifications() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "notifications", filter: `recipient_user_id=eq.${user.id}` },
         (payload) => {
-          const n = payload.new as Notification;
-          patchCache((prev) => prev.map((x) => (x.id === n.id ? { ...x, ...n } : x)));
+          const n = payload.new as Notification & { dismissed_at?: string | null };
+          if (n.dismissed_at) {
+            patchCache((prev) => prev.filter((x) => x.id !== n.id));
+          } else {
+            patchCache((prev) => prev.map((x) => (x.id === n.id ? { ...x, ...n } : x)));
+          }
         },
       )
       .subscribe();
@@ -115,7 +123,32 @@ export function useNotifications() {
     await supabase.rpc("mark_all_notifications_read");
   }, [patchCache]);
 
+  const dismissOne = useCallback(
+    async (id: string) => {
+      patchCache((prev) => prev.filter((n) => n.id !== id));
+      bcRef.current?.postMessage({ kind: "dismiss_one", id } as BroadcastMsg);
+      const now = new Date().toISOString();
+      await supabase
+        .from("notifications")
+        .update({ read_at: now, dismissed_at: now } as any)
+        .eq("id", id);
+    },
+    [patchCache],
+  );
+
+  const dismissAll = useCallback(async () => {
+    if (!user) return;
+    patchCache(() => []);
+    bcRef.current?.postMessage({ kind: "dismiss_all" } as BroadcastMsg);
+    const now = new Date().toISOString();
+    await supabase
+      .from("notifications")
+      .update({ read_at: now, dismissed_at: now } as any)
+      .eq("recipient_user_id", user.id)
+      .is("dismissed_at" as any, null);
+  }, [patchCache, user]);
+
   const unreadCount = items.filter((n) => !n.read_at).length;
 
-  return { items, loading, unreadCount, markOne, markAll, refresh: refetch };
+  return { items, loading, unreadCount, markOne, markAll, dismissOne, dismissAll, refresh: refetch };
 }
