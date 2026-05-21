@@ -5984,6 +5984,7 @@ export type Database = {
           body: string | null
           created_at: string
           dedupe_key: string | null
+          dismissed_at: string | null
           id: string
           link: string | null
           read_at: string | null
@@ -5997,6 +5998,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           dedupe_key?: string | null
+          dismissed_at?: string | null
           id?: string
           link?: string | null
           read_at?: string | null
@@ -6010,6 +6012,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           dedupe_key?: string | null
+          dismissed_at?: string | null
           id?: string
           link?: string | null
           read_at?: string | null
