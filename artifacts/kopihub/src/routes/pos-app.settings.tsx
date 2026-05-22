@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Upload, Trash2, Store, Phone, MapPin, Clock, Share2, Save, Image as ImageIcon, QrCode, CreditCard, Receipt as ReceiptIcon, Bell, MessageSquare, Printer, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { ShopLocationPicker } from "@/components/ShopLocationPicker";
 
 export const Route = createFileRoute("/pos-app/settings")({
   component: SettingsPage,
