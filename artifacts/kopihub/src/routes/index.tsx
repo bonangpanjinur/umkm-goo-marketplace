@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Sparkles, Store, ShieldCheck, Zap, TrendingUp, Star,
   ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
-  Plus, Flame, BadgeCheck, Heart, Loader2,
+  Plus, Flame, BadgeCheck, Heart, Loader2, Navigation,
 } from "lucide-react";
 
 function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
