@@ -43,9 +43,6 @@ export const Route = createFileRoute("/pos-app/antrian")({
   component: AntreanPage,
 });
 
-const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor untuk mengaktifkan F-18:
--- Lihat file: supabase/migrations/f18_digital_queue.sql`;
-
 type QueueSession = {
   id: string;
   shop_id: string;
@@ -91,10 +88,7 @@ function AntreanPage() {
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [showSetup, setShowSetup] = useState(false);
-  const [dbReady, setDbReady] = useState(true);
-
-  // Dialog: mulai sesi
+// Dialog: mulai sesi
   const [showStartDialog, setShowStartDialog] = useState(false);
   const [avgMinutes, setAvgMinutes] = useState("10");
   const [sessionLabel, setSessionLabel] = useState("");
@@ -122,20 +116,17 @@ function AntreanPage() {
         .maybeSingle();
 
       if (error?.code === "42P01") {
-        setDbReady(false);
-        setLoading(false);
+setLoading(false);
         return;
       }
-      setDbReady(true);
-      setSession(data ?? null);
+setSession(data ?? null);
       if (data) {
         await loadEntries(data.id);
       } else {
         setEntries([]);
       }
     } catch {
-      setDbReady(false);
-    } finally {
+} finally {
       setLoading(false);
     }
   }
@@ -305,32 +296,6 @@ function AntreanPage() {
     return (
       <div className="p-8 flex items-center gap-2 text-gray-400">
         <Loader2 className="w-5 h-5 animate-spin" /> Memuat data antrian...
-      </div>
-    );
-  }
-
-  if (!dbReady) {
-    return (
-      <div className="p-8 max-w-2xl mx-auto space-y-4">
-        <div className="flex items-center gap-3">
-          <Hash className="w-7 h-7 text-amber-600" />
-          <h1 className="text-2xl font-bold">Antrean Digital</h1>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3">
-          <p className="font-semibold text-amber-800">Setup database diperlukan</p>
-          <p className="text-sm text-amber-700">
-            Tabel antrian belum ada. Jalankan SQL berikut di Supabase Dashboard → SQL Editor:
-          </p>
-          <Button variant="outline" size="sm" onClick={() => setShowSetup(!showSetup)}>
-            {showSetup ? "Sembunyikan" : "Lihat SQL Setup"}
-          </Button>
-          {showSetup && (
-            <pre className="bg-white border rounded p-3 text-xs overflow-auto">{SETUP_SQL}</pre>
-          )}
-          <Button size="sm" onClick={() => { setDbReady(true); setLoading(true); loadSession(); }}>
-            <RefreshCcw className="w-4 h-4 mr-1" /> Coba Lagi
-          </Button>
-        </div>
       </div>
     );
   }

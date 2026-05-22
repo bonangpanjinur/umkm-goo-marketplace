@@ -48,8 +48,7 @@ function CashbackPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [txns, setTxns] = useState<Txn[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tablesMissing, setTablesMissing] = useState(false);
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -83,25 +82,6 @@ function CashbackPage() {
   }
 
   if (loading) return <div className="text-sm text-muted-foreground py-10 text-center">Memuat…</div>;
-
-  if (tablesMissing) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Cashback Wallet</h2>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-semibold text-sm">
-            <Info className="h-4 w-4 shrink-0" /> Tabel belum dibuat
-          </div>
-          <p className="text-sm text-muted-foreground">Jalankan SQL berikut di Supabase SQL Editor untuk mengaktifkan fitur Cashback Wallet.</p>
-          <pre className="text-xs bg-muted rounded-lg p-3 overflow-auto max-h-64 select-all">{CASHBACK_SQL}</pre>
-          <Button size="sm" variant="outline" onClick={copySQL} className="gap-2">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Disalin" : "Salin SQL"}
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const balance = wallet?.balance ?? 0;
   const earned = wallet?.total_earned ?? 0;

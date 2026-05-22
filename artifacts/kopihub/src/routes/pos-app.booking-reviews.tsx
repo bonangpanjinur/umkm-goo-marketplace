@@ -380,13 +380,7 @@ for (const r of (reviewRes.data ?? []) as any[]) {
         </Button>
       </div>
 
-      {tableExists === false && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 space-y-2">
-          <p className="font-medium">Tabel ulasan belum dibuat</p>
-          <p>Jalankan SQL DDL di komentar file <code>pos-app.booking-reviews.tsx</code> di Supabase SQL Editor untuk mengaktifkan fitur ulasan booking.</p>
-        </div>
-      )}
-
+      
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border bg-card px-4 py-3">

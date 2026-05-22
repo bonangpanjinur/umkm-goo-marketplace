@@ -117,7 +117,7 @@ function RentalTncPage() {
 
     if (error?.message?.includes("column") || error?.message?.includes("does not exist")) {
       setTablesMissing(true);
-      toast.error("Kolom belum tersedia. Jalankan SQL setup dulu.");
+      toast.error("Kolom belum tersedia.");
     } else if (error) {
       toast.error(error.message);
     } else {

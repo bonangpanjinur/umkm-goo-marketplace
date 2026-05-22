@@ -150,7 +150,7 @@ function DigitalVersionPage() {
 
     if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
       setTablesMissing(true);
-      toast.error("Tabel belum tersedia. Jalankan SQL setup dulu.");
+      toast.error("Tabel belum tersedia.");
     } else if (error) {
       toast.error(error.message);
     } else {

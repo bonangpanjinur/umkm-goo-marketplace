@@ -176,7 +176,7 @@ function BroadcastWAPage() {
   }
 
   async function saveBroadcastHistory(sentCnt: number) {
-    if (!shop?.id || historyExists === false) return;
+    if (!shop?.id || false) return;
     const segDef = SEGMENT_DEFS.find(s => s.value === segment);
     await (supabase as any).from("wa_broadcasts").insert({
       shop_id: shop.id,
@@ -507,7 +507,7 @@ function BroadcastWAPage() {
         <div className="space-y-4 max-w-2xl">
           {!historyLoaded
             ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Memuat riwayat…</div>
-            : historyExists === false
+            : false
             ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
                 <p className="text-sm font-medium text-amber-800">Tabel wa_broadcasts belum ada. Jalankan SQL ini untuk menyimpan riwayat broadcast:</p>

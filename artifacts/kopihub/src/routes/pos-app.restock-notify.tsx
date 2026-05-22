@@ -37,28 +37,6 @@ export const Route = createFileRoute("/pos-app/restock-notify")({
   component: RestockNotifyPage,
 });
 
-const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor:
-create table if not exists public.restock_subscribers (
-  id            uuid        primary key default gen_random_uuid(),
-  shop_id       uuid        not null references public.shops(id) on delete cascade,
-  product_id    uuid        not null references public.menu_items(id)   on delete cascade,
-  product_name  text        not null,
-  customer_wa   text        not null,
-  customer_name text,
-  subscribed_at timestamptz not null default now(),
-  notified_at   timestamptz,
-  unique (product_id, customer_wa)
-);
-alter table public.restock_subscribers enable row level security;
-create policy "restock_sub_insert_anyone" on public.restock_subscribers
-  for insert with check (true);
-create policy "restock_sub_owner_select" on public.restock_subscribers
-  for select using (shop_id in (select id from public.shops where owner_id = auth.uid()));
-create policy "restock_sub_owner_update" on public.restock_subscribers
-  for update using (shop_id in (select id from public.shops where owner_id = auth.uid()));
-create policy "restock_sub_owner_delete" on public.restock_subscribers
-  for delete using (shop_id in (select id from public.shops where owner_id = auth.uid()));`;
-
 type Subscriber = {
   id: string;
   product_id: string;
