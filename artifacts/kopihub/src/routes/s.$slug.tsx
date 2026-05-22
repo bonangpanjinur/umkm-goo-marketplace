@@ -11,7 +11,7 @@ async function fetchShopForStorefront(slug: string) {
   const { data: shop } = await supabase
     .from("shops")
     .select(
-      "id, name, slug, description, tagline, logo_url, address, phone, whatsapp, open_hours, custom_domain, custom_domain_verified_at, is_active, business_subtype, business_category:business_categories(slug)",
+      "id, name, slug, description, tagline, logo_url, address, phone, whatsapp, open_hours, custom_domain, custom_domain_verified_at, is_active, business_subtype, custom_css, business_category:business_categories(slug)",
     )
     .eq("slug", slug)
     .maybeSingle();
