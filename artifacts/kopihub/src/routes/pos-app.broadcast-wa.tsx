@@ -507,25 +507,6 @@ function BroadcastWAPage() {
         <div className="space-y-4 max-w-2xl">
           {!historyLoaded
             ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Memuat riwayat…</div>
-            : false
-            ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-                <p className="text-sm font-medium text-amber-800">Tabel wa_broadcasts belum ada. Jalankan SQL ini untuk menyimpan riwayat broadcast:</p>
-                {!showHistorySql
-                  ? <Button size="sm" variant="outline" onClick={() => setShowHistorySql(true)}>Tampilkan SQL</Button>
-                  : (
-                    <>
-                      <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{HISTORY_SQL}</pre>
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => {
-                        navigator.clipboard.writeText(HISTORY_SQL);
-                        setCopiedSql(true); setTimeout(() => setCopiedSql(false), 2000);
-                      }}>
-                        {copiedSql ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-                      </Button>
-                    </>
-                  )}
-              </div>
-            )
             : history.length === 0
             ? (
               <div className="rounded-xl border border-dashed border-border p-12 text-center">

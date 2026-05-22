@@ -26,22 +26,6 @@ export const Route = createFileRoute("/pos-app/digital-version")({
   component: DigitalVersionPage,
 });
 
-const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor:
-CREATE TABLE IF NOT EXISTS public.digital_product_versions (
-  id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id       uuid        NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  product_id    uuid        NOT NULL REFERENCES public.menu_items(id) ON DELETE CASCADE,
-  product_name  text        NOT NULL,
-  version       text        NOT NULL,
-  changelog     text,
-  file_url      text,
-  created_at    timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_dpv_product ON public.digital_product_versions(product_id, created_at DESC);
-ALTER TABLE public.digital_product_versions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "merchant_own_dpv" ON public.digital_product_versions
-  USING (shop_id = (SELECT id FROM shops WHERE owner_id = auth.uid() LIMIT 1));`;
-
 type DigitalProduct = {
   id: string;
   name: string;
@@ -69,8 +53,7 @@ function DigitalVersionPage() {
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [versions, setVersions] = useState<VersionEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tablesMissing, setTablesMissing] = useState(false);
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string>("");
@@ -103,8 +86,7 @@ function DigitalVersionPage() {
       .limit(100) as any;
 
     if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-      setTablesMissing(true);
-    } else {
+} else {
       setVersions((vers ?? []) as VersionEntry[]);
     }
     setLoading(false);
@@ -149,8 +131,7 @@ function DigitalVersionPage() {
       });
 
     if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-      setTablesMissing(true);
-      toast.error("Tabel belum tersedia.");
+toast.error("Tabel belum tersedia.");
     } else if (error) {
       toast.error(error.message);
     } else {
@@ -171,12 +152,7 @@ function DigitalVersionPage() {
     );
     setNotifying(null);
   }
-
-  function copySQL() {
-    navigator.clipboard.writeText(SETUP_SQL).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+);
   }
 
   const byProduct: Record<string, VersionEntry[]> = {};
@@ -210,21 +186,8 @@ function DigitalVersionPage() {
         </Button>
       </div>
 
-      {tablesMissing && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold">
-            <AlertTriangle className="h-4 w-4" />
-            Tabel belum tersedia — jalankan SQL ini sekali di Supabase SQL Editor
-          </div>
-          <pre className="text-xs font-mono bg-amber-100 dark:bg-amber-900/40 rounded-md p-3 overflow-x-auto text-amber-900 dark:text-amber-200 select-all whitespace-pre-wrap">{SETUP_SQL}</pre>
-          <Button size="sm" variant="outline" onClick={copySQL} className="gap-2">
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? "Tersalin!" : "Salin SQL"}
-          </Button>
-        </div>
-      )}
-
-      {products.length === 0 && !tablesMissing && (
+      
+      {products.length === 0  && (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <Package className="h-10 w-10 mx-auto mb-3 opacity-40" />
@@ -234,7 +197,7 @@ function DigitalVersionPage() {
         </Card>
       )}
 
-      {Object.keys(byProduct).length === 0 && products.length > 0 && !tablesMissing && (
+      {Object.keys(byProduct).length === 0 && products.length > 0  && (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <History className="h-10 w-10 mx-auto mb-3 opacity-40" />

@@ -72,13 +72,7 @@ const [copied, setCopied] = useState(false);
       setLoading(false);
     })();
   }, [user]);
-
-  function copySQL() {
-    navigator.clipboard.writeText(CASHBACK_SQL).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.success("SQL disalin");
-    });
+);
   }
 
   if (loading) return <div className="text-sm text-muted-foreground py-10 text-center">Memuat…</div>;
