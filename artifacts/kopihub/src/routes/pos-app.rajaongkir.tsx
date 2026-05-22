@@ -31,19 +31,9 @@ type RateResult = {
   description: string;
   cost: number;
   etd: string;
-  logo: string;
 };
 
-const DEMO_RESULTS: RateResult[] = [
-  { courier: "JNE",          service: "OKE",  description: "Ongkos Kirim Ekonomis", cost: 12000, etd: "4-5 hari", logo: "📦" },
-  { courier: "JNE",          service: "REG",  description: "Layanan Reguler",       cost: 16000, etd: "2-3 hari", logo: "📦" },
-  { courier: "JNE",          service: "YES",  description: "Yakin Esok Sampai",     cost: 38000, etd: "1 hari",   logo: "📦" },
-  { courier: "SiCepat",      service: "HALU", description: "Harga Murah",           cost: 11000, etd: "4-5 hari", logo: "⚡" },
-  { courier: "SiCepat",      service: "BEST", description: "Besok Sampai",          cost: 25000, etd: "1 hari",   logo: "⚡" },
-  { courier: "J&T Express",  service: "EZ",   description: "Reguler",               cost: 14000, etd: "2-3 hari", logo: "🚚" },
-  { courier: "TIKI",         service: "ECO",  description: "Economy",               cost: 13000, etd: "4-6 hari", logo: "📫" },
-  { courier: "TIKI",         service: "ONS",  description: "Overnight Service",     cost: 29000, etd: "1 hari",   logo: "📫" },
-];
+type CityMatch = { id: string; name: string; province: string };
 
 const PROVIDER = "rajaongkir";
 
