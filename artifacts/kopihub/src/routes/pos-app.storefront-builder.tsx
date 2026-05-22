@@ -50,8 +50,42 @@ export default function StorefrontBuilderPage() {
   const { shop } = useCurrentShop();
   const [sections, setSections] = useState<Section[]>(defaultSections);
   const [selected, setSelected] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [layoutId, setLayoutId] = useState<string | null>(null);
+  const [published, setPublished] = useState(false);
+
+  useEffect(() => {
+    if (!shop?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("storefront_layouts")
+        .select("id, blocks, is_published")
+        .eq("shop_id", shop.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) { toast.error(error.message); setLoaded(true); return; }
+      if (data) {
+        setLayoutId((data as any).id);
+        setPublished(!!(data as any).is_published);
+        const blocks = (data as any).blocks;
+        if (Array.isArray(blocks) && blocks.length) {
+          setSections(blocks as Section[]);
+          // reseed counter
+          blocks.forEach((b: any) => {
+            const m = /^s(\d+)$/.exec(String(b?.id || ""));
+            if (m) _id = Math.max(_id, Number(m[1]) + 1);
+          });
+        }
+      }
+      setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [shop?.id]);
 
   function addSection(type: SectionType) {
     const tmpl = SECTION_TEMPLATES.find(t => t.type === type)!;
@@ -79,11 +113,27 @@ export default function StorefrontBuilderPage() {
     setSections(s => s.map(x => x.id === id ? { ...x, ...patch } : x));
   }
 
-  async function save() {
+  async function save(publish = false) {
+    if (!shop?.id) { toast.error("Toko belum siap"); return; }
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
+    const payload = {
+      shop_id: shop.id,
+      blocks: sections as any,
+      is_published: publish || published,
+    };
+    let res;
+    if (layoutId) {
+      res = await supabase.from("storefront_layouts").update(payload).eq("id", layoutId).select("id, is_published").maybeSingle();
+    } else {
+      res = await supabase.from("storefront_layouts").insert(payload).select("id, is_published").maybeSingle();
+    }
     setSaving(false);
-    toast.success("Layout storefront disimpan");
+    if (res.error) { toast.error(res.error.message); return; }
+    if (res.data) {
+      setLayoutId((res.data as any).id);
+      setPublished(!!(res.data as any).is_published);
+    }
+    toast.success(publish ? "Layout dipublikasikan" : "Layout tersimpan");
   }
 
   const sel = sections.find(s => s.id === selected);
