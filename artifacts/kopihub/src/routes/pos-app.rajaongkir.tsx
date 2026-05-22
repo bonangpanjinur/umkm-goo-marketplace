@@ -71,6 +71,9 @@ function RajaOngkirPage() {
   const [destCity, setDestCity] = useState("");
   const [weight, setWeight] = useState("1000");
   const [results, setResults] = useState<RateResult[]>([]);
+  const [originMatch, setOriginMatch] = useState<CityMatch | null>(null);
+  const [destMatch, setDestMatch] = useState<CityMatch | null>(null);
+  const [unsupportedCouriers, setUnsupportedCouriers] = useState<string[]>([]);
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
 
