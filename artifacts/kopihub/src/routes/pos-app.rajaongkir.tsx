@@ -165,14 +165,57 @@ function RajaOngkirPage() {
   }
 
   async function checkRates() {
+    if (!shop?.id) { toast.error("Toko belum dimuat"); return; }
+    if (!hasKey) { toast.error("API key RajaOngkir belum dikonfigurasi"); return; }
     if (!originCity.trim() || !destCity.trim()) { toast.error("Isi kota asal & tujuan"); return; }
+    const w = Math.max(1, Math.min(150000, Number(weight) || 1000));
+
     setChecking(true);
-    // TODO: integrasikan ke server fn /api/shipping/cost yang memanggil RajaOngkir
-    // memakai api_key dari shop_api_keys. Untuk sekarang, hasil demo.
-    await new Promise(r => setTimeout(r, 800));
-    setResults(DEMO_RESULTS);
-    setChecked(true);
-    setChecking(false);
+    setChecked(false);
+    setResults([]);
+    setOriginMatch(null);
+    setDestMatch(null);
+    setUnsupportedCouriers([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("shipping-cost", {
+        body: {
+          shop_id: shop.id,
+          origin: originCity.trim(),
+          destination: destCity.trim(),
+          weight: w,
+          couriers: selectedCouriers,
+        },
+      });
+      if (error) {
+        // Coba ekstrak pesan dari response body (FunctionsHttpError membungkus Response)
+        let msg = error.message;
+        const ctx: any = (error as any).context;
+        if (ctx && typeof ctx.json === "function") {
+          try { const body = await ctx.json(); if (body?.error) msg = body.error; } catch {}
+        }
+        toast.error(msg || "Gagal cek ongkir");
+        return;
+      }
+      const res = data as {
+        results?: RateResult[];
+        origin_match?: CityMatch;
+        destination_match?: CityMatch;
+        unsupported_couriers?: string[];
+      };
+      setResults(Array.isArray(res?.results) ? res.results : []);
+      setOriginMatch(res?.origin_match ?? null);
+      setDestMatch(res?.destination_match ?? null);
+      setUnsupportedCouriers(res?.unsupported_couriers ?? []);
+      setChecked(true);
+      if (!res?.results || res.results.length === 0) {
+        toast.warning("Tidak ada hasil tarif untuk rute & kurir ini");
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "Gagal cek ongkir");
+    } finally {
+      setChecking(false);
+    }
   }
 
   const sorted = [...results].sort((a, b) => a.cost - b.cost);
