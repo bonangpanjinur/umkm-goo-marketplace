@@ -14,6 +14,7 @@ import { ShieldCheck } from "lucide-react";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
 import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
+import { NearbyShopsSection } from "@/components/marketplace/NearbyShopsSection";
 import {
   AlertDialog,
   AlertDialogContent,
