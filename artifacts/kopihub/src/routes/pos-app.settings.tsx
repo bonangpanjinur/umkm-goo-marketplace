@@ -80,6 +80,9 @@ type ShopRow = {
   deposit_enabled: boolean;
   deposit_percentage: number;
   deposit_min_total: number;
+  latitude: number | null;
+  longitude: number | null;
+  google_maps_url: string | null;
 };
 
 function SettingsPage() {
