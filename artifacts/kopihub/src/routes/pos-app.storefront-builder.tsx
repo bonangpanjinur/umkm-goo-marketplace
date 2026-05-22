@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TampilanTabs } from "@/components/TampilanTabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  LayoutTemplate, Plus, Trash2, GripVertical, Image, Type, Star, Package, Tag, ChevronUp, ChevronDown, Eye
+  LayoutTemplate, Plus, Trash2, GripVertical, Image, Type, Star, Package, Tag, ChevronUp, ChevronDown, Eye, Loader2
 } from "lucide-react";
 import { useCurrentShop } from "@/lib/use-shop";
 import { UploadableImage } from "@/components/UploadableImage";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pos-app/storefront-builder")({ component: StorefrontBuilderPage });
 
