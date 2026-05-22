@@ -239,6 +239,7 @@ function CategoryPage() {
         <NearbyShopsSection
           categoryId={cat?.id ?? null}
           title={`Toko ${cat?.name ?? ""} di sekitar saya`.trim()}
+          persistInUrl
         />
         <h2 className="mb-4 text-xl font-bold tracking-tight">Toko di kategori ini</h2>
         {loading ? (
