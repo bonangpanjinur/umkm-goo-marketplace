@@ -242,6 +242,9 @@ function SettingsPage() {
         deposit_enabled: form.deposit_enabled,
         deposit_percentage: form.deposit_percentage,
         deposit_min_total: form.deposit_min_total,
+        latitude: form.latitude,
+        longitude: form.longitude,
+        google_maps_url: form.google_maps_url,
       } as never)
       .eq("id", shop.id);
     setSaving(false);
