@@ -8,8 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, RefreshCw } from "lucide-react";
+import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, RefreshCw, List, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
+import { NearbyShopsMap } from "@/components/marketplace/NearbyShopsMap";
 
 export const Route = createFileRoute("/sekitar")({ component: NearbyPage });
 
@@ -42,6 +43,7 @@ export default function NearbyPage() {
   const [radius, setRadius] = useState<number>(5);
   const [shops, setShops] = useState<NearbyShop[]>([]);
   const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<"list" | "map">("list");
 
   function locate(silent = false) {
     if (!navigator.geolocation) {
@@ -146,12 +148,32 @@ export default function NearbyPage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-4 py-6">
+        {coords && shops.length > 0 && (
+          <div className="mb-4 flex justify-end">
+            <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-xs">
+              <button
+                onClick={() => setView("list")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <List className="h-3.5 w-3.5" /> Daftar
+              </button>
+              <button
+                onClick={() => setView("map")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${view === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <MapIcon className="h-3.5 w-3.5" /> Peta
+              </button>
+            </div>
+          </div>
+        )}
         {!coords ? (
           <Card className="p-8 text-center">
             <Navigation className="mx-auto h-10 w-10 text-muted-foreground/60" />
             <p className="mt-3 font-semibold">Aktifkan GPS untuk mulai mencari</p>
             <p className="mt-1 text-sm text-muted-foreground">Kami hanya memakai lokasi Anda untuk mencari toko terdekat.</p>
           </Card>
+        ) : view === "map" && shops.length > 0 ? (
+          <NearbyShopsMap center={coords} shops={shops} radiusKm={radius} height={520} />
         ) : loading ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
