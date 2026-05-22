@@ -124,6 +124,9 @@ function SettingsPage() {
           deposit_enabled: Boolean((data as any).deposit_enabled ?? false),
           deposit_percentage: Number((data as any).deposit_percentage ?? 30),
           deposit_min_total: Number((data as any).deposit_min_total ?? 0),
+          latitude: (data as any).latitude != null ? Number((data as any).latitude) : null,
+          longitude: (data as any).longitude != null ? Number((data as any).longitude) : null,
+          google_maps_url: (data as any).google_maps_url ?? null,
         } as ShopRow);
       }
       setLoading(false);
