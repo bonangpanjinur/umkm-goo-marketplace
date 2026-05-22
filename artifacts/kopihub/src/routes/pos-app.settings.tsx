@@ -341,10 +341,29 @@ function SettingsPage() {
         </div>
       </Section>
 
-      {/* Alamat */}
-      <Section icon={MapPin} title="Alamat" desc="Lokasi fisik toko.">
-        <Textarea rows={2} value={form.address ?? ""}
-          onChange={(e) => update("address", e.target.value)} placeholder="Jl. Contoh No. 123, Kota..." />
+      {/* Alamat & Lokasi */}
+      <Section icon={MapPin} title="Alamat & Lokasi" desc="Alamat tertulis + pin di peta agar muncul di pencarian 'Toko di sekitar saya'.">
+        <div className="space-y-4">
+          <Textarea rows={2} value={form.address ?? ""}
+            onChange={(e) => update("address", e.target.value)} placeholder="Jl. Contoh No. 123, Kota..." />
+          <ShopLocationPicker
+            latitude={form.latitude}
+            longitude={form.longitude}
+            address={form.address}
+            onChange={({ latitude, longitude }) => {
+              setForm((f) => f ? { ...f, latitude, longitude } : f);
+            }}
+          />
+          <div>
+            <Label className="text-xs">Link Google Maps (opsional)</Label>
+            <Input
+              placeholder="https://maps.app.goo.gl/..."
+              value={form.google_maps_url ?? ""}
+              onChange={(e) => update("google_maps_url", e.target.value || null)}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Bila diisi, tombol "Petunjuk Arah" akan memakai link ini.</p>
+          </div>
+        </div>
       </Section>
 
       {/* Jam operasional */}
