@@ -31,19 +31,9 @@ type RateResult = {
   description: string;
   cost: number;
   etd: string;
-  logo: string;
 };
 
-const DEMO_RESULTS: RateResult[] = [
-  { courier: "JNE",          service: "OKE",  description: "Ongkos Kirim Ekonomis", cost: 12000, etd: "4-5 hari", logo: "📦" },
-  { courier: "JNE",          service: "REG",  description: "Layanan Reguler",       cost: 16000, etd: "2-3 hari", logo: "📦" },
-  { courier: "JNE",          service: "YES",  description: "Yakin Esok Sampai",     cost: 38000, etd: "1 hari",   logo: "📦" },
-  { courier: "SiCepat",      service: "HALU", description: "Harga Murah",           cost: 11000, etd: "4-5 hari", logo: "⚡" },
-  { courier: "SiCepat",      service: "BEST", description: "Besok Sampai",          cost: 25000, etd: "1 hari",   logo: "⚡" },
-  { courier: "J&T Express",  service: "EZ",   description: "Reguler",               cost: 14000, etd: "2-3 hari", logo: "🚚" },
-  { courier: "TIKI",         service: "ECO",  description: "Economy",               cost: 13000, etd: "4-6 hari", logo: "📫" },
-  { courier: "TIKI",         service: "ONS",  description: "Overnight Service",     cost: 29000, etd: "1 hari",   logo: "📫" },
-];
+type CityMatch = { id: string; name: string; province: string };
 
 const PROVIDER = "rajaongkir";
 
@@ -81,6 +71,9 @@ function RajaOngkirPage() {
   const [destCity, setDestCity] = useState("");
   const [weight, setWeight] = useState("1000");
   const [results, setResults] = useState<RateResult[]>([]);
+  const [originMatch, setOriginMatch] = useState<CityMatch | null>(null);
+  const [destMatch, setDestMatch] = useState<CityMatch | null>(null);
+  const [unsupportedCouriers, setUnsupportedCouriers] = useState<string[]>([]);
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -172,14 +165,57 @@ function RajaOngkirPage() {
   }
 
   async function checkRates() {
+    if (!shop?.id) { toast.error("Toko belum dimuat"); return; }
+    if (!hasKey) { toast.error("API key RajaOngkir belum dikonfigurasi"); return; }
     if (!originCity.trim() || !destCity.trim()) { toast.error("Isi kota asal & tujuan"); return; }
+    const w = Math.max(1, Math.min(150000, Number(weight) || 1000));
+
     setChecking(true);
-    // TODO: integrasikan ke server fn /api/shipping/cost yang memanggil RajaOngkir
-    // memakai api_key dari shop_api_keys. Untuk sekarang, hasil demo.
-    await new Promise(r => setTimeout(r, 800));
-    setResults(DEMO_RESULTS);
-    setChecked(true);
-    setChecking(false);
+    setChecked(false);
+    setResults([]);
+    setOriginMatch(null);
+    setDestMatch(null);
+    setUnsupportedCouriers([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("shipping-cost", {
+        body: {
+          shop_id: shop.id,
+          origin: originCity.trim(),
+          destination: destCity.trim(),
+          weight: w,
+          couriers: selectedCouriers,
+        },
+      });
+      if (error) {
+        // Coba ekstrak pesan dari response body (FunctionsHttpError membungkus Response)
+        let msg = error.message;
+        const ctx: any = (error as any).context;
+        if (ctx && typeof ctx.json === "function") {
+          try { const body = await ctx.json(); if (body?.error) msg = body.error; } catch {}
+        }
+        toast.error(msg || "Gagal cek ongkir");
+        return;
+      }
+      const res = data as {
+        results?: RateResult[];
+        origin_match?: CityMatch;
+        destination_match?: CityMatch;
+        unsupported_couriers?: string[];
+      };
+      setResults(Array.isArray(res?.results) ? res.results : []);
+      setOriginMatch(res?.origin_match ?? null);
+      setDestMatch(res?.destination_match ?? null);
+      setUnsupportedCouriers(res?.unsupported_couriers ?? []);
+      setChecked(true);
+      if (!res?.results || res.results.length === 0) {
+        toast.warning("Tidak ada hasil tarif untuk rute & kurir ini");
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "Gagal cek ongkir");
+    } finally {
+      setChecking(false);
+    }
   }
 
   const sorted = [...results].sort((a, b) => a.cost - b.cost);
@@ -388,16 +424,31 @@ function RajaOngkirPage() {
 
           {checked && (
             <>
+              {(originMatch || destMatch) && (
+                <div className="rounded-lg bg-muted/40 border border-border px-3 py-2 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+                  {originMatch && <span><b>Asal:</b> {originMatch.name}, {originMatch.province}</span>}
+                  {destMatch && <span><b>Tujuan:</b> {destMatch.name}, {destMatch.province}</span>}
+                </div>
+              )}
+              {unsupportedCouriers.length > 0 && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                  Kurir <b>{unsupportedCouriers.join(", ").toUpperCase()}</b> tidak didukung di tier <b>Starter</b> RajaOngkir (hanya JNE, POS, TIKI). Upgrade ke tier Pro untuk akses kurir lain.
+                </div>
+              )}
               {cheapest && (
                 <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   Ongkir termurah: <strong>{cheapest.courier} {cheapest.service}</strong> — {formatIDR(cheapest.cost)} ({cheapest.etd})
                 </div>
               )}
+              {results.length === 0 && (
+                <Card className="p-6 text-center text-sm text-muted-foreground">
+                  Tidak ada tarif untuk rute & kurir ini.
+                </Card>
+              )}
               <div className="space-y-2">
                 {sorted.map((r, i) => (
                   <Card key={i} className="flex items-center gap-4 p-3">
-                    <span className="text-2xl shrink-0">{r.logo}</span>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">{r.courier} <span className="text-primary">{r.service}</span></p>
                       <p className="text-xs text-muted-foreground">{r.description}</p>
