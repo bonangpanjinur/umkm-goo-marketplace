@@ -7,9 +7,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Building2, Plus, MapPin, Phone, CheckCircle2, AlertCircle, Loader2, Trash2 } from "lucide-react";
+import { Building2, Plus, MapPin, Phone, CheckCircle2, AlertCircle, Loader2, Trash2, MapPinned } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useShop } from "@/lib/use-shop";
+import { ShopLocationPicker } from "@/components/ShopLocationPicker";
 
 export const Route = createFileRoute("/pos-app/outlets")({ component: OutletsPage });
 
@@ -22,6 +23,8 @@ type Outlet = {
   timezone: string;
   is_active: boolean;
   created_at: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export default function OutletsPage() {
@@ -29,19 +32,20 @@ export default function OutletsPage() {
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "", phone: "" });
+  const [form, setForm] = useState<{ name: string; address: string; phone: string; latitude: number | null; longitude: number | null }>({ name: "", address: "", phone: "", latitude: null, longitude: null });
   const [saving, setSaving] = useState(false);
+  const [editLoc, setEditLoc] = useState<Outlet | null>(null);
 
   const load = useCallback(async () => {
     if (!shop?.id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("outlets")
-      .select("id, shop_id, name, address, phone, timezone, is_active, created_at")
+      .select("id, shop_id, name, address, phone, timezone, is_active, created_at, latitude, longitude")
       .eq("shop_id", shop.id)
       .order("created_at", { ascending: true });
     if (error) toast.error(error.message);
-    setOutlets((data as Outlet[]) ?? []);
+    setOutlets(((data as any[]) ?? []).map(o => ({ ...o, latitude: o.latitude != null ? Number(o.latitude) : null, longitude: o.longitude != null ? Number(o.longitude) : null })) as Outlet[]);
     setLoading(false);
   }, [shop?.id]);
 
@@ -56,10 +60,12 @@ export default function OutletsPage() {
       name: form.name.trim(),
       address: form.address.trim() || null,
       phone: form.phone.trim() || null,
-    });
+      latitude: form.latitude,
+      longitude: form.longitude,
+    } as never);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setForm({ name: "", address: "", phone: "" });
+    setForm({ name: "", address: "", phone: "", latitude: null, longitude: null });
     setAddOpen(false);
     toast.success("Outlet ditambahkan");
     load();
@@ -77,6 +83,18 @@ export default function OutletsPage() {
     const { error } = await supabase.from("outlets").delete().eq("id", o.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Outlet dihapus");
+    load();
+  }
+
+  async function saveLocation() {
+    if (!editLoc) return;
+    const { error } = await supabase
+      .from("outlets")
+      .update({ latitude: editLoc.latitude, longitude: editLoc.longitude } as never)
+      .eq("id", editLoc.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Lokasi outlet disimpan");
+    setEditLoc(null);
     load();
   }
 
@@ -129,6 +147,15 @@ export default function OutletsPage() {
                           <AlertCircle className="h-3 w-3" /> Nonaktif
                         </span>
                       )}
+                      {outlet.latitude != null && outlet.longitude != null ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 inline-flex items-center gap-1">
+                          <MapPinned className="h-3 w-3" /> Pin GPS
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-muted text-muted-foreground inline-flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> Belum di-pin
+                        </span>
+                      )}
                     </div>
                     {outlet.address && (
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
@@ -143,6 +170,9 @@ export default function OutletsPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5 shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => setEditLoc(outlet)}>
+                    <MapPinned className="h-4 w-4 mr-1" /> Lokasi
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => toggleActive(outlet)}>
                     {outlet.is_active ? "Nonaktifkan" : "Aktifkan"}
                   </Button>
@@ -157,7 +187,7 @@ export default function OutletsPage() {
       )}
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Tambah Outlet Baru</DialogTitle>
           </DialogHeader>
@@ -174,6 +204,16 @@ export default function OutletsPage() {
               <Label>Nomor WhatsApp</Label>
               <Input className="mt-1" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="08xx" />
             </div>
+            <div>
+              <Label className="mb-2 block">Pin Lokasi (opsional)</Label>
+              <ShopLocationPicker
+                latitude={form.latitude}
+                longitude={form.longitude}
+                address={form.address}
+                onChange={({ latitude, longitude }) => setForm(f => ({ ...f, latitude, longitude }))}
+                height={220}
+              />
+            </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setAddOpen(false)}>Batal</Button>
               <Button onClick={addOutlet} disabled={saving}>
@@ -181,6 +221,29 @@ export default function OutletsPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editLoc} onOpenChange={(o) => !o && setEditLoc(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Lokasi Outlet — {editLoc?.name}</DialogTitle>
+          </DialogHeader>
+          {editLoc && (
+            <div className="space-y-3 mt-2">
+              <ShopLocationPicker
+                latitude={editLoc.latitude}
+                longitude={editLoc.longitude}
+                address={editLoc.address}
+                onChange={({ latitude, longitude }) => setEditLoc(o => o ? { ...o, latitude, longitude } : o)}
+                height={300}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setEditLoc(null)}>Batal</Button>
+                <Button onClick={saveLocation}>Simpan Lokasi</Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
