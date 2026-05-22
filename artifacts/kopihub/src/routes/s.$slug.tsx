@@ -108,8 +108,11 @@ function ShopLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
+    <div className="min-h-screen bg-background storefront-root">
+      {(shop as any).custom_css ? (
+        <style dangerouslySetInnerHTML={{ __html: String((shop as any).custom_css) }} />
+      ) : null}
+      <header className="storefront-header sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-2 px-4">
           <Link to="/s/$slug" params={{ slug }} className="flex items-center gap-2 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground overflow-hidden">
