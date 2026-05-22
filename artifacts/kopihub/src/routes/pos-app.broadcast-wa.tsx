@@ -21,33 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  MessageSquare, Users, Send, Copy, Check, Loader2, ChevronRight,
-  ChevronLeft, AlertTriangle, Download, History, Trash2, Phone, X,
-  ExternalLink, Zap, RefreshCw,
-} from "lucide-react";
+import { MessageSquare, Users, Send, Copy, Check, Loader2, ChevronRight, ChevronLeft, Download, History, Phone, X, ExternalLink, Zap, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/broadcast-wa")({
   head: () => ({ meta: [{ title: "Broadcast WhatsApp — Merchant" }] }),
   component: BroadcastWAPage,
 });
-
-const HISTORY_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.wa_broadcasts (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  segment_label text not null,
-  message_template text not null,
-  recipient_count integer not null default 0,
-  sent_count integer not null default 0,
-  status text not null default 'done',
-  created_at timestamptz not null default now()
-);
-alter table public.wa_broadcasts enable row level security;
-create policy "owner_all_wab" on public.wa_broadcasts
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));`;
 
 const SEGMENT_DEFS = [
   { value: "all",             label: "Semua Pelanggan",        hint: "Semua yang pernah order" },

@@ -2,11 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
-import {
-  Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
-  TrendingUp, ArrowRight, RotateCcw, BellOff, UserX, HandHelping,
-  Zap, Settings2, ShieldOff, Timer,
-} from "lucide-react";
+import { Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell, TrendingUp, ArrowRight, RotateCcw, BellOff, UserX, HandHelping, Zap, Settings2, ShieldOff, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -120,8 +116,7 @@ function BookingReviewsPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
   const [bookings, setBookings] = useState<CompletedBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [filter, setFilter] = useState<"all" | "reviewed" | "pending" | "unresponsive">("pending");
+const [filter, setFilter] = useState<"all" | "reviewed" | "pending" | "unresponsive">("pending");
   const [sentReminders, setSentReminders] = useState<Set<string>>(new Set());
   const [reviewRequestsMap, setReviewRequestsMap] = useState<Record<string, ReviewRequestStat>>({});
   const [resending, setResending] = useState<string | null>(null);
@@ -290,8 +285,7 @@ function BookingReviewsPage() {
           if (reviewRes.error.code === "42P01") { setTableExists(false); }
           else throw reviewRes.error;
         } else {
-          setTableExists(true);
-          for (const r of (reviewRes.data ?? []) as any[]) {
+for (const r of (reviewRes.data ?? []) as any[]) {
             reviewsMap[r.booking_id] = { rating: r.rating, body: r.body, created_at: r.created_at };
           }
         }

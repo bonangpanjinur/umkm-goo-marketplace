@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Images, Plus, Trash2, GripVertical, Copy, Check, Loader2, Upload, X, ArrowLeftRight, AlertTriangle } from "lucide-react";
+import { Images, Plus, Trash2, GripVertical, Loader2, Upload, X, ArrowLeftRight, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { toast } from "sonner";
@@ -22,24 +22,6 @@ export const Route = createFileRoute("/pos-app/portfolio")({
   head: () => ({ meta: [{ title: "Portofolio / Galeri — Merchant" }] }),
   component: PortfolioPage,
 });
-
-const PORTFOLIO_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.shop_portfolio (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  image_url text not null,
-  caption text,
-  category text,
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now()
-);
-create index if not exists idx_portfolio_shop on public.shop_portfolio(shop_id, sort_order);
-alter table public.shop_portfolio enable row level security;
-create policy "owner_all_portfolio" on public.shop_portfolio
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-create policy "public_read_portfolio" on public.shop_portfolio
-  for select using (true);`;
 
 type PortfolioItem = {
   id: string;
@@ -54,13 +36,12 @@ type PortfolioItem = {
 
 function PortfolioPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [items, setItems]   = useState<PortfolioItem[]>([]);
+const [items, setItems]   = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState<PortfolioItem | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  
 
   const [imgUrl, setImgUrl]     = useState("");
   const [caption, setCaption]   = useState("");
@@ -93,12 +74,10 @@ function PortfolioPage() {
     (async () => {
       const { error } = await supabase.from("shop_portfolio").select("id").limit(1);
       if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-        setTableExists(false);
-        setLoading(false);
+setLoading(false);
         return;
       }
-      setTableExists(true);
-      await loadItems();
+await loadItems();
     })();
   }, [shop?.id]);
 
@@ -230,24 +209,6 @@ function PortfolioPage() {
 
   if (shopLoading || loading) {
     return <div className="flex items-center gap-2 text-sm text-muted-foreground p-6"><Loader2 className="h-4 w-4 animate-spin" /> Memuat…</div>;
-  }
-
-  if (tableExists === false) {
-    return (
-      <div className="p-6 space-y-4">
-        <h1 className="text-xl font-bold">Portofolio / Galeri</h1>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-amber-800">Tabel portofolio belum ada. Jalankan SQL ini di Supabase:</p>
-          <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{PORTFOLIO_SQL}</pre>
-          <Button
-            size="sm" variant="outline" className="gap-1.5"
-            onClick={() => { navigator.clipboard.writeText(PORTFOLIO_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          >
-            {copied ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   const categories = Array.from(new Set(items.map(i => i.category).filter(Boolean))) as string[];

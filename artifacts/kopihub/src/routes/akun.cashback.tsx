@@ -13,39 +13,6 @@ export const Route = createFileRoute("/akun/cashback")({
   component: CashbackPage,
 });
 
-const CASHBACK_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.cashback_wallets (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  balance numeric(14,2) not null default 0,
-  total_earned numeric(14,2) not null default 0,
-  total_used numeric(14,2) not null default 0,
-  updated_at timestamptz not null default now(),
-  unique (user_id)
-);
-
-create table if not exists public.cashback_transactions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  order_id uuid references public.orders(id) on delete set null,
-  type text not null check (type in ('earned','used','expired','adjusted')),
-  amount numeric(14,2) not null,
-  description text,
-  expires_at timestamptz,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists idx_cb_wallet_user on public.cashback_wallets(user_id);
-create index if not exists idx_cb_txn_user on public.cashback_transactions(user_id, created_at desc);
-
-alter table public.cashback_wallets enable row level security;
-alter table public.cashback_transactions enable row level security;
-
-create policy "user_own_wallet" on public.cashback_wallets
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "user_own_txn" on public.cashback_transactions
-  using (user_id = auth.uid());`;
-
 type Wallet = { balance: number; total_earned: number; total_used: number };
 type Txn = {
   id: string;

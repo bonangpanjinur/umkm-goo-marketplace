@@ -14,11 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  Utensils, Plus, Pencil, Trash2, Loader2, RefreshCw,
-  X, ChevronDown, ChevronUp, Tag, Package, ImageIcon,
-  AlertTriangle, Percent, Zap,
-} from "lucide-react";
+import { Utensils, Plus, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Tag, Package, AlertTriangle, Percent, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/combo-builder")({
   head: () => ({ meta: [{ title: "Paket & Combo Builder" }] }),
@@ -52,23 +48,6 @@ type Combo = {
   tag: string | null;
   items: ComboItem[];
 };
-
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor:
-CREATE TABLE IF NOT EXISTS public.fnb_combos (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  image_url text,
-  combo_price numeric(12,2) NOT NULL,
-  original_price numeric(12,2) NOT NULL DEFAULT 0,
-  discount_pct numeric(5,2) DEFAULT 0,
-  is_active boolean NOT NULL DEFAULT true,
-  tag text,
-  items jsonb NOT NULL DEFAULT '[]',
-  sort_order int NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
 
 export default function ComboBuilderPage() {
   const { shop } = useCurrentShop();

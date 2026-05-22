@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { RefreshCcw, PackageX, Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { RefreshCcw, PackageX, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -27,29 +27,6 @@ export const Route = createFileRoute("/akun/returns")({
   head: () => ({ meta: [{ title: "Pengembalian — Akun" }] }),
   component: ReturnsPage,
 });
-
-const RETURN_SQL = `-- Jalankan di Supabase SQL Editor untuk mengaktifkan fitur pengembalian:
-create table if not exists public.return_requests (
-  id uuid primary key default gen_random_uuid(),
-  order_id uuid not null references public.orders(id) on delete cascade,
-  user_id uuid not null references auth.users(id),
-  reason text not null,
-  description text,
-  status text not null default 'pending'
-    check (status in ('pending','approved','rejected','completed')),
-  shop_note text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-alter table public.return_requests enable row level security;
-create policy "user_own_rr" on public.return_requests
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "shop_view_rr" on public.return_requests for select
-  using (order_id in (
-    select o.id from orders o
-    join shops cs on cs.id = o.shop_id
-    where cs.owner_id = auth.uid()
-  ));`;
 
 const REASONS = [
   "Produk rusak / cacat",
@@ -78,8 +55,7 @@ type ReturnReq = { id: string; order_id: string; reason: string; description: st
 
 function ReturnsPage() {
   const { user } = useAuth();
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [orders, setOrders]   = useState<Order[]>([]);
+const [orders, setOrders]   = useState<Order[]>([]);
   const [returns, setReturns] = useState<ReturnReq[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
@@ -87,7 +63,7 @@ function ReturnsPage() {
   const [reason, setReason]   = useState(REASONS[0]);
   const [desc, setDesc]       = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [copied, setCopied]   = useState(false);
+  
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
@@ -99,12 +75,10 @@ function ReturnsPage() {
         .select("id")
         .limit(1);
       if (tblErr?.message?.includes("relation") || tblErr?.message?.includes("does not exist")) {
-        setTableExists(false);
-        setLoading(false);
+setLoading(false);
         return;
       }
-      setTableExists(true);
-      const [ordRes, retRes] = await Promise.all([
+const [ordRes, retRes] = await Promise.all([
         supabase
           .from("orders" as any)
           .select("id, order_no, created_at, total")
@@ -156,29 +130,6 @@ function ReturnsPage() {
   }
 
   if (loading) return <div className="text-sm text-muted-foreground">Memuat…</div>;
-
-  if (tableExists === false) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-bold">Pengembalian Barang</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Fitur ini memerlukan tabel tambahan di database.</p>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-800 mb-2">Tabel belum tersedia. Jalankan SQL berikut di Supabase:</p>
-          <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] text-foreground whitespace-pre-wrap">{RETURN_SQL}</pre>
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-2 gap-1.5"
-            onClick={() => { navigator.clipboard.writeText(RETURN_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          >
-            {copied ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

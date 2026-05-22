@@ -15,10 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import {
-  Loader2, Plus, Pencil, Trash2, SlidersHorizontal,
-  ChevronDown, ChevronRight, Package, AlertTriangle,
-} from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/variants")({
@@ -46,8 +43,7 @@ function VariantsPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [variantsByItem, setVariantsByItem] = useState<Record<string, Variant[]>>({});
   const [loading, setLoading] = useState(true);
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [filterItem, setFilterItem] = useState<string>("all");
 
   // Dialog
@@ -105,14 +101,11 @@ function VariantsPage() {
     if (error) {
       const msg = error.message.toLowerCase();
       if (msg.includes("does not exist") || msg.includes("relation") || msg.includes("could not find the table")) {
-        setTableExists(false);
-      } else {
+} else {
         toast.error(error.message);
-        setTableExists(true);
-      }
+}
     } else {
-      setTableExists(true);
-      const map: Record<string, Variant[]> = {};
+const map: Record<string, Variant[]> = {};
       ((varData ?? []) as unknown as Variant[]).forEach(v => {
         if (!map[v.menu_item_id]) map[v.menu_item_id] = [];
         map[v.menu_item_id].push(v);
@@ -197,73 +190,6 @@ function VariantsPage() {
   }
 
   // Table missing — show migration instructions
-  if (tableExists === false) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-10">
-        <div className="flex items-center gap-3 mb-6">
-          <SlidersHorizontal className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-semibold">Varian Produk</h1>
-        </div>
-        <Card className="border-amber-200 bg-amber-50 p-6 space-y-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-amber-800">Migrasi database diperlukan</p>
-              <p className="mt-1 text-sm text-amber-700">
-                Tabel <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">menu_item_variants</code> belum ada di database Anda.
-                Jalankan SQL berikut di Supabase SQL Editor untuk mengaktifkan fitur varian produk.
-              </p>
-            </div>
-          </div>
-          <pre className="overflow-x-auto rounded-lg border border-amber-200 bg-white p-4 text-xs font-mono text-gray-700 whitespace-pre-wrap">
-{`-- Tabel varian produk (O-3)
-CREATE TABLE IF NOT EXISTS menu_item_variants (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id       uuid NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
-  menu_item_id  uuid NOT NULL REFERENCES menu_items(id) ON DELETE CASCADE,
-  name          text NOT NULL,
-  sku           text,
-  price         numeric(12,2) NOT NULL DEFAULT 0,
-  stock         integer,
-  is_available  boolean NOT NULL DEFAULT true,
-  sort_order    integer NOT NULL DEFAULT 0,
-  created_at    timestamptz NOT NULL DEFAULT now(),
-  updated_at    timestamptz NOT NULL DEFAULT now()
-);
-
--- Kolom KYC di shops
-ALTER TABLE shops
-  ADD COLUMN IF NOT EXISTS kyc_status        text DEFAULT 'not_submitted',
-  ADD COLUMN IF NOT EXISTS kyc_document_url  text,
-  ADD COLUMN IF NOT EXISTS kyc_submitted_at  timestamptz,
-  ADD COLUMN IF NOT EXISTS kyc_reviewed_at   timestamptz,
-  ADD COLUMN IF NOT EXISTS kyc_reviewer_id   uuid REFERENCES auth.users(id),
-  ADD COLUMN IF NOT EXISTS kyc_reject_reason text,
-  ADD COLUMN IF NOT EXISTS business_category text;
-
--- RLS
-ALTER TABLE menu_item_variants ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "owner_all" ON menu_item_variants
-  USING (shop_id IN (
-    SELECT id FROM shops WHERE owner_id = auth.uid()
-  ))
-  WITH CHECK (shop_id IN (
-    SELECT id FROM shops WHERE owner_id = auth.uid()
-  ));
-
-CREATE POLICY "staff_read" ON menu_item_variants
-  FOR SELECT USING (shop_id IN (
-    SELECT shop_id FROM user_roles WHERE user_id = auth.uid()
-  ));`}
-          </pre>
-          <p className="text-xs text-amber-600">
-            Setelah menjalankan SQL di atas, refresh halaman ini dan fitur varian akan aktif.
-          </p>
-        </Card>
-      </div>
-    );
-  }
 
   const totalVariants = Object.values(variantsByItem).reduce((s, arr) => s + arr.length, 0);
   const itemsWithVariants = Object.keys(variantsByItem).length;

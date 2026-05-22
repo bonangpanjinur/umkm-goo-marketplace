@@ -9,10 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  Banknote, Loader2, RefreshCw, Save, Car, Calculator,
-  Percent, AlertTriangle, CheckCircle2, Info,
-} from "lucide-react";
+import { Banknote, Loader2, RefreshCw, Save, Car, Calculator, Percent, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/rental-deposit-config")({
   head: () => ({ meta: [{ title: "Konfigurasi Deposit Rental" }] }),
@@ -31,11 +28,6 @@ type RentalUnit = {
   is_active: boolean;
   condition: string;
 };
-
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor jika kolom belum ada:
-ALTER TABLE public.rental_units
-  ADD COLUMN IF NOT EXISTS deposit_pct numeric(5,2) DEFAULT 30,
-  ADD COLUMN IF NOT EXISTS auto_deposit boolean NOT NULL DEFAULT false;`;
 
 function calcDeposit(unit: RentalUnit, days: number): number {
   if (!unit.auto_deposit || !unit.daily_price) return unit.deposit_amount ?? 0;

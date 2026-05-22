@@ -21,10 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Zap, Plus, Trash2, Loader2, Copy, Check, Pencil, Clock,
-  CalendarClock, Tag, BarChart3, Ban, Play, ChevronDown, ChevronUp,
-} from "lucide-react";
+import { Zap, Plus, Trash2, Loader2, Pencil, Clock, CalendarClock, Tag, BarChart3, Ban, Play } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
@@ -32,27 +29,6 @@ export const Route = createFileRoute("/pos-app/flash-sale")({
   head: () => ({ meta: [{ title: "Flash Sale Terjadwal — Merchant" }] }),
   component: FlashSalePage,
 });
-
-const FS_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.flash_sales (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  menu_item_id uuid not null references public.menu_items(id) on delete cascade,
-  flash_price numeric(10,2) not null,
-  original_price numeric(10,2) not null,
-  stock_limit integer,
-  stock_sold integer not null default 0,
-  starts_at timestamptz not null,
-  ends_at timestamptz not null,
-  is_active boolean not null default true,
-  created_at timestamptz not null default now()
-);
-alter table public.flash_sales enable row level security;
-create policy "owner_all_fs" on public.flash_sales
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-create policy "public_read_fs" on public.flash_sales
-  for select using (true);`;
 
 type MenuItem = { id: string; name: string; price: number; image_url: string | null };
 type FlashSale = {
@@ -130,8 +106,7 @@ function CountdownDisplay({ endsAt }: { endsAt: string }) {
 
 export default function FlashSalePage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [menuItems, setMenuItems]     = useState<MenuItem[]>([]);
+const [menuItems, setMenuItems]     = useState<MenuItem[]>([]);
   const [sales, setSales]             = useState<FlashSale[]>([]);
   const [loading, setLoading]         = useState(true);
   const [showDialog, setShowDialog]   = useState(false);
@@ -140,18 +115,13 @@ export default function FlashSalePage() {
   const [saving, setSaving]           = useState(false);
   const [deleting, setDeleting]       = useState<string | null>(null);
   const [toggling, setToggling]       = useState<string | null>(null);
-  const [copied, setCopied]           = useState(false);
+  
   const [filterStatus, setFilterStatus] = useState<"all" | FSStatus>("all");
 
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { error } = await (supabase as any).from("flash_sales").select("id").limit(1);
-      if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-        setTableExists(false); setLoading(false); return;
-      }
-      setTableExists(true);
-      await Promise.all([loadMenuItems(), loadSales()]);
+await Promise.all([loadMenuItems(), loadSales()]);
     })();
   }, [shop?.id]);
 
@@ -298,23 +268,6 @@ export default function FlashSalePage() {
 
   if (shopLoading || loading) {
     return <div className="flex items-center gap-2 text-sm text-muted-foreground p-6"><Loader2 className="h-4 w-4 animate-spin" /> Memuat…</div>;
-  }
-
-  if (tableExists === false) {
-    return (
-      <div className="p-6 space-y-4">
-        <h1 className="text-xl font-bold flex items-center gap-2"><Zap className="h-5 w-5 text-destructive" /> Flash Sale Terjadwal</h1>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-amber-800">Tabel flash_sales belum ada. Jalankan SQL ini di Supabase:</p>
-          <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{FS_SQL}</pre>
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => {
-            navigator.clipboard.writeText(FS_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000);
-          }}>
-            {copied ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   const activeCount   = sales.filter(s => getStatus(s) === "active").length;

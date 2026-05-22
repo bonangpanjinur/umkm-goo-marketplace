@@ -12,10 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  CalendarPlus, Loader2, RefreshCw, Car, Clock, CheckCircle2,
-  XCircle, AlertTriangle, MessageSquare, Search,
-} from "lucide-react";
+import { CalendarPlus, Loader2, RefreshCw, Car, Clock, CheckCircle2, XCircle, AlertTriangle, MessageSquare, Search } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/rental-extend")({
   head: () => ({ meta: [{ title: "Perpanjangan Sewa" }] }),
@@ -37,14 +34,6 @@ type RentalBooking = {
   extension_status: string | null;
   extension_notes: string | null;
 };
-
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor jika kolom belum ada:
-ALTER TABLE public.rental_bookings
-  ADD COLUMN IF NOT EXISTS extension_requested boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS extension_days int,
-  ADD COLUMN IF NOT EXISTS extension_status text CHECK (extension_status IN ('pending','approved','rejected')),
-  ADD COLUMN IF NOT EXISTS extension_notes text,
-  ADD COLUMN IF NOT EXISTS extension_new_end_date date;`;
 
 const STATUS = {
   pending:   { label: "Aktif",     cls: "bg-green-100 text-green-700" },
