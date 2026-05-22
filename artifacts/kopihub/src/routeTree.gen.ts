@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SekitarRouteImport } from './routes/sekitar'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PromoRouteImport } from './routes/promo'
@@ -313,6 +314,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SekitarRoute = SekitarRouteImport.update({
+  id: '/sekitar',
+  path: '/sekitar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -1816,6 +1822,7 @@ export interface FileRoutesByFullPath {
   '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/sekitar': typeof SekitarRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
@@ -2109,6 +2116,7 @@ export interface FileRoutesByTo {
   '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/sekitar': typeof SekitarRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
@@ -2405,6 +2413,7 @@ export interface FileRoutesById {
   '/promo': typeof PromoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/sekitar': typeof SekitarRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/activity': typeof AdminActivityRoute
@@ -2704,6 +2713,7 @@ export interface FileRouteTypes {
     | '/promo'
     | '/reset-password'
     | '/search'
+    | '/sekitar'
     | '/signup'
     | '/sitemap.xml'
     | '/admin/activity'
@@ -2997,6 +3007,7 @@ export interface FileRouteTypes {
     | '/promo'
     | '/reset-password'
     | '/search'
+    | '/sekitar'
     | '/signup'
     | '/sitemap.xml'
     | '/admin/activity'
@@ -3292,6 +3303,7 @@ export interface FileRouteTypes {
     | '/promo'
     | '/reset-password'
     | '/search'
+    | '/sekitar'
     | '/signup'
     | '/sitemap.xml'
     | '/admin/activity'
@@ -3590,6 +3602,7 @@ export interface RootRouteChildren {
   PromoRoute: typeof PromoRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
+  SekitarRoute: typeof SekitarRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DTokenRoute: typeof DTokenRoute
@@ -3627,6 +3640,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sekitar': {
+      id: '/sekitar'
+      path: '/sekitar'
+      fullPath: '/sekitar'
+      preLoaderRoute: typeof SekitarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -6412,6 +6432,7 @@ const rootRouteChildren: RootRouteChildren = {
   PromoRoute: PromoRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
+  SekitarRoute: SekitarRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DTokenRoute: DTokenRoute,
