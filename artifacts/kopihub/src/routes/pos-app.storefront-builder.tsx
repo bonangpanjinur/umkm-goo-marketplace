@@ -153,11 +153,18 @@ export default function StorefrontBuilderPage() {
           <Button variant="outline" size="sm" onClick={() => setPreview(p => !p)}>
             <Eye className="h-4 w-4 mr-1.5" /> {preview ? "Edit" : "Preview"}
           </Button>
-          <Button size="sm" onClick={save} disabled={saving}>
-            {saving ? "Menyimpan..." : "Simpan Layout"}
+          <Button variant="outline" size="sm" onClick={() => save(false)} disabled={saving || !loaded}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan Draft"}
+          </Button>
+          <Button size="sm" onClick={() => save(true)} disabled={saving || !loaded}>
+            {saving ? "Menyimpan..." : published ? "Update Publikasi" : "Publikasikan"}
           </Button>
         </div>
       </div>
+
+      {!loaded && (
+        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      )}
 
       {preview ? (
         <Card className="p-6 space-y-4">
