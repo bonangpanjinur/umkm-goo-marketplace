@@ -32,21 +32,6 @@ type Affiliate = {
   joined_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.affiliates (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  email text UNIQUE NOT NULL,
-  phone text,
-  ref_code text UNIQUE NOT NULL,
-  commission_pct numeric(5,2) NOT NULL DEFAULT 10,
-  clicks int NOT NULL DEFAULT 0,
-  conversions int NOT NULL DEFAULT 0,
-  total_earned numeric(12,2) NOT NULL DEFAULT 0,
-  pending_payout numeric(12,2) NOT NULL DEFAULT 0,
-  is_active boolean NOT NULL DEFAULT true,
-  joined_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 function genRefCode(name: string) {
   return name.slice(0, 4).toUpperCase().replace(/\s/g, "") + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
@@ -54,8 +39,7 @@ function genRefCode(name: string) {
 export default function AffiliatePage() {
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", commission_pct: "10", ref_code: "" });
 
@@ -122,13 +106,6 @@ export default function AffiliatePage() {
         <div className="rounded-xl border bg-card p-4 text-center"><p className="text-xl font-bold text-amber-600">{formatIDR(totalPending)}</p><p className="text-xs text-muted-foreground">Komisi Belum Dibayar</p></div>
         <div className="rounded-xl border bg-card p-4 text-center"><p className="text-xl font-bold text-green-600">{totalConversions}</p><p className="text-xs text-muted-foreground">Total Konversi</p></div>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel affiliates belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

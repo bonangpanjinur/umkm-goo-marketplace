@@ -24,8 +24,6 @@ type Booking = {
   unit: { name: string; unit_code: string | null } | null;
 };
 
-const SQL_HINT = `ALTER TABLE public.rental_bookings ADD COLUMN IF NOT EXISTS unit_ready_notified boolean NOT NULL DEFAULT false;`;
-
 function fmtDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
 }
@@ -36,9 +34,7 @@ export default function RentalUnitReadyPage() {
   const [loading, setLoading] = useState(true);
   const [notifying, setNotifying] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [showSql, setShowSql] = useState(false);
-
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
   const todayStr = new Date().toISOString().split("T")[0];
 
@@ -113,13 +109,6 @@ export default function RentalUnitReadyPage() {
           <Button variant="outline" size="sm" onClick={() => load(shop.id)}><RefreshCw className="h-3.5 w-3.5" /></Button>
         </div>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-          <p className="font-semibold mb-1">Kolom belum ada. Jalankan:</p>
-          <code className="block">{SQL_HINT}</code>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

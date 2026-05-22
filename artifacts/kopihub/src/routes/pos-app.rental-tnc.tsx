@@ -9,10 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ScrollText, Save, Loader2, Copy, Check, Info, AlertTriangle,
-  FileText, Shield, Clock, Banknote, ChevronRight,
-} from "lucide-react";
+import { ScrollText, Save, Loader2, Copy, Check, Info, AlertTriangle, FileText, Shield, Clock, Banknote, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/rental-tnc")({

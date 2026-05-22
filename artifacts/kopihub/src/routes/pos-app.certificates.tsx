@@ -32,21 +32,6 @@ type Certificate = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.authenticity_certificates (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  product_name text NOT NULL,
-  edition text,
-  serial_no text NOT NULL,
-  materials text,
-  dimensions text,
-  creation_year text,
-  buyer_name text,
-  sale_date date,
-  notes text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 function genSerial() {
   return `COA-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
 }
@@ -55,8 +40,7 @@ export default function CertificatesPage() {
   const { shop } = useCurrentShop();
   const [certs, setCerts] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Certificate | null>(null);
   const [saving, setSaving] = useState(false);
@@ -128,13 +112,6 @@ export default function CertificatesPage() {
           </Button>
         </div>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

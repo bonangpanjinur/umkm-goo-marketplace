@@ -38,24 +38,6 @@ type Brief = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_briefs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  client_name text NOT NULL,
-  client_phone text,
-  session_date date,
-  package_name text,
-  location_preference text,
-  mood_vibe text,
-  outfit_count int NOT NULL DEFAULT 1,
-  reference_style text,
-  special_requests text,
-  props_needed text,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','submitted','reviewed')),
-  token text NOT NULL DEFAULT gen_random_uuid()::text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const STATUS_META = {
   pending:   { label: "Belum Diisi",  cls: "bg-gray-100 text-gray-600" },
   submitted: { label: "Sudah Diisi",  cls: "bg-green-100 text-green-700" },
@@ -75,8 +57,7 @@ export default function StudioBriefPage() {
   const { shop } = useCurrentShop();
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -185,13 +166,6 @@ export default function StudioBriefPage() {
           <Send className="h-4 w-4" /> Kirim Brief ke Klien
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada — jalankan SQL berikut di Supabase:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

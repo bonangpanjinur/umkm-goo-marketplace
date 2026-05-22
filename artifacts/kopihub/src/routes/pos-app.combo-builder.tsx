@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import { Utensils, Plus, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Tag, Package, AlertTriangle, Percent, Zap } from "lucide-react";
+import { Utensils, Plus, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Tag, Package, Percent, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/combo-builder")({
   head: () => ({ meta: [{ title: "Paket & Combo Builder" }] }),
@@ -54,8 +54,7 @@ export default function ComboBuilderPage() {
   const [combos, setCombos] = useState<Combo[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Combo | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -196,13 +195,6 @@ export default function ComboBuilderPage() {
           <Plus className="h-4 w-4" /> Buat Paket
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-amber-800 flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Tabel combo belum ada</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

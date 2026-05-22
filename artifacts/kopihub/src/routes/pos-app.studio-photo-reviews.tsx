@@ -38,23 +38,6 @@ type PhotoReview = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_photo_reviews (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  token text NOT NULL DEFAULT gen_random_uuid()::text,
-  client_name text NOT NULL,
-  client_phone text,
-  session_date date,
-  package_name text,
-  rating int NOT NULL DEFAULT 5 CHECK (rating BETWEEN 1 AND 5),
-  comment text,
-  photos text[] NOT NULL DEFAULT '{}',
-  is_hidden boolean NOT NULL DEFAULT false,
-  shop_reply text,
-  shop_replied_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 function Stars({ n, size = "sm" }: { n: number; size?: "sm" | "md" }) {
   const cls = size === "md" ? "h-4 w-4" : "h-3 w-3";
   return (
@@ -74,8 +57,7 @@ export default function StudioPhotoReviewsPage() {
   const { shop } = useCurrentShop();
   const [reviews, setReviews] = useState<PhotoReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [lightboxPhotos, setLightboxPhotos] = useState<{ urls: string[]; idx: number } | null>(null);
   const [replyingId, setReplyingId] = useState<string | null>(null);
@@ -232,13 +214,6 @@ export default function StudioPhotoReviewsPage() {
               <p className="text-[10px] text-muted-foreground">{s.sub}</p>
             </div>
           ))}
-        </div>
-      )}
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada — jalankan SQL berikut di Supabase:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
         </div>
       )}
 

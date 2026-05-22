@@ -35,17 +35,6 @@ type SizeChart = {
   rows: SizeRow[];
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_size_charts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  unit text NOT NULL DEFAULT 'cm',
-  is_active boolean NOT NULL DEFAULT true,
-  rows jsonb NOT NULL DEFAULT '[]',
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const DEFAULT_ROWS: SizeRow[] = [
   { label: "XS", chest: "80-84",  waist: "60-64",  hips: "85-89",  height_min: "150", height_max: "158" },
   { label: "S",  chest: "84-88",  waist: "64-68",  hips: "89-93",  height_min: "158", height_max: "163" },
@@ -70,8 +59,7 @@ export default function SizeGuidePage() {
   const { shop } = useCurrentShop();
   const [charts, setCharts] = useState<SizeChart[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SizeChart | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", unit: "cm" as const, is_active: true });
@@ -135,13 +123,6 @@ export default function SizeGuidePage() {
         </div>
         <Button onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" /> Buat Size Chart</Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada. Jalankan:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {/* Calculator demo */}
       {charts.length > 0 && (

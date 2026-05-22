@@ -9,7 +9,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ShieldCheck, Loader2, RefreshCw, Download, Trash2, Search, CheckCircle2, AlertTriangle, FileDown, UserX } from "lucide-react";
+import { ShieldCheck, Loader2, RefreshCw, Download, Trash2, Search, AlertTriangle, FileDown, UserX } from "lucide-react";
 
 export const Route = createFileRoute("/admin/gdpr-tools")({
   component: GdprToolsPage,
@@ -26,17 +26,6 @@ type DataRequest = {
   notes: string | null;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.data_requests (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  email text NOT NULL,
-  type text NOT NULL CHECK (type IN ('export','erasure')),
-  status text NOT NULL DEFAULT 'pending',
-  requested_at timestamptz NOT NULL DEFAULT now(),
-  completed_at timestamptz,
-  notes text
-);`;
-
 const STATUS_META = {
   pending:    { label: "Menunggu",    cls: "bg-amber-100 text-amber-700" },
   processing: { label: "Diproses",    cls: "bg-blue-100 text-blue-700" },
@@ -49,8 +38,7 @@ function fmtDate(d: string) { return new Date(d).toLocaleString("id-ID", { day: 
 export default function GdprToolsPage() {
   const [requests, setRequests] = useState<DataRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [processing, setProcessing] = useState<string | null>(null);
   const [manualEmail, setManualEmail] = useState("");
   const [manualType, setManualType] = useState<"export" | "erasure">("export");
@@ -120,13 +108,6 @@ export default function GdprToolsPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-sm text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
           <span><strong>{pending} permintaan</strong> data menunggu tindakan. UU PDP mewajibkan respons dalam 14 hari kerja.</span>
-        </div>
-      )}
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel data_requests belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
         </div>
       )}
 

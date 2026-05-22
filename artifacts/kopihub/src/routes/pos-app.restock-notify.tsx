@@ -12,12 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import {
-  Bell, MessageCircle, Search, Loader2, Package, RefreshCw,
-  ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle,
-  Trash2, Zap, ChevronRight, SkipForward, X, PartyPopper, Phone,
-  ClipboardList, Share2, Copy, Check,
-} from "lucide-react";
+import { Bell, MessageCircle, Search, Loader2, Package, RefreshCw, ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle, Trash2, Zap, ChevronRight, SkipForward, X, PartyPopper, Phone, ClipboardList, Share2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,

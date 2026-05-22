@@ -18,10 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  History, Upload, Loader2, Plus, Download, Bell, AlertTriangle,
-  Copy, Check, RefreshCw, Package, Tag, FileUp,
-} from "lucide-react";
+import { History, Upload, Loader2, Plus, Download, Bell, AlertTriangle, Copy, Check, RefreshCw, Package, Tag, FileUp } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/digital-version")({

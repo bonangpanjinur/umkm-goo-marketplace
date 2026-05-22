@@ -12,24 +12,6 @@ export const Route = createFileRoute("/pos-app/booking-reviews")({
   component: BookingReviewsPage,
 });
 
-/*
--- Jalankan di Supabase SQL Editor (jika belum ada dari akun/bookings):
-create table if not exists public.booking_reviews (
-  id uuid primary key default gen_random_uuid(),
-  booking_id uuid not null references public.bookings(id) on delete cascade,
-  customer_phone text not null,
-  rating integer not null check (rating between 1 and 5),
-  body text,
-  created_at timestamptz not null default now(),
-  unique(booking_id)
-);
-alter table public.booking_reviews enable row level security;
-create policy "customer_insert_review" on public.booking_reviews
-  for insert with check (true);
-create policy "public_read_review" on public.booking_reviews
-  for select using (true);
-*/
-
 type CompletedBooking = {
   id: string;
   customer_name: string | null;

@@ -15,11 +15,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  Target, Plus, Pencil, Loader2, RefreshCw, CheckCircle2,
-  Circle, Clock, Banknote, MessageSquare, ChevronDown, ChevronUp,
-  Lock, Unlock, AlertTriangle,
-} from "lucide-react";
+import { Target, Plus, Loader2, CheckCircle2, Circle, Clock, Banknote, MessageSquare, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/milestones")({
   head: () => ({ meta: [{ title: "Milestone & Escrow Proyek" }] }),
@@ -48,19 +44,6 @@ type MilestoneStep = {
   deliverable_url: string | null;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.project_milestones (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  order_id uuid REFERENCES public.orders(id) ON DELETE SET NULL,
-  customer_name text NOT NULL,
-  customer_phone text,
-  project_name text NOT NULL,
-  total_value numeric(12,2) NOT NULL,
-  milestones jsonb NOT NULL DEFAULT '[]',
-  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','cancelled','disputed')),
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const STEP_STATUS = {
   pending:    { label: "Menunggu",    cls: "bg-gray-100 text-gray-600",    icon: Circle },
   in_progress:{ label: "Dikerjakan",  cls: "bg-blue-100 text-blue-700",    icon: Clock },
@@ -75,8 +58,7 @@ export default function MilestonesPage() {
   const { shop } = useCurrentShop();
   const [projects, setProjects] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+const [expandedId, setExpandedId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ customer_name: "", customer_phone: "", project_name: "", total_value: "" });
@@ -158,13 +140,6 @@ export default function MilestonesPage() {
         </div>
         <Button onClick={() => setOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Proyek Baru</Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel milestone belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

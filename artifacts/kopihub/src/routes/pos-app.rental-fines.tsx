@@ -47,8 +47,7 @@ export default function RentalFinesPage() {
   const { shop } = useCurrentShop();
   const [bookings, setBookings] = useState<RentalBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<RentalBooking | null>(null);
   const [returnDate, setReturnDate] = useState("");
   const [finePerDay, setFinePerDay] = useState("");
@@ -182,13 +181,6 @@ export default function RentalFinesPage() {
           </div>
         ))}
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-amber-800">Kolom denda belum ada. Jalankan SQL ini:</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

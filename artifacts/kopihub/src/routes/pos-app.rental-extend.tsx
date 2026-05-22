@@ -51,8 +51,7 @@ export default function RentalExtendPage() {
   const { shop } = useCurrentShop();
   const [bookings, setBookings] = useState<RentalBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<RentalBooking | null>(null);
   const [extDays, setExtDays] = useState("1");
   const [extNotes, setExtNotes] = useState("");
@@ -172,13 +171,6 @@ export default function RentalExtendPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-sm text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
           <span><strong>{expiringToday} sewa</strong> berakhir hari ini. Hubungi penyewa untuk konfirmasi pengembalian atau perpanjangan.</span>
-        </div>
-      )}
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-amber-800">Kolom perpanjangan belum ada. Jalankan SQL berikut:</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
         </div>
       )}
 

@@ -40,25 +40,6 @@ type Contract = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.freelance_contracts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  client_name text NOT NULL,
-  client_phone text,
-  client_email text,
-  project_name text NOT NULL,
-  project_description text NOT NULL,
-  total_value numeric(12,2) NOT NULL,
-  start_date date NOT NULL,
-  end_date date NOT NULL,
-  deliverables text NOT NULL,
-  revision_count int NOT NULL DEFAULT 2,
-  payment_terms text NOT NULL,
-  status text NOT NULL DEFAULT 'draft',
-  signed_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const STATUS_META = {
   draft:     { label: "Draft",      cls: "bg-gray-100 text-gray-600" },
   sent:      { label: "Dikirim",    cls: "bg-blue-100 text-blue-700" },
@@ -114,8 +95,7 @@ export default function ContractsPage() {
   const { shop } = useCurrentShop();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
@@ -197,13 +177,6 @@ export default function ContractsPage() {
         </div>
         <Button onClick={() => setOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Buat Kontrak</Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
