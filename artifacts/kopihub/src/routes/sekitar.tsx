@@ -43,6 +43,7 @@ export default function NearbyPage() {
   const [radius, setRadius] = useState<number>(5);
   const [shops, setShops] = useState<NearbyShop[]>([]);
   const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<"list" | "map">("list");
 
   function locate(silent = false) {
     if (!navigator.geolocation) {
