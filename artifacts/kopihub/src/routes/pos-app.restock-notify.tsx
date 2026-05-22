@@ -485,7 +485,7 @@ setLoading(false);
 
   // Realtime: auto-mark when product comes back in stock
   useEffect(() => {
-    if (!shopId || !tableReady) return;
+    if (!shopId) return;
     const ch = supabase
       .channel(`restock-auto-${shopId}`)
       .on(
@@ -518,7 +518,7 @@ setLoading(false);
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [shopId, tableReady, load]);
+  }, [shopId, load]);
 
   // Build blast queue from all pending subscribers across all groups
   function startBlast() {
