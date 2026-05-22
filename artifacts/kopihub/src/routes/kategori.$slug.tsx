@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
 import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
+import { NearbyShopsSection } from "@/components/marketplace/NearbyShopsSection";
 
 const SUBTYPE_LABEL: Record<string, string> = {
   "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
