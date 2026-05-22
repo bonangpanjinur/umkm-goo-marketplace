@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navigation, MapPin, Loader2, Star, ExternalLink } from "lucide-react";
+import { Navigation, MapPin, Loader2, Star, ExternalLink, List, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
+import { NearbyShopsMap } from "./NearbyShopsMap";
 
 type NearbyShop = {
   id: string;
@@ -29,11 +30,39 @@ type Props = {
   defaultRadius?: number;
   limit?: number;
   collapsible?: boolean;
+  /** Sync coords & radius to URL search params (?lat, ?lng, ?radius) */
+  persistInUrl?: boolean;
+  /** Show toggle Daftar/Peta when results exist */
+  enableMapToggle?: boolean;
 };
 
 function formatDistance(km: number) {
   if (km < 1) return `${Math.round(km * 1000)} m`;
   return `${km.toFixed(km < 10 ? 1 : 0)} km`;
+}
+
+function readUrlCoords(): { lat: number; lng: number; radius?: number } | null {
+  if (typeof window === "undefined") return null;
+  const p = new URLSearchParams(window.location.search);
+  const lat = parseFloat(p.get("lat") ?? "");
+  const lng = parseFloat(p.get("lng") ?? "");
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const r = parseFloat(p.get("radius") ?? "");
+  return { lat, lng, radius: Number.isFinite(r) ? r : undefined };
+}
+
+function writeUrlCoords(coords: { lat: number; lng: number } | null, radius: number) {
+  if (typeof window === "undefined") return;
+  const p = new URLSearchParams(window.location.search);
+  if (coords) {
+    p.set("lat", coords.lat.toFixed(6));
+    p.set("lng", coords.lng.toFixed(6));
+    p.set("radius", String(radius));
+  } else {
+    p.delete("lat"); p.delete("lng"); p.delete("radius");
+  }
+  const q = p.toString();
+  window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`);
 }
 
 export function NearbyShopsSection({
@@ -42,14 +71,18 @@ export function NearbyShopsSection({
   defaultRadius = 5,
   limit = 12,
   collapsible = true,
+  persistInUrl = false,
+  enableMapToggle = true,
 }: Props) {
-  const [enabled, setEnabled] = useState(!collapsible);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const initial = persistInUrl ? readUrlCoords() : null;
+  const [enabled, setEnabled] = useState(!collapsible || !!initial);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(initial ? { lat: initial.lat, lng: initial.lng } : null);
   const [locating, setLocating] = useState(false);
   const [denied, setDenied] = useState(false);
-  const [radius, setRadius] = useState(defaultRadius);
+  const [radius, setRadius] = useState(initial?.radius ?? defaultRadius);
   const [shops, setShops] = useState<NearbyShop[]>([]);
   const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<"list" | "map">("list");
 
   function locate() {
     if (!navigator.geolocation) {
@@ -72,6 +105,10 @@ export function NearbyShopsSection({
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }
+
+  useEffect(() => {
+    if (persistInUrl) writeUrlCoords(coords, radius);
+  }, [persistInUrl, coords, radius]);
 
   useEffect(() => {
     if (!enabled || !coords) return;
@@ -137,6 +174,22 @@ export function NearbyShopsSection({
               <span className="font-semibold tabular-nums">{radius} km</span>
             </div>
           )}
+          {enableMapToggle && coords && shops.length > 0 && (
+            <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-xs">
+              <button
+                onClick={() => setView("list")}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <List className="h-3 w-3" /> Daftar
+              </button>
+              <button
+                onClick={() => setView("map")}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition ${view === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <MapIcon className="h-3 w-3" /> Peta
+              </button>
+            </div>
+          )}
           <Button size="sm" variant="outline" onClick={locate} disabled={locating}>
             {locating ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Navigation className="h-3.5 w-3.5 mr-1" />}
             {coords ? "Perbarui" : "Aktifkan GPS"}
@@ -154,6 +207,8 @@ export function NearbyShopsSection({
         </div>
       ) : shops.length === 0 ? (
         <p className="text-xs text-muted-foreground">Tidak ada toko dalam radius {radius} km. Coba perbesar radius.</p>
+      ) : view === "map" ? (
+        <NearbyShopsMap center={coords} shops={shops} radiusKm={radius} height={420} />
       ) : (
         <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
           {shops.map((s) => (
