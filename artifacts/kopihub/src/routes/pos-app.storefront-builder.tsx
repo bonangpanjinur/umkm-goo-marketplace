@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TampilanTabs } from "@/components/TampilanTabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  LayoutTemplate, Plus, Trash2, GripVertical, Image, Type, Star, Package, Tag, ChevronUp, ChevronDown, Eye
+  LayoutTemplate, Plus, Trash2, GripVertical, Image, Type, Star, Package, Tag, ChevronUp, ChevronDown, Eye, Loader2
 } from "lucide-react";
 import { useCurrentShop } from "@/lib/use-shop";
 import { UploadableImage } from "@/components/UploadableImage";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pos-app/storefront-builder")({ component: StorefrontBuilderPage });
 
@@ -49,8 +50,42 @@ export default function StorefrontBuilderPage() {
   const { shop } = useCurrentShop();
   const [sections, setSections] = useState<Section[]>(defaultSections);
   const [selected, setSelected] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [layoutId, setLayoutId] = useState<string | null>(null);
+  const [published, setPublished] = useState(false);
+
+  useEffect(() => {
+    if (!shop?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("storefront_layouts")
+        .select("id, blocks, is_published")
+        .eq("shop_id", shop.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) { toast.error(error.message); setLoaded(true); return; }
+      if (data) {
+        setLayoutId((data as any).id);
+        setPublished(!!(data as any).is_published);
+        const blocks = (data as any).blocks;
+        if (Array.isArray(blocks) && blocks.length) {
+          setSections(blocks as Section[]);
+          // reseed counter
+          blocks.forEach((b: any) => {
+            const m = /^s(\d+)$/.exec(String(b?.id || ""));
+            if (m) _id = Math.max(_id, Number(m[1]) + 1);
+          });
+        }
+      }
+      setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [shop?.id]);
 
   function addSection(type: SectionType) {
     const tmpl = SECTION_TEMPLATES.find(t => t.type === type)!;
@@ -78,11 +113,27 @@ export default function StorefrontBuilderPage() {
     setSections(s => s.map(x => x.id === id ? { ...x, ...patch } : x));
   }
 
-  async function save() {
+  async function save(publish = false) {
+    if (!shop?.id) { toast.error("Toko belum siap"); return; }
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
+    const payload = {
+      shop_id: shop.id,
+      blocks: sections as any,
+      is_published: publish || published,
+    };
+    let res;
+    if (layoutId) {
+      res = await supabase.from("storefront_layouts").update(payload).eq("id", layoutId).select("id, is_published").maybeSingle();
+    } else {
+      res = await supabase.from("storefront_layouts").insert(payload).select("id, is_published").maybeSingle();
+    }
     setSaving(false);
-    toast.success("Layout storefront disimpan");
+    if (res.error) { toast.error(res.error.message); return; }
+    if (res.data) {
+      setLayoutId((res.data as any).id);
+      setPublished(!!(res.data as any).is_published);
+    }
+    toast.success(publish ? "Layout dipublikasikan" : "Layout tersimpan");
   }
 
   const sel = sections.find(s => s.id === selected);
@@ -102,11 +153,18 @@ export default function StorefrontBuilderPage() {
           <Button variant="outline" size="sm" onClick={() => setPreview(p => !p)}>
             <Eye className="h-4 w-4 mr-1.5" /> {preview ? "Edit" : "Preview"}
           </Button>
-          <Button size="sm" onClick={save} disabled={saving}>
-            {saving ? "Menyimpan..." : "Simpan Layout"}
+          <Button variant="outline" size="sm" onClick={() => save(false)} disabled={saving || !loaded}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan Draft"}
+          </Button>
+          <Button size="sm" onClick={() => save(true)} disabled={saving || !loaded}>
+            {saving ? "Menyimpan..." : published ? "Update Publikasi" : "Publikasikan"}
           </Button>
         </div>
       </div>
+
+      {!loaded && (
+        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      )}
 
       {preview ? (
         <Card className="p-6 space-y-4">

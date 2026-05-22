@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,26 +7,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Mail, Send, Users, BarChart2, Plus, Eye, Calendar, CheckCircle2, Clock } from "lucide-react";
+import { Mail, Send, Users, BarChart2, Plus, Eye, Calendar, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { useShop } from "@/lib/use-shop";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pos-app/email-marketing")({ component: EmailMarketingPage });
 
 type Campaign = {
   id: string;
   subject: string;
-  preview_text: string;
-  status: "draft" | "sent" | "scheduled";
-  recipient_count: number;
-  open_rate: number;
+  name: string | null;
+  status: "draft" | "sent" | "scheduled" | "sending" | "failed";
+  recipient_count: number | null;
   sent_at: string | null;
   scheduled_at: string | null;
+  segment: string | null;
 };
-
-const DEMO_CAMPAIGNS: Campaign[] = [
-  { id: "1", subject: "Promo Akhir Bulan — Diskon 20%!", preview_text: "Jangan lewatkan promo spesial kami...", status: "sent", recipient_count: 234, open_rate: 42, sent_at: "2026-05-01", scheduled_at: null },
-  { id: "2", subject: "Menu Baru Sudah Hadir!", preview_text: "Kami punya menu baru yang lezat...", status: "sent", recipient_count: 198, open_rate: 38, sent_at: "2026-04-15", scheduled_at: null },
-  { id: "3", subject: "Promo Hari Kemerdekaan", preview_text: "Rayakan hari kemerdekaan dengan...", status: "scheduled", recipient_count: 0, open_rate: 0, sent_at: null, scheduled_at: "2026-08-17" },
-];
 
 const TEMPLATES = [
   { id: "promo", label: "Promo / Diskon", subject: "🎉 Promo Spesial: [Nama Promo]", body: "Halo {nama_pelanggan},\n\nKami punya kabar gembira! Dapatkan diskon [X]% untuk semua menu hingga [tanggal].\n\nGunakan kode: [KODE_PROMO]\n\nBelanja sekarang: [link_toko]\n\nSalam,\n[Nama Toko]" },
@@ -34,8 +30,17 @@ const TEMPLATES = [
   { id: "loyalty", label: "Program Loyalty", subject: "⭐ Kamu punya [X] poin! Tukarkan sekarang", body: "Halo {nama_pelanggan},\n\nKamu memiliki [X] poin loyalty yang siap ditukarkan menjadi diskon [Y]%.\n\nPoin berlaku hingga [tanggal]. Jangan sampai hangus!\n\n[link_toko]\n\nSalam,\n[Nama Toko]" },
 ];
 
+const SEGMENTS = [
+  { id: "all",      label: "Semua Pelanggan" },
+  { id: "loyal",    label: "Pelanggan Loyal (3+ order)" },
+  { id: "new",      label: "Pelanggan Baru (30 hari)" },
+  { id: "inactive", label: "Tidak Aktif (60+ hari)" },
+];
+
 export default function EmailMarketingPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(DEMO_CAMPAIGNS);
+  const { shop } = useShop();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState<"list" | "compose">("list");
   const [subject, setSubject] = useState("");
   const [previewText, setPreviewText] = useState("");
@@ -43,34 +48,50 @@ export default function EmailMarketingPage() {
   const [segment, setSegment] = useState("all");
   const [sending, setSending] = useState(false);
 
+  async function load() {
+    if (!shop?.id) return;
+    const { data, error } = await supabase
+      .from("email_campaigns")
+      .select("id, name, subject, status, recipient_count, sent_at, scheduled_at, segment")
+      .eq("shop_id", shop.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) { toast.error(error.message); setLoaded(true); return; }
+    setCampaigns((data ?? []) as any);
+    setLoaded(true);
+  }
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [shop?.id]);
+
   function applyTemplate(id: string) {
     const t = TEMPLATES.find(x => x.id === id);
     if (t) { setSubject(t.subject); setBody(t.body); }
   }
 
-  async function sendCampaign() {
+  async function saveCampaign(asDraft: boolean) {
+    if (!shop?.id) { toast.error("Toko belum siap"); return; }
     if (!subject.trim() || !body.trim()) { toast.error("Subject dan isi email wajib diisi"); return; }
     setSending(true);
-    await new Promise(r => setTimeout(r, 1200));
-    const newCampaign: Campaign = {
-      id: String(Date.now()),
+    const html = `<div>${body.replace(/\n/g, "<br/>")}</div>`;
+    const { error } = await supabase.from("email_campaigns").insert({
+      shop_id: shop.id,
+      name: previewText.trim() || subject.trim().slice(0, 80),
       subject: subject.trim(),
-      preview_text: previewText.trim(),
-      status: "sent",
-      recipient_count: segment === "all" ? 312 : segment === "loyal" ? 89 : 45,
-      open_rate: 0,
-      sent_at: new Date().toISOString().split("T")[0],
-      scheduled_at: null,
-    };
-    setCampaigns(c => [newCampaign, ...c]);
-    setSubject(""); setPreviewText(""); setBody("");
+      body_html: html,
+      segment,
+      status: asDraft ? "draft" : "scheduled",
+      scheduled_at: asDraft ? null : new Date().toISOString(),
+    });
     setSending(false);
+    if (error) { toast.error(error.message); return; }
+    setSubject(""); setPreviewText(""); setBody("");
     setTab("list");
-    toast.success("Email marketing berhasil dikirim!");
+    toast.success(asDraft ? "Draft tersimpan" : "Campaign dijadwalkan untuk dikirim");
+    load();
   }
 
-  const totalRecipients = campaigns.filter(c => c.status === "sent").reduce((s, c) => s + c.recipient_count, 0);
-  const avgOpenRate = campaigns.filter(c => c.status === "sent" && c.open_rate > 0).reduce((s, c, _, a) => s + c.open_rate / a.length, 0);
+  const sentCampaigns = campaigns.filter(c => c.status === "sent");
+  const totalRecipients = sentCampaigns.reduce((s, c) => s + (c.recipient_count ?? 0), 0);
 
   return (
     <div className="p-4 md:p-6 space-y-5 max-w-4xl mx-auto">
@@ -91,31 +112,44 @@ export default function EmailMarketingPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="p-4"><p className="text-xs text-muted-foreground">Total Terkirim</p><p className="text-2xl font-bold">{totalRecipients.toLocaleString("id-ID")}</p></Card>
-            <Card className="p-4"><p className="text-xs text-muted-foreground">Avg. Open Rate</p><p className="text-2xl font-bold">{avgOpenRate.toFixed(0)}%</p></Card>
-            <Card className="p-4"><p className="text-xs text-muted-foreground">Campaign</p><p className="text-2xl font-bold">{campaigns.length}</p></Card>
+            <Card className="p-4"><p className="text-xs text-muted-foreground">Campaign Terkirim</p><p className="text-2xl font-bold">{sentCampaigns.length}</p></Card>
+            <Card className="p-4"><p className="text-xs text-muted-foreground">Total Campaign</p><p className="text-2xl font-bold">{campaigns.length}</p></Card>
           </div>
-          <div className="space-y-3">
-            {campaigns.map(c => (
-              <Card key={c.id} className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {c.status === "sent" && <Badge className="text-xs bg-green-600 hover:bg-green-600 h-5"><CheckCircle2 className="h-3 w-3 mr-1" />Terkirim</Badge>}
-                      {c.status === "draft" && <Badge variant="secondary" className="text-xs h-5">Draft</Badge>}
-                      {c.status === "scheduled" && <Badge className="text-xs bg-blue-600 hover:bg-blue-600 h-5"><Clock className="h-3 w-3 mr-1" />Terjadwal</Badge>}
+          {!loaded ? (
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : campaigns.length === 0 ? (
+            <Card className="p-8 text-center text-sm text-muted-foreground">
+              Belum ada campaign. Klik <strong>Buat Campaign</strong> untuk mulai.
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {campaigns.map(c => (
+                <Card key={c.id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        {c.status === "sent"      && <Badge className="text-xs bg-green-600 hover:bg-green-600 h-5"><CheckCircle2 className="h-3 w-3 mr-1" />Terkirim</Badge>}
+                        {c.status === "draft"     && <Badge variant="secondary" className="text-xs h-5">Draft</Badge>}
+                        {c.status === "scheduled" && <Badge className="text-xs bg-blue-600 hover:bg-blue-600 h-5"><Clock className="h-3 w-3 mr-1" />Terjadwal</Badge>}
+                        {c.status === "sending"   && <Badge className="text-xs bg-amber-600 hover:bg-amber-600 h-5"><Loader2 className="h-3 w-3 mr-1 animate-spin" />Mengirim</Badge>}
+                        {c.status === "failed"    && <Badge variant="destructive" className="text-xs h-5">Gagal</Badge>}
+                      </div>
+                      <p className="font-medium truncate">{c.subject}</p>
+                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground flex-wrap">
+                        {c.recipient_count != null && c.recipient_count > 0 && (
+                          <span><Users className="h-3 w-3 inline mr-1" />{c.recipient_count} penerima</span>
+                        )}
+                        {c.sent_at && <span><Calendar className="h-3 w-3 inline mr-1" />{new Date(c.sent_at).toLocaleDateString("id-ID")}</span>}
+                        {c.scheduled_at && !c.sent_at && <span><Calendar className="h-3 w-3 inline mr-1" />Jadwal: {new Date(c.scheduled_at).toLocaleString("id-ID")}</span>}
+                        {c.segment && <span>Segmen: {c.segment}</span>}
+                      </div>
                     </div>
-                    <p className="font-medium truncate">{c.subject}</p>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                      {c.status === "sent" && <><span><Users className="h-3 w-3 inline mr-1" />{c.recipient_count} penerima</span><span><Eye className="h-3 w-3 inline mr-1" />{c.open_rate}% dibuka</span></>}
-                      {c.sent_at && <span><Calendar className="h-3 w-3 inline mr-1" />{c.sent_at}</span>}
-                      {c.scheduled_at && <span><Calendar className="h-3 w-3 inline mr-1" />Jadwal: {c.scheduled_at}</span>}
-                    </div>
+                    <BarChart2 className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
-                  <BarChart2 className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
@@ -135,34 +169,36 @@ export default function EmailMarketingPage() {
               <Input className="mt-1" value={subject} onChange={e => setSubject(e.target.value)} placeholder="cth: Promo Spesial Hari Ini!" />
             </div>
             <div>
-              <Label>Preview Text <span className="text-muted-foreground text-xs">(opsional)</span></Label>
-              <Input className="mt-1" value={previewText} onChange={e => setPreviewText(e.target.value)} placeholder="Teks singkat yang muncul di daftar email..." />
+              <Label>Nama Internal <span className="text-muted-foreground text-xs">(opsional)</span></Label>
+              <Input className="mt-1" value={previewText} onChange={e => setPreviewText(e.target.value)} placeholder="Untuk pencarian internal..." />
             </div>
             <div>
               <Label>Isi Email *</Label>
               <p className="text-xs text-muted-foreground mb-1">Gunakan: {"{nama_pelanggan}"} untuk personalisasi</p>
               <Textarea className="mt-1 min-h-[200px] font-mono text-sm" value={body} onChange={e => setBody(e.target.value)} placeholder="Tulis isi email di sini..." />
             </div>
-            <Button className="w-full" onClick={sendCampaign} disabled={sending}>
-              {sending ? "Mengirim..." : <><Send className="h-4 w-4 mr-2" /> Kirim Campaign</>}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => saveCampaign(true)} disabled={sending}>
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan Draft"}
+              </Button>
+              <Button className="flex-1" onClick={() => saveCampaign(false)} disabled={sending}>
+                {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : <><Send className="h-4 w-4 mr-2" /> Jadwalkan</>}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Catatan: Campaign akan diproses oleh worker pengiriman email (akan aktif setelah konfigurasi SMTP/Resend).
+            </p>
           </div>
           <div className="space-y-3">
             <div>
               <Label>Segmen Penerima</Label>
               <div className="mt-2 space-y-2">
-                {[
-                  { id: "all",    label: "Semua Pelanggan", count: 312 },
-                  { id: "loyal",  label: "Pelanggan Loyal (3+ order)", count: 89 },
-                  { id: "new",    label: "Pelanggan Baru (30 hari)", count: 45 },
-                  { id: "inactive", label: "Tidak Aktif (60+ hari)", count: 78 },
-                ].map(s => (
+                {SEGMENTS.map(s => (
                   <label key={s.id} className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors ${segment === s.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
                     <div className="flex items-center gap-2">
                       <input type="radio" name="segment" checked={segment === s.id} onChange={() => setSegment(s.id)} className="accent-primary" />
                       <span className="text-sm">{s.label}</span>
                     </div>
-                    <Badge variant="secondary" className="text-xs">{s.count}</Badge>
                   </label>
                 ))}
               </div>

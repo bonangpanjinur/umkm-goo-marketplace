@@ -1,64 +1,78 @@
-# Lokasi Toko + Penelusuran "Di Sekitar Saya"
+## Apa yang masih kurang (hasil audit lanjutan Mei 2026)
 
-## Tujuan
-1. Owner bisa **menandai lokasi** toko / outlet (pin di peta + link Google Maps + alamat).
-2. Pembeli bisa **mencari toko berdasarkan lokasi** (kota / area) dan melihat **toko terdekat** ketika GPS aktif, lengkap dengan jarak (km) & tombol "Petunjuk Arah".
+### A. Fitur owner masih pakai mock / fake delay
+1. **`pos-app/email-marketing`** — masih `DEMO_CAMPAIGNS` + delay 1.2 dtk. Tabel `email_campaigns` & `email_campaign_recipients` sudah ada tapi belum di-wire.
+2. **`pos-app/storefront-builder`** — save pakai `setTimeout(800)`, tidak persist ke `storefront_layouts`.
+3. **`pos-app/custom-css`** — fake save, belum simpan ke kolom `shops.custom_css`.
+4. **`pos-app/rajaongkir`** — checker masih DEMO_RESULTS (kunci & preferensi sudah disimpan, tinggal panggil API).
+5. **`pos-app/digital-version`** — UX `tablesMissing` + fake delay, perlu wire ke tabel digital yang sudah dibuat.
+6. **`pos-app/variants`** — sebagian aksi simpan fake delay.
 
-## Kondisi Saat Ini
-- Tabel `shops` sudah punya kolom `latitude`, `longitude`, `address`, `city` — **tapi belum ada UI** untuk owner mengisi koordinat.
-- Halaman `/toko/$slug/map` sudah ada (pakai embed OpenStreetMap + tombol Google Maps/Direction). Sudah jalan kalau lat/lng terisi.
-- Belum ada halaman discovery "terdekat" untuk pembeli, dan belum ada filter lokasi di marketplace.
-- Belum ada koneksi Google Maps Platform.
+### B. Fitur "copy SQL" yang masih placeholder
+Halaman berikut menampilkan blok SQL untuk di-copy & dijalankan manual, bukan otomatis pakai tabel yang sudah ada (atau tabelnya memang belum dibuat):
+`antrian`, `flash-sale`, `happy-hour`, `bulk-pricing`, `waitlist`, `restock-notify`, `rental-tnc`, `rental-availability`, `broadcast-wa`, `marketplace-orders`, `booking-reviews`, `portfolio`. Sebagian besar tabelnya **sudah dibuat di P0 sebelumnya**; tinggal hapus copy-SQL CTA dan wire ke DB.
 
-## Rencana Pengerjaan (3 Fase)
+### C. Konflik / duplikat route admin
+File dengan dua titik (kemungkinan typo, bisa menyebabkan route ganda atau tidak terdaftar):
+- `admin.health-score..tsx` ↔ `admin.health-score.tsx`
+- `admin.plans..matrix.tsx` (tidak ada pair tunggal)
+- `admin.shops..tsx` ↔ `admin.shops.tsx`
 
-### Fase 1 — Owner: input lokasi toko & outlet
-**A. Picker peta di Pengaturan Toko (`/pos-app/settings`)**
-- Tambah section "Lokasi Toko" di tab Brand/Profil, di bawah field `address`.
-- Komponen `ShopLocationPicker` baru: peta interaktif (Leaflet + OpenStreetMap, no API key) — drag pin / klik untuk set, tombol "Pakai lokasi saya" (Geolocation API), input manual lat/lng, tombol "Cari dari alamat" (geocoding via Nominatim publik gratis).
-- Simpan `latitude`, `longitude` ke `shops`. Tambah juga kolom `google_maps_url` (opsional, override link share).
-- Preview link "Buka di Google Maps".
+### D. Performa & realtime (P3 dari audit lama, masih terbuka)
+- Beberapa subscribe realtime owner tanpa filter `shop_id` → traffic boros & potensi bocor lintas toko di sisi UI.
+- Daftar besar masih `limit(150/500)` tanpa pagination cursor: notifications, orders, customers, inventory, reviews.
+- View legacy `coffee_shops` masih ada — drop kalau tak ada referensi.
 
-**B. Picker yang sama di Outlet (`/pos-app/outlets`)**
-- Outlet sudah punya `address`; tambah kolom `latitude`/`longitude` di tabel `outlets` (migrasi) + picker yang sama saat add/edit outlet.
+### E. UX / konsistensi
+- `pos-app.sandbox` & `admin.sandbox` masih test ground.
+- KDS belum punya filter outlet (kalau toko punya >1 outlet).
+- Halaman publik `/sekitar` & `NearbyShopsSection` sekarang punya peta + URL persist (Phase 4 baru saja selesai) — belum ada filter "buka sekarang" / "rating min".
 
-**C. Onboarding nudge**
-- Banner di dashboard owner kalau `latitude IS NULL` → "Tandai lokasi toko agar muncul di pencarian terdekat".
+---
 
-### Fase 2 — Pembeli: cari berdasarkan lokasi
-**A. Tombol "📍 Toko di sekitar saya" di marketplace home (`/`)**
-- Minta izin GPS sekali. Cache lokasi di `sessionStorage` (15 menit).
-- Fetch shops + hitung jarak (haversine, dilakukan di RPC Postgres `shops_nearby(lat, lng, radius_km, limit)` agar paginated & ringan).
-- Sort by distance, tampilkan badge "1.2 km" di kartu toko.
+## Rencana pengembangan
 
-**B. Halaman dedicated `/sekitar` (atau `/cari/sekitar`)**
-- Daftar toko + slider radius (1/3/5/10/25 km), filter kategori bisnis.
-- Map view (toggle list ↔ peta) dengan Leaflet markers — klik marker = popup nama + tombol "Lihat toko".
-- Empty state ramah kalau belum kasih izin / tidak ada toko di radius.
+### Phase 1 — Quick wins housekeeping (hari 1)
+- Hapus / merge file route admin bertitik-dua (`admin.health-score..tsx`, `admin.shops..tsx`, `admin.plans..matrix.tsx`).
+- Hapus tombol "Copy SQL" pada halaman yang tabelnya sudah ada; tampilkan empty state normal.
+- Drop view legacy `coffee_shops` setelah grep memastikan tidak dipakai.
 
-**C. Filter lokasi di marketplace yang sudah ada**
-- Tambah opsi "Urut: Terdekat" di list view (`kategori.$slug` & index) ketika user sudah punya koordinat.
+### Phase 2 — Wire fitur P0 sisa (1–2 hari)
+- **Email Marketing**: list kampanye dari `email_campaigns`, form kirim → insert ke `email_campaign_recipients`, status diisi oleh worker.
+- **Storefront Builder**: load/save layout JSON ke `storefront_layouts` (per shop, per page). Versi terakhir di-publish jadi yang tampil publik.
+- **Custom CSS**: simpan ke kolom `shops.custom_css`, inject `<style>` di route publik `/toko/$slug` & `/s/$slug`.
+- **RajaOngkir Checker**: panggil endpoint via server fn (key dari `shop_api_keys`), tampilkan tarif & estimasi nyata.
+- **Digital Version & Variants**: hapus fake delay, sambungkan CRUD ke tabel asli.
 
-### Fase 3 — Polish & integrasi
-- Update `/toko/$slug` halaman publik: tambah card "Lokasi" dengan mini-map + jarak (kalau user share lokasi) + tombol "Petunjuk Arah" (sudah ada di `/toko/$slug/map`, tinggal expose).
-- Tambah JSON-LD `LocalBusiness` (geo coordinates) di SEO toko untuk SEO lokal.
-- Sitemap kota (`CITIES` di `src/lib/cities.ts`) tetap dipakai untuk landing SEO.
+### Phase 3 — Hapus mode "copy SQL" pada modul yang sudah ada tabelnya (1 hari)
+Untuk masing-masing route (antrian, flash-sale, happy-hour, bulk-pricing, waitlist, restock-notify, rental-tnc, rental-availability, broadcast-wa, marketplace-orders, booking-reviews, portfolio):
+1. Verifikasi tabel exist di DB (linter / read schema).
+2. Hapus block `*_SQL` + tombol copy.
+3. Aktifkan list / form CRUD-nya.
+4. Buat migrasi guard jika tabel ternyata hilang.
 
-## Detail Teknis
-- **Map library**: Leaflet + OpenStreetMap tiles (gratis, tidak butuh API key). Sudah dipakai sebagai iframe; upgrade ke `react-leaflet` untuk interaktif.
-- **Geocoding alamat→koordinat**: Nominatim (`https://nominatim.openstreetmap.org/search`) — fair-use, kasih header `User-Agent`, debounce 1s.
-- **Jarak**: RPC `public.shops_nearby(_lat, _lng, _radius_km, _limit)` pakai formula haversine, return `{ id, name, slug, logo_url, distance_km, ... }`. Order by distance.
-- **Migrasi DB**:
-  - `ALTER TABLE shops ADD COLUMN google_maps_url text;`
-  - `ALTER TABLE outlets ADD COLUMN latitude numeric, ADD COLUMN longitude numeric;`
-  - Index: `CREATE INDEX shops_geo_idx ON shops (latitude, longitude) WHERE latitude IS NOT NULL;`
-  - Buat function `shops_nearby(...)` (SECURITY INVOKER, RLS-friendly hanya baca toko aktif/published).
-- **Privasi**: lokasi user tidak disimpan di DB, hanya di memori/sessionStorage browser.
-- **Tidak butuh Google Maps Platform connector** di tahap awal (hemat & no-key). Tombol "Buka di Google Maps" hanya deeplink publik `https://maps.google.com/?q=lat,lng` — boleh tanpa API. Bisa di-upgrade ke Google Maps nanti kalau perlu autocomplete alamat yang lebih akurat.
+### Phase 4 — Performa & realtime (1 hari)
+- Tambah filter `.filter('shop_id', 'eq', shopId)` di semua channel realtime owner.
+- Konversi list besar ke keyset pagination (mengikuti pola `OrdersTodayDialog`): notifications, customers, inventory, reviews.
+- Tambah index DB di kolom yang dipakai keyset (`created_at`, `id`) bila belum ada.
 
-## Hasil Akhir
-- Owner: pin lokasi sekali → muncul di profil toko & hasil pencarian terdekat.
-- Pembeli: 1 tap "Toko di sekitar saya" → list toko terdekat dengan jarak & petunjuk arah.
-- Tetap gratis (tanpa API key) di rilis pertama; siap upgrade ke Google Maps Platform kalau dibutuhkan.
+### Phase 5 — UX polish discovery & KDS (½ hari)
+- Filter "Buka sekarang" & rating minimum di `/sekitar` (memakai `shops.open_hours` + `rating_avg`).
+- Selector outlet di KDS (filter `outlet_id`).
+- Hapus / kunci halaman `*.sandbox.*` di build produksi.
 
-Saya mulai dari **Fase 1** dulu (migrasi + picker lokasi di settings & outlets), lalu lanjut Fase 2 setelah owner bisa isi koordinat — setuju?
+### Phase 6 — Hardening keamanan (½ hari)
+- Jalankan `supabase--linter` + `security--run_security_scan` setelah perubahan tabel/RLS.
+- Pastikan semua tabel baru tersentuh pakai pola `is_shop_owner(shop_id) OR has_role(...,'super_admin')`.
+- Update `mem://features/owner-audit-may2026` & `mem://features/security-rls-posture`.
+
+---
+
+## Catatan teknis singkat
+- Schema sudah punya: `email_campaigns`, `email_campaign_recipients`, `storefront_layouts`, `shops.custom_css`, `shop_api_keys`, dan semua tabel queue/studio/klinik/digital/lookbook/portfolio dari P0.
+- Worker email/WA belum dibuat — Phase 2 cukup tulis pending; pengiriman dipending atau dijadikan Phase 7.
+- Server-side calls (RajaOngkir, email worker) memakai `createServerFn` di `src/lib/*.functions.ts` sesuai konvensi proyek.
+
+## Urutan eksekusi yang disarankan
+Phase 1 → 2 → 3 → 4 → 5 → 6.
+Saya bisa mulai dari Phase 1 (housekeeping) supaya routing & SQL placeholder bersih, lalu lanjut wire fitur P0.

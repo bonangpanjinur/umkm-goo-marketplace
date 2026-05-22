@@ -1,45 +1,61 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Code2, Sparkles, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
+import { Code2, Sparkles, AlertTriangle, CheckCircle2, RotateCcw, Loader2 } from "lucide-react";
 import { TampilanTabs } from "@/components/TampilanTabs";
+import { useShop } from "@/lib/use-shop";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pos-app/custom-css")({ component: CustomCSSPage });
 
+const STARTER = `/* Custom CSS untuk storefront toko Anda (Paket Pro) */\n/* Perubahan hanya mempengaruhi tampilan toko publik Anda */\n\n`;
+
 const SNIPPETS = [
-  {
-    label: "Sembunyikan footer",
-    css: `/* Sembunyikan footer toko */\n.storefront-footer {\n  display: none;\n}`,
-  },
-  {
-    label: "Ubah warna tombol CTA",
-    css: `/* Warna tombol utama */\n.btn-primary {\n  background-color: #e63946;\n  border-color: #e63946;\n}\n.btn-primary:hover {\n  background-color: #c1121f;\n}`,
-  },
-  {
-    label: "Font produk lebih besar",
-    css: `/* Nama produk di listing */\n.product-card .product-name {\n  font-size: 1.1rem;\n  font-weight: 700;\n}`,
-  },
-  {
-    label: "Background header kustom",
-    css: `/* Header storefront */\n.storefront-header {\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: white;\n}`,
-  },
+  { label: "Sembunyikan footer", css: `/* Sembunyikan footer toko */\n.storefront-footer {\n  display: none;\n}` },
+  { label: "Ubah warna tombol CTA", css: `/* Warna tombol utama */\n.btn-primary {\n  background-color: #e63946;\n  border-color: #e63946;\n}\n.btn-primary:hover {\n  background-color: #c1121f;\n}` },
+  { label: "Font produk lebih besar", css: `/* Nama produk di listing */\n.product-card .product-name {\n  font-size: 1.1rem;\n  font-weight: 700;\n}` },
+  { label: "Background header kustom", css: `/* Header storefront */\n.storefront-header {\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: white;\n}` },
 ];
 
 export default function CustomCSSPage() {
-  const [css, setCss] = useState(`/* Custom CSS untuk storefront toko Anda (Paket Pro) */\n/* Perubahan hanya mempengaruhi tampilan toko publik Anda */\n\n`);
+  const { shop, loading: loadingShop } = useShop();
+  const [css, setCss] = useState(STARTER);
+  const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const charCount = css.length;
   const MAX_CHARS = 10000;
 
+  useEffect(() => {
+    if (!shop?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("shops")
+        .select("custom_css")
+        .eq("id", shop.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) { toast.error(error.message); setLoaded(true); return; }
+      setCss((data as any)?.custom_css || STARTER);
+      setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [shop?.id]);
+
   async function save() {
+    if (!shop?.id) { toast.error("Toko belum siap"); return; }
     if (charCount > MAX_CHARS) { toast.error("CSS melebihi batas 10.000 karakter"); return; }
     setSaving(true);
-    await new Promise(r => setTimeout(r, 700));
+    const { error } = await supabase
+      .from("shops")
+      .update({ custom_css: css })
+      .eq("id", shop.id);
     setSaving(false);
+    if (error) { toast.error(error.message); return; }
     setSaved(true);
     toast.success("Custom CSS disimpan & diterapkan ke storefront");
     setTimeout(() => setSaved(false), 3000);
@@ -48,6 +64,8 @@ export default function CustomCSSPage() {
   function insertSnippet(snippet: string) {
     setCss(c => c + "\n" + snippet + "\n");
   }
+
+  const busy = loadingShop || !loaded;
 
   return (
     <div className="p-4 md:p-6 space-y-5 max-w-4xl mx-auto">
@@ -61,11 +79,11 @@ export default function CustomCSSPage() {
           <p className="text-sm text-muted-foreground">Edit CSS langsung untuk kustomisasi tampilan storefront</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setCss(`/* Custom CSS */\n\n`)}>
+          <Button variant="outline" size="sm" onClick={() => setCss(STARTER)} disabled={busy}>
             <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
           </Button>
-          <Button size="sm" onClick={save} disabled={saving}>
-            {saved ? <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Tersimpan</> : saving ? "Menyimpan..." : "Simpan & Terapkan"}
+          <Button size="sm" onClick={save} disabled={saving || busy}>
+            {saved ? <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Tersimpan</> : saving ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Menyimpan...</> : "Simpan & Terapkan"}
           </Button>
         </div>
       </div>
@@ -87,10 +105,12 @@ export default function CustomCSSPage() {
             </span>
           </div>
           <textarea
-            className="w-full h-80 rounded-lg border border-border bg-zinc-950 text-green-400 font-mono text-sm p-4 resize-y focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full h-80 rounded-lg border border-border bg-zinc-950 text-green-400 font-mono text-sm p-4 resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
             value={css}
             onChange={e => { setCss(e.target.value); setSaved(false); }}
             spellCheck={false}
+            disabled={busy}
+            placeholder={busy ? "Memuat..." : ""}
           />
         </div>
 
@@ -103,7 +123,7 @@ export default function CustomCSSPage() {
               <Card key={s.label} className="p-3">
                 <p className="text-xs font-medium">{s.label}</p>
                 <pre className="text-[10px] text-muted-foreground mt-1 overflow-hidden line-clamp-3 font-mono">{s.css}</pre>
-                <Button variant="outline" size="sm" className="w-full mt-2 h-7 text-xs" onClick={() => insertSnippet(s.css)}>
+                <Button variant="outline" size="sm" className="w-full mt-2 h-7 text-xs" onClick={() => insertSnippet(s.css)} disabled={busy}>
                   + Tambahkan
                 </Button>
               </Card>
