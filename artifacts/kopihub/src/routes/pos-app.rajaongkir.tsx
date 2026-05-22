@@ -424,16 +424,31 @@ function RajaOngkirPage() {
 
           {checked && (
             <>
+              {(originMatch || destMatch) && (
+                <div className="rounded-lg bg-muted/40 border border-border px-3 py-2 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+                  {originMatch && <span><b>Asal:</b> {originMatch.name}, {originMatch.province}</span>}
+                  {destMatch && <span><b>Tujuan:</b> {destMatch.name}, {destMatch.province}</span>}
+                </div>
+              )}
+              {unsupportedCouriers.length > 0 && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                  Kurir <b>{unsupportedCouriers.join(", ").toUpperCase()}</b> tidak didukung di tier <b>Starter</b> RajaOngkir (hanya JNE, POS, TIKI). Upgrade ke tier Pro untuk akses kurir lain.
+                </div>
+              )}
               {cheapest && (
                 <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   Ongkir termurah: <strong>{cheapest.courier} {cheapest.service}</strong> — {formatIDR(cheapest.cost)} ({cheapest.etd})
                 </div>
               )}
+              {results.length === 0 && (
+                <Card className="p-6 text-center text-sm text-muted-foreground">
+                  Tidak ada tarif untuk rute & kurir ini.
+                </Card>
+              )}
               <div className="space-y-2">
                 {sorted.map((r, i) => (
                   <Card key={i} className="flex items-center gap-4 p-3">
-                    <span className="text-2xl shrink-0">{r.logo}</span>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">{r.courier} <span className="text-primary">{r.service}</span></p>
                       <p className="text-xs text-muted-foreground">{r.description}</p>
