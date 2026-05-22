@@ -8,8 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, RefreshCw } from "lucide-react";
+import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, RefreshCw, List, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
+import { NearbyShopsMap } from "@/components/marketplace/NearbyShopsMap";
 
 export const Route = createFileRoute("/sekitar")({ component: NearbyPage });
 
