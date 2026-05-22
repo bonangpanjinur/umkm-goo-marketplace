@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Upload, Trash2, Store, Phone, MapPin, Clock, Share2, Save, Image as ImageIcon, QrCode, CreditCard, Receipt as ReceiptIcon, Bell, MessageSquare, Printer, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { ShopLocationPicker } from "@/components/ShopLocationPicker";
 
 export const Route = createFileRoute("/pos-app/settings")({
   component: SettingsPage,
@@ -79,6 +80,9 @@ type ShopRow = {
   deposit_enabled: boolean;
   deposit_percentage: number;
   deposit_min_total: number;
+  latitude: number | null;
+  longitude: number | null;
+  google_maps_url: string | null;
 };
 
 function SettingsPage() {
@@ -102,7 +106,7 @@ function SettingsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("shops")
-        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percentage, deposit_min_total")
+        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percentage, deposit_min_total, latitude, longitude, google_maps_url")
         .eq("id", shop.id)
         .maybeSingle();
       if (data) {
@@ -120,6 +124,9 @@ function SettingsPage() {
           deposit_enabled: Boolean((data as any).deposit_enabled ?? false),
           deposit_percentage: Number((data as any).deposit_percentage ?? 30),
           deposit_min_total: Number((data as any).deposit_min_total ?? 0),
+          latitude: (data as any).latitude != null ? Number((data as any).latitude) : null,
+          longitude: (data as any).longitude != null ? Number((data as any).longitude) : null,
+          google_maps_url: (data as any).google_maps_url ?? null,
         } as ShopRow);
       }
       setLoading(false);
@@ -235,6 +242,9 @@ function SettingsPage() {
         deposit_enabled: form.deposit_enabled,
         deposit_percentage: form.deposit_percentage,
         deposit_min_total: form.deposit_min_total,
+        latitude: form.latitude,
+        longitude: form.longitude,
+        google_maps_url: form.google_maps_url,
       } as never)
       .eq("id", shop.id);
     setSaving(false);
@@ -331,10 +341,29 @@ function SettingsPage() {
         </div>
       </Section>
 
-      {/* Alamat */}
-      <Section icon={MapPin} title="Alamat" desc="Lokasi fisik toko.">
-        <Textarea rows={2} value={form.address ?? ""}
-          onChange={(e) => update("address", e.target.value)} placeholder="Jl. Contoh No. 123, Kota..." />
+      {/* Alamat & Lokasi */}
+      <Section icon={MapPin} title="Alamat & Lokasi" desc="Alamat tertulis + pin di peta agar muncul di pencarian 'Toko di sekitar saya'.">
+        <div className="space-y-4">
+          <Textarea rows={2} value={form.address ?? ""}
+            onChange={(e) => update("address", e.target.value)} placeholder="Jl. Contoh No. 123, Kota..." />
+          <ShopLocationPicker
+            latitude={form.latitude}
+            longitude={form.longitude}
+            address={form.address}
+            onChange={({ latitude, longitude }) => {
+              setForm((f) => f ? { ...f, latitude, longitude } : f);
+            }}
+          />
+          <div>
+            <Label className="text-xs">Link Google Maps (opsional)</Label>
+            <Input
+              placeholder="https://maps.app.goo.gl/..."
+              value={form.google_maps_url ?? ""}
+              onChange={(e) => update("google_maps_url", e.target.value || null)}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Bila diisi, tombol "Petunjuk Arah" akan memakai link ini.</p>
+          </div>
+        </div>
       </Section>
 
       {/* Jam operasional */}

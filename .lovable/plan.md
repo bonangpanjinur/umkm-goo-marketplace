@@ -1,118 +1,64 @@
-## Hasil Audit Owner/Toko & Relasi Super Admin
+# Lokasi Toko + Penelusuran "Di Sekitar Saya"
 
-Audit menyisir 148 route `pos-app.*`, 60 route `admin.*`, dan seluruh `src/lib`. Dibandingkan dengan **191 tabel** dan **120 fungsi** yang benar-benar ada di database.
+## Tujuan
+1. Owner bisa **menandai lokasi** toko / outlet (pin di peta + link Google Maps + alamat).
+2. Pembeli bisa **mencari toko berdasarkan lokasi** (kota / area) dan melihat **toko terdekat** ketika GPS aktif, lengkap dengan jarak (km) & tombol "Petunjuk Arah".
 
----
+## Kondisi Saat Ini
+- Tabel `shops` sudah punya kolom `latitude`, `longitude`, `address`, `city` — **tapi belum ada UI** untuk owner mengisi koordinat.
+- Halaman `/toko/$slug/map` sudah ada (pakai embed OpenStreetMap + tombol Google Maps/Direction). Sudah jalan kalau lat/lng terisi.
+- Belum ada halaman discovery "terdekat" untuk pembeli, dan belum ada filter lokasi di marketplace.
+- Belum ada koneksi Google Maps Platform.
 
-### A. Tabel yang dirujuk kode tapi BELUM ada di database (28)
+## Rencana Pengerjaan (3 Fase)
 
-Dikelompokkan per modul + file pemanggil:
+### Fase 1 — Owner: input lokasi toko & outlet
+**A. Picker peta di Pengaturan Toko (`/pos-app/settings`)**
+- Tambah section "Lokasi Toko" di tab Brand/Profil, di bawah field `address`.
+- Komponen `ShopLocationPicker` baru: peta interaktif (Leaflet + OpenStreetMap, no API key) — drag pin / klik untuk set, tombol "Pakai lokasi saya" (Geolocation API), input manual lat/lng, tombol "Cari dari alamat" (geocoding via Nominatim publik gratis).
+- Simpan `latitude`, `longitude` ke `shops`. Tambah juga kolom `google_maps_url` (opsional, override link share).
+- Preview link "Buka di Google Maps".
 
-| Modul | Tabel hilang | File terpengaruh |
-|---|---|---|
-| Loyalty lanjutan | `loyalty_tiers`, `loyalty_rewards`, `loyalty_redemptions`, `loyalty_analytics`, `referral_programs`, `referrals` | `src/lib/loyalty-enhanced.ts` |
-| Cashback pembeli | `cashback_wallets`, `cashback_transactions` | `akun.cashback.tsx` |
-| Reservasi meja | `reservations`, `reservation_slots`, `reservation_settings`, `tables`, `table_maps` | `pos-app.reservasi.tsx`, `pos-app.tables.tsx`, `pos-app.table-maps.tsx`, `EnhancedOpenBill.tsx`, `order.$slug.tsx`, `src/lib/reservations.ts`, `use-tables.ts` |
-| Return / refund | `return_requests` | `akun.returns.tsx` |
-| Integrasi pihak ketiga | `third_party_integrations`, `integration_mappings`, `integration_webhooks`, `api_keys`, `api_usage` | `src/lib/third-party-api.ts` |
-| Super admin | `admin_users` (multi-admin), `affiliates`, `data_requests` (GDPR), `shop_health_score` | `admin.multi-admin.tsx`, `admin.affiliate.tsx`, `admin.gdpr-tools.tsx`, `admin.health-score*.tsx` |
-| Klinik/skin | `shop_skin_quiz`, `shop_product_claims` | `pos-app.skin-quiz.tsx`, `pos-app.verified-claims.tsx` |
-| Kurir | `courier_earnings` (view) | `kurir.earnings.tsx` |
-| View pendukung | `menu_hpp_view`, `v_shop_capabilities` | `pos-app.menu.tsx`, `pos-app.recipes.tsx`, `use-shop-capabilities.ts` |
+**B. Picker yang sama di Outlet (`/pos-app/outlets`)**
+- Outlet sudah punya `address`; tambah kolom `latitude`/`longitude` di tabel `outlets` (migrasi) + picker yang sama saat add/edit outlet.
 
-### B. RPC dipanggil kode tapi BELUM ada di DB (20)
+**C. Onboarding nudge**
+- Banner di dashboard owner kalau `latitude IS NULL` → "Tandai lokasi toko agar muncul di pencarian terdekat".
 
-`increment_slot_booked`, `decrement_slot_booked`, `generate_reservation_slots`, `check_table_availability`, `take_queue_number`, `call_next_queue`, `start_queue_session`, `skip_queue_entry`, `fn_use_booking_voucher`, `award_referral_bonus`, `record_download`, `reset_download_count`, `request_customer_export`, `request_shop_backup`, `reschedule_booking`, `run_plan_maintenance`, `check_api_rate_limit`, `record_api_usage`, `admin_update_min_months`, `admin_undo_min_months`.
+### Fase 2 — Pembeli: cari berdasarkan lokasi
+**A. Tombol "📍 Toko di sekitar saya" di marketplace home (`/`)**
+- Minta izin GPS sekali. Cache lokasi di `sessionStorage` (15 menit).
+- Fetch shops + hitung jarak (haversine, dilakukan di RPC Postgres `shops_nearby(lat, lng, radius_km, limit)` agar paginated & ringan).
+- Sort by distance, tampilkan badge "1.2 km" di kartu toko.
 
-Catatan: `approve_invoice` & `reject_invoice` sudah ada (alias dari `approve_plan_invoice`).
+**B. Halaman dedicated `/sekitar` (atau `/cari/sekitar`)**
+- Daftar toko + slider radius (1/3/5/10/25 km), filter kategori bisnis.
+- Map view (toggle list ↔ peta) dengan Leaflet markers — klik marker = popup nama + tombol "Lihat toko".
+- Empty state ramah kalau belum kasih izin / tidak ada toko di radius.
 
-### C. Relasi Toko ↔ Super Admin yang masih lemah
+**C. Filter lokasi di marketplace yang sudah ada**
+- Tambah opsi "Urut: Terdekat" di list view (`kategori.$slug` & index) ketika user sudah punya koordinat.
 
-1. **KYC** — `shop_verifications` ada, halaman `admin.kyc.tsx` belum melakukan transisi status & notifikasi balik ke owner.
-2. **Withdrawals** — `withdrawal_requests` + RPC `approve_withdrawal/reject_withdrawal` sudah ada, tapi `admin.withdrawals.tsx` belum memakai RPC tersebut (langsung UPDATE).
-3. **Plan invoice** — alur upload bukti → review → `approve_invoice` sudah jalan; **tetapi** tabel `plan_subscriptions` belum tertulis konsisten saat approve.
-4. **Health Score / SLA Monitor** — `admin.health-score.tsx` & `admin.sla-monitor.tsx` baca tabel/view yang belum ada (`shop_health_score`).
-5. **Email & WA broadcast** — tabel `email_campaigns`, `email_campaign_recipients`, `wa_broadcasts` sudah ada, **belum ada worker / RPC** untuk benar-benar mengirim; status mentok di `draft`.
-6. **Fraud & Disputes** — `admin.fraud.tsx`, `admin.disputes.tsx` belum di-cross-link ke `order_disputes` milik toko (relasi sudah ada, navigasi belum).
-7. **Notifikasi owner** — `admin.broadcast.tsx` (super admin → owner) belum menulis ke `owner_notifications`.
+### Fase 3 — Polish & integrasi
+- Update `/toko/$slug` halaman publik: tambah card "Lokasi" dengan mini-map + jarak (kalau user share lokasi) + tombol "Petunjuk Arah" (sudah ada di `/toko/$slug/map`, tinggal expose).
+- Tambah JSON-LD `LocalBusiness` (geo coordinates) di SEO toko untuk SEO lokal.
+- Sitemap kota (`CITIES` di `src/lib/cities.ts`) tetap dipakai untuk landing SEO.
 
----
+## Detail Teknis
+- **Map library**: Leaflet + OpenStreetMap tiles (gratis, tidak butuh API key). Sudah dipakai sebagai iframe; upgrade ke `react-leaflet` untuk interaktif.
+- **Geocoding alamat→koordinat**: Nominatim (`https://nominatim.openstreetmap.org/search`) — fair-use, kasih header `User-Agent`, debounce 1s.
+- **Jarak**: RPC `public.shops_nearby(_lat, _lng, _radius_km, _limit)` pakai formula haversine, return `{ id, name, slug, logo_url, distance_km, ... }`. Order by distance.
+- **Migrasi DB**:
+  - `ALTER TABLE shops ADD COLUMN google_maps_url text;`
+  - `ALTER TABLE outlets ADD COLUMN latitude numeric, ADD COLUMN longitude numeric;`
+  - Index: `CREATE INDEX shops_geo_idx ON shops (latitude, longitude) WHERE latitude IS NOT NULL;`
+  - Buat function `shops_nearby(...)` (SECURITY INVOKER, RLS-friendly hanya baca toko aktif/published).
+- **Privasi**: lokasi user tidak disimpan di DB, hanya di memori/sessionStorage browser.
+- **Tidak butuh Google Maps Platform connector** di tahap awal (hemat & no-key). Tombol "Buka di Google Maps" hanya deeplink publik `https://maps.google.com/?q=lat,lng` — boleh tanpa API. Bisa di-upgrade ke Google Maps nanti kalau perlu autocomplete alamat yang lebih akurat.
 
-## Rencana Perbaikan (4 Fase)
+## Hasil Akhir
+- Owner: pin lokasi sekali → muncul di profil toko & hasil pencarian terdekat.
+- Pembeli: 1 tap "Toko di sekitar saya" → list toko terdekat dengan jarak & petunjuk arah.
+- Tetap gratis (tanpa API key) di rilis pertama; siap upgrade ke Google Maps Platform kalau dibutuhkan.
 
-### Fase P0 — Skema dasar yang hilang (1 migration besar)
-
-Buat dalam satu migration agar build tidak pecah:
-
-- **Loyalty Enhanced**: `loyalty_tiers`, `loyalty_rewards`, `loyalty_redemptions`, `referral_programs`, `referrals` + RPC `award_referral_bonus`.
-- **Cashback**: `cashback_wallets`, `cashback_transactions` (RLS: customer only).
-- **Reservasi & meja**: `tables`, `table_maps`, `reservations`, `reservation_slots`, `reservation_settings` + RPC `generate_reservation_slots`, `check_table_availability`, `increment_slot_booked`, `decrement_slot_booked`.
-- **Antrian (queue)**: RPC `take_queue_number`, `call_next_queue`, `start_queue_session`, `skip_queue_entry` (tabelnya sudah ada).
-- **Return**: `return_requests`.
-- **Integrasi pihak ketiga**: `third_party_integrations`, `integration_mappings`, `integration_webhooks`, `api_keys`, `api_usage` + RPC `check_api_rate_limit`, `record_api_usage`.
-- **Super admin**: `admin_users`, `affiliates`, `data_requests`, `shop_health_score` + RPC `request_customer_export`, `request_shop_backup`.
-- **Klinik**: `shop_skin_quiz`, `shop_product_claims`.
-- **Kurir**: view `courier_earnings`.
-- **Pendukung**: view `menu_hpp_view` (HPP per menu), view `v_shop_capabilities` (gabungan plan + business_category).
-- **Booking voucher**: RPC `fn_use_booking_voucher`, `reschedule_booking`.
-- **Digital**: RPC `record_download`, `reset_download_count`.
-- **Plan**: RPC `run_plan_maintenance`, `admin_update_min_months`, `admin_undo_min_months`.
-
-Semua tabel pakai standar RLS: `is_shop_owner(shop_id) OR has_role(auth.uid(),'super_admin')`; tabel customer pakai `auth.uid()=user_id`.
-
-### Fase P1 — Wire relasi Owner ↔ Super Admin
-
-- `admin.withdrawals.tsx` → pakai RPC `approve_withdrawal`/`reject_withdrawal` + tulis `owner_notifications`.
-- `admin.kyc.tsx` → update `shop_verifications.status`, trigger notifikasi.
-- `admin.broadcast.tsx` → setelah kirim, fan-out ke `owner_notifications`.
-- `admin.disputes.tsx` ↔ owner `pos-app.orders.tsx`: tambahkan deep-link dua arah.
-- `admin.invoices.tsx` (plan): tampilkan bukti bayar + tombol approve/reject memakai RPC yang sudah ada (alih-alih panel mock).
-- `pos-app.billing.tsx`: konsisten tulis `plan_subscriptions` saat upgrade trial → pro.
-
-### Fase P2 — Worker / job untuk fitur "draft"
-
-- Email campaign sender: server function (`createServerFn`) iterasi `email_campaign_recipients`, kirim via Resend (atau provider yang sudah dikonfigurasi), update `sent_at`.
-- WA broadcast worker: server function bridging ke endpoint Uazapi yang sudah ada, update status per recipient.
-- Cron `run_plan_maintenance`: auto expire trial, renewal reminder, suspend overdue.
-
-### Fase P3 — Konsolidasi UX
-
-- Gabungkan `admin.revenue.tsx`, `admin.financial-report.tsx`, `admin.category-revenue.tsx`, `admin.revenue-leakage.tsx` jadi satu halaman tab.
-- Gabungkan `pos-app.reports.tsx`, `pos-app.reports.profit.tsx`, `pos-app.laporan-harian.tsx` jadi satu halaman tab.
-- Hapus halaman `pos-app.skin-quiz.tsx` & `pos-app.verified-claims.tsx` dari nav kalau bisnis bukan klinik/skincare (sudah ada `useBusinessCategory`).
-
----
-
-## Detail Teknis Migration P0 (ringkas)
-
-```text
--- Loyalty tiers (per shop), rewards, redemptions
--- Cashback (per customer global)
--- Tables / table_maps (per outlet), reservations (per shop+table)
--- Reservation slots harian (auto-generate)
--- Return requests (relasi order_items)
--- Third-party integrations (Tokopedia/Shopee/etc)
--- admin_users (super admin tambahan, role app_role super_admin)
--- affiliates (program referral platform)
--- data_requests (GDPR: export/delete)
--- shop_health_score (computed view: order_count, complaint_rate, sla)
--- shop_skin_quiz, shop_product_claims
--- courier_earnings (view dari orders + delivery fee)
--- menu_hpp_view (sum ingredient cost dari recipes)
--- v_shop_capabilities (LEFT JOIN shops + plans + business_categories)
-```
-
-Setiap RPC baru: `SECURITY DEFINER`, `SET search_path = public`, validasi role dengan `has_role`/`is_shop_owner`.
-
----
-
-## Urutan eksekusi yang disarankan
-
-1. Setujui plan ini.
-2. Saya jalankan **migration P0** dalam satu file (akan minta konfirmasi via tool migrasi).
-3. Saya rapikan code-side: ganti referensi tabel yang sebelumnya 404, dan hapus mock.
-4. Lanjut P1 wiring relasi (per modul, bisa dicicil sesuai prioritasmu: withdrawal → KYC → broadcast → disputes → invoices).
-5. P2 worker (perlu konfirmasi provider email & WA aktif).
-6. P3 konsolidasi UX terakhir.
-
-Bilang **"lanjut P0"** untuk mulai migration, atau sebutkan modul prioritas yang mau didahulukan (mis. "P0 tapi skip integrasi pihak ketiga dulu").
+Saya mulai dari **Fase 1** dulu (migrasi + picker lokasi di settings & outlets), lalu lanjut Fase 2 setelah owner bisa isi koordinat — setuju?

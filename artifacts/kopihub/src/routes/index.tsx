@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Sparkles, Store, ShieldCheck, Zap, TrendingUp, Star,
   ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
-  Plus, Flame, BadgeCheck, Heart, Loader2,
+  Plus, Flame, BadgeCheck, Heart, Loader2, Navigation,
 } from "lucide-react";
 
 function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
@@ -398,6 +398,22 @@ function MarketplaceHome() {
           </div>
         </div>
       )}
+
+      {/* ── Nearby CTA ── */}
+      <div className="mx-auto max-w-7xl px-4 pt-6">
+        <Link to="/sekitar" className="group block rounded-2xl border border-border bg-gradient-to-r from-primary/10 via-emerald-50 to-background p-4 sm:p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl bg-primary/15 p-3 shrink-0">
+              <Navigation className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm sm:text-base">Cari toko di sekitar saya</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Aktifkan GPS untuk menemukan toko & UMKM terdekat dari lokasimu</p>
+            </div>
+            <span className="hidden sm:inline-flex items-center text-sm font-medium text-primary group-hover:translate-x-0.5 transition-transform">Buka →</span>
+          </div>
+        </Link>
+      </div>
 
       {/* ── Flash Sale ── */}
       {(loading || flashProds.length > 0) && (
