@@ -9,24 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ScrollText, Save, Loader2, Copy, Check, Info, AlertTriangle,
-  FileText, Shield, Clock, Banknote, ChevronRight,
-} from "lucide-react";
+import { ScrollText, Save, Loader2, Copy, Check, Info, AlertTriangle, FileText, Shield, Clock, Banknote, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/rental-tnc")({
   head: () => ({ meta: [{ title: "Syarat & Ketentuan Sewa — Merchant" }] }),
   component: RentalTncPage,
 });
-
-const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor:
-ALTER TABLE public.shops
-  ADD COLUMN IF NOT EXISTS rental_tnc text,
-  ADD COLUMN IF NOT EXISTS rental_deposit_pct integer DEFAULT 30,
-  ADD COLUMN IF NOT EXISTS rental_require_id boolean DEFAULT true,
-  ADD COLUMN IF NOT EXISTS rental_min_hours integer DEFAULT 4,
-  ADD COLUMN IF NOT EXISTS rental_late_fee_pct integer DEFAULT 10;`;
 
 type TncData = {
   rental_tnc: string;
@@ -66,8 +55,7 @@ function RentalTncPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tablesMissing, setTablesMissing] = useState(false);
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
 
   const [tnc, setTnc] = useState(DEFAULT_TNC);
   const [depositPct, setDepositPct] = useState<string>("30");
@@ -85,8 +73,7 @@ function RentalTncPage() {
       .maybeSingle() as any;
 
     if (error?.message?.includes("column") || error?.message?.includes("does not exist")) {
-      setTablesMissing(true);
-      setLoading(false);
+setLoading(false);
       return;
     }
 
@@ -119,8 +106,7 @@ function RentalTncPage() {
       .eq("id", shop.id);
 
     if (error?.message?.includes("column") || error?.message?.includes("does not exist")) {
-      setTablesMissing(true);
-      toast.error("Kolom belum tersedia. Jalankan SQL setup dulu.");
+toast.error("Kolom belum tersedia.");
     } else if (error) {
       toast.error(error.message);
     } else {
@@ -128,12 +114,7 @@ function RentalTncPage() {
     }
     setSaving(false);
   }
-
-  function copySQL() {
-    navigator.clipboard.writeText(SETUP_SQL).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+);
   }
 
   if (shopLoading || loading) {
@@ -162,20 +143,7 @@ function RentalTncPage() {
         </Button>
       </div>
 
-      {tablesMissing && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30 p-4 space-y-3">
-          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold">
-            <AlertTriangle className="h-4 w-4" />
-            Kolom DB belum tersedia — jalankan SQL ini sekali
-          </div>
-          <pre className="text-xs font-mono bg-amber-100 dark:bg-amber-900/40 rounded-md p-3 overflow-x-auto text-amber-900 dark:text-amber-200 select-all whitespace-pre-wrap">{SETUP_SQL}</pre>
-          <Button size="sm" variant="outline" onClick={copySQL} className="gap-2">
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? "Tersalin!" : "Salin SQL"}
-          </Button>
-        </div>
-      )}
-
+      
       {/* Kebijakan Kunci */}
       <Card>
         <CardHeader className="pb-3">

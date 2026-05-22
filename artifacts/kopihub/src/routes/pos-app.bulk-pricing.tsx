@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Layers, Plus, Trash2, Loader2, Copy, Check, Pencil, PackageSearch, Tag } from "lucide-react";
+import { Layers, Plus, Trash2, Loader2, Pencil, PackageSearch, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
@@ -27,25 +27,6 @@ export const Route = createFileRoute("/pos-app/bulk-pricing")({
   head: () => ({ meta: [{ title: "Harga Grosir / Bulk — Merchant" }] }),
   component: BulkPricingPage,
 });
-
-const BULK_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.bulk_pricing_rules (
-  id uuid primary key default gen_random_uuid(),
-  menu_item_id uuid not null references public.menu_items(id) on delete cascade,
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  min_qty integer not null,
-  max_qty integer,
-  price numeric(10,2) not null,
-  label text,
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now()
-);
-alter table public.bulk_pricing_rules enable row level security;
-create policy "owner_all_bp" on public.bulk_pricing_rules
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-create policy "public_read_bp" on public.bulk_pricing_rules
-  for select using (true);`;
 
 type MenuItem = { id: string; name: string; price: number };
 type BulkRule = {
@@ -68,8 +49,7 @@ const defaultForm = () => ({
 
 function BulkPricingPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [menuItems, setMenuItems]     = useState<MenuItem[]>([]);
+const [menuItems, setMenuItems]     = useState<MenuItem[]>([]);
   const [rules, setRules]             = useState<BulkRule[]>([]);
   const [loading, setLoading]         = useState(true);
   const [selectedItemId, setSelectedItemId] = useState<string>("all");
@@ -78,19 +58,12 @@ function BulkPricingPage() {
   const [form, setForm]               = useState(defaultForm());
   const [saving, setSaving]           = useState(false);
   const [deleting, setDeleting]       = useState<string | null>(null);
-  const [copied, setCopied]           = useState(false);
+  
 
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { error } = await (supabase as any).from("bulk_pricing_rules").select("id").limit(1);
-      if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-        setTableExists(false);
-        setLoading(false);
-        return;
-      }
-      setTableExists(true);
-      await Promise.all([loadMenuItems(), loadRules()]);
+await Promise.all([loadMenuItems(), loadRules()]);
     })();
   }, [shop?.id]);
 
@@ -193,24 +166,6 @@ function BulkPricingPage() {
 
   if (shopLoading || loading) {
     return <div className="flex items-center gap-2 text-sm text-muted-foreground p-6"><Loader2 className="h-4 w-4 animate-spin" /> Memuat…</div>;
-  }
-
-  if (tableExists === false) {
-    return (
-      <div className="p-6 space-y-4">
-        <h1 className="text-xl font-bold">Harga Grosir / Bulk Pricing</h1>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-amber-800">Tabel bulk_pricing_rules belum ada. Jalankan SQL ini di Supabase:</p>
-          <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{BULK_SQL}</pre>
-          <Button
-            size="sm" variant="outline" className="gap-1.5"
-            onClick={() => { navigator.clipboard.writeText(BULK_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          >
-            {copied ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   const groupedByItem = rules.reduce<Record<string, BulkRule[]>>((acc, r) => {

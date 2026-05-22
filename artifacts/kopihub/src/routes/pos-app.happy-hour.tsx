@@ -19,34 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Clock, Plus, Trash2, Loader2, Copy, Check, Power, PowerOff, Pencil } from "lucide-react";
+import { Clock, Plus, Trash2, Loader2, Power, PowerOff, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/happy-hour")({
   head: () => ({ meta: [{ title: "Happy Hour — Merchant" }] }),
   component: HappyHourPage,
 });
-
-const HAPPY_HOUR_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.happy_hour_rules (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  name text not null,
-  days_of_week integer[] not null default '{1,2,3,4,5}',
-  start_time time not null,
-  end_time time not null,
-  discount_type text not null default 'percent'
-    check (discount_type in ('percent','fixed')),
-  discount_value numeric(10,2) not null,
-  is_active boolean not null default true,
-  created_at timestamptz not null default now()
-);
-alter table public.happy_hour_rules enable row level security;
-create policy "owner_all_hh" on public.happy_hour_rules
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-create policy "public_read_hh" on public.happy_hour_rules
-  for select using (true);`;
 
 const DAY_NAMES = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
 const ALL_DAYS  = [0,1,2,3,4,5,6];
@@ -74,27 +53,19 @@ const defaultForm = (): Omit<Rule, "id"> => ({
 
 function HappyHourPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [rules, setRules]   = useState<Rule[]>([]);
+const [rules, setRules]   = useState<Rule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editRule, setEditRule] = useState<Rule | null>(null);
   const [form, setForm]     = useState(defaultForm());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  
 
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { error } = await (supabase as any).from("happy_hour_rules").select("id").limit(1);
-      if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-        setTableExists(false);
-        setLoading(false);
-        return;
-      }
-      setTableExists(true);
-      await loadRules();
+await loadRules();
     })();
   }, [shop?.id]);
 
@@ -173,24 +144,6 @@ function HappyHourPage() {
 
   if (shopLoading || loading) {
     return <div className="flex items-center gap-2 text-sm text-muted-foreground p-6"><Loader2 className="h-4 w-4 animate-spin" /> Memuat…</div>;
-  }
-
-  if (tableExists === false) {
-    return (
-      <div className="p-6 space-y-4">
-        <h1 className="text-xl font-bold">Happy Hour</h1>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-amber-800">Tabel happy_hour_rules belum ada. Jalankan SQL ini:</p>
-          <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{HAPPY_HOUR_SQL}</pre>
-          <Button
-            size="sm" variant="outline" className="gap-1.5"
-            onClick={() => { navigator.clipboard.writeText(HAPPY_HOUR_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          >
-            {copied ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   return (

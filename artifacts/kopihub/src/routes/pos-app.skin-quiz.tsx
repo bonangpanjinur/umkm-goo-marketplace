@@ -43,17 +43,6 @@ type QuizConfig = {
   results: SkinResult[];
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_skin_quiz (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  title text NOT NULL DEFAULT 'Kenali Jenis Kulitmu',
-  subtitle text,
-  is_active boolean NOT NULL DEFAULT false,
-  questions jsonb NOT NULL DEFAULT '[]',
-  results jsonb NOT NULL DEFAULT '[]',
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const DEFAULT_QUESTIONS: QuizQuestion[] = [
   {
     id: "q1",
@@ -89,8 +78,7 @@ export default function SkinQuizPage() {
   const [config, setConfig] = useState<QuizConfig | null>(null);
   const [menuItems, setMenuItems] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [saving, setSaving] = useState(false);
+const [saving, setSaving] = useState(false);
   const [editResultIdx, setEditResultIdx] = useState<number | null>(null);
   const [editQuestionIdx, setEditQuestionIdx] = useState<number | null>(null);
 
@@ -159,13 +147,6 @@ export default function SkinQuizPage() {
           Simpan Quiz
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel quiz belum ada:</p>
-          <pre className="mt-2 rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

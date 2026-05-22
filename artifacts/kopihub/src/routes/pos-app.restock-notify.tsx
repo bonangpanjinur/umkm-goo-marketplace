@@ -12,12 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import {
-  Bell, MessageCircle, Search, Loader2, Package, RefreshCw,
-  ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle,
-  Trash2, Zap, ChevronRight, SkipForward, X, PartyPopper, Phone,
-  ClipboardList, Share2, Copy, Check,
-} from "lucide-react";
+import { Bell, MessageCircle, Search, Loader2, Package, RefreshCw, ExternalLink, CheckCircle2, Send, Megaphone, AlertTriangle, Trash2, Zap, ChevronRight, SkipForward, X, PartyPopper, Phone, ClipboardList, Share2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -41,28 +36,6 @@ export const Route = createFileRoute("/pos-app/restock-notify")({
   head: () => ({ meta: [{ title: "Notifikasi Pelanggan Menunggu — Merchant" }] }),
   component: RestockNotifyPage,
 });
-
-const SETUP_SQL = `-- Jalankan sekali di Supabase SQL Editor:
-create table if not exists public.restock_subscribers (
-  id            uuid        primary key default gen_random_uuid(),
-  shop_id       uuid        not null references public.shops(id) on delete cascade,
-  product_id    uuid        not null references public.menu_items(id)   on delete cascade,
-  product_name  text        not null,
-  customer_wa   text        not null,
-  customer_name text,
-  subscribed_at timestamptz not null default now(),
-  notified_at   timestamptz,
-  unique (product_id, customer_wa)
-);
-alter table public.restock_subscribers enable row level security;
-create policy "restock_sub_insert_anyone" on public.restock_subscribers
-  for insert with check (true);
-create policy "restock_sub_owner_select" on public.restock_subscribers
-  for select using (shop_id in (select id from public.shops where owner_id = auth.uid()));
-create policy "restock_sub_owner_update" on public.restock_subscribers
-  for update using (shop_id in (select id from public.shops where owner_id = auth.uid()));
-create policy "restock_sub_owner_delete" on public.restock_subscribers
-  for delete using (shop_id in (select id from public.shops where owner_id = auth.uid()));`;
 
 type Subscriber = {
   id: string;
@@ -404,8 +377,7 @@ export default function RestockNotifyPage() {
   const { shop } = useCurrentShop();
   const [groups, setGroups] = useState<ProductGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableReady, setTableReady] = useState(true);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "notified">("all");
   const [notifying, setNotifying] = useState<string | null>(null);
   const [autoNotify, setAutoNotify] = useState(true);
@@ -452,8 +424,7 @@ export default function RestockNotifyPage() {
 
       if (error) {
         if (error.code === "42P01" || error.message?.includes("does not exist")) {
-          setTableReady(false);
-          setLoading(false);
+setLoading(false);
           return;
         }
         throw error;
@@ -504,8 +475,7 @@ export default function RestockNotifyPage() {
       const result = Object.values(groupMap).sort((a, b) => b.pending_count - a.pending_count);
       setGroups(result);
       groupsRef.current = result;
-      setTableReady(true);
-    } catch (err: any) {
+} catch (err: any) {
       toast.error("Gagal memuat data: " + (err?.message ?? "Unknown error"));
     }
     setLoading(false);
@@ -515,7 +485,7 @@ export default function RestockNotifyPage() {
 
   // Realtime: auto-mark when product comes back in stock
   useEffect(() => {
-    if (!shopId || !tableReady) return;
+    if (!shopId) return;
     const ch = supabase
       .channel(`restock-auto-${shopId}`)
       .on(
@@ -548,7 +518,7 @@ export default function RestockNotifyPage() {
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [shopId, tableReady, load]);
+  }, [shopId, load]);
 
   // Build blast queue from all pending subscribers across all groups
   function startBlast() {
@@ -644,36 +614,6 @@ export default function RestockNotifyPage() {
   const totalNotified = groups.reduce((s, g) => s + g.notified_count, 0);
 
   // ── Setup screen ─────────────────────────────────────────────────────────
-  if (!tableReady) {
-    return (
-      <div className="p-6 max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <Bell className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Notifikasi Pelanggan Menunggu</h1>
-        </div>
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-300 text-base">
-              <AlertTriangle className="h-5 w-5" />
-              Setup Diperlukan
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-amber-700 dark:text-amber-400">
-              Tabel <code className="bg-amber-100 dark:bg-amber-900 rounded px-1 font-mono text-xs">restock_subscribers</code> belum ada.
-              Jalankan SQL berikut sekali di <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="underline font-medium">Supabase SQL Editor</a>:
-            </p>
-            <pre className="text-xs bg-amber-100 dark:bg-amber-900/40 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap text-amber-900 dark:text-amber-200 select-all">
-              {SETUP_SQL}
-            </pre>
-            <Button onClick={load} variant="outline" size="sm" className="gap-2">
-              <RefreshCw className="h-4 w-4" /> Cek Ulang
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // ── Blast mode ────────────────────────────────────────────────────────────
   if (blastMode) {

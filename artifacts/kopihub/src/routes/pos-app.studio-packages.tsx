@@ -35,20 +35,6 @@ type StudioPackage = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_packages (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  duration_minutes int NOT NULL DEFAULT 60,
-  price numeric(12,2) NOT NULL DEFAULT 0,
-  description text NOT NULL DEFAULT '',
-  includes text[] NOT NULL DEFAULT '{}',
-  max_capacity int NOT NULL DEFAULT 1,
-  is_active boolean NOT NULL DEFAULT true,
-  sort_order int NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const EMPTY_FORM = {
   name: "",
   duration_minutes: "60",
@@ -70,8 +56,7 @@ export default function StudioPackagesPage() {
   const { shop } = useCurrentShop();
   const [packages, setPackages] = useState<StudioPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<StudioPackage | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -181,13 +166,6 @@ export default function StudioPackagesPage() {
           <Plus className="h-4 w-4" /> Tambah Paket
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada — jalankan SQL berikut di Supabase:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center">

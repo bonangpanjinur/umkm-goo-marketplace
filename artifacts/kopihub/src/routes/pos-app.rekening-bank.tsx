@@ -39,8 +39,7 @@ function BankAccountsPage() {
   const { shop } = useCurrentShop();
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableExists, setTableExists] = useState(true);
-  const [adding, setAdding] = useState(false);
+const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -56,8 +55,7 @@ function BankAccountsPage() {
       .order("created_at", { ascending: true });
     if (error) {
       if (error.code === "42P01" || error.message?.includes("does not exist")) {
-        setTableExists(false);
-      }
+}
     } else {
       setAccounts((data as BankAccount[]) ?? []);
     }
@@ -110,24 +108,6 @@ function BankAccountsPage() {
     return (
       <div className="flex justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!tableExists) {
-    return (
-      <div className="max-w-2xl space-y-4 p-4 sm:p-6">
-        <h1 className="text-xl font-bold">Rekening Bank</h1>
-        <Card>
-          <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            <AlertCircle className="h-10 w-10 mx-auto mb-3 text-amber-400" />
-            <p className="font-medium text-foreground">Tabel rekening bank belum tersedia</p>
-            <p className="mt-1 text-xs">
-              Jalankan migrasi database untuk mengaktifkan fitur ini:{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">shop_bank_accounts</code>
-            </p>
-          </CardContent>
-        </Card>
       </div>
     );
   }

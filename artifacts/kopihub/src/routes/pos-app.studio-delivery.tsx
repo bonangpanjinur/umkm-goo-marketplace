@@ -37,23 +37,6 @@ type Delivery = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.studio_deliveries (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  client_name text NOT NULL,
-  client_phone text,
-  session_date date,
-  package_name text,
-  file_urls text[] NOT NULL DEFAULT '{}',
-  drive_link text,
-  download_token text NOT NULL DEFAULT gen_random_uuid()::text,
-  expires_at timestamptz,
-  download_count int NOT NULL DEFAULT 0,
-  status text NOT NULL DEFAULT 'preparing' CHECK (status IN ('preparing','delivered','downloaded','expired')),
-  notes text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const STATUS_META = {
   preparing:  { label: "Sedang Disiapkan", cls: "bg-amber-100 text-amber-700",  icon: Clock },
   delivered:  { label: "Sudah Dikirim",    cls: "bg-blue-100 text-blue-700",    icon: LinkIcon },
@@ -86,8 +69,7 @@ export default function StudioDeliveryPage() {
   const { shop } = useCurrentShop();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -254,13 +236,6 @@ export default function StudioDeliveryPage() {
               <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
             </div>
           ))}
-        </div>
-      )}
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada — jalankan SQL berikut di Supabase:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
         </div>
       )}
 

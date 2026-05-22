@@ -66,8 +66,7 @@ function ShopVouchersPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
   const [list, setList] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableReady, setTableReady] = useState(true);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Partial<Voucher>>(EMPTY_FORM);
 
@@ -81,12 +80,7 @@ function ShopVouchersPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      if (
-        error.message.toLowerCase().includes("does not exist") ||
-        error.message.toLowerCase().includes("relation")
-      ) {
-        setTableReady(false);
-      } else {
+      if (true) {
         toast.error(error.message);
       }
       setLoading(false);
@@ -183,50 +177,13 @@ function ShopVouchersPage() {
             Buat kode diskon khusus untuk toko kamu. Pembeli bisa memasukkan kode ini saat checkout.
           </p>
         </div>
-        <Button onClick={() => setOpen(true)} disabled={!tableReady}>
+        <Button onClick={() => setOpen(true)}>
           <Plus className="mr-1.5 h-4 w-4" /> Voucher Baru
         </Button>
       </div>
 
-      {!tableReady && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
-          <Info className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
-          <div>
-            <p className="font-semibold text-amber-800">Tabel database belum siap</p>
-            <p className="mt-1 text-amber-700 text-xs">
-              Fitur ini memerlukan tabel <code className="bg-amber-100 px-1 rounded">shop_vouchers</code> di Supabase.
-              Jalankan migrasi SQL berikut di Supabase SQL Editor:
-            </p>
-            <pre className="mt-2 overflow-auto rounded bg-amber-100 p-3 text-xs text-amber-900">
-{`CREATE TABLE IF NOT EXISTS shop_vouchers (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
-  code text NOT NULL,
-  description text,
-  discount_type text NOT NULL CHECK (discount_type IN ('percent','nominal')),
-  value numeric(12,2) NOT NULL,
-  min_order numeric(12,2) NOT NULL DEFAULT 0,
-  max_discount numeric(12,2),
-  usage_limit int,
-  per_user_limit int DEFAULT 1,
-  usage_count int NOT NULL DEFAULT 0,
-  starts_at timestamptz,
-  expires_at timestamptz,
-  is_active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(shop_id, code)
-);
-ALTER TABLE shop_vouchers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "owner_all" ON shop_vouchers FOR ALL
-  USING (shop_id IN (
-    SELECT id FROM shops WHERE owner_user_id = auth.uid()
-  ));`}
-            </pre>
-          </div>
-        </div>
-      )}
-
-      {tableReady && (
+      
+      
         loading ? (
           <div className="flex h-32 items-center justify-center">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -304,7 +261,7 @@ CREATE POLICY "owner_all" ON shop_vouchers FOR ALL
             })}
           </div>
         )
-      )}
+      
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

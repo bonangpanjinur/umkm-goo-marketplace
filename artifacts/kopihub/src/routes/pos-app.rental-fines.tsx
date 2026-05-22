@@ -12,10 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  AlertTriangle, Loader2, RefreshCw, Calculator, Car, Clock,
-  CheckCircle2, Banknote, MessageSquare, Search, Settings2,
-} from "lucide-react";
+import { AlertTriangle, Loader2, RefreshCw, Calculator, Car, Clock, CheckCircle2, Banknote, MessageSquare, Search, Settings2 } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/rental-fines")({
   head: () => ({ meta: [{ title: "Denda Keterlambatan Rental" }] }),
@@ -37,19 +34,6 @@ type RentalBooking = {
   unit: { name: string; unit_code: string | null; daily_price: number | null } | null;
 };
 
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor:
-ALTER TABLE public.rental_bookings
-  ADD COLUMN IF NOT EXISTS actual_return_date date,
-  ADD COLUMN IF NOT EXISTS fine_per_day numeric(12,2),
-  ADD COLUMN IF NOT EXISTS fine_total numeric(12,2),
-  ADD COLUMN IF NOT EXISTS fine_status text CHECK (fine_status IN ('pending','paid','waived')),
-  ADD COLUMN IF NOT EXISTS fine_notes text;
-
--- Config denda per unit:
-ALTER TABLE public.rental_units
-  ADD COLUMN IF NOT EXISTS fine_per_day numeric(12,2) DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS fine_type text DEFAULT 'fixed' CHECK (fine_type IN ('fixed','percent'));`;
-
 function fmtDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -63,8 +47,7 @@ export default function RentalFinesPage() {
   const { shop } = useCurrentShop();
   const [bookings, setBookings] = useState<RentalBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<RentalBooking | null>(null);
   const [returnDate, setReturnDate] = useState("");
   const [finePerDay, setFinePerDay] = useState("");
@@ -198,13 +181,6 @@ export default function RentalFinesPage() {
           </div>
         ))}
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-amber-800">Kolom denda belum ada. Jalankan SQL ini:</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

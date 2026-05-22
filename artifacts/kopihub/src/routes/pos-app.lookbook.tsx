@@ -31,25 +31,11 @@ type LookItem = {
   linked_product_ids: string[];
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_lookbook (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  title text,
-  model_name text,
-  tags text[] NOT NULL DEFAULT '{}',
-  image_url text NOT NULL,
-  is_published boolean NOT NULL DEFAULT true,
-  sort_order int NOT NULL DEFAULT 0,
-  linked_product_ids uuid[] NOT NULL DEFAULT '{}',
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 export default function LookbookPage() {
   const { shop } = useCurrentShop();
   const [items, setItems] = useState<LookItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LookItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: "", model_name: "", tags: "", image_url: "", is_published: true });
@@ -120,13 +106,6 @@ export default function LookbookPage() {
         </div>
         <Button onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" /> Tambah Foto</Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel lookbook belum ada. Jalankan:</p>
-          <pre className="mt-2 rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

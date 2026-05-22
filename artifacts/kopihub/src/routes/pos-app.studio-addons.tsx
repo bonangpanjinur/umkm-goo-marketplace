@@ -34,18 +34,6 @@ type BookingAddon = {
   created_at: string;
 };
 
-const SQL_HINT = `-- M-17: Tabel add-on booking (jalankan jika belum ada)
-CREATE TABLE IF NOT EXISTS public.booking_addons (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  price numeric(12,2) NOT NULL DEFAULT 0,
-  is_active boolean NOT NULL DEFAULT true,
-  sort_order int NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 type PresetCategory = {
   label: string;
   icon: React.ElementType;
@@ -113,8 +101,7 @@ export default function StudioAddonsPage() {
   const { shop } = useCurrentShop();
   const [addons, setAddons] = useState<BookingAddon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<BookingAddon | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -132,8 +119,7 @@ export default function StudioAddonsPage() {
         .order("sort_order")
         .order("created_at");
       if (error?.code === "42P01") {
-        setShowSql(true);
-        setAddons([]);
+setAddons([]);
         return;
       }
       setAddons((data ?? []) as BookingAddon[]);
@@ -262,17 +248,6 @@ export default function StudioAddonsPage() {
       </div>
 
       {/* ── SQL Fallback ── */}
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
-          <p className="text-sm font-semibold text-amber-800 flex items-center gap-2">
-            <Info className="h-4 w-4" /> Tabel add-on belum dibuat di database
-          </p>
-          <p className="text-sm text-amber-700">Jalankan SQL berikut di Supabase SQL Editor untuk mengaktifkan fitur ini:</p>
-          <pre className="text-xs bg-white dark:bg-card border border-amber-200 rounded p-3 overflow-x-auto text-amber-900 dark:text-amber-100 whitespace-pre-wrap">
-            {SQL_HINT}
-          </pre>
-        </div>
-      )}
 
       {/* ── How It Works ── */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">

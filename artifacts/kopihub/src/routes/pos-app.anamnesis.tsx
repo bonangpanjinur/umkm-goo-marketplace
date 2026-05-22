@@ -47,28 +47,13 @@ const DEFAULT_FIELDS = [
   { id: "f5", label: "Tekanan Darah / Catatan Vital", type: "text", required: false },
 ];
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.anamnesis_forms (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  booking_id uuid REFERENCES public.bookings(id) ON DELETE SET NULL,
-  patient_name text NOT NULL,
-  chief_complaint text NOT NULL,
-  history text,
-  allergies text,
-  current_medications text,
-  vital_notes text,
-  submitted_at timestamptz NOT NULL DEFAULT now(),
-  reviewed boolean NOT NULL DEFAULT false
-);`;
-
 function fmtDT(d: string) { return new Date(d).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
 
 export default function AnamnesisPage() {
   const { shop } = useCurrentShop();
   const [forms, setForms] = useState<AnamnesisForm[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<AnamnesisForm | null>(null);
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -134,12 +119,6 @@ export default function AnamnesisPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex gap-2">
           <ClipboardList className="h-4 w-4 shrink-0 mt-0.5" />
           <span><strong>{unreviewed} form</strong> belum diperiksa dokter/terapis.</span>
-        </div>
-      )}
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel anamnesis belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
         </div>
       )}
 

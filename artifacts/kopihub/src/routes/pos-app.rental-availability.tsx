@@ -21,63 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Car, Plus, Trash2, Pencil, Loader2, Copy, Check, CalendarSearch, CheckCircle2, XCircle, Info, Wrench } from "lucide-react";
+import { Car, Plus, Trash2, Pencil, Loader2, Copy, Check, CalendarSearch, CheckCircle2, XCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/rental-availability")({
   head: () => ({ meta: [{ title: "Ketersediaan Unit Rental" }] }),
   component: RentalAvailabilityPage,
 });
-
-const RENTAL_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.rental_units (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  name text not null,
-  unit_code text,
-  category text,
-  description text,
-  condition text not null default 'good' check (condition in ('excellent','good','fair','maintenance')),
-  daily_price numeric(12,2),
-  deposit_amount numeric(12,2),
-  image_url text,
-  is_active boolean not null default true,
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists public.rental_bookings (
-  id uuid primary key default gen_random_uuid(),
-  unit_id uuid not null references public.rental_units(id) on delete cascade,
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  customer_name text not null,
-  customer_phone text,
-  start_date date not null,
-  end_date date not null,
-  status text not null default 'pending' check (status in ('pending','confirmed','active','completed','cancelled')),
-  notes text,
-  total_days int generated always as (end_date - start_date) stored,
-  created_at timestamptz not null default now(),
-  check (end_date > start_date)
-);
-
-create index if not exists idx_rental_units_shop on public.rental_units(shop_id);
-create index if not exists idx_rental_bookings_unit on public.rental_bookings(unit_id, start_date, end_date);
-create index if not exists idx_rental_bookings_shop on public.rental_bookings(shop_id, start_date);
-
-alter table public.rental_units enable row level security;
-alter table public.rental_bookings enable row level security;
-
-create policy "owner_all_units" on public.rental_units
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-
-create policy "owner_all_rbooking" on public.rental_bookings
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-
-create policy "public_read_units" on public.rental_units for select using (is_active = true);
-create policy "public_insert_booking" on public.rental_bookings for insert with check (true);`;
 
 type RentalUnit = {
   id: string;
@@ -127,8 +77,7 @@ function RentalAvailabilityPage() {
   const [units, setUnits] = useState<RentalUnit[]>([]);
   const [bookings, setBookings] = useState<RentalBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tablesMissing, setTablesMissing] = useState(false);
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<"units" | "availability" | "bookings">("units");
 
   // Check range form
@@ -205,28 +154,6 @@ function RentalAvailabilityPage() {
   }
 
   if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
-
-  if (tablesMissing) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Car className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-bold">Ketersediaan Unit Rental</h1>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-semibold text-sm">
-            <Info className="h-4 w-4 shrink-0" /> Tabel belum dibuat
-          </div>
-          <p className="text-sm text-muted-foreground">Jalankan SQL ini di Supabase SQL Editor untuk mengaktifkan fitur.</p>
-          <pre className="text-xs bg-muted rounded-lg p-3 overflow-auto max-h-64 select-all">{RENTAL_SQL}</pre>
-          <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(RENTAL_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); toast.success("SQL disalin"); }} className="gap-2">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Disalin" : "Salin SQL"}
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

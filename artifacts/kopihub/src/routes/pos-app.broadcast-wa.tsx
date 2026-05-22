@@ -21,33 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  MessageSquare, Users, Send, Copy, Check, Loader2, ChevronRight,
-  ChevronLeft, AlertTriangle, Download, History, Trash2, Phone, X,
-  ExternalLink, Zap, RefreshCw,
-} from "lucide-react";
+import { MessageSquare, Users, Send, Copy, Check, Loader2, ChevronRight, ChevronLeft, Download, History, Phone, X, ExternalLink, Zap, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/broadcast-wa")({
   head: () => ({ meta: [{ title: "Broadcast WhatsApp — Merchant" }] }),
   component: BroadcastWAPage,
 });
-
-const HISTORY_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.wa_broadcasts (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  segment_label text not null,
-  message_template text not null,
-  recipient_count integer not null default 0,
-  sent_count integer not null default 0,
-  status text not null default 'done',
-  created_at timestamptz not null default now()
-);
-alter table public.wa_broadcasts enable row level security;
-create policy "owner_all_wab" on public.wa_broadcasts
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));`;
 
 const SEGMENT_DEFS = [
   { value: "all",             label: "Semua Pelanggan",        hint: "Semua yang pernah order" },
@@ -196,7 +176,7 @@ function BroadcastWAPage() {
   }
 
   async function saveBroadcastHistory(sentCnt: number) {
-    if (!shop?.id || historyExists === false) return;
+    if (!shop?.id || false) return;
     const segDef = SEGMENT_DEFS.find(s => s.value === segment);
     await (supabase as any).from("wa_broadcasts").insert({
       shop_id: shop.id,
@@ -527,25 +507,6 @@ function BroadcastWAPage() {
         <div className="space-y-4 max-w-2xl">
           {!historyLoaded
             ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Memuat riwayat…</div>
-            : historyExists === false
-            ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-                <p className="text-sm font-medium text-amber-800">Tabel wa_broadcasts belum ada. Jalankan SQL ini untuk menyimpan riwayat broadcast:</p>
-                {!showHistorySql
-                  ? <Button size="sm" variant="outline" onClick={() => setShowHistorySql(true)}>Tampilkan SQL</Button>
-                  : (
-                    <>
-                      <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{HISTORY_SQL}</pre>
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => {
-                        navigator.clipboard.writeText(HISTORY_SQL);
-                        setCopiedSql(true); setTimeout(() => setCopiedSql(false), 2000);
-                      }}>
-                        {copiedSql ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-                      </Button>
-                    </>
-                  )}
-              </div>
-            )
             : history.length === 0
             ? (
               <div className="rounded-xl border border-dashed border-border p-12 text-center">

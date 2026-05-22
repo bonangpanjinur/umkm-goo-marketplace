@@ -9,10 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  Banknote, Loader2, RefreshCw, Save, Car, Calculator,
-  Percent, AlertTriangle, CheckCircle2, Info,
-} from "lucide-react";
+import { Banknote, Loader2, RefreshCw, Save, Car, Calculator, Percent, CheckCircle2, Info } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/rental-deposit-config")({
   head: () => ({ meta: [{ title: "Konfigurasi Deposit Rental" }] }),
@@ -32,11 +29,6 @@ type RentalUnit = {
   condition: string;
 };
 
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor jika kolom belum ada:
-ALTER TABLE public.rental_units
-  ADD COLUMN IF NOT EXISTS deposit_pct numeric(5,2) DEFAULT 30,
-  ADD COLUMN IF NOT EXISTS auto_deposit boolean NOT NULL DEFAULT false;`;
-
 function calcDeposit(unit: RentalUnit, days: number): number {
   if (!unit.auto_deposit || !unit.daily_price) return unit.deposit_amount ?? 0;
   const pct = unit.deposit_pct ?? 30;
@@ -48,8 +40,7 @@ export default function RentalDepositConfigPage() {
   const [units, setUnits] = useState<RentalUnit[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [showSql, setShowSql] = useState(false);
-  const [previewDays, setPreviewDays] = useState("3");
+const [previewDays, setPreviewDays] = useState("3");
 
   const load = useCallback(async (shopId: string) => {
     setLoading(true);
@@ -60,8 +51,7 @@ export default function RentalDepositConfigPage() {
       .order("name");
     if (error) {
       if (error.message?.includes("column") || error.message?.includes("does not exist")) {
-        setShowSql(true);
-      } else {
+} else {
         toast.error("Gagal memuat unit rental");
       }
     }
@@ -117,16 +107,6 @@ export default function RentalDepositConfigPage() {
           <RefreshCw className="h-3.5 w-3.5" /> Muat Ulang
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="flex items-center gap-2 text-sm font-semibold text-amber-800">
-            <AlertTriangle className="h-4 w-4" /> Kolom deposit belum ada
-          </p>
-          <p className="text-xs text-amber-700">Jalankan SQL berikut di Supabase SQL Editor:</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {/* Preview calculator */}
       <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">

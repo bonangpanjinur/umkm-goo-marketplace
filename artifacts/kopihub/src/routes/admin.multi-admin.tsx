@@ -43,23 +43,12 @@ const PERMISSIONS: Record<string, string[]> = {
   content_admin: ["Dashboard", "Banner", "Iklan", "Kategori", "Moderasi"],
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.admin_users (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text UNIQUE NOT NULL,
-  full_name text,
-  role text NOT NULL DEFAULT 'support_admin',
-  is_active boolean NOT NULL DEFAULT true,
-  last_login timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 function fmtDate(d: string) { return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }); }
 
 export default function MultiAdminPage() {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "", role: "support_admin" as AdminUser["role"], is_active: true });
@@ -125,13 +114,6 @@ export default function MultiAdminPage() {
           </div>
         ))}
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel admin_users belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

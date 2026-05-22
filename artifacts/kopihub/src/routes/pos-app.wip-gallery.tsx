@@ -34,18 +34,6 @@ type WipPost = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.wip_gallery (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  title text NOT NULL,
-  caption text,
-  image_url text NOT NULL,
-  stage text NOT NULL DEFAULT 'sketsa',
-  is_published boolean NOT NULL DEFAULT true,
-  linked_product_name text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const STAGES = [
   { value: "sketsa",    label: "Sketsa / Desain Awal" },
   { value: "bahan",     label: "Persiapan Bahan" },
@@ -60,8 +48,7 @@ export default function WipGalleryPage() {
   const { shop } = useCurrentShop();
   const [posts, setPosts] = useState<WipPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: "", caption: "", image_url: "", stage: "proses", is_published: true, linked_product_name: "" });
 
@@ -117,13 +104,6 @@ export default function WipGalleryPage() {
           <Plus className="h-4 w-4" /> Upload WIP
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

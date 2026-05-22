@@ -12,10 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  CalendarPlus, Loader2, RefreshCw, Car, Clock, CheckCircle2,
-  XCircle, AlertTriangle, MessageSquare, Search,
-} from "lucide-react";
+import { CalendarPlus, Loader2, RefreshCw, Car, Clock, CheckCircle2, XCircle, AlertTriangle, MessageSquare, Search } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/rental-extend")({
   head: () => ({ meta: [{ title: "Perpanjangan Sewa" }] }),
@@ -38,14 +35,6 @@ type RentalBooking = {
   extension_notes: string | null;
 };
 
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor jika kolom belum ada:
-ALTER TABLE public.rental_bookings
-  ADD COLUMN IF NOT EXISTS extension_requested boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS extension_days int,
-  ADD COLUMN IF NOT EXISTS extension_status text CHECK (extension_status IN ('pending','approved','rejected')),
-  ADD COLUMN IF NOT EXISTS extension_notes text,
-  ADD COLUMN IF NOT EXISTS extension_new_end_date date;`;
-
 const STATUS = {
   pending:   { label: "Aktif",     cls: "bg-green-100 text-green-700" },
   confirmed: { label: "Dikonfirmasi", cls: "bg-blue-100 text-blue-700" },
@@ -62,8 +51,7 @@ export default function RentalExtendPage() {
   const { shop } = useCurrentShop();
   const [bookings, setBookings] = useState<RentalBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<RentalBooking | null>(null);
   const [extDays, setExtDays] = useState("1");
   const [extNotes, setExtNotes] = useState("");
@@ -183,13 +171,6 @@ export default function RentalExtendPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-sm text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
           <span><strong>{expiringToday} sewa</strong> berakhir hari ini. Hubungi penyewa untuk konfirmasi pengembalian atau perpanjangan.</span>
-        </div>
-      )}
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-amber-800">Kolom perpanjangan belum ada. Jalankan SQL berikut:</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
         </div>
       )}
 

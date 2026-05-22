@@ -40,8 +40,7 @@ function WishlistPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableExists, setTableExists] = useState(true);
-  const [removing, setRemoving] = useState<string | null>(null);
+const [removing, setRemoving] = useState<string | null>(null);
   const [priceAlerts, setPriceAlerts] = useState<Record<string, { price: number; name: string }>>({});
 
   const load = async () => {
@@ -55,8 +54,7 @@ function WishlistPage() {
 
     if (error) {
       if (error.message.toLowerCase().includes("does not exist") || error.message.toLowerCase().includes("relation")) {
-        setTableExists(false);
-      } else {
+} else {
         toast.error(error.message);
       }
       setLoading(false);
@@ -118,14 +116,6 @@ function WishlistPage() {
       toast.error(e.message ?? "Gagal menambah ke keranjang");
     }
   };
-
-  if (!tableExists) {
-    return (
-      <div className="text-center py-10 text-muted-foreground text-sm">
-        Fitur wishlist memerlukan migrasi database. Jalankan SQL dari file <code>sprint1_kyc_variants.sql</code>.
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

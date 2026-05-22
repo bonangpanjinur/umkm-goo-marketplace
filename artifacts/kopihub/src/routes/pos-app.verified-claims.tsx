@@ -30,19 +30,6 @@ type Claim = {
   linked_product_ids: string[];
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.shop_product_claims (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  label text NOT NULL,
-  badge_type text NOT NULL DEFAULT 'dermatologist',
-  evidence_url text,
-  description text,
-  is_verified boolean NOT NULL DEFAULT false,
-  is_active boolean NOT NULL DEFAULT true,
-  linked_product_ids uuid[] NOT NULL DEFAULT '{}',
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 const BADGE_TYPES = [
   { value: "dermatologist", label: "Dermatologically Tested", color: "bg-blue-100 text-blue-800", icon: "🔬" },
   { value: "hypoallergenic", label: "Hypoallergenic", color: "bg-green-100 text-green-800", icon: "🌿" },
@@ -57,8 +44,7 @@ export default function VerifiedClaimsPage() {
   const { shop } = useCurrentShop();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Claim | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ label: "", badge_type: "dermatologist", evidence_url: "", description: "", is_active: true });
@@ -121,13 +107,6 @@ export default function VerifiedClaimsPage() {
         </div>
         <Button onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" /> Tambah Klaim</Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel klaim belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 flex gap-2 text-xs text-blue-800">
         <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />

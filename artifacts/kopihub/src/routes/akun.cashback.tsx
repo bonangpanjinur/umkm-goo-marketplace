@@ -13,39 +13,6 @@ export const Route = createFileRoute("/akun/cashback")({
   component: CashbackPage,
 });
 
-const CASHBACK_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.cashback_wallets (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  balance numeric(14,2) not null default 0,
-  total_earned numeric(14,2) not null default 0,
-  total_used numeric(14,2) not null default 0,
-  updated_at timestamptz not null default now(),
-  unique (user_id)
-);
-
-create table if not exists public.cashback_transactions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  order_id uuid references public.orders(id) on delete set null,
-  type text not null check (type in ('earned','used','expired','adjusted')),
-  amount numeric(14,2) not null,
-  description text,
-  expires_at timestamptz,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists idx_cb_wallet_user on public.cashback_wallets(user_id);
-create index if not exists idx_cb_txn_user on public.cashback_transactions(user_id, created_at desc);
-
-alter table public.cashback_wallets enable row level security;
-alter table public.cashback_transactions enable row level security;
-
-create policy "user_own_wallet" on public.cashback_wallets
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "user_own_txn" on public.cashback_transactions
-  using (user_id = auth.uid());`;
-
 type Wallet = { balance: number; total_earned: number; total_used: number };
 type Txn = {
   id: string;
@@ -81,8 +48,7 @@ function CashbackPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [txns, setTxns] = useState<Txn[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tablesMissing, setTablesMissing] = useState(false);
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -106,35 +72,10 @@ function CashbackPage() {
       setLoading(false);
     })();
   }, [user]);
-
-  function copySQL() {
-    navigator.clipboard.writeText(CASHBACK_SQL).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.success("SQL disalin");
-    });
+);
   }
 
   if (loading) return <div className="text-sm text-muted-foreground py-10 text-center">Memuat…</div>;
-
-  if (tablesMissing) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Cashback Wallet</h2>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-semibold text-sm">
-            <Info className="h-4 w-4 shrink-0" /> Tabel belum dibuat
-          </div>
-          <p className="text-sm text-muted-foreground">Jalankan SQL berikut di Supabase SQL Editor untuk mengaktifkan fitur Cashback Wallet.</p>
-          <pre className="text-xs bg-muted rounded-lg p-3 overflow-auto max-h-64 select-all">{CASHBACK_SQL}</pre>
-          <Button size="sm" variant="outline" onClick={copySQL} className="gap-2">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Disalin" : "Salin SQL"}
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const balance = wallet?.balance ?? 0;
   const earned = wallet?.total_earned ?? 0;

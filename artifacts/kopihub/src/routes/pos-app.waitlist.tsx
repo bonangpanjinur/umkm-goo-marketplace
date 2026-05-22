@@ -13,33 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ListOrdered, Bell, Check, XCircle, Loader2, Copy, Users, CalendarDays } from "lucide-react";
+import { ListOrdered, Bell, Check, XCircle, Loader2, Users, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/waitlist")({
   head: () => ({ meta: [{ title: "Antrian Waitlist — Merchant" }] }),
   component: WaitlistPage,
 });
-
-const WAITLIST_SQL = `-- Jalankan di Supabase SQL Editor:
-create table if not exists public.booking_waitlists (
-  id uuid primary key default gen_random_uuid(),
-  slot_id uuid not null references public.booking_slots(id) on delete cascade,
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  customer_name text not null,
-  customer_phone text not null,
-  party_size integer not null default 1,
-  status text not null default 'waiting'
-    check (status in ('waiting','notified','confirmed','cancelled')),
-  notified_at timestamptz,
-  created_at timestamptz not null default now()
-);
-alter table public.booking_waitlists enable row level security;
-create policy "shop_all_wl" on public.booking_waitlists
-  using (shop_id in (select id from shops where owner_id = auth.uid()))
-  with check (shop_id in (select id from shops where owner_id = auth.uid()));
-create policy "public_insert_wl" on public.booking_waitlists
-  for insert with check (true);`;
 
 const STATUS_LABEL: Record<string, string> = {
   waiting:   "Menunggu",
@@ -70,11 +50,10 @@ type Slot = { id: string; service_name: string; slot_date: string; slot_time: st
 
 function WaitlistPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [entries, setEntries] = useState<WaitlistEntry[]>([]);
+const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading]   = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [copied, setCopied]     = useState(false);
+  
   const [filterSlot, setFilterSlot] = useState("all");
   const [slots, setSlots] = useState<Slot[]>([]);
   const [search, setSearch] = useState("");
@@ -82,14 +61,7 @@ function WaitlistPage() {
   useEffect(() => {
     if (!shop?.id) return;
     (async () => {
-      const { error } = await (supabase as any).from("booking_waitlist").select("id").limit(1);
-      if (error?.message?.includes("relation") || error?.message?.includes("does not exist")) {
-        setTableExists(false);
-        setLoading(false);
-        return;
-      }
-      setTableExists(true);
-      await Promise.all([loadEntries(), loadSlots()]);
+await Promise.all([loadEntries(), loadSlots()]);
     })();
   }, [shop?.id]);
 
@@ -142,24 +114,6 @@ function WaitlistPage() {
 
   if (shopLoading || loading) {
     return <div className="flex items-center gap-2 text-sm text-muted-foreground p-6"><Loader2 className="h-4 w-4 animate-spin" /> Memuat…</div>;
-  }
-
-  if (tableExists === false) {
-    return (
-      <div className="p-6 space-y-4">
-        <h1 className="text-xl font-bold">Antrian Waitlist</h1>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-amber-800">Tabel booking_waitlists belum ada. Jalankan SQL ini:</p>
-          <pre className="overflow-x-auto rounded-lg bg-white border border-border p-3 text-[11px] whitespace-pre-wrap">{WAITLIST_SQL}</pre>
-          <Button
-            size="sm" variant="outline" className="gap-1.5"
-            onClick={() => { navigator.clipboard.writeText(WAITLIST_SQL); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          >
-            {copied ? <><Check className="h-3.5 w-3.5" /> Disalin!</> : <><Copy className="h-3.5 w-3.5" /> Salin SQL</>}
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   return (

@@ -2,11 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
-import {
-  Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell,
-  TrendingUp, ArrowRight, RotateCcw, BellOff, UserX, HandHelping,
-  Zap, Settings2, ShieldOff, Timer,
-} from "lucide-react";
+import { Star, MessageSquare, Phone, CheckCircle2, Clock, RefreshCw, Loader2, Send, Bell, TrendingUp, ArrowRight, RotateCcw, BellOff, UserX, HandHelping, Zap, Settings2, ShieldOff, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -15,24 +11,6 @@ export const Route = createFileRoute("/pos-app/booking-reviews")({
   head: () => ({ meta: [{ title: "Ulasan Booking — Merchant" }] }),
   component: BookingReviewsPage,
 });
-
-/*
--- Jalankan di Supabase SQL Editor (jika belum ada dari akun/bookings):
-create table if not exists public.booking_reviews (
-  id uuid primary key default gen_random_uuid(),
-  booking_id uuid not null references public.bookings(id) on delete cascade,
-  customer_phone text not null,
-  rating integer not null check (rating between 1 and 5),
-  body text,
-  created_at timestamptz not null default now(),
-  unique(booking_id)
-);
-alter table public.booking_reviews enable row level security;
-create policy "customer_insert_review" on public.booking_reviews
-  for insert with check (true);
-create policy "public_read_review" on public.booking_reviews
-  for select using (true);
-*/
 
 type CompletedBooking = {
   id: string;
@@ -120,8 +98,7 @@ function BookingReviewsPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
   const [bookings, setBookings] = useState<CompletedBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tableExists, setTableExists] = useState<boolean | null>(null);
-  const [filter, setFilter] = useState<"all" | "reviewed" | "pending" | "unresponsive">("pending");
+const [filter, setFilter] = useState<"all" | "reviewed" | "pending" | "unresponsive">("pending");
   const [sentReminders, setSentReminders] = useState<Set<string>>(new Set());
   const [reviewRequestsMap, setReviewRequestsMap] = useState<Record<string, ReviewRequestStat>>({});
   const [resending, setResending] = useState<string | null>(null);
@@ -290,8 +267,7 @@ function BookingReviewsPage() {
           if (reviewRes.error.code === "42P01") { setTableExists(false); }
           else throw reviewRes.error;
         } else {
-          setTableExists(true);
-          for (const r of (reviewRes.data ?? []) as any[]) {
+for (const r of (reviewRes.data ?? []) as any[]) {
             reviewsMap[r.booking_id] = { rating: r.rating, body: r.body, created_at: r.created_at };
           }
         }
@@ -404,13 +380,7 @@ function BookingReviewsPage() {
         </Button>
       </div>
 
-      {tableExists === false && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 space-y-2">
-          <p className="font-medium">Tabel ulasan belum dibuat</p>
-          <p>Jalankan SQL DDL di komentar file <code>pos-app.booking-reviews.tsx</code> di Supabase SQL Editor untuk mengaktifkan fitur ulasan booking.</p>
-        </div>
-      )}
-
+      
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border bg-card px-4 py-3">

@@ -34,29 +34,13 @@ type MedInvoice = {
   created_at: string;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.medical_invoices (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  patient_name text NOT NULL,
-  patient_dob date,
-  doctor_name text,
-  visit_date date NOT NULL DEFAULT CURRENT_DATE,
-  diagnosis text,
-  prescription text,
-  items jsonb NOT NULL DEFAULT '[]',
-  total numeric(12,2) NOT NULL DEFAULT 0,
-  paid boolean NOT NULL DEFAULT false,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 function fmtDate(d: string) { return new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }); }
 
 export default function MedicalInvoicePage() {
   const { shop } = useCurrentShop();
   const [invoices, setInvoices] = useState<MedInvoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [search, setSearch] = useState("");
+const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [printing, setPrinting] = useState<MedInvoice | null>(null);
   const [saving, setSaving] = useState(false);
@@ -175,13 +159,6 @@ export default function MedicalInvoicePage() {
           </Button>
         </div>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

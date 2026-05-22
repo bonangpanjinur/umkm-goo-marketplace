@@ -34,27 +34,11 @@ type LimitedItem = {
   is_active: boolean;
 };
 
-const SQL_HINT = `CREATE TABLE IF NOT EXISTS public.limited_editions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  price numeric(12,2) NOT NULL,
-  stock_total int NOT NULL,
-  stock_sold int NOT NULL DEFAULT 0,
-  image_url text,
-  launch_date date,
-  end_date date,
-  is_active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 export default function LimitedEditionsPage() {
   const { shop } = useCurrentShop();
   const [items, setItems] = useState<LimitedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LimitedItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", price: "", stock_total: "", image_url: "", launch_date: "", end_date: "", is_active: true });
@@ -114,13 +98,6 @@ export default function LimitedEditionsPage() {
         </div>
         <Button onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" /> Tambah Edisi</Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Tabel belum ada:</p>
-          <pre className="mt-2 text-xs font-mono bg-amber-100 p-2 rounded overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

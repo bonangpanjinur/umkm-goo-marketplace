@@ -14,11 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-import {
-  Utensils, Plus, Pencil, Trash2, Loader2, RefreshCw,
-  X, ChevronDown, ChevronUp, Tag, Package, ImageIcon,
-  AlertTriangle, Percent, Zap,
-} from "lucide-react";
+import { Utensils, Plus, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Tag, Package, Percent, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/combo-builder")({
   head: () => ({ meta: [{ title: "Paket & Combo Builder" }] }),
@@ -53,30 +49,12 @@ type Combo = {
   items: ComboItem[];
 };
 
-const SQL_HINT = `-- Jalankan di Supabase SQL Editor:
-CREATE TABLE IF NOT EXISTS public.fnb_combos (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  shop_id uuid NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  image_url text,
-  combo_price numeric(12,2) NOT NULL,
-  original_price numeric(12,2) NOT NULL DEFAULT 0,
-  discount_pct numeric(5,2) DEFAULT 0,
-  is_active boolean NOT NULL DEFAULT true,
-  tag text,
-  items jsonb NOT NULL DEFAULT '[]',
-  sort_order int NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
-);`;
-
 export default function ComboBuilderPage() {
   const { shop } = useCurrentShop();
   const [combos, setCombos] = useState<Combo[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSql, setShowSql] = useState(false);
-  const [open, setOpen] = useState(false);
+const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Combo | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -217,13 +195,6 @@ export default function ComboBuilderPage() {
           <Plus className="h-4 w-4" /> Buat Paket
         </Button>
       </div>
-
-      {showSql && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
-          <p className="text-sm font-semibold text-amber-800 flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Tabel combo belum ada</p>
-          <pre className="rounded bg-amber-100 p-2 text-xs font-mono overflow-x-auto">{SQL_HINT}</pre>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

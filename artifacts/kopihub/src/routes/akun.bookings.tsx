@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import {
-  CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone,
-  ChevronDown, ChevronUp, CalendarDays, Star, Loader2, MessageSquare, Calendar,
-} from "lucide-react";
+import { CalendarCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone, ChevronDown, ChevronUp, CalendarDays, Star, Loader2, MessageSquare, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,24 +15,6 @@ export const Route = createFileRoute("/akun/bookings")({
   head: () => ({ meta: [{ title: "Riwayat Booking — Akun" }] }),
   component: BookingsPage,
 });
-
-/*
--- Jalankan di Supabase SQL Editor (booking_reviews):
-create table if not exists public.booking_reviews (
-  id uuid primary key default gen_random_uuid(),
-  booking_id uuid not null references public.bookings(id) on delete cascade,
-  customer_phone text not null,
-  rating integer not null check (rating between 1 and 5),
-  body text,
-  created_at timestamptz not null default now(),
-  unique(booking_id)
-);
-alter table public.booking_reviews enable row level security;
-create policy "customer_insert_review" on public.booking_reviews
-  for insert with check (true);
-create policy "public_read_review" on public.booking_reviews
-  for select using (true);
-*/
 
 type Booking = {
   id: string;
