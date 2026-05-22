@@ -910,6 +910,7 @@ function SearchPage() {
                 <NearbyShopsSection
                   categoryId={cats.find(c => c.slug === cat)?.id ?? null}
                   title={cat ? `Toko terdekat di kategori ini` : `Toko di sekitar saya`}
+                  persistInUrl
                 />
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="text-base font-semibold text-muted-foreground">
