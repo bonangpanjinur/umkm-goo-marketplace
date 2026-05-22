@@ -6762,6 +6762,8 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          latitude: number | null
+          longitude: number | null
           name: string
           phone: string | null
           shop_id: string
@@ -6773,6 +6775,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
           name: string
           phone?: string | null
           shop_id: string
@@ -6784,6 +6788,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           phone?: string | null
           shop_id?: string
@@ -11459,6 +11465,7 @@ export type Database = {
           description: string | null
           email: string | null
           feature_overrides: Json
+          google_maps_url: string | null
           id: string
           instagram: string | null
           is_active: boolean
@@ -11535,6 +11542,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           feature_overrides?: Json
+          google_maps_url?: string | null
           id?: string
           instagram?: string | null
           is_active?: boolean
@@ -11611,6 +11619,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           feature_overrides?: Json
+          google_maps_url?: string | null
           id?: string
           instagram?: string | null
           is_active?: boolean
@@ -15535,6 +15544,30 @@ export type Database = {
       set_shop_theme: {
         Args: { _shop_id: string; _theme_key: string }
         Returns: undefined
+      }
+      shops_nearby: {
+        Args: {
+          _category_id?: string
+          _lat: number
+          _limit?: number
+          _lng: number
+          _radius_km?: number
+        }
+        Returns: {
+          address: string
+          business_category_id: string
+          city: string
+          distance_km: number
+          id: string
+          latitude: number
+          logo_url: string
+          longitude: number
+          name: string
+          rating_avg: number
+          review_count: number
+          slug: string
+          tagline: string
+        }[]
       }
       skip_queue_entry: { Args: { _entry_id: string }; Returns: undefined }
       start_queue_session: {
