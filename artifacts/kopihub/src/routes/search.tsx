@@ -14,6 +14,7 @@ import { ShieldCheck } from "lucide-react";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
 import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
+import { NearbyShopsSection } from "@/components/marketplace/NearbyShopsSection";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -906,6 +907,10 @@ function SearchPage() {
             {/* Shops section */}
             {tab !== "produk" && (
               <section>
+                <NearbyShopsSection
+                  categoryId={cats.find(c => c.slug === cat)?.id ?? null}
+                  title={cat ? `Toko terdekat di kategori ini` : `Toko di sekitar saya`}
+                />
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="text-base font-semibold text-muted-foreground">
                     Toko · menampilkan {shops.length.toLocaleString("id-ID")} dari {shopTotal.toLocaleString("id-ID")}

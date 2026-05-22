@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { cityIlikeOr } from "@/lib/cities";
 import { CityCombobox } from "@/components/marketplace/CityCombobox";
 import { applyFeaturedBoostProducts, applyFeaturedBoostShops } from "@/lib/featured-boost";
+import { NearbyShopsSection } from "@/components/marketplace/NearbyShopsSection";
 
 const SUBTYPE_LABEL: Record<string, string> = {
   "kafe": "Kafe", "restoran": "Restoran", "warung": "Warung", "katering": "Katering", "bakery": "Bakery",
@@ -235,6 +236,10 @@ function CategoryPage() {
 
       {/* Shops */}
       <section className="mx-auto max-w-7xl px-4 py-10">
+        <NearbyShopsSection
+          categoryId={cat?.id ?? null}
+          title={`Toko ${cat?.name ?? ""} di sekitar saya`.trim()}
+        />
         <h2 className="mb-4 text-xl font-bold tracking-tight">Toko di kategori ini</h2>
         {loading ? (
           <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
