@@ -393,10 +393,10 @@ router.all("/auth/v1/*", async (req: Request, res: Response) => {
     });
 
     const data = await fetchRes.json();
-    res.status(fetchRes.status).json(data);
+    (res as any).status(fetchRes.status).json(data);
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
-    res.status(500).json({ message: "Auth proxy failed" });
+    (res as any).status(500).json({ message: "Auth proxy failed" });
   }
 });
 
