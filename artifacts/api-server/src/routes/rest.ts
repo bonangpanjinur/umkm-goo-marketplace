@@ -3,7 +3,7 @@
  * Routes /rest/v1/* to the Neon DB so the frontend Supabase client
  * (which expects PostgREST) works unchanged.
  */
-import { Router, type Request, type Response as ExpressResponse } from "express";
+import { Router, type Request, type Response } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
 
@@ -149,7 +149,7 @@ const RESERVED_KEYS = new Set(["select", "order", "limit", "offset", "on_conflic
 
 // ── GET /rest/v1/:table ───────────────────────────────────────────────────────
 
-router.get("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
+router.get("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
@@ -212,7 +212,7 @@ router.get("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
 
 // ── POST /rest/v1/:table ──────────────────────────────────────────────────────
 
-router.post("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
+router.post("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
@@ -255,7 +255,7 @@ router.post("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
 
 // ── PATCH /rest/v1/:table ─────────────────────────────────────────────────────
 
-router.patch("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
+router.patch("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
@@ -294,7 +294,7 @@ router.patch("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
 
 // ── DELETE /rest/v1/:table ────────────────────────────────────────────────────
 
-router.delete("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
+router.delete("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
@@ -320,7 +320,7 @@ router.delete("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
 
 // ── POST /rest/v1/rpc/:func ───────────────────────────────────────────────────
 
-router.post("/rest/v1/rpc/:func", async (req: Request, res: ExpressResponse) => {
+router.post("/rest/v1/rpc/:func", async (req: Request, res: Response) => {
   const func = req.params["func"] as string;
   if (!validIdent(func)) { res.status(400).json({ message: "Invalid function name" }); return; }
 
@@ -350,7 +350,7 @@ router.post("/rest/v1/rpc/:func", async (req: Request, res: ExpressResponse) => 
 
 // ── HEAD /rest/v1/:table (count) ─────────────────────────────────────────────
 
-router.head("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
+router.head("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).end(); return; }
 
@@ -373,9 +373,9 @@ router.head("/rest/v1/:table", async (req: Request, res: ExpressResponse) => {
 const UPSTREAM_SUPABASE = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
 const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
 
-router.all("/auth/v1/*", async (req: any, res: ExpressResponse) => {
+router.all("/auth/v1/*", async (req: any, res: Response) => {
   if (!UPSTREAM_SUPABASE) {
-    (res as any).status(500).json({ message: "UPSTREAM_SUPABASE not configured" });
+    res.status(500).json({ message: "UPSTREAM_SUPABASE not configured" });
     return;
   }
   const path = req.path.replace("/rest/v1", ""); // although this is /auth/v1
@@ -392,8 +392,8 @@ router.all("/auth/v1/*", async (req: any, res: ExpressResponse) => {
       body: ["GET", "HEAD"].includes(req.method) ? undefined : JSON.stringify(req.body),
     });
 
-    const data = await upstreamRes.json();
-    (res as any).status(upstreamRes.status).json(data);
+    const data = await (upstreamRes as any).json();
+    (res as any).status((upstreamRes as any).status).json(data);
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
     (res as any).status(500).json({ message: "Auth proxy failed" });
