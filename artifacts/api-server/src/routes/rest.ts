@@ -382,7 +382,7 @@ router.all("/auth/v1/*", async (req: Request, res: Response) => {
   const url = `${UPSTREAM_SUPABASE}${path}${Object.keys(req.query).length ? "?" + new URLSearchParams(req.query as any).toString() : ""}`;
 
   try {
-    const response = await fetch(url, {
+    const fetchRes = await fetch(url, {
       method: req.method,
       headers: {
         "Content-Type": "application/json",
@@ -392,8 +392,8 @@ router.all("/auth/v1/*", async (req: Request, res: Response) => {
       body: ["GET", "HEAD"].includes(req.method) ? undefined : JSON.stringify(req.body),
     });
 
-    const data = await response.json();
-    res.status(response.status).json(data);
+    const data = await fetchRes.json();
+    res.status(fetchRes.status).json(data);
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
     res.status(500).json({ message: "Auth proxy failed" });
