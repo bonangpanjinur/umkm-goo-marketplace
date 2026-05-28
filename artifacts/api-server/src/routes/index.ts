@@ -4,6 +4,7 @@ import paymentsRouter from "./payments.js";
 import notificationsRouter from "./notifications.js";
 import aiDescriptionRouter from "./ai-description.js";
 import staffRouter from "./staff.js";
+import printerRouter from "./printer.js";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(paymentsRouter);
 router.use(notificationsRouter);
 router.use(aiDescriptionRouter);
 router.use(staffRouter);
+router.use(printerRouter);
 
 export default router;

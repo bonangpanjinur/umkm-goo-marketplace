@@ -1,0 +1,196 @@
+Saya sudah memiliki aplikasi POS berbasis Electron + React + TypeScript.
+
+Sekarang saya ingin membuat sistem thermal printing professional yang mendukung SEMUA metode koneksi printer thermal tanpa browser print dialog.
+
+TUJUAN:
+- Print thermal langsung
+- Tanpa window.print()
+- Tanpa browser preview
+- Tanpa popup print
+- Tanpa helper app tambahan
+- User cukup install aplikasi POS Electron saja
+- Production-ready
+- Scalable untuk SaaS POS
+
+WAJIB SUPPORT SEMUA METODE:
+1. USB Printer (WebUSB)
+2. Bluetooth Printer
+3. Bluetooth COM Port / Serial Port
+4. USB COM Port
+5. LAN / Network Printer
+6. ESC/POS raw command
+7. Auto detect printer
+
+STACK:
+- Electron
+- React
+- TypeScript
+- Node.js
+
+WAJIB GUNAKAN:
+- navigator.usb (WebUSB)
+- serialport package
+- TCP socket untuk LAN printer
+- ESC/POS command
+
+JANGAN gunakan:
+- window.print()
+- browser print preview
+- PDF print
+- QZ Tray
+- aplikasi helper tambahan
+
+FITUR YANG DIBUTUHKAN:
+1. Connect printer USB
+2. Connect printer Bluetooth
+3. Connect printer Serial/COM
+4. Connect printer LAN/IP
+5. Disconnect printer
+6. Auto reconnect printer terakhir
+7. Simpan printer default
+8. Printer status monitoring
+9. Detect semua printer tersedia
+10. Test print
+11. Auto print setelah transaksi berhasil
+12. Retry jika printer gagal
+13. Queue print system
+14. Multi printer support
+15. Cash drawer open command
+16. Barcode print
+17. QR Code print
+18. Logo print
+19. Auto cut paper
+20. Error handling lengkap
+
+THERMAL SUPPORT:
+- 58mm
+- 80mm
+- ESC/POS compatible printers
+- Epson
+- XPrinter
+- Rongta
+- Panda
+- Generic thermal printers
+
+BUATKAN:
+1. printerManager.ts
+2. usbPrinterService.ts
+3. bluetoothPrinterService.ts
+4. serialPrinterService.ts
+5. networkPrinterService.ts
+6. escpos.ts
+7. printQueue.ts
+8. usePrinter.ts hook
+9. printer store Zustand
+10. printer settings page
+11. printer test page
+12. transaction auto print flow
+13. reconnect system
+14. printer discovery system
+
+WAJIB ADA:
+- abstraction layer printer
+- strategy pattern printer
+- modular architecture
+- scalable structure
+- reusable code
+- production-ready
+
+STRUKTUR:
+printer/
+├── manager/
+├── services/
+├── drivers/
+├── escpos/
+├── queue/
+├── hooks/
+├── store/
+├── utils/
+├── types/
+
+BUAT FITUR:
+- Pilih jenis koneksi printer
+- Pilih printer default
+- Simpan setting printer
+- Reconnect otomatis saat app dibuka
+- Printer online/offline indicator
+- Print queue monitoring
+
+ESC/POS FEATURES:
+- Bold
+- Align
+- Font size
+- Divider line
+- Table item
+- Currency formatting
+- Barcode
+- QR code
+- Image/logo
+- Feed line
+- Cut paper
+- Open cash drawer
+
+CONTOH RECEIPT:
+--------------------------------
+TOKO MAJU JAYA
+Jl. Contoh No.123
+--------------------------------
+Nasi Goreng    15.000
+Es Teh          5.000
+--------------------------------
+TOTAL          20.000
+TUNAI          50.000
+KEMBALI        30.000
+--------------------------------
+Terima kasih
+--------------------------------
+
+LAN PRINTER:
+- Support IP address printer
+- TCP 9100 RAW printing
+- Auto ping printer
+- Auto reconnect
+
+SERIAL/BLUETOOTH:
+- Scan COM ports
+- Auto detect baudrate
+- Stable reconnect
+- Support Windows COM port
+
+WEBUSB:
+- Request USB device
+- Save authorized device
+- Reconnect authorized printer
+
+UI STYLE:
+- Modern printer settings
+- Printer card list
+- Connection status badge
+- Minimal modern UI
+- Clean dashboard
+
+SECURITY:
+- Electron preload
+- contextIsolation true
+- secure IPC communication
+- no nodeIntegration
+
+OUTPUT YANG SAYA MAU:
+1. Architecture explanation
+2. Full code implementation
+3. Printer abstraction system
+4. Complete services
+5. Full Electron integration
+6. Full React integration
+7. Example transaction print
+8. Setup instructions
+9. Windows build instructions
+10. Production best practice
+
+PASTIKAN:
+- Compatible Windows
+- Compatible Electron latest
+- Print langsung tanpa popup
+- Tidak membutuhkan browser print dialog
+- Tidak membutuhkan aplikasi tambahan selain aplikasi POS Electron
+- Professional grade POS printing system
