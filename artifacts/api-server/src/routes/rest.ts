@@ -150,7 +150,7 @@ const RESERVED_KEYS = new Set(["select", "order", "limit", "offset", "on_conflic
 // ── GET /rest/v1/:table ───────────────────────────────────────────────────────
 
 router.get("/rest/v1/:table", async (req: Request, res: Response) => {
-  const table = req.params["table"]!;
+  const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
   const q = req.query as Record<string, string>;
@@ -213,7 +213,7 @@ router.get("/rest/v1/:table", async (req: Request, res: Response) => {
 // ── POST /rest/v1/:table ──────────────────────────────────────────────────────
 
 router.post("/rest/v1/:table", async (req: Request, res: Response) => {
-  const table = req.params["table"]!;
+  const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
   const prefer = (req.headers["prefer"] as string) ?? "";
@@ -256,7 +256,7 @@ router.post("/rest/v1/:table", async (req: Request, res: Response) => {
 // ── PATCH /rest/v1/:table ─────────────────────────────────────────────────────
 
 router.patch("/rest/v1/:table", async (req: Request, res: Response) => {
-  const table = req.params["table"]!;
+  const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
   const prefer = (req.headers["prefer"] as string) ?? "";
@@ -295,7 +295,7 @@ router.patch("/rest/v1/:table", async (req: Request, res: Response) => {
 // ── DELETE /rest/v1/:table ────────────────────────────────────────────────────
 
 router.delete("/rest/v1/:table", async (req: Request, res: Response) => {
-  const table = req.params["table"]!;
+  const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
 
   const q = req.query as Record<string, string>;
@@ -321,7 +321,7 @@ router.delete("/rest/v1/:table", async (req: Request, res: Response) => {
 // ── POST /rest/v1/rpc/:func ───────────────────────────────────────────────────
 
 router.post("/rest/v1/rpc/:func", async (req: Request, res: Response) => {
-  const func = req.params["func"]!;
+  const func = req.params["func"] as string;
   if (!validIdent(func)) { res.status(400).json({ message: "Invalid function name" }); return; }
 
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -351,7 +351,7 @@ router.post("/rest/v1/rpc/:func", async (req: Request, res: Response) => {
 // ── HEAD /rest/v1/:table (count) ─────────────────────────────────────────────
 
 router.head("/rest/v1/:table", async (req: Request, res: Response) => {
-  const table = req.params["table"]!;
+  const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).end(); return; }
 
   const q = req.query as Record<string, string>;
@@ -371,43 +371,32 @@ router.head("/rest/v1/:table", async (req: Request, res: Response) => {
 // ── Auth proxy — forward auth calls to original Supabase ─────────────────────
 
 const UPSTREAM_SUPABASE = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
-const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
+const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
 
-router.all("/auth/v1/{*path}", async (req: Request, res: Response) => {
+router.all("/auth/v1/*", async (req: Request, res: Response) => {
   if (!UPSTREAM_SUPABASE) {
-    res.status(503).json({ message: "Auth upstream not configured" });
+    res.status(500).json({ message: "UPSTREAM_SUPABASE not configured" });
     return;
   }
-
-  const path = req.path;
-  const url = new URL(path, UPSTREAM_SUPABASE);
-  for (const [k, v] of Object.entries(req.query)) {
-    url.searchParams.set(k, String(v));
-  }
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "apikey": SUPABASE_ANON_KEY,
-  };
-  if (req.headers["authorization"]) headers["authorization"] = req.headers["authorization"] as string;
+  const path = req.path.replace("/rest/v1", ""); // although this is /auth/v1
+  const url = `${UPSTREAM_SUPABASE}${path}${Object.keys(req.query).length ? "?" + new URLSearchParams(req.query as any).toString() : ""}`;
 
   try {
-    const upstream = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: req.method,
-      headers,
-      body: ["POST", "PUT", "PATCH"].includes(req.method) ? JSON.stringify(req.body) : undefined,
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": req.headers["authorization"] as string || `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: ["GET", "HEAD"].includes(req.method) ? undefined : JSON.stringify(req.body),
     });
 
-    const body = await upstream.text();
-    for (const [k, v] of upstream.headers.entries()) {
-      if (!["transfer-encoding", "connection"].includes(k.toLowerCase())) {
-        res.setHeader(k, v);
-      }
-    }
-    res.status(upstream.status).send(body);
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (err: unknown) {
-    logger.error({ err, path }, "Auth proxy error");
-    res.status(502).json({ message: "Auth upstream unreachable" });
+    logger.error({ err, url }, "Auth proxy error");
+    res.status(500).json({ message: "Auth proxy failed" });
   }
 });
 
