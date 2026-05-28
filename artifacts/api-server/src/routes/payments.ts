@@ -297,7 +297,7 @@ router.get("/payments/:orderId/status", async (req: Request, res: Response) => {
     paid_at: latest.paidAt,
     amount: latest.amount,
     currency: latest.currency,
-    all_transactions: rows.map((r) => ({
+    all_transactions: rows.map((r: typeof rows[number]) => ({
       id: r.id,
       gateway: r.gateway,
       status: r.status,
