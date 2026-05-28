@@ -48,7 +48,7 @@ function CashbackPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [txns, setTxns] = useState<Txn[]>([]);
   const [loading, setLoading] = useState(true);
-const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -59,7 +59,7 @@ const [copied, setCopied] = useState(false);
         .select("balance, total_earned, total_used")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (we?.code === "42P01") { setTablesMissing(true); setLoading(false); return; }
+      if (we?.code === "42P01") { setLoading(false); return; }
       setWallet(w ?? { balance: 0, total_earned: 0, total_used: 0 });
 
       const { data: t } = await (supabase as any)
@@ -72,8 +72,6 @@ const [copied, setCopied] = useState(false);
       setLoading(false);
     })();
   }, [user]);
-);
-  }
 
   if (loading) return <div className="text-sm text-muted-foreground py-10 text-center">Memuat…</div>;
 

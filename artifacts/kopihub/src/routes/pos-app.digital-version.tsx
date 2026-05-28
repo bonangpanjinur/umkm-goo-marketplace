@@ -152,8 +152,6 @@ toast.error("Tabel belum tersedia.");
     );
     setNotifying(null);
   }
-);
-  }
 
   const byProduct: Record<string, VersionEntry[]> = {};
   for (const v of versions) {

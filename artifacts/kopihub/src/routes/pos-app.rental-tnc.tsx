@@ -114,8 +114,6 @@ toast.error("Kolom belum tersedia.");
     }
     setSaving(false);
   }
-);
-  }
 
   if (shopLoading || loading) {
     return (
