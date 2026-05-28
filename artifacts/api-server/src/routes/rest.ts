@@ -373,7 +373,7 @@ router.head("/rest/v1/:table", async (req: Request, res: Response) => {
 const UPSTREAM_SUPABASE = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
 const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
 
-router.all("/auth/v1/*", async (req: Request, res: Response) => {
+router.all("/auth/v1/*", async (req: any, res: any) => {
   if (!UPSTREAM_SUPABASE) {
     res.status(500).json({ message: "UPSTREAM_SUPABASE not configured" });
     return;
@@ -393,10 +393,10 @@ router.all("/auth/v1/*", async (req: Request, res: Response) => {
     });
 
     const data = await fetchRes.json();
-    (res as any).status(fetchRes.status).json(data);
+    res.status(fetchRes.status).json(data);
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
-    (res as any).status(500).json({ message: "Auth proxy failed" });
+    res.status(500).json({ message: "Auth proxy failed" });
   }
 });
 
