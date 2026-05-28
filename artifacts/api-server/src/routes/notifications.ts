@@ -3,6 +3,17 @@ import { logger } from "../lib/logger.js";
 
 const router = Router();
 
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+};
+
+async function fetchJson(url: string, init?: RequestInit): Promise<FetchResponse> {
+  return fetch(url, init) as Promise<FetchResponse>;
+}
+
 const SUPABASE_URL = () => process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
 const SUPABASE_KEY = () =>
   process.env["SUPABASE_SERVICE_KEY"] ??
@@ -22,7 +33,7 @@ async function sbGet<T = unknown>(path: string, params?: Record<string, string>)
   const url = new URL(`${SUPABASE_URL()}/rest/v1/${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   url.searchParams.set("apikey", SUPABASE_KEY());
-  const res = await fetch(url.toString(), {
+  const res = await fetchJson(url.toString(), {
     headers: headers(),
   });
   if (!res.ok) throw new Error(`Supabase GET ${path} failed ${res.status}: ${await res.text()}`);
@@ -32,7 +43,7 @@ async function sbGet<T = unknown>(path: string, params?: Record<string, string>)
 async function sbInsertBatch(table: string, rows: Record<string, unknown>[]): Promise<void> {
   if (rows.length === 0) return;
   const url = `${SUPABASE_URL()}/rest/v1/${table}`;
-  const res = await fetch(url, {
+  const res = await fetchJson(url, {
     method: "POST",
     headers: { ...headers(), "Prefer": "return=minimal,resolution=ignore-duplicates" },
     body: JSON.stringify(rows),
@@ -44,7 +55,7 @@ async function sbCountDedupeKeys(table: string, keys: string[]): Promise<Set<str
   if (keys.length === 0) return new Set();
   const inList = keys.map(k => `"${k}"`).join(",");
   const url = `${SUPABASE_URL()}/rest/v1/${table}?select=dedupe_key&dedupe_key=in.(${inList})`;
-  const res = await fetch(url, {
+  const res = await fetchJson(url, {
     headers: headers(),
   });
   if (!res.ok) return new Set();
