@@ -6,3 +6,9 @@ id = "aReC8wJLt4dBBBXQqkTHi"
 uri = "file://PRD_KOPIHUB_LENGKAP.md"
 type = "text"
 title = "PRD Lengkap + Gap Analysis + SQL Migrations + Rencana Bisnis"
+
+[[outputs]]
+id = "ZCPk9cxJahYWjRfGCA6Kv"
+uri = "file://ANALISIS_FITUR_DAN_RENCANA_PERBAIKAN.md"
+type = "text"
+title = "Analisis Fitur & Rencana Perbaikan UMKMgo"
