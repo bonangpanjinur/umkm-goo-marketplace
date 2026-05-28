@@ -5,6 +5,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmitOnError": true,
+    "noEmit": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": false,
     "noImplicitReturns": true,
