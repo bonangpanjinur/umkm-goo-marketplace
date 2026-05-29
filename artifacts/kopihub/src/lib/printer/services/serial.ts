@@ -10,14 +10,14 @@ export class SerialPrinterService implements IPrinterDriver {
   readonly type = "serial" as const;
 
   private port: SerialPort | null = null;
-  private writer: WritableStreamDefaultWriter<Uint8Array> | null = null;
+  private baudRate = 9600;
 
   isSupported(): boolean {
     return typeof navigator !== "undefined" && "serial" in navigator;
   }
 
   isConnected(): boolean {
-    return this.port !== null && this.writer !== null;
+    return this.port !== null;
   }
 
   async connect(config: PrinterConfig): Promise<void> {
@@ -32,26 +32,23 @@ export class SerialPrinterService implements IPrinterDriver {
     if (ports.length > 0) port = ports[0];
 
     if (!port) {
-      port = await (navigator as any).serial.requestPort({
-        filters: [],
-      });
+      port = await (navigator as any).serial.requestPort({ filters: [] });
     }
 
-    const baudRate = config.baudRate ?? 9600;
-    await port.open({ baudRate, dataBits: 8, stopBits: 1, parity: "none" });
-    this.port = port;
-    this.writer = port.writable!.getWriter();
+    this.baudRate = config.baudRate ?? 9600;
 
-    port.addEventListener("disconnect", async () => {
-      await this.disconnect();
+    // Verify the port opens successfully, then close — actual send opens fresh each time
+    await port.open({ baudRate: this.baudRate, dataBits: 8, stopBits: 1, parity: "none" });
+    await port.close();
+
+    this.port = port;
+
+    port.addEventListener("disconnect", () => {
+      this.port = null;
     });
   }
 
   async disconnect(): Promise<void> {
-    if (this.writer) {
-      try { await this.writer.close(); } catch {}
-      this.writer = null;
-    }
     if (this.port) {
       try { await this.port.close(); } catch {}
       this.port = null;
@@ -59,8 +56,20 @@ export class SerialPrinterService implements IPrinterDriver {
   }
 
   async send(data: Uint8Array): Promise<void> {
-    if (!this.writer) throw new Error("Serial printer tidak terhubung.");
-    await this.writer.write(data);
+    if (!this.port) throw new Error("Serial printer tidak terhubung.");
+
+    // Open fresh per-send to avoid stale writer state after idle disconnect/reconnect
+    await this.port.open({ baudRate: this.baudRate, dataBits: 8, stopBits: 1, parity: "none" });
+    try {
+      const writer = this.port.writable!.getWriter();
+      try {
+        await writer.write(data);
+      } finally {
+        writer.releaseLock();
+      }
+    } finally {
+      try { await this.port.close(); } catch {}
+    }
   }
 
   async discover(): Promise<DiscoveredDevice[]> {

@@ -1,0 +1,181 @@
+Saya sudah memiliki aplikasi POS berbasis PWA/Electron yang sebelumnya dibuat menggunakan AI Replit.
+
+Sekarang saya ingin kamu melakukan AUDIT dan PENYEMPURNAAN sistem thermal printing pada project saya.
+
+TUGAS UTAMA:
+
+1. Cek apakah sistem direct thermal printing sudah ada
+2. Cek apakah masih menggunakan window.print()
+3. Cek apakah sudah support silent printing
+4. Cek apakah sudah support ESC/POS
+5. Cek apakah sudah support WebUSB / Bluetooth / Serial
+6. Cek apakah arsitektur printing sudah production-ready
+7. Jika sudah ada, sempurnakan sistemnya
+8. Jika belum ada, implementasikan sistem yang benar
+
+YANG HARUS DIAUDIT:
+
+* Semua file printer
+* Semua fungsi print
+* Semua penggunaan browser print
+* Semua receipt component
+* Semua transaction flow
+* Semua printer settings
+* Semua Electron integration
+* Semua IPC communication
+
+CEK APAKAH ADA:
+
+* window.print()
+* react-to-print
+* browser print dialog
+* PDF printing
+* ESC/POS utility
+* WebUSB implementation
+* serialport implementation
+* Bluetooth printing
+* print queue
+* reconnect printer
+* printer persistence
+
+JIKA MASIH ADA:
+window.print()
+ATAU
+browser print preview
+
+MAKA:
+
+* hapus sistem tersebut
+* migrasikan ke direct thermal printing
+
+TARGET SISTEM YANG SAYA INGINKAN:
+✅ Print langsung tanpa popup browser
+✅ Silent thermal printing
+✅ ESC/POS raw printing
+✅ Support thermal 58mm & 80mm
+✅ Auto print setelah transaksi
+✅ Production-ready
+✅ Compatible Windows
+✅ Tanpa helper app tambahan
+✅ User cukup install aplikasi POS saja
+
+WAJIB SUPPORT:
+
+1. WebUSB
+2. Bluetooth thermal
+3. Serial/COM thermal
+4. LAN thermal printer
+5. ESC/POS raw command
+
+WAJIB IMPLEMENTASI:
+
+* printer abstraction layer
+* printer manager
+* printer service modular
+* reconnect system
+* printer detection
+* queue system
+* retry system
+* error handling lengkap
+* printer settings page
+* test print feature
+* default printer persistence
+
+JANGAN gunakan:
+
+* window.print()
+* browser preview
+* PDF print
+* browser print dialog
+
+GUNAKAN:
+
+* navigator.usb
+* serialport
+* TCP socket LAN printing
+* ESC/POS raw command
+
+CEK DAN PERBAIKI:
+
+* architecture
+* folder structure
+* TypeScript typing
+* Electron security
+* IPC communication
+* memory leaks
+* reconnect issue
+* printer timeout
+* print race condition
+
+BUATKAN:
+
+1. Audit hasil sistem printing sekarang
+2. Daftar kekurangan
+3. Daftar bug
+4. Daftar fitur yang sudah ada
+5. Daftar fitur yang belum ada
+6. Refactor architecture
+7. Full implementation yang kurang
+8. Production-ready printer system
+
+STRUKTUR YANG DIINGINKAN:
+printer/
+├── manager/
+├── services/
+├── drivers/
+├── escpos/
+├── queue/
+├── hooks/
+├── store/
+├── utils/
+├── types/
+
+FITUR ESC/POS:
+
+* Bold
+* Align
+* Font size
+* Divider
+* Table item
+* Currency format
+* Barcode
+* QR code
+* Logo image
+* Feed line
+* Auto cut
+* Open cash drawer
+
+## CONTOH RECEIPT:
+
+TOKO MAJU JAYA
+Jl. Contoh No.123
+-----------------
+
+Nasi Goreng    15.000
+Es Teh          5.000
+---------------------
+
+TOTAL          20.000
+TUNAI          50.000
+KEMBALI        30.000
+---------------------
+
+## Terima kasih
+
+OUTPUT YANG SAYA MAU:
+
+* Audit lengkap project
+* Refactor jika perlu
+* Implementasi fitur yang kurang
+* Code production-ready
+* Sistem thermal professional
+* Clean scalable architecture
+* Full working printing system
+
+PASTIKAN:
+
+* Tidak ada popup print browser
+* Tidak ada preview print browser
+* Print langsung ke thermal printer
+* Professional POS printing system
+* Cocok untuk SaaS POS

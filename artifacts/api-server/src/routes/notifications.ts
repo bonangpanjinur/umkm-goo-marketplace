@@ -1,67 +1,8 @@
 import { Router } from "express";
+import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
 
 const router = Router();
-
-type FetchResponse = {
-  ok: boolean;
-  status: number;
-  text(): Promise<string>;
-  json(): Promise<unknown>;
-};
-
-async function fetchJson(url: string, init?: RequestInit): Promise<FetchResponse> {
-  return fetch(url, init) as Promise<FetchResponse>;
-}
-
-const SUPABASE_URL = () => process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
-const SUPABASE_KEY = () =>
-  process.env["SUPABASE_SERVICE_KEY"] ??
-  process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
-  process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
-  "";
-
-function headers() {
-  return {
-    "Content-Type": "application/json",
-    "apikey": SUPABASE_KEY(),
-    "Authorization": `Bearer ${SUPABASE_KEY()}`,
-  };
-}
-
-async function sbGet<T = unknown>(path: string, params?: Record<string, string>): Promise<T[]> {
-  const url = new URL(`${SUPABASE_URL()}/rest/v1/${path}`);
-  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  url.searchParams.set("apikey", SUPABASE_KEY());
-  const res = await fetchJson(url.toString(), {
-    headers: headers(),
-  });
-  if (!res.ok) throw new Error(`Supabase GET ${path} failed ${res.status}: ${await res.text()}`);
-  return res.json() as Promise<T[]>;
-}
-
-async function sbInsertBatch(table: string, rows: Record<string, unknown>[]): Promise<void> {
-  if (rows.length === 0) return;
-  const url = `${SUPABASE_URL()}/rest/v1/${table}`;
-  const res = await fetchJson(url, {
-    method: "POST",
-    headers: { ...headers(), "Prefer": "return=minimal,resolution=ignore-duplicates" },
-    body: JSON.stringify(rows),
-  });
-  if (!res.ok) throw new Error(`Supabase INSERT ${table} failed ${res.status}: ${await res.text()}`);
-}
-
-async function sbCountDedupeKeys(table: string, keys: string[]): Promise<Set<string>> {
-  if (keys.length === 0) return new Set();
-  const inList = keys.map(k => `"${k}"`).join(",");
-  const url = `${SUPABASE_URL()}/rest/v1/${table}?select=dedupe_key&dedupe_key=in.(${inList})`;
-  const res = await fetchJson(url, {
-    headers: headers(),
-  });
-  if (!res.ok) return new Set();
-  const data = (await res.json()) as Array<{ dedupe_key: string }>;
-  return new Set(data.map(d => d.dedupe_key));
-}
 
 export type RenewalResult = {
   ran_at: string;
@@ -95,15 +36,8 @@ export async function runRenewalNotifications(
     details: [],
   };
 
-  if (!SUPABASE_URL() || !SUPABASE_KEY()) {
-    result.error = "SUPABASE_URL or service key not configured";
-    logger.warn("[renewal] Supabase env not configured, skipping");
-    return result;
-  }
-
   const today = new Date().toISOString().slice(0, 10);
 
-  // Build all dedup keys we'll check
   const candidateShops: Array<{
     shop_id: string;
     shop_name: string;
@@ -114,41 +48,35 @@ export async function runRenewalNotifications(
   }> = [];
 
   for (const days of dayWindows) {
-    // Window: expires within [days - 0.5, days + 0.5] days from now
-    const winStart = new Date(Date.now() + (days - 0.5) * 86_400_000).toISOString();
-    const winEnd = new Date(Date.now() + (days + 0.5) * 86_400_000).toISOString();
+    const winStart = new Date(Date.now() + (days - 0.5) * 86_400_000);
+    const winEnd = new Date(Date.now() + (days + 0.5) * 86_400_000);
 
-    let shops: Array<{ id: string; name: string; plan_expires_at: string }> = [];
     try {
-      shops = await sbGet<{ id: string; name: string; plan_expires_at: string }>(
-        "coffee_shops",
-        {
-          select: "id,name,plan_expires_at",
-          plan: "eq.pro",
-          plan_expires_at: `gte.${winStart}`,
-          // Supabase REST: need to add second filter for <=winEnd via a different approach
-        },
+      const { rows } = await pool.query<{ id: string; name: string; plan_expires_at: string }>(
+        `SELECT id, name, plan_expires_at
+           FROM coffee_shops
+          WHERE plan = 'pro'
+            AND plan_expires_at >= $1
+            AND plan_expires_at <= $2`,
+        [winStart.toISOString(), winEnd.toISOString()],
       );
-      // Filter client-side for the upper bound (simpler than chaining params)
-      shops = shops.filter((s) => s.plan_expires_at && s.plan_expires_at <= winEnd);
+
+      for (const s of rows) {
+        const daysRemaining = Math.ceil(
+          (new Date(s.plan_expires_at).getTime() - Date.now()) / 86_400_000,
+        );
+        const dedupeKey = `renewal_${days}d_${s.id}_${today}`;
+        candidateShops.push({
+          shop_id: s.id,
+          shop_name: s.name,
+          plan_expires_at: s.plan_expires_at,
+          days_remaining: daysRemaining,
+          window: days,
+          dedupe_key: dedupeKey,
+        });
+      }
     } catch (err) {
       logger.warn({ err, days }, "[renewal] Failed to query shops for window");
-      continue;
-    }
-
-    for (const s of shops) {
-      const daysRemaining = Math.ceil(
-        (new Date(s.plan_expires_at).getTime() - Date.now()) / 86_400_000,
-      );
-      const dedupeKey = `renewal_${days}d_${s.id}_${today}`;
-      candidateShops.push({
-        shop_id: s.id,
-        shop_name: s.name,
-        plan_expires_at: s.plan_expires_at,
-        days_remaining: daysRemaining,
-        window: days,
-        dedupe_key: dedupeKey,
-      });
     }
   }
 
@@ -157,10 +85,26 @@ export async function runRenewalNotifications(
 
   // Check which dedupe keys already exist
   const allKeys = candidateShops.map((c) => c.dedupe_key);
-  const existingKeys = await sbCountDedupeKeys("owner_notifications", allKeys);
+  let existingKeys = new Set<string>();
+  try {
+    const { rows } = await pool.query<{ dedupe_key: string }>(
+      `SELECT dedupe_key FROM owner_notifications WHERE dedupe_key = ANY($1)`,
+      [allKeys],
+    );
+    existingKeys = new Set(rows.map((r) => r.dedupe_key));
+  } catch {
+    // Table may not exist yet — non-fatal, proceed without deduplication
+  }
 
-  // Build notifications for new ones only
-  const toInsert: Record<string, unknown>[] = [];
+  const toInsert: Array<{
+    shop_id: string;
+    type: string;
+    title: string;
+    body: string;
+    severity: string;
+    link: string;
+    dedupe_key: string;
+  }> = [];
 
   for (const c of candidateShops) {
     if (existingKeys.has(c.dedupe_key)) {
@@ -178,9 +122,7 @@ export async function runRenewalNotifications(
     const daysLabel =
       c.days_remaining <= 1
         ? "HARI INI"
-        : c.days_remaining <= 3
-          ? `${c.days_remaining} hari lagi`
-          : `${c.days_remaining} hari lagi`;
+        : `${c.days_remaining} hari lagi`;
 
     const urgency = c.days_remaining <= 1 ? "error" : c.days_remaining <= 3 ? "warning" : "info";
 
@@ -207,22 +149,29 @@ export async function runRenewalNotifications(
   }
 
   if (toInsert.length > 0) {
-    await sbInsertBatch("owner_notifications", toInsert);
-    result.total_sent = toInsert.length;
-    logger.info({ total_sent: toInsert.length, ran_at }, "[renewal] Notifications sent");
+    try {
+      for (const n of toInsert) {
+        await pool.query(
+          `INSERT INTO owner_notifications (shop_id, type, title, body, severity, link, dedupe_key)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (dedupe_key) DO NOTHING`,
+          [n.shop_id, n.type, n.title, n.body, n.severity, n.link, n.dedupe_key],
+        );
+      }
+      result.total_sent = toInsert.length;
+      logger.info({ total_sent: toInsert.length, ran_at }, "[renewal] Notifications sent");
+    } catch (err) {
+      logger.warn({ err }, "[renewal] Failed to insert notifications");
+    }
   }
 
   // Log the run to renewal_notification_runs (best effort)
   try {
-    await sbInsertBatch("renewal_notification_runs", [
-      {
-        ran_at,
-        total_found: result.total_found,
-        total_sent: result.total_sent,
-        total_skipped: result.total_skipped,
-        triggered_by: "auto",
-      },
-    ]);
+    await pool.query(
+      `INSERT INTO renewal_notification_runs (ran_at, total_found, total_sent, total_skipped, triggered_by)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [ran_at, result.total_found, result.total_sent, result.total_skipped, "auto"],
+    );
   } catch {
     // Table may not exist yet — non-fatal
   }
@@ -232,13 +181,7 @@ export async function runRenewalNotifications(
 
 // ── Routes ────────────────────────────────────────────────────────────────
 
-/**
- * POST /api/cron/renewal-notifications
- * Trigger the renewal notification job manually or from a scheduler.
- * Body: { day_windows?: number[], secret?: string }
- */
 router.post("/cron/renewal-notifications", async (req, res) => {
-  // Optional bearer-token guard
   const cronSecret = process.env["CRON_SECRET"];
   if (cronSecret) {
     const auth = (req.headers["authorization"] as string | undefined) ?? "";
@@ -265,43 +208,34 @@ router.post("/cron/renewal-notifications", async (req, res) => {
   }
 });
 
-/**
- * GET /api/cron/renewal-preview
- * Returns a dry-run list of shops that *would* be notified without inserting anything.
- */
 router.get("/cron/renewal-preview", async (req, res) => {
-  if (!SUPABASE_URL() || !SUPABASE_KEY()) {
-    res.json({ shops: [], error: "Supabase not configured" });
-    return;
-  }
-
   const rawDays = req.query["days"];
   const maxDays = Number(rawDays) || 14;
-  const cutoff = new Date(Date.now() + maxDays * 86_400_000).toISOString();
+  const cutoff = new Date(Date.now() + maxDays * 86_400_000);
 
   try {
-    const shops = await sbGet<{
+    const { rows } = await pool.query<{
       id: string;
       name: string;
       slug: string;
       plan_expires_at: string;
-    }>("coffee_shops", {
-      select: "id,name,slug,plan_expires_at",
-      plan: "eq.pro",
-      plan_expires_at: `lte.${cutoff}`,
-      "plan_expires_at.gte": new Date().toISOString(),
-      order: "plan_expires_at.asc",
-      limit: "100",
-    });
+    }>(
+      `SELECT id, name, slug, plan_expires_at
+         FROM coffee_shops
+        WHERE plan = 'pro'
+          AND plan_expires_at <= $1
+          AND plan_expires_at > NOW()
+        ORDER BY plan_expires_at ASC
+        LIMIT 100`,
+      [cutoff.toISOString()],
+    );
 
-    const enriched = shops
-      .filter((s) => s.plan_expires_at > new Date().toISOString())
-      .map((s) => ({
-        ...s,
-        days_remaining: Math.ceil(
-          (new Date(s.plan_expires_at).getTime() - Date.now()) / 86_400_000,
-        ),
-      }));
+    const enriched = rows.map((s) => ({
+      ...s,
+      days_remaining: Math.ceil(
+        (new Date(s.plan_expires_at).getTime() - Date.now()) / 86_400_000,
+      ),
+    }));
 
     res.json({ shops: enriched });
   } catch (err: unknown) {
@@ -310,29 +244,22 @@ router.get("/cron/renewal-preview", async (req, res) => {
   }
 });
 
-/**
- * GET /api/cron/renewal-history
- * Returns the last N run logs from renewal_notification_runs.
- */
 router.get("/cron/renewal-history", async (_req, res) => {
-  if (!SUPABASE_URL() || !SUPABASE_KEY()) {
-    res.json({ runs: [] });
-    return;
-  }
   try {
-    const runs = await sbGet<{
+    const { rows } = await pool.query<{
       id: string;
       ran_at: string;
       total_found: number;
       total_sent: number;
       total_skipped: number;
       triggered_by: string;
-    }>("renewal_notification_runs", {
-      select: "id,ran_at,total_found,total_sent,total_skipped,triggered_by",
-      order: "ran_at.desc",
-      limit: "30",
-    });
-    res.json({ runs });
+    }>(
+      `SELECT id, ran_at, total_found, total_sent, total_skipped, triggered_by
+         FROM renewal_notification_runs
+        ORDER BY ran_at DESC
+        LIMIT 30`,
+    );
+    res.json({ runs: rows });
   } catch {
     res.json({ runs: [] });
   }

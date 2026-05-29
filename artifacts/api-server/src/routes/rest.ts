@@ -373,13 +373,14 @@ router.head("/rest/v1/:table", async (req: Request, res: Response) => {
 const UPSTREAM_SUPABASE = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
 const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
 
-router.all("/auth/v1/*", async (req: any, res: Response) => {
+router.all("/auth/v1/*path", async (req: any, res: Response) => {
   if (!UPSTREAM_SUPABASE) {
     res.status(500).json({ message: "UPSTREAM_SUPABASE not configured" });
     return;
   }
-  const path = req.path.replace("/rest/v1", ""); // although this is /auth/v1
-  const url = `${UPSTREAM_SUPABASE}${path}${Object.keys(req.query).length ? "?" + new URLSearchParams(req.query as any).toString() : ""}`;
+  const subPath = (req.params as any).path ?? "";
+  const qs = Object.keys(req.query).length ? "?" + new URLSearchParams(req.query as any).toString() : "";
+  const url = `${UPSTREAM_SUPABASE}/auth/v1/${subPath}${qs}`;
 
   try {
     const upstreamRes = await fetch(url, {

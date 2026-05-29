@@ -166,12 +166,13 @@ function OnlineOrders() {
 
             notifyOrder("Pesanan baru masuk", `Order #${row.order_no} menunggu konfirmasi`);
 
-            // Auto-print struk (F5-4)
+            // Auto-print struk (F5-4) — notify user; actual ESC/POS print
+            // happens when user clicks Cetak on the order card (requires items data).
             if (getAutoPrintEnabled()) {
-              setTimeout(() => {
-                toast.info("Auto-print struk dijalankan…", { icon: <Printer className="h-4 w-4" /> });
-                window.print();
-              }, 500);
+              toast.info(
+                `Pesanan baru #${row.order_no} — buka untuk cetak struk`,
+                { icon: <Printer className="h-4 w-4" />, duration: 8000 }
+              );
             }
           } else if (payload.eventType === "UPDATE") {
             const row = payload.new as Order & { channel: string };

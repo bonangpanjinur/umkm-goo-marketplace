@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
 
 const router = Router();
@@ -7,25 +8,18 @@ const GEMINI_MODEL = "gemini-1.5-flash";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 async function getAISettings(): Promise<{ gemini_api_key: string; enabled: boolean } | null> {
-  const SUPABASE_URL = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
-  const SUPABASE_KEY =
-    process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+  // 1. Prefer env var (fastest, no DB round-trip)
+  const envKey = process.env["GEMINI_API_KEY"] ?? "";
+  if (envKey) {
+    return { gemini_api_key: envKey, enabled: true };
+  }
 
+  // 2. Fall back to platform_settings table (admin-configurable key)
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/platform_settings?key=eq.ai_settings&select=value&limit=1`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        },
-        signal: AbortSignal.timeout(5000),
-      },
+    const { rows } = await pool.query<{ value: unknown }>(
+      `SELECT value FROM platform_settings WHERE key = 'ai_settings' LIMIT 1`,
     );
-    if (!res.ok) return null;
-    const rows = await res.json() as Array<{ value: unknown }>;
-    if (!rows?.[0]?.value) return null;
+    if (!rows[0]?.value) return null;
     const val =
       typeof rows[0].value === "string" ? JSON.parse(rows[0].value) : rows[0].value;
     return val as { gemini_api_key: string; enabled: boolean };
@@ -67,7 +61,7 @@ router.post("/ai/generate-description", async (req, res) => {
   if (!aiSettings?.enabled || !aiSettings?.gemini_api_key) {
     res.status(503).json({
       error:
-        "Fitur AI belum diaktifkan. Hubungi admin untuk mengatur Gemini API Key di panel Super Admin → Pengaturan AI.",
+        "Fitur AI belum diaktifkan. Hubungi admin untuk mengatur GEMINI_API_KEY di environment atau panel Super Admin → Pengaturan AI.",
     });
     return;
   }

@@ -60,7 +60,27 @@ export class BluetoothPrinterService implements IPrinterDriver {
 
     device.addEventListener("gattserverdisconnected", () => {
       this.characteristic = null;
+      // Auto-reconnect silently (one attempt, no user gesture required for same device)
+      this._reconnect().catch(() => {});
     });
+  }
+
+  private async _reconnect(): Promise<void> {
+    if (!this.device) return;
+    try {
+      const server = await this.device.gatt!.connect();
+      let service: BluetoothRemoteGATTService | null = null;
+      for (const svcId of BT_SERVICES) {
+        try { service = await server.getPrimaryService(svcId); break; } catch {}
+      }
+      if (!service) return;
+      for (const charId of BT_CHARS) {
+        try { this.characteristic = await service.getCharacteristic(charId); break; } catch {}
+      }
+    } catch {
+      // Reconnect failed — user must manually connect again
+      this.characteristic = null;
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -70,6 +90,10 @@ export class BluetoothPrinterService implements IPrinterDriver {
   }
 
   async send(data: Uint8Array): Promise<void> {
+    // Attempt reconnect if GATT dropped silently
+    if (!this.characteristic && this.device?.gatt) {
+      await this._reconnect();
+    }
     if (!this.characteristic) throw new Error("Bluetooth printer tidak terhubung.");
     for (let i = 0; i < data.length; i += CHUNK_SIZE) {
       await this.characteristic.writeValue(data.slice(i, i + CHUNK_SIZE));
