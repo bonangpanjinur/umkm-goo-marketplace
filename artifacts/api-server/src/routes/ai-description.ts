@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
+import { httpFetch } from "../lib/fetch-types.js";
 
 const router = Router();
 
@@ -16,8 +17,20 @@ async function getAISettings(): Promise<{ gemini_api_key: string; enabled: boole
 
   // 2. Fall back to platform_settings table (admin-configurable key)
   try {
+
     const { rows } = await pool.query<{ value: unknown }>(
       `SELECT value FROM platform_settings WHERE key = 'ai_settings' LIMIT 1`,
+
+    const res = await httpFetch(
+      `${SUPABASE_URL}/rest/v1/platform_settings?key=eq.ai_settings&select=value&limit=1`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+        signal: AbortSignal.timeout(5000),
+      },
+
     );
     if (!rows[0]?.value) return null;
     const val =
@@ -32,7 +45,7 @@ async function imageUrlToBase64(
   url: string,
 ): Promise<{ data: string; mimeType: string } | null> {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const res = await httpFetch(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) return null;
     const contentType = res.headers.get("content-type") ?? "image/jpeg";
     const mimeType = contentType.split(";")[0].trim();
@@ -99,7 +112,7 @@ Aturan ketat:
       }
     }
 
-    const geminiRes = await fetch(
+    const geminiRes = await httpFetch(
       `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${aiSettings.gemini_api_key}`,
       {
         method: "POST",

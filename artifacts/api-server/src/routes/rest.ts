@@ -6,6 +6,7 @@
 import { Router, type Request, type Response } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
+import { httpFetch } from "../lib/fetch-types.js";
 
 const router = Router();
 
@@ -383,7 +384,7 @@ router.all("/auth/v1/*path", async (req: any, res: Response) => {
   const url = `${UPSTREAM_SUPABASE}/auth/v1/${subPath}${qs}`;
 
   try {
-    const upstreamRes = await fetch(url, {
+    const upstreamRes = await httpFetch(url, {
       method: req.method,
       headers: {
         "Content-Type": "application/json",

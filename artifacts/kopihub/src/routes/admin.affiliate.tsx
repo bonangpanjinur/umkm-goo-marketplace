@@ -47,7 +47,7 @@ const [open, setOpen] = useState(false);
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from("affiliates").select("*").order("total_earned", { ascending: false });
-    if (error?.message?.includes("exist")) setShowSql(true);
+    if (error) toast.error(error.message);
     setAffiliates((data ?? []) as Affiliate[]);
     setLoading(false);
   };

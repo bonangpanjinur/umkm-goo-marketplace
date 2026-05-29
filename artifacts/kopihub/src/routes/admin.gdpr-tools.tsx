@@ -48,7 +48,7 @@ const [search, setSearch] = useState("");
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from("data_requests").select("*").order("requested_at", { ascending: false }).limit(100);
-    if (error?.message?.includes("exist")) setShowSql(true);
+    if (error) toast.error(error.message);
     setRequests((data ?? []) as DataRequest[]);
     setLoading(false);
   };
