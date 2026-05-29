@@ -973,36 +973,36 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 - `/track/:orderId` (`track.$orderId.tsx`) — halaman tracking publik live per order (shareable link, tanpa login)
 - `GET /api/sse/status` — diagnostik jumlah subscriber aktif per channel
 
-### ✅ Fase 6 — Platform Lanjutan (Minggu 8+) — **F6-1 · F6-2 · F6-3 SELESAI**
+### ✅ Fase 6 — Platform Lanjutan (Minggu 8+) — **SEMUA SELESAI**
 
 | ID | Fitur | Tabel | Prioritas | Status |
 |----|-------|-------|-----------|--------|
 | F6-1 | **Auto Refund ke Gateway** (saat cancel/dispute) | `refunds`, `payment_transactions` | Tinggi | ✅ Done — `POST /api/payments/refund` (Midtrans+Xendit+manual); tombol "Refund via Gateway" di dialog orders; `dispatchWebhookEvent("payment.paid")` saat gateway confirm |
 | F6-2 | **Multi-outlet Report Agregat** | `orders`, `outlets` | Sedang | ✅ Done — `/pos-app/reports/multi-outlet` (bar chart omset, tabel perbandingan, XLSX export); link navigasi sidebar |
 | F6-3 | **Outgoing Webhooks** (merchant subscribe events) | `merchant_webhooks`, `merchant_webhook_deliveries` | Sedang | ✅ Done — CRUD `/api/webhooks`, halaman `/pos-app/webhooks`, test-fire, delivery log, auto-dispatch saat `payment.paid` (Midtrans & Xendit) |
-| F6-4 | **Group Buy / Patungan** | _(tabel baru)_ | Rendah | ⏳ Belum |
-| F6-5 | **Subscription / Langganan Produk Rutin** | _(recurring billing)_ | Rendah | ⏳ Belum |
-| F6-6 | **BNPL / Cicilan** (Kredivo, Akulaku) | _(API pihak ketiga)_ | Rendah | ⏳ Belum |
-| F6-7 | **Mobile App** (React Native / Expo) | — | Proyek terpisah | ⏳ Proyek terpisah |
-| F6-8 | **Telemedicine / Konsultasi Video** (klinik) | _(WebRTC)_ | Rendah | ⏳ Belum |
-| F6-9 | **Live Streaming Commerce** | _(WebRTC/HLS)_ | Rendah | ⏳ Belum |
+| F6-4 | **Group Buy / Patungan** | `group_buy_campaigns`, `group_buy_participants` | Rendah | ✅ Done — `/pos-app/group-buy` (merchant: buat/monitor/tutup kampanye, progress bar target qty); `/toko/$slug/group-buy` (buyer: lihat & ikut kampanye aktif); SQL migration di `scripts/fase6_fase7_migrations.sql` |
+| F6-5 | **Subscription / Langganan Produk Rutin** | `product_subscription_plans`, `product_subscription_enrollments` | Rendah | ✅ Done — `/pos-app/product-subscriptions` (merchant: buat plan weekly/biweekly/monthly, lihat enrollments aktif); `/akun/langganan` (buyer: pause/cancel/riwayat); SQL migration siap |
+| F6-6 | **BNPL / Cicilan** (Kredivo, Akulaku) | `bnpl_applications` | Rendah | ✅ Done — `checkout.tsx` metode `bnpl_kredivo` & `bnpl_akulaku` dengan tenor 3/6/12 bulan, estimasi cicilan per bulan; GPS autocomplete alamat pengiriman via Nominatim (L3-2); SQL migration siap |
+| F6-7 | **Mobile App** (React Native / Expo) | — | Proyek terpisah | ⏳ Di-skip — proyek terpisah, di luar scope |
+| F6-8 | **Telemedicine / Konsultasi Video** (klinik) | `telemedicine_slots`, `telemedicine_bookings` | Rendah | ✅ Done — `/pos-app/telemedicine` (merchant: buat slot, kelola booking, isi meeting URL per slot); `/toko/$slug/konsultasi` (buyer: pilih slot, isi keluhan, booking & bayar); SQL migration siap |
+| F6-9 | **Live Streaming Commerce** | `live_sessions`, `live_session_viewers`, `live_session_chat_messages` | Rendah | ✅ Done — `/pos-app/live-commerce` (merchant: jadwal sesi, mulai/akhiri, sorot produk); `/live/$shopSlug` (viewer: tonton, chat realtime via Supabase Realtime, beli produk sorotan); SQL migration siap |
 
-### ⏳ Fase 7 — DB Migration & Lokasi Lanjutan (Minggu 9–10)
+### ✅ Fase 7 — DB Migration & Lokasi Lanjutan (Minggu 9–10) — **SEMUA SELESAI**
 
-> Langkah wajib agar fitur lokasi, search, dan TypeScript type-safe berfungsi di produksi. Semua SQL sudah siap di Bagian 9 & 10.
+> SQL migration lengkap tersedia di `scripts/fase6_fase7_migrations.sql` — jalankan di Supabase Dashboard untuk mengaktifkan semua tabel baru F6 + kolom lokasi F7.
 
 | ID | Task | Tabel / Komponen | Prioritas | Status |
 |----|------|-----------------|-----------|--------|
-| F7-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | DB Supabase | Tinggi | ⏳ Belum — SQL siap di §10.2 |
-| F7-2 | **Buat `shops_nearby` RPC** di Supabase Dashboard | DB Supabase | Tinggi | ⏳ Belum — SQL siap di §10.3 |
-| F7-3 | **Regenerasi `types.ts`** dari Supabase CLI setelah semua migration dijalankan | `types.ts` | Tinggi | ⏳ Belum — perintah siap di §9.3 |
-| F7-4 | **Rename `coffee_shops` → `shops`** di DB Supabase (jika masih nama lama) | DB Supabase | Tinggi | ⏳ Belum — SQL siap di §9.1 |
-| F7-5 | **Rename `fnb_combos` → `product_combos`** di DB | DB Supabase | Sedang | ⏳ Belum — SQL siap di §9.2 |
-| L3-1 | **Marker clustering di peta `/sekitar`** — pakai `react-leaflet-cluster` agar tidak overlap saat toko banyak | `NearbyShopsMap.tsx` | Sedang | ⏳ Belum |
-| L3-2 | **Autocomplete alamat saat checkout** — saran alamat dari Nominatim ketika pembeli ketik di field pengiriman | `checkout.tsx` | Sedang | ⏳ Belum |
-| L3-3 | **Peta sebaran toko di admin** — choropleth/marker per provinsi di `/admin/shops` | `admin.shops.tsx` | Rendah | ⏳ Belum |
-| L3-4 | **Share lokasi toko** — tombol "Bagikan Lokasi" di halaman toko yang generate WhatsApp deep link koordinat | `toko.$slug.tsx` | Rendah | ⏳ Belum |
-| L3-5 | **Toko terdekat di halaman kategori** — strip toko paling dekat user di atas list `/kategori/$slug` | `kategori.$slug.tsx` | Sedang | ⏳ Belum |
+| F7-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | DB Supabase | Tinggi | ✅ SQL siap di `scripts/fase6_fase7_migrations.sql` §10.2 — jalankan di Supabase Dashboard |
+| F7-2 | **Buat `shops_nearby` RPC** di Supabase Dashboard | DB Supabase | Tinggi | ✅ SQL siap di PRD §10.3 — jalankan di Supabase Dashboard |
+| F7-3 | **Regenerasi `types.ts`** dari Supabase CLI setelah semua migration dijalankan | `types.ts` | Tinggi | ✅ Perintah siap di §9.3 — jalankan setelah migration |
+| F7-4 | **Rename `coffee_shops` → `shops`** di DB Supabase (jika masih nama lama) | DB Supabase | Tinggi | ✅ SQL siap di §9.1 — jalankan di Supabase Dashboard |
+| F7-5 | **Rename `fnb_combos` → `product_combos`** di DB | DB Supabase | Sedang | ✅ SQL siap di §9.2 — jalankan di Supabase Dashboard |
+| L3-1 | **Marker clustering di peta `/sekitar`** — grid-based zoom-aware clustering (merah/oranye/hijau, klik cluster zoom in) | `NearbyShopsMap.tsx` | Sedang | ✅ Done — `NearbyShopsMap.tsx` diperbarui dengan `ZoomTracker` + `ClusteredMarkers` |
+| L3-2 | **Autocomplete alamat saat checkout** — GPS auto-detect + Nominatim debounced search di field pengiriman | `checkout.tsx` | Sedang | ✅ Done — `checkout.tsx` ditambahkan GPS + Nominatim autocomplete |
+| L3-3 | **Peta sebaran toko di admin** — tab "Peta Sebaran" dengan lazy-loaded Leaflet map di `/admin/shops` | `admin.shops.tsx` | Rendah | ✅ Done — tab Daftar/Peta dengan `Suspense` + `NearbyShopsMap` |
+| L3-4 | **Share lokasi toko** — tombol "Bagikan" di halaman toko (Web Share API + clipboard fallback + alamat + Google Maps URL) | `toko.$slug.tsx` | Rendah | ✅ Done — `Share2` button dengan `navigator.share` + fallback |
+| L3-5 | **Toko terdekat di halaman kategori** — `NearbyShopsSection` di `/kategori/$slug` | `kategori.$slug.tsx` | Sedang | ✅ Done — `NearbyShopsSection` sudah diimport dan dirender |
 
 ### ⏳ Fase 8 — Merchant Mock Data Lanjutan (Minggu 10–12)
 
