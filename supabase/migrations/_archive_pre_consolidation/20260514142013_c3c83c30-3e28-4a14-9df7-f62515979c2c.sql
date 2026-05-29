@@ -1,5 +1,0 @@
-CREATE TABLE public.staff_members (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), shop_id UUID NOT NULL REFERENCES public.coffee_shops(id) ON DELETE CASCADE, outlet_id UUID REFERENCES public.outlets(id) ON DELETE SET NULL, name TEXT NOT NULL, role app_role NOT NULL DEFAULT 'cashier', phone TEXT, avatar_url TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
-CREATE INDEX idx_staff_members_shop ON public.staff_members(shop_id);
-ALTER TABLE public.staff_members ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "staff_members_owner_all" ON public.staff_members FOR ALL TO authenticated USING (EXISTS (SELECT 1 FROM coffee_shops s WHERE s.id = staff_members.shop_id AND s.owner_id = auth.uid())) WITH CHECK (EXISTS (SELECT 1 FROM coffee_shops s WHERE s.id = staff_members.shop_id AND s.owner_id = auth.uid()));
-CREATE TRIGGER update_staff_members_updated_at BEFORE UPDATE ON public.staff_members FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

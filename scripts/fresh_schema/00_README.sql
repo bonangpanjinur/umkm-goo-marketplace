@@ -1,28 +1,26 @@
 -- ============================================================================
--- UMKMgo — FRESH BOOTSTRAP SCHEMA (consolidated from 126 migrations)
+-- UMKMgo — FRESH BOOTSTRAP SCHEMA
+-- Consolidated from 156 migrations (126 archived + 30 active)
 -- ============================================================================
--- Generated: 2026-05-18
--- Source: pg_dump --schema-only from production (single source of truth)
+-- Updated: 2026-05-22
 --
--- ⚠️  PERINGATAN — DO NOT APPLY TO EXISTING CLOUD INSTANCE
--- File ini hanya untuk bootstrap project Supabase BARU / fresh clone.
--- Cloud instance yang sekarang sudah berisi 126 migration history terapply.
--- Apply ulang akan konflik (tabel sudah ada).
+-- ⚠️  UNTUK PROJECT BARU SAJA — jangan apply ke instance yang sudah ada data.
 --
--- Cara pakai (untuk project baru):
---   1. Buat project Supabase baru.
---   2. Pindah/hapus folder _archive_pre_consolidation jika perlu.
---   3. supabase db push (file ini akan jadi satu-satunya migrasi awal).
+-- Cara pakai (fresh Supabase project):
+--   Jalankan ke-6 file ini secara berurutan di SQL Editor atau psql:
 --
--- Isi:
---   - 15 enum, 115 function, 163 tabel, 119 trigger, 385 RLS policy
---   - 23 storage bucket + 69 storage policy
---   - Seed data untuk 10 tabel referensi (business_categories, plans, dll)
+--   01_core_schema.sql            → ENUMs, tabel utama, fungsi dasar
+--   02_indexes_views_triggers.sql → Index, view, trigger
+--   03_constraints_foreign_keys.sql → Foreign key constraints
+--   04_policies_and_storage.sql   → RLS policy, storage buckets & policy
+--   05_seed_reference_data.sql    → ICD-10 codes, data referensi medis
+--   06_post_consolidation.sql     → Semua perubahan pasca-konsolidasi:
+--                                   tabel baru, kolom tambahan, fungsi baru,
+--                                   RLS baru, seed plans/categories/features
+--
+-- Isi total:
+--   - Semua tabel, enum, function, trigger dari 156 migration
+--   - 29 perubahan pasca-konsolidasi (20260518–20260522) sudah terintegrasi
+--   - Seed data: business_categories, plans, features, plan_features, ICD-10
+--   - Storage: 27+ bucket + policy
 -- ============================================================================
-
--- ============================================================
--- SECTION 1 — SCHEMA (extensions, types, functions, tables, views, triggers, RLS policies)
--- ============================================================
-
--- Dumped from database version 17.6
--- Dumped by pg_dump version 17.9

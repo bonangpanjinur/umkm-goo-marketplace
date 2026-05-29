@@ -1,1 +1,0 @@
-REVOKE EXECUTE ON FUNCTION public.get_my_entitlements() FROM PUBLIC, anon;

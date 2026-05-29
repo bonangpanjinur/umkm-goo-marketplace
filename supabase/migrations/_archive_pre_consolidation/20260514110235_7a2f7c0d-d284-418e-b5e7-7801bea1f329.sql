@@ -1,1 +1,0 @@
-ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS kds_station text;
