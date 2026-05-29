@@ -70,7 +70,7 @@ const [open, setOpen] = useState(false);
   const load = useCallback(async (shopId: string) => {
     setLoading(true);
     const [combosRes, menuRes] = await Promise.all([
-      (supabase as any).from("fnb_combos").select("*").eq("shop_id", shopId).order("sort_order").order("created_at"),
+      (supabase as any).from("product_combos").select("*").eq("shop_id", shopId).order("sort_order").order("created_at"),
       (supabase as any).from("menu_items").select("id, name, price, image_url, item_type").eq("shop_id", shopId).eq("is_available", true).order("name"),
     ]);
     if (combosRes.error) {
@@ -147,9 +147,9 @@ const [open, setOpen] = useState(false);
       };
       let error: unknown;
       if (editing) {
-        ({ error } = await (supabase as any).from("fnb_combos").update(payload).eq("id", editing.id));
+        ({ error } = await (supabase as any).from("product_combos").update(payload).eq("id", editing.id));
       } else {
-        ({ error } = await (supabase as any).from("fnb_combos").insert(payload));
+        ({ error } = await (supabase as any).from("product_combos").insert(payload));
       }
       if (error) throw error;
       toast.success(editing ? "Combo diperbarui" : "Combo baru dibuat");
@@ -164,14 +164,14 @@ const [open, setOpen] = useState(false);
 
   const del = async (id: string) => {
     setDeleting(id);
-    const { error } = await (supabase as any).from("fnb_combos").delete().eq("id", id);
+    const { error } = await (supabase as any).from("product_combos").delete().eq("id", id);
     if (error) toast.error("Gagal hapus");
     else { toast.success("Combo dihapus"); load(shop!.id); }
     setDeleting(null);
   };
 
   const toggleActive = async (c: Combo) => {
-    await (supabase as any).from("fnb_combos").update({ is_active: !c.is_active }).eq("id", c.id);
+    await (supabase as any).from("product_combos").update({ is_active: !c.is_active }).eq("id", c.id);
     setCombos(prev => prev.map(x => x.id === c.id ? { ...x, is_active: !c.is_active } : x));
   };
 

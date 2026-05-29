@@ -972,4 +972,343 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 
 ---
 
-*Dokumen ini dihasilkan dari analisis langsung terhadap 142 tabel Supabase, 2 tabel Drizzle/Neon, 295 route frontend, dan 8 API route pada 29 Mei 2026.*
+## BAGIAN 9 — RENAME TABEL & KONSISTENSI NAMA (Migrasi dari `coffee_shops`)
+
+### 9.1 Status Rename `coffee_shops` → `shops`
+
+| Lapisan | Status | Keterangan |
+|---|---|---|
+| **Kode route/lib/hooks** | ✅ Sudah `"shops"` | 123+ `.from("shops")` calls — tidak ada `"coffee_shops"` tersisa |
+| **`types.ts`** | ✅ Diperbaiki sesi ini | Semua 28 kemunculan `"coffee_shops"` sudah diganti `"shops"` |
+| **DB Supabase (aktual)** | ⚠️ Perlu diverifikasi | Jika tabel di DB masih `coffee_shops`, jalankan SQL di bawah |
+| **FK constraint names** | ⚠️ Kosmetik | `coffee_shops_*_fkey` di nama constraint — tidak pengaruh fungsional |
+
+**SQL Migration — Rename Tabel di DB:**
+```sql
+-- Cek apakah tabel shops sudah ada atau masih coffee_shops
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' AND table_name IN ('shops', 'coffee_shops');
+
+-- Jika masih coffee_shops dan shops belum ada:
+ALTER TABLE public.coffee_shops RENAME TO shops;
+
+-- Regenerasi types setelah rename:
+-- npx supabase gen types typescript --project-id <PROJECT_ID> \
+--   > artifacts/kopihub/src/integrations/supabase/types.ts
+```
+
+### 9.2 Nama Tabel F&B-Spesifik yang Sudah / Perlu Digeneralisasi
+
+| Nama Lama | Nama Baru | Status | File Terdampak |
+|---|---|---|---|
+| `coffee_shops` | `shops` | ✅ Kode & types.ts selesai; DB pending | semua |
+| `fnb_combos` | `product_combos` | ✅ Kode selesai (`pos-app.combo-builder.tsx`); DB pending | 1 file |
+| `menu_item_option_groups` | `product_option_groups` (opsional) | ⚠️ Kandidat — 6 file perlu update | rendah-prioritas |
+| `menu_item_options` | `product_options` (opsional) | ⚠️ Kandidat — 6 file perlu update | rendah-prioritas |
+| `menu_item_variants` | `product_variants` (opsional) | ⚠️ Kandidat — 4 file perlu update | rendah-prioritas |
+| `menu_reviews` | Merge ke `product_reviews` (opsional) | ⚠️ Dua tabel ulasan terpisah | rendah-prioritas |
+| `menu_hpp_view` | `product_cost_view` (opsional) | ⚠️ View — 2 file | rendah-prioritas |
+
+> **Catatan:** `menu_items` (78 occurrences) sudah dipakai secara generik untuk SEMUA jenis usaha (digital, rental, kursus, paket umroh, dll.). **Jangan rename** — terlalu banyak dampak dan sudah diterima sebagai "product catalog universal".
+
+**SQL Migration — Rename `fnb_combos`:**
+```sql
+ALTER TABLE IF EXISTS public.fnb_combos RENAME TO product_combos;
+```
+
+### 9.3 Tabel di Kode tapi Belum di `types.ts` (Perlu Regenerasi)
+
+`types.ts` saat ini memiliki **88 tabel** (sudah termasuk rename `shops`). Kode menggunakan **~160+ tabel**. Tabel-tabel berikut ada di DB (dipakai di kode) tapi belum terdefinisi di `types.ts` — solusi: **regenerasi `types.ts` dari Supabase CLI**.
+
+| Domain | Tabel yang Hilang dari `types.ts` |
+|---|---|
+| **Rental** | `rental_units`, `rental_bookings`, `rental_checklists`, `rental_inspections` |
+| **Booking Extended** | `booking_addons`, `booking_service_packages`, `booking_review_requests`, `booking_reviews`, `booking_vouchers`, `booking_reschedule_logs` |
+| **Chat** | `shop_chats`, `shop_chat_messages` |
+| **Studio Foto** | `studio_galleries`, `studio_gallery_photos`, `studio_briefs`, `studio_packages`, `studio_locations`, `studio_deliveries`, `studio_photo_reviews` |
+| **Kursus / LMS** | `course_modules`, `course_lessons`, `course_enrollments`, `course_certificates`, `lesson_progress` |
+| **Klinik** | `patient_records`, `patient_visits`, `medications`, `prescriptions`, `prescription_items`, `anamnesis_forms`, `icd10_codes`, `medical_invoices` |
+| **Travel & Umroh** | `umroh_packages`, `umroh_facilities`, `umroh_faqs`, `travel_jamaah_manifest`, `travel_jamaah_documents`, `travel_itineraries`, `travel_installments` |
+| **Freelance/Custom** | `freelance_contracts`, `custom_order_quotes`, `project_milestones`, `job_deliverables`, `authenticity_certificates` |
+| **POS Extended** | `tables`, `table_maps`, `printers`, `queue_sessions`, `queue_entries`, `order_audit_log`, `pos_audit_log`, `staff_audit_logs` |
+| **Produk Extended** | `flash_sales`, `happy_hour_rules`, `bulk_pricing_rules`, `product_combos`, `bundle_items`, `limited_editions`, `product_qa`, `menu_item_variants`, `restock_subscribers` |
+| **Shop Extended** | `shop_about`, `shop_api_keys`, `shop_bank_accounts`, `shop_lookbook`, `shop_skin_quiz`, `shop_product_claims`, `shop_size_charts`, `storefront_layouts`, `page_layouts`, `page_layout_versions` |
+| **Loyalty Extended** | `loyalty_tiers`, `loyalty_rewards`, `loyalty_redemptions`, `loyalty_analytics` |
+| **Customer Extended** | `cashback_wallets`, `cashback_transactions`, `wishlists`, `buyer_ratings`, `referrals`, `referral_programs`, `customer_treatments` |
+| **Marketing Extended** | `email_campaigns`, `wa_broadcasts`, `ad_requests`, `banners`, `affiliates` |
+| **Kurir Extended** | `courier_earnings`, `outlet_couriers` |
+| **Staff Extended** | `staff_members`, `staff_audit_logs` |
+| **Returns** | `return_requests`, `product_returns` |
+| **Integrasi** | `webhook_events`, `integration_webhooks`, `integration_mappings`, `third_party_integrations`, `api_keys`, `api_usage` |
+| **Admin** | `admin_users`, `data_requests` |
+| **Views** | `v_shop_capabilities` |
+
+**Perintah regenerasi:**
+```bash
+npx supabase gen types typescript \
+  --project-id <SUPABASE_PROJECT_ID> \
+  > artifacts/kopihub/src/integrations/supabase/types.ts
+```
+
+---
+
+## BAGIAN 10 — FITUR LOKASI & PETA TOKO
+
+### 10.1 Audit Status (per 29 Mei 2026)
+
+> Fitur lokasi sudah memiliki pondasi yang **sangat kuat**. Sebagian besar komponen sudah dibangun — gap utama ada di **skema DB yang belum komplit** dan **beberapa fitur UX lanjutan**.
+
+#### ✅ Sudah Diimplementasi
+
+| Komponen / Route | Deskripsi | API / Library |
+|---|---|---|
+| `ShopLocationPicker.tsx` | Map interaktif untuk merchant set pin lokasi toko — Nominatim search (address→coords), GPS device, drag pin, input koordinat manual, Google Maps preview link | **Nominatim** (gratis, tanpa API key) + **Leaflet** + **OpenStreetMap** |
+| `pos-app.settings.tsx` | Form settings merchant sudah punya field `address`, `latitude`, `longitude`, `google_maps_url` + ShopLocationPicker terintegrasi | Supabase (shops table) |
+| `/sekitar` | Halaman toko terdekat — GPS geolocation, radius slider 1–50 km, tampilan list + peta Leaflet, jarak dalam km/m, link arah ke Google Maps | `shops_nearby` RPC + Leaflet |
+| `NearbyShopsMap.tsx` | Komponen peta Leaflet dengan marker tiap toko, circle radius, popup detail, fit bounds otomatis | **Leaflet** + **OpenStreetMap tiles** (100% gratis) |
+| `/toko/$slug/map` | Halaman peta per toko — embed OpenStreetMap, link "Lihat di Google Maps" + "Petunjuk Arah", deteksi GPS pembeli untuk hitung jarak | OpenStreetMap embed + Browser Geolocation |
+| `/toko/$slug` | Halaman storefront — tampil alamat + kota, Google Maps view + arah jika ada koordinat | Static link generation |
+| Homepage `/` | Link "Cari toko di sekitar saya" → `/sekitar` | — |
+| `kategori/$slug/$city` | Filter toko per kategori per kota (berbasis teks kota) | — |
+
+#### ⚠️ Ada tapi Perlu Diperbaiki
+
+| Item | Masalah | Solusi |
+|---|---|---|
+| **Kolom DB `shops` tidak lengkap** | `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` **belum ada di `types.ts`** (kode pakai `as any` untuk bypass TypeScript) | Jalankan SQL migration + regenerasi `types.ts` |
+| **`shops_nearby` RPC** | Dipanggil di kode tapi belum ada definisi SQL — perlu dibuat di Supabase | Jalankan SQL create function di bawah |
+| **Auto-fill kota dari pin** | Saat merchant drop pin di peta, `city`/`province` tidak otomatis terisi | Tambah Nominatim reverse geocoding di `ShopLocationPicker` |
+| **Field `city`, `province`, `postal_code` di settings** | `pos-app.settings.tsx` belum punya form input untuk kota/provinsi/kodepos | Tambah 3 field form |
+| **Filter `/sekitar`** | Tidak ada filter kategori bisnis, tidak ada toggle "Buka Sekarang" | Tambah filter panel |
+| **Lokasi pembeli tidak persisten** | GPS di `/sekitar` hanya untuk sesi itu — tidak disimpan ke localStorage/profil | Simpan ke `localStorage` + update `customer_profiles.default_city` |
+| **Homepage tanpa geo-context** | Homepage tidak menampilkan toko terdekat secara otomatis berdasarkan lokasi | Tambah banner/section "Di Sekitar Anda" |
+
+#### ❌ Belum Ada
+
+| Fitur | Deskripsi | Prioritas |
+|---|---|---|
+| **Autocomplete alamat saat checkout** | Saat pembeli input alamat pengiriman di checkout, ada autocomplete dari Nominatim | Sedang |
+| **Peta sebaran toko di admin** | Super admin bisa lihat semua toko di peta (choropleth/heatmap per provinsi) | Rendah |
+| **Clustering marker** | Di `/sekitar` jika toko banyak, marker di-cluster supaya tidak overlapping | Sedang |
+| **Share lokasi toko** | Merchant bisa generate link "lokasi toko saya" yang bisa dibagikan ke WhatsApp | Rendah |
+
+---
+
+### 10.2 Skema Database — Kolom yang Perlu Ditambahkan
+
+Tabel `shops` di types.ts **tidak memiliki** kolom-kolom lokasi berikut. Perlu di-ALTER TABLE:
+
+```sql
+-- Kolom lokasi pada tabel shops (jika belum ada)
+ALTER TABLE public.shops
+  ADD COLUMN IF NOT EXISTS latitude     NUMERIC(10, 7)  DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS longitude    NUMERIC(10, 7)  DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS city         TEXT            DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS province     TEXT            DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS postal_code  TEXT            DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS google_maps_url TEXT         DEFAULT NULL;
+
+-- Index untuk query nearby shops (haversine / earthdistance)
+CREATE INDEX IF NOT EXISTS idx_shops_lat_lng
+  ON public.shops (latitude, longitude)
+  WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
+
+-- Index untuk filter per kota
+CREATE INDEX IF NOT EXISTS idx_shops_city
+  ON public.shops (city)
+  WHERE city IS NOT NULL;
+```
+
+**Penjelasan tiap kolom:**
+
+| Kolom | Tipe | Contoh | Kegunaan |
+|---|---|---|---|
+| `latitude` | `NUMERIC(10,7)` | `-6.2088090` | GPS koordinat, presisi 7 desimal (~1 cm) |
+| `longitude` | `NUMERIC(10,7)` | `106.8455530` | GPS koordinat |
+| `city` | `TEXT` | `Jakarta Selatan` | Filter per kota di marketplace & search |
+| `province` | `TEXT` | `DKI Jakarta` | Filter per provinsi |
+| `postal_code` | `TEXT` | `12930` | Kalkulasi ongkos kirim, integrasi RajaOngkir |
+| `google_maps_url` | `TEXT` | `https://maps.app.goo.gl/...` | Link Google Maps yang diisi merchant secara manual (short link) |
+
+---
+
+### 10.3 Fungsi PostgreSQL `shops_nearby` (RPC)
+
+Fungsi ini dipanggil dari `/sekitar` tapi belum tentu ada di DB. Buat jika belum ada:
+
+```sql
+-- Aktifkan extension earthdistance (jika belum)
+CREATE EXTENSION IF NOT EXISTS cube;
+CREATE EXTENSION IF NOT EXISTS earthdistance;
+
+-- Fungsi shops_nearby menggunakan earthdistance (akurat & cepat)
+CREATE OR REPLACE FUNCTION public.shops_nearby(
+  _lat      NUMERIC,
+  _lng      NUMERIC,
+  _radius_km NUMERIC DEFAULT 10,
+  _limit    INT     DEFAULT 60
+)
+RETURNS TABLE (
+  id           UUID,
+  slug         TEXT,
+  name         TEXT,
+  tagline      TEXT,
+  logo_url     TEXT,
+  address      TEXT,
+  city         TEXT,
+  latitude     NUMERIC,
+  longitude    NUMERIC,
+  rating_avg   NUMERIC,
+  review_count INT,
+  distance_km  NUMERIC
+)
+LANGUAGE sql STABLE AS $$
+  SELECT
+    s.id,
+    s.slug,
+    s.name,
+    s.tagline,
+    s.logo_url,
+    s.address,
+    s.city,
+    s.latitude,
+    s.longitude,
+    s.rating_avg,
+    COALESCE(s.rating_count, 0)::INT AS review_count,
+    ROUND(
+      (earth_distance(
+        ll_to_earth(_lat, _lng),
+        ll_to_earth(s.latitude::float8, s.longitude::float8)
+      ) / 1000.0)::NUMERIC,
+      2
+    ) AS distance_km
+  FROM public.shops s
+  WHERE
+    s.latitude  IS NOT NULL
+    AND s.longitude IS NOT NULL
+    AND s.is_active = TRUE
+    AND s.marketplace_visible = TRUE
+    AND earth_box(ll_to_earth(_lat, _lng), _radius_km * 1000) @>
+        ll_to_earth(s.latitude::float8, s.longitude::float8)
+    AND earth_distance(
+        ll_to_earth(_lat, _lng),
+        ll_to_earth(s.latitude::float8, s.longitude::float8)
+      ) <= _radius_km * 1000
+  ORDER BY distance_km ASC
+  LIMIT _limit;
+$$;
+
+-- Grant akses ke anon dan authenticated
+GRANT EXECUTE ON FUNCTION public.shops_nearby TO anon, authenticated;
+```
+
+> **Catatan:** Jika ekstensi `earthdistance` tidak tersedia di Supabase tier yang dipakai, gunakan formula Haversine sederhana:
+> ```sql
+> -- Alternatif tanpa extension (Haversine manual)
+> ROUND((
+>   6371 * acos(
+>     cos(radians(_lat)) * cos(radians(s.latitude::float8)) *
+>     cos(radians(s.longitude::float8) - radians(_lng)) +
+>     sin(radians(_lat)) * sin(radians(s.latitude::float8))
+>   )
+> )::NUMERIC, 2) AS distance_km
+> ```
+
+---
+
+### 10.4 API Geocoding yang Digunakan (Gratis)
+
+| API | Kegunaan | Limit | API Key |
+|---|---|---|---|
+| **Nominatim (OpenStreetMap)** | Address → coordinates (forward geocoding) + Coordinates → address (reverse geocoding) | 1 req/detik, tanpa registrasi | ❌ Tidak perlu |
+| **OpenStreetMap Tile Server** | Map tiles di Leaflet (`{s}.tile.openstreetmap.org`) | Fair use | ❌ Tidak perlu |
+| **Browser Geolocation API** | Deteksi posisi pembeli / merchant di browser | Browser native | ❌ Tidak perlu |
+| **Google Maps (link only)** | Buka peta / petunjuk arah di tab baru | Tidak ada API call — hanya URL link | ❌ Tidak perlu |
+
+> Semua API yang dipakai **100% gratis dan sudah terimplementasi**. Tidak ada biaya tambahan.
+
+**Endpoint Nominatim yang Dipakai:**
+```
+# Forward geocoding (address → lat/lng) — sudah ada di ShopLocationPicker.tsx
+GET https://nominatim.openstreetmap.org/search
+  ?format=json&limit=1&countrycodes=id&q=<ALAMAT>
+
+# Reverse geocoding (lat/lng → address) — PERLU DITAMBAHKAN
+GET https://nominatim.openstreetmap.org/reverse
+  ?format=json&lat=<LAT>&lon=<LNG>&addressdetails=1&accept-language=id
+```
+
+**Contoh response reverse geocoding yang berguna:**
+```json
+{
+  "address": {
+    "road": "Jalan Sudirman",
+    "suburb": "Senayan",
+    "city_district": "Kebayoran Baru",
+    "city": "Jakarta Selatan",
+    "state": "DKI Jakarta",
+    "postcode": "12930",
+    "country": "Indonesia"
+  }
+}
+```
+→ Dari sini: `city = address.city`, `province = address.state`, `postal_code = address.postcode`
+
+---
+
+### 10.5 Rencana Penyempurnaan — Prioritas & Urutan
+
+#### 🔴 P1 — Wajib (DB tidak konsisten tanpa ini)
+
+| ID | Task | File | SQL/API |
+|----|------|------|---------|
+| L1-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | Supabase DB | SQL §10.2 |
+| L1-2 | **Buat `shops_nearby` RPC** di Supabase | Supabase DB | SQL §10.3 |
+| L1-3 | **Regenerasi `types.ts`** setelah schema update | `types.ts` | `supabase gen types` |
+| L1-4 | **Tambah field kota/provinsi/kodepos** di `pos-app.settings.tsx` (3 input baru di bawah alamat) | `pos-app.settings.tsx` | — |
+
+#### 🟡 P2 — Penting (UX merchant dan pembeli lebih baik)
+
+| ID | Task | File | Estimasi |
+|----|------|------|---------|
+| L2-1 | **Auto-fill kota dari pin** — saat merchant drop pin atau search alamat di `ShopLocationPicker`, panggil Nominatim reverse geocoding → isi `city`, `province`, `postal_code` otomatis | `ShopLocationPicker.tsx` | 0.5 hari |
+| L2-2 | **Simpan lokasi pembeli ke localStorage** — setelah GPS detected di `/sekitar`, simpan `{ lat, lng, city }` ke `localStorage("umkmgo.userLocation")` supaya bisa dipakai di halaman lain | `sekitar.tsx` | 0.25 hari |
+| L2-3 | **Filter kategori bisnis di `/sekitar`** — dropdown filter business_category_id di atas daftar toko | `sekitar.tsx` | 0.5 hari |
+| L2-4 | **Filter "Buka Sekarang" di `/sekitar`** — toggle yang filter toko berdasarkan `open_hours` vs waktu saat ini | `sekitar.tsx` | 0.5 hari |
+| L2-5 | **Section "Toko Terdekat" di Homepage** — jika `localStorage("umkmgo.userLocation")` ada, tampilkan strip toko terdekat di bawah banner (3–6 toko, lazy load GPS jika tidak ada) | `index.tsx` | 1 hari |
+
+#### 🟢 P3 — Peningkatan (Nice to have)
+
+| ID | Task | File | Estimasi |
+|----|------|------|---------|
+| L3-1 | **Marker clustering di peta `/sekitar`** — pakai `react-leaflet-cluster` supaya tidak overlap saat toko banyak | `NearbyShopsMap.tsx` | 0.5 hari |
+| L3-2 | **Autocomplete alamat di checkout** — saat pembeli ketik alamat, saran dari Nominatim | `checkout.tsx` | 1 hari |
+| L3-3 | **Peta sebaran toko di admin** — choropleth per provinsi di `/admin/shops` | `admin.shops.tsx` | 1 hari |
+| L3-4 | **Share lokasi toko** — tombol "Bagikan Lokasi" di halaman toko yang generate WhatsApp deep link dengan koordinat/Google Maps URL | `toko.$slug.tsx` | 0.25 hari |
+| L3-5 | **Toko terdekat di halaman kategori** — saat user di `/kategori/$slug`, tampilkan toko yang paling dekat dengan lokasi user di atas list | `kategori.$slug.tsx` | 0.5 hari |
+
+---
+
+### 10.6 Ringkasan Status Fitur Lokasi
+
+```
+LAPISAN          STATUS    KETERANGAN
+─────────────────────────────────────────────────────
+Map tiles        ✅ DONE   OpenStreetMap (Leaflet) — gratis
+GPS browser      ✅ DONE   navigator.geolocation
+Forward geocode  ✅ DONE   Nominatim di ShopLocationPicker
+Reverse geocode  ❌ TODO   Perlu tambah ke ShopLocationPicker (L2-1)
+Halaman /sekitar ✅ DONE   GPS + radius + list + peta — lengkap
+Peta per toko    ✅ DONE   /toko/$slug/map
+Setting merchant ✅ DONE   Lat/lng + address sudah ada; city/province TODO (L1-4)
+Google Maps link ✅ DONE   View + petunjuk arah dari koordinat/nama
+DB kolom lokasi  ⚠️ TODO   ALTER TABLE shops (L1-1) + regenerasi types (L1-3)
+shops_nearby RPC ⚠️ TODO   Perlu dibuat di DB jika belum ada (L1-2)
+Lokasi persisten ❌ TODO   localStorage buyer location (L2-2)
+Section homepage ❌ TODO   "Toko di sekitar kamu" (L2-5)
+Filter /sekitar  ❌ TODO   Kategori + buka sekarang (L2-3, L2-4)
+```
+
+---
+
+*Dokumen ini dihasilkan dari analisis langsung terhadap 142 tabel Supabase, 2 tabel Drizzle/Neon, 295 route frontend, 8 API route, dan kode komponen pada 29 Mei 2026.*

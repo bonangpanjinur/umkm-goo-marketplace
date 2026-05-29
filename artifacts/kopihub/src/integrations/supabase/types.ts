@@ -173,7 +173,7 @@ export type Database = {
             foreignKeyName: "booking_slots_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -233,7 +233,7 @@ export type Database = {
             foreignKeyName: "booking_waitlist_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -324,7 +324,7 @@ export type Database = {
             foreignKeyName: "bookings_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -587,7 +587,7 @@ export type Database = {
             foreignKeyName: "categories_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -925,7 +925,7 @@ export type Database = {
             foreignKeyName: "custom_order_requests_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -1092,7 +1092,7 @@ export type Database = {
             foreignKeyName: "customer_memberships_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -1272,7 +1272,7 @@ export type Database = {
             foreignKeyName: "customer_wallets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -1401,7 +1401,7 @@ export type Database = {
             foreignKeyName: "domain_audit_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -1758,7 +1758,7 @@ export type Database = {
             foreignKeyName: "marketplace_cart_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -2034,7 +2034,7 @@ export type Database = {
             foreignKeyName: "menu_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -2176,7 +2176,7 @@ export type Database = {
             foreignKeyName: "open_bills_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -2537,7 +2537,7 @@ export type Database = {
             foreignKeyName: "orders_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -2588,7 +2588,7 @@ export type Database = {
             foreignKeyName: "outlets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -2688,7 +2688,7 @@ export type Database = {
             foreignKeyName: "parked_carts_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -2803,7 +2803,7 @@ export type Database = {
             foreignKeyName: "plan_invoices_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3097,7 +3097,7 @@ export type Database = {
             foreignKeyName: "product_reviews_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3447,7 +3447,7 @@ export type Database = {
             foreignKeyName: "push_subscriptions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3699,7 +3699,7 @@ export type Database = {
             foreignKeyName: "shop_membership_tiers_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3753,7 +3753,7 @@ export type Database = {
             foreignKeyName: "shop_portfolio_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3825,7 +3825,7 @@ export type Database = {
             foreignKeyName: "shop_verifications_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3873,7 +3873,7 @@ export type Database = {
             foreignKeyName: "shop_wallets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: true
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -3963,7 +3963,7 @@ export type Database = {
             foreignKeyName: "staff_permissions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -4297,7 +4297,7 @@ export type Database = {
             foreignKeyName: "wallet_topup_presets_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -4370,7 +4370,7 @@ export type Database = {
             foreignKeyName: "wallet_topups_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -4434,7 +4434,7 @@ export type Database = {
             foreignKeyName: "wallet_transactions_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -4512,7 +4512,7 @@ export type Database = {
             foreignKeyName: "withdrawal_requests_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -4543,7 +4543,7 @@ export type Database = {
             foreignKeyName: "menu_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -4685,7 +4685,7 @@ export type Database = {
             foreignKeyName: "menu_items_shop_id_fkey"
             columns: ["shop_id"]
             isOneToOne: false
-            referencedRelation: "coffee_shops"
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
