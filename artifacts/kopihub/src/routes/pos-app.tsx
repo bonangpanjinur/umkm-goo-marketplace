@@ -99,6 +99,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { InstallPWAButton } from "@/components/InstallPWAButton";
 import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
 import { useShopCapabilities } from "@/lib/use-shop-capabilities";
+import { useSSEPublisher } from "@/hooks/use-sse-publisher";
 import { FEATURE_LABEL, type FeatureKey } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/pos-app")({
@@ -408,6 +409,8 @@ function AppLayoutInner() {
   const [shopCategoryType, setShopCategoryType] = useState<string>("general");
   const [shopSubtype, setShopSubtype] = useState<string | null>(null);
   const capabilities = useShopCapabilities(shop?.id ?? null);
+  // F5-1 · F5-2 · F5-3: Jembatani Supabase Realtime → SSE relay di Express
+  useSSEPublisher(shop?.id ?? null);
 
   useEffect(() => {
     if (loading) return;

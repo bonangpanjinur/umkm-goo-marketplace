@@ -916,13 +916,20 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 | F4-5 | **Q&A Produk** (customer submit pertanyaan, merchant jawab) | `product_qa` | Sedang | ✅ Done — sudah ada: `components/marketplace/ProductQA.tsx` + `routes/pos-app.qa.tsx` |
 | F4-6 | **Follow Toko** | `shop_follows` | Rendah | ✅ Done — sudah ada: implemented di `routes/toko.$slug.tsx` |
 
-### 🔄 Fase 5 — Realtime (Minggu 5–7)
+### ✅ Fase 5 — Realtime (Minggu 5–7) — **SELESAI**
 
-| ID | Task | Estimasi |
-|----|------|----------|
-| F5-1 | SSE endpoint di Express untuk POS sync (order baru, status update) | 2 hari |
-| F5-2 | SSE untuk kurir (order tersedia real-time) | 1 hari |
-| F5-3 | SSE untuk notifikasi merchant | 1 hari |
+| ID | Task | Estimasi | Status |
+|----|------|----------|--------|
+| F5-1 | SSE endpoint di Express untuk POS sync (order baru, status update) | 2 hari | ✅ Done — `GET /api/sse/stream?shop_id=X&channel=pos` · broker pattern, no service key needed |
+| F5-2 | SSE untuk kurir (order tersedia real-time) | 1 hari | ✅ Done — `GET /api/sse/stream?shop_id=X&channel=courier` · emit `order_ready` & `order_picked_up` |
+| F5-3 | SSE untuk notifikasi merchant | 1 hari | ✅ Done — `GET /api/sse/stream?shop_id=X&channel=notifications` · emit `notification_new` |
+
+**Arsitektur SSE (broker pattern):**
+- `artifacts/api-server/src/routes/sse.ts` — in-memory pub/sub registry, heartbeat 25s, auto-cleanup
+- `artifacts/kopihub/src/hooks/use-sse-publisher.ts` — POS terminal subscribe Supabase Realtime → publish ke SSE relay
+- `useSSESubscriber()` — KDS tablet / display tamu / kurir subscribe SSE tanpa auth Supabase
+- `/track/:orderId` (`track.$orderId.tsx`) — halaman tracking publik live per order (shareable link, tanpa login)
+- `GET /api/sse/status` — diagnostik jumlah subscriber aktif per channel
 
 ### 🚀 Fase 6 — Platform Lanjutan (Minggu 8+)
 
