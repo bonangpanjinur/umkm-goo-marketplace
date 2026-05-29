@@ -227,14 +227,35 @@ export function CourierDashboard() {
                     <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p>{o.delivery_address}</p>
-                      <a
-                        href={`https://maps.google.com/?q=${encodeURIComponent(o.delivery_address)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        Buka di Google Maps →
-                      </a>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        <a
+                          href={`https://maps.google.com/?q=${encodeURIComponent(o.delivery_address)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          Google Maps →
+                        </a>
+                        <a
+                          href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(o.delivery_address)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-medium text-blue-600 hover:underline"
+                        >
+                          OpenStreetMap →
+                        </a>
+                      </div>
+                      <div className="mt-2 overflow-hidden rounded-lg border border-border">
+                        <iframe
+                          title={`Peta: ${o.delivery_address}`}
+                          src={`https://maps.google.com/maps?q=${encodeURIComponent(o.delivery_address)}&output=embed&hl=id`}
+                          width="100%"
+                          height="180"
+                          style={{ border: 0, display: "block" }}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

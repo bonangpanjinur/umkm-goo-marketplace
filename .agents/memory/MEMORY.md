@@ -1,0 +1,2 @@
+- [TanStack Router auto-regen](tanstack-router-regen.md) — routeTree.gen.ts auto-regenerates when Vite dev server detects new route files; avoid manual edits while dev server is running.
+- [Admin tools auth pattern](admin-tools-auth.md) — api-server cannot import @supabase/supabase-js; admin endpoints use x-admin-secret header + pool.query().

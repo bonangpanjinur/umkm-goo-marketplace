@@ -1032,19 +1032,19 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 | F9-7 | **Webhook Events Monitor** — halaman `/admin/webhook-monitor` tampilkan log semua merchant webhook delivery | `webhook_events` _(tabel baru)_ | Sedang | ✅ Done — tabel `webhook_events` + halaman `admin.webhook-monitor.tsx` |
 | F9-8 | **API Keys Platform** — merchant generate API key untuk integrasi pihak ketiga | `api_keys` _(tabel baru)_ | Rendah | ✅ Done — tabel `api_keys` + `fn_generate_api_key` + halaman `admin.api-keys.tsx` |
 
-### ⏳ Fase 10 — Kurir & Staff Lengkap (Minggu 13+)
+### ✅ Fase 10 — Kurir & Staff Lengkap (Minggu 13+) — SELESAI
 
 > Melengkapi role kurir (~65%) dan staff/kasir (~70%) yang saat ini paling tertinggal.
 
 | ID | Task | Tabel / Komponen | Prioritas | Status |
 |----|------|-----------------|-----------|--------|
-| F10-1 | **Upload foto bukti pengiriman** — kurir upload foto serah terima ke Supabase Storage dari `/kurir` | `orders`, Supabase Storage | Sedang | ⏳ Belum |
-| F10-2 | **Flow penarikan penghasilan kurir** — halaman `/kurir/withdraw` + form `withdrawal_requests` | `withdrawal_requests`, `couriers` | Sedang | ⏳ Belum |
-| F10-3 | **Peta navigasi kurir** — embed Google Maps / OpenStreetMap dengan rute ke alamat pengiriman di `/kurir` | `orders` | Sedang | ⏳ Belum |
-| F10-4 | **Rating kurir dari pembeli** — form bintang muncul setelah order terkirim, dikonfirmasi pembeli | `courier_ratings` _(tabel baru)_, `couriers` | Rendah | ⏳ Belum |
-| F10-5 | **Riwayat pengiriman kurir dengan filter** — filter tanggal, status, toko di `/kurir/history` | `orders` | Rendah | ⏳ Belum |
-| F10-6 | **Dashboard pribadi staff/kasir** — ringkasan shift aktif, order hari ini, total penjualan saya | `shifts`, `orders`, `attendances` | Sedang | ⏳ Belum |
-| F10-7 | **Slip gaji digital** — generate PDF/HTML slip gaji per shift/bulan untuk kasir | `shifts`, `attendances` | Rendah | ⏳ Belum |
+| F10-1 | **Upload foto bukti pengiriman** — kurir upload foto serah terima ke Supabase Storage dari `/kurir` | `orders`, Supabase Storage | Sedang | ✅ Done — `completeWithProof()` + Supabase Storage `delivery-proofs` bucket sudah ada di `CourierDashboard.tsx` |
+| F10-2 | **Flow penarikan penghasilan kurir** — halaman `/kurir/withdraw` + form `withdrawal_requests` | `withdrawal_requests`, `couriers` | Sedang | ✅ Done — halaman `/kurir/withdraw` + SQL kolom `courier_id` di `withdrawal_requests` + kolom `balance`/`total_earned` di `couriers` |
+| F10-3 | **Peta navigasi kurir** — embed Google Maps / OpenStreetMap dengan rute ke alamat pengiriman di `/kurir` | `orders` | Sedang | ✅ Done — iframe Google Maps embed + link OSM di `CourierDashboard.tsx` untuk setiap order aktif |
+| F10-4 | **Rating kurir dari pembeli** — form bintang muncul setelah order terkirim, dikonfirmasi pembeli | `courier_ratings` _(tabel baru)_, `couriers` | Rendah | ✅ Done — tabel `courier_ratings` + view `courier_rating_summary` + halaman `/akun/rate-kurir` |
+| F10-5 | **Riwayat pengiriman kurir dengan filter** — filter tanggal, status, toko di `/kurir/history` | `orders` | Rendah | ✅ Done — filter status, tanggal dari–sampai, nama toko ditambahkan ke `/kurir/history` |
+| F10-6 | **Dashboard pribadi staff/kasir** — ringkasan shift aktif, order hari ini, total penjualan saya | `shifts`, `orders`, `attendances` | Sedang | ✅ Done — halaman `/pos-app/staff-dashboard` dengan ringkasan order, absensi, dan jadwal shift |
+| F10-7 | **Slip gaji digital** — generate PDF/HTML slip gaji per shift/bulan untuk kasir | `shifts`, `attendances` | Rendah | ✅ Done — halaman `/pos-app/payslip` dengan tabel absensi, kalkulasi gaji, dan tombol cetak/PDF |
 
 ---
 
@@ -1072,9 +1072,9 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 |---|---|---|---|---|
 | **Super Admin** | 61 route ✅ | 5 halaman ⚠️ (commission, auto-cancel, GDPR, broadcast-buyers, churn) | Platform Settings UI, Webhook Monitor, API Keys | ~88% |
 | **Merchant / Owner** | 154 route ✅ | 6 halaman ⚠️ (broadcast-wa, bulk-pricing, restock-notify, storefront-save, flash-sale, happy-hour) | — | ~92% |
-| **Staff / Kasir** | (via pos-app) | Login email belum terkirim (K5) | Dashboard pribadi (F10-6), slip gaji (F10-7) | ~70% |
+| **Staff / Kasir** | (via pos-app) | Login email belum terkirim (K5) | — (dashboard F10-6 ✅, slip gaji F10-7 ✅) | ~85% |
 | **Customer** | 21 route ✅ | Checkout belum aktif (K4) | — (search ✅, ulasan ✅, Q&A ✅, langganan ✅, live ✅ sudah selesai) | ~88% |
-| **Kurir** | 5 route ✅ | Upload foto (F10-1), penarikan (F10-2) | Rating (F10-4), peta navigasi (F10-3) | ~65% |
+| **Kurir** | 6 route ✅ | — (upload foto F10-1 ✅, penarikan F10-2 ✅, peta F10-3 ✅, rating F10-4 ✅, history filter F10-5 ✅) | — | ~90% |
 | **Marketplace Publik** | 62+ route ✅ | Search ✅, filter lokasi ✅, group buy ✅, live ✅, telemedicine ✅ | — | ~93% |
 | **Infrastruktur** | — | K1 ✅ K3 ✅ K4 (secrets) K5 (email) masih pending | Jalankan SQL migration F6+F7 di Supabase | ~65% |
 
@@ -1092,9 +1092,9 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 | Fase 7 | DB Migration + Lokasi P3 | ✅ **100% Selesai** (SQL migration siap; L3-1 s/d L3-5 ✅) |
 | Fase 8 | Merchant Mock Lanjutan | ✅ **6/6 Selesai** |
 | Fase 9 | Admin Platform Tools | ✅ **8/8 Selesai** |
-| Fase 10 | Kurir & Staff Lengkap | ⏳ **0/7 Selesai** |
+| Fase 10 | Kurir & Staff Lengkap | ✅ **7/7 Selesai** |
 
-> **Kesimpulan (Mei 2026):** Fase 1–9 selesai 100%. Jalankan `scripts/fase8_fase9_migrations.sql` di Supabase Dashboard untuk mengaktifkan tabel-tabel baru (bulk_pricing_rules, restock_subscribers, webhook_events, api_keys, data_requests, wallet_topup_presets). Backend endpoint admin tersedia di `/admin/*` dengan autentikasi `x-admin-secret`.
+> **Kesimpulan (Mei 2026):** Fase 1–10 selesai 100%. Jalankan `scripts/fase8_fase9_migrations.sql` dan `scripts/fase10_migrations.sql` di Supabase Dashboard. Fase 10 menambahkan tabel `courier_ratings` + view `courier_rating_summary`, kolom `balance`/`total_earned` di `couriers`, dan kolom `courier_id` di `withdrawal_requests`.
 
 ---
 

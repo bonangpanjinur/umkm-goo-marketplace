@@ -74,6 +74,7 @@ import { Route as PosAppStudioBriefRouteImport } from './routes/pos-app.studio-b
 import { Route as PosAppStudioAddonsRouteImport } from './routes/pos-app.studio-addons'
 import { Route as PosAppStorefrontBuilderRouteImport } from './routes/pos-app.storefront-builder'
 import { Route as PosAppStokRouteImport } from './routes/pos-app.stok'
+import { Route as PosAppStaffDashboardRouteImport } from './routes/pos-app.staff-dashboard'
 import { Route as PosAppSkinQuizRouteImport } from './routes/pos-app.skin-quiz'
 import { Route as PosAppSizeGuideRouteImport } from './routes/pos-app.size-guide'
 import { Route as PosAppShippingLabelsRouteImport } from './routes/pos-app.shipping-labels'
@@ -110,6 +111,7 @@ import { Route as PosAppPreOrdersRouteImport } from './routes/pos-app.pre-orders
 import { Route as PosAppPosRouteImport } from './routes/pos-app.pos'
 import { Route as PosAppPortfolioRouteImport } from './routes/pos-app.portfolio'
 import { Route as PosAppPermissionsRouteImport } from './routes/pos-app.permissions'
+import { Route as PosAppPayslipRouteImport } from './routes/pos-app.payslip'
 import { Route as PosAppPatientRecordsRouteImport } from './routes/pos-app.patient-records'
 import { Route as PosAppOutletsRouteImport } from './routes/pos-app.outlets'
 import { Route as PosAppOutletShippingRouteImport } from './routes/pos-app.outlet-shipping'
@@ -188,6 +190,7 @@ import { Route as PosAppAboutPageRouteImport } from './routes/pos-app.about-page
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as OrderSlugRouteImport } from './routes/order.$slug'
 import { Route as LiveShopSlugRouteImport } from './routes/live.$shopSlug'
+import { Route as KurirWithdrawRouteImport } from './routes/kurir.withdraw'
 import { Route as KurirProfileRouteImport } from './routes/kurir.profile'
 import { Route as KurirHistoryRouteImport } from './routes/kurir.history'
 import { Route as KurirEarningsRouteImport } from './routes/kurir.earnings'
@@ -202,6 +205,7 @@ import { Route as AkunSaldoRouteImport } from './routes/akun.saldo'
 import { Route as AkunRiwayatRouteImport } from './routes/akun.riwayat'
 import { Route as AkunReturnsRouteImport } from './routes/akun.returns'
 import { Route as AkunReferralRouteImport } from './routes/akun.referral'
+import { Route as AkunRateKurirRouteImport } from './routes/akun.rate-kurir'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunLoyaltyRouteImport } from './routes/akun.loyalty'
 import { Route as AkunLanggananRouteImport } from './routes/akun.langganan'
@@ -647,6 +651,11 @@ const PosAppStokRoute = PosAppStokRouteImport.update({
   path: '/stok',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppStaffDashboardRoute = PosAppStaffDashboardRouteImport.update({
+  id: '/staff-dashboard',
+  path: '/staff-dashboard',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppSkinQuizRoute = PosAppSkinQuizRouteImport.update({
   id: '/skin-quiz',
   path: '/skin-quiz',
@@ -828,6 +837,11 @@ const PosAppPortfolioRoute = PosAppPortfolioRouteImport.update({
 const PosAppPermissionsRoute = PosAppPermissionsRouteImport.update({
   id: '/permissions',
   path: '/permissions',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppPayslipRoute = PosAppPayslipRouteImport.update({
+  id: '/payslip',
+  path: '/payslip',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppPatientRecordsRoute = PosAppPatientRecordsRouteImport.update({
@@ -1222,6 +1236,11 @@ const LiveShopSlugRoute = LiveShopSlugRouteImport.update({
   path: '/live/$shopSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KurirWithdrawRoute = KurirWithdrawRouteImport.update({
+  id: '/withdraw',
+  path: '/withdraw',
+  getParentRoute: () => KurirRoute,
+} as any)
 const KurirProfileRoute = KurirProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -1290,6 +1309,11 @@ const AkunReturnsRoute = AkunReturnsRouteImport.update({
 const AkunReferralRoute = AkunReferralRouteImport.update({
   id: '/referral',
   path: '/referral',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunRateKurirRoute = AkunRateKurirRouteImport.update({
+  id: '/rate-kurir',
+  path: '/rate-kurir',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
@@ -1974,6 +1998,7 @@ export interface FileRoutesByFullPath {
   '/akun/langganan': typeof AkunLanggananRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
+  '/akun/rate-kurir': typeof AkunRateKurirRoute
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
@@ -1988,6 +2013,7 @@ export interface FileRoutesByFullPath {
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
+  '/kurir/withdraw': typeof KurirWithdrawRoute
   '/live/$shopSlug': typeof LiveShopSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
@@ -2066,6 +2092,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/outlet-shipping': typeof PosAppOutletShippingRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
+  '/pos-app/payslip': typeof PosAppPayslipRoute
   '/pos-app/permissions': typeof PosAppPermissionsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
@@ -2102,6 +2129,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
   '/pos-app/size-guide': typeof PosAppSizeGuideRoute
   '/pos-app/skin-quiz': typeof PosAppSkinQuizRoute
+  '/pos-app/staff-dashboard': typeof PosAppStaffDashboardRoute
   '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
   '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
@@ -2281,6 +2309,7 @@ export interface FileRoutesByTo {
   '/akun/langganan': typeof AkunLanggananRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
+  '/akun/rate-kurir': typeof AkunRateKurirRoute
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
@@ -2295,6 +2324,7 @@ export interface FileRoutesByTo {
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
+  '/kurir/withdraw': typeof KurirWithdrawRoute
   '/live/$shopSlug': typeof LiveShopSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
@@ -2372,6 +2402,7 @@ export interface FileRoutesByTo {
   '/pos-app/outlet-shipping': typeof PosAppOutletShippingRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
+  '/pos-app/payslip': typeof PosAppPayslipRoute
   '/pos-app/permissions': typeof PosAppPermissionsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
@@ -2408,6 +2439,7 @@ export interface FileRoutesByTo {
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
   '/pos-app/size-guide': typeof PosAppSizeGuideRoute
   '/pos-app/skin-quiz': typeof PosAppSkinQuizRoute
+  '/pos-app/staff-dashboard': typeof PosAppStaffDashboardRoute
   '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
   '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
@@ -2591,6 +2623,7 @@ export interface FileRoutesById {
   '/akun/langganan': typeof AkunLanggananRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
+  '/akun/rate-kurir': typeof AkunRateKurirRoute
   '/akun/referral': typeof AkunReferralRoute
   '/akun/returns': typeof AkunReturnsRoute
   '/akun/riwayat': typeof AkunRiwayatRoute
@@ -2605,6 +2638,7 @@ export interface FileRoutesById {
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
+  '/kurir/withdraw': typeof KurirWithdrawRoute
   '/live/$shopSlug': typeof LiveShopSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
@@ -2683,6 +2717,7 @@ export interface FileRoutesById {
   '/pos-app/outlet-shipping': typeof PosAppOutletShippingRoute
   '/pos-app/outlets': typeof PosAppOutletsRoute
   '/pos-app/patient-records': typeof PosAppPatientRecordsRoute
+  '/pos-app/payslip': typeof PosAppPayslipRoute
   '/pos-app/permissions': typeof PosAppPermissionsRoute
   '/pos-app/portfolio': typeof PosAppPortfolioRoute
   '/pos-app/pos': typeof PosAppPosRoute
@@ -2719,6 +2754,7 @@ export interface FileRoutesById {
   '/pos-app/shipping-labels': typeof PosAppShippingLabelsRoute
   '/pos-app/size-guide': typeof PosAppSizeGuideRoute
   '/pos-app/skin-quiz': typeof PosAppSkinQuizRoute
+  '/pos-app/staff-dashboard': typeof PosAppStaffDashboardRoute
   '/pos-app/stok': typeof PosAppStokRoute
   '/pos-app/storefront-builder': typeof PosAppStorefrontBuilderRoute
   '/pos-app/studio-addons': typeof PosAppStudioAddonsRoute
@@ -2904,6 +2940,7 @@ export interface FileRouteTypes {
     | '/akun/langganan'
     | '/akun/loyalty'
     | '/akun/notifikasi'
+    | '/akun/rate-kurir'
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
@@ -2918,6 +2955,7 @@ export interface FileRouteTypes {
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
+    | '/kurir/withdraw'
     | '/live/$shopSlug'
     | '/order/$slug'
     | '/pesanan/$orderId'
@@ -2996,6 +3034,7 @@ export interface FileRouteTypes {
     | '/pos-app/outlet-shipping'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
+    | '/pos-app/payslip'
     | '/pos-app/permissions'
     | '/pos-app/portfolio'
     | '/pos-app/pos'
@@ -3032,6 +3071,7 @@ export interface FileRouteTypes {
     | '/pos-app/shipping-labels'
     | '/pos-app/size-guide'
     | '/pos-app/skin-quiz'
+    | '/pos-app/staff-dashboard'
     | '/pos-app/stok'
     | '/pos-app/storefront-builder'
     | '/pos-app/studio-addons'
@@ -3211,6 +3251,7 @@ export interface FileRouteTypes {
     | '/akun/langganan'
     | '/akun/loyalty'
     | '/akun/notifikasi'
+    | '/akun/rate-kurir'
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
@@ -3225,6 +3266,7 @@ export interface FileRouteTypes {
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
+    | '/kurir/withdraw'
     | '/live/$shopSlug'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
@@ -3302,6 +3344,7 @@ export interface FileRouteTypes {
     | '/pos-app/outlet-shipping'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
+    | '/pos-app/payslip'
     | '/pos-app/permissions'
     | '/pos-app/portfolio'
     | '/pos-app/pos'
@@ -3338,6 +3381,7 @@ export interface FileRouteTypes {
     | '/pos-app/shipping-labels'
     | '/pos-app/size-guide'
     | '/pos-app/skin-quiz'
+    | '/pos-app/staff-dashboard'
     | '/pos-app/stok'
     | '/pos-app/storefront-builder'
     | '/pos-app/studio-addons'
@@ -3520,6 +3564,7 @@ export interface FileRouteTypes {
     | '/akun/langganan'
     | '/akun/loyalty'
     | '/akun/notifikasi'
+    | '/akun/rate-kurir'
     | '/akun/referral'
     | '/akun/returns'
     | '/akun/riwayat'
@@ -3534,6 +3579,7 @@ export interface FileRouteTypes {
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
+    | '/kurir/withdraw'
     | '/live/$shopSlug'
     | '/order/$slug'
     | '/pesanan/$orderId'
@@ -3612,6 +3658,7 @@ export interface FileRouteTypes {
     | '/pos-app/outlet-shipping'
     | '/pos-app/outlets'
     | '/pos-app/patient-records'
+    | '/pos-app/payslip'
     | '/pos-app/permissions'
     | '/pos-app/portfolio'
     | '/pos-app/pos'
@@ -3648,6 +3695,7 @@ export interface FileRouteTypes {
     | '/pos-app/shipping-labels'
     | '/pos-app/size-guide'
     | '/pos-app/skin-quiz'
+    | '/pos-app/staff-dashboard'
     | '/pos-app/stok'
     | '/pos-app/storefront-builder'
     | '/pos-app/studio-addons'
@@ -4242,6 +4290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppStokRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/staff-dashboard': {
+      id: '/pos-app/staff-dashboard'
+      path: '/staff-dashboard'
+      fullPath: '/pos-app/staff-dashboard'
+      preLoaderRoute: typeof PosAppStaffDashboardRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/skin-quiz': {
       id: '/pos-app/skin-quiz'
       path: '/skin-quiz'
@@ -4492,6 +4547,13 @@ declare module '@tanstack/react-router' {
       path: '/permissions'
       fullPath: '/pos-app/permissions'
       preLoaderRoute: typeof PosAppPermissionsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/payslip': {
+      id: '/pos-app/payslip'
+      path: '/payslip'
+      fullPath: '/pos-app/payslip'
+      preLoaderRoute: typeof PosAppPayslipRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/patient-records': {
@@ -5040,6 +5102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LiveShopSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kurir/withdraw': {
+      id: '/kurir/withdraw'
+      path: '/withdraw'
+      fullPath: '/kurir/withdraw'
+      preLoaderRoute: typeof KurirWithdrawRouteImport
+      parentRoute: typeof KurirRoute
+    }
     '/kurir/profile': {
       id: '/kurir/profile'
       path: '/profile'
@@ -5136,6 +5205,13 @@ declare module '@tanstack/react-router' {
       path: '/referral'
       fullPath: '/akun/referral'
       preLoaderRoute: typeof AkunReferralRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/rate-kurir': {
+      id: '/akun/rate-kurir'
+      path: '/rate-kurir'
+      fullPath: '/akun/rate-kurir'
+      preLoaderRoute: typeof AkunRateKurirRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/notifikasi': {
@@ -6138,6 +6214,7 @@ interface AkunRouteChildren {
   AkunLanggananRoute: typeof AkunLanggananRoute
   AkunLoyaltyRoute: typeof AkunLoyaltyRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
+  AkunRateKurirRoute: typeof AkunRateKurirRoute
   AkunReferralRoute: typeof AkunReferralRoute
   AkunReturnsRoute: typeof AkunReturnsRoute
   AkunRiwayatRoute: typeof AkunRiwayatRoute
@@ -6160,6 +6237,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunLanggananRoute: AkunLanggananRoute,
   AkunLoyaltyRoute: AkunLoyaltyRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
+  AkunRateKurirRoute: AkunRateKurirRoute,
   AkunReferralRoute: AkunReferralRoute,
   AkunReturnsRoute: AkunReturnsRoute,
   AkunRiwayatRoute: AkunRiwayatRoute,
@@ -6188,6 +6266,7 @@ interface KurirRouteChildren {
   KurirEarningsRoute: typeof KurirEarningsRoute
   KurirHistoryRoute: typeof KurirHistoryRoute
   KurirProfileRoute: typeof KurirProfileRoute
+  KurirWithdrawRoute: typeof KurirWithdrawRoute
   KurirIndexRoute: typeof KurirIndexRoute
 }
 
@@ -6195,6 +6274,7 @@ const KurirRouteChildren: KurirRouteChildren = {
   KurirEarningsRoute: KurirEarningsRoute,
   KurirHistoryRoute: KurirHistoryRoute,
   KurirProfileRoute: KurirProfileRoute,
+  KurirWithdrawRoute: KurirWithdrawRoute,
   KurirIndexRoute: KurirIndexRoute,
 }
 
@@ -6350,6 +6430,7 @@ interface PosAppRouteChildren {
   PosAppOutletShippingRoute: typeof PosAppOutletShippingRoute
   PosAppOutletsRoute: typeof PosAppOutletsRoute
   PosAppPatientRecordsRoute: typeof PosAppPatientRecordsRoute
+  PosAppPayslipRoute: typeof PosAppPayslipRoute
   PosAppPermissionsRoute: typeof PosAppPermissionsRoute
   PosAppPortfolioRoute: typeof PosAppPortfolioRoute
   PosAppPosRoute: typeof PosAppPosRoute
@@ -6386,6 +6467,7 @@ interface PosAppRouteChildren {
   PosAppShippingLabelsRoute: typeof PosAppShippingLabelsRoute
   PosAppSizeGuideRoute: typeof PosAppSizeGuideRoute
   PosAppSkinQuizRoute: typeof PosAppSkinQuizRoute
+  PosAppStaffDashboardRoute: typeof PosAppStaffDashboardRoute
   PosAppStokRoute: typeof PosAppStokRoute
   PosAppStorefrontBuilderRoute: typeof PosAppStorefrontBuilderRoute
   PosAppStudioAddonsRoute: typeof PosAppStudioAddonsRoute
@@ -6501,6 +6583,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppOutletShippingRoute: PosAppOutletShippingRoute,
   PosAppOutletsRoute: PosAppOutletsRoute,
   PosAppPatientRecordsRoute: PosAppPatientRecordsRoute,
+  PosAppPayslipRoute: PosAppPayslipRoute,
   PosAppPermissionsRoute: PosAppPermissionsRoute,
   PosAppPortfolioRoute: PosAppPortfolioRoute,
   PosAppPosRoute: PosAppPosRoute,
@@ -6537,6 +6620,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppShippingLabelsRoute: PosAppShippingLabelsRoute,
   PosAppSizeGuideRoute: PosAppSizeGuideRoute,
   PosAppSkinQuizRoute: PosAppSkinQuizRoute,
+  PosAppStaffDashboardRoute: PosAppStaffDashboardRoute,
   PosAppStokRoute: PosAppStokRoute,
   PosAppStorefrontBuilderRoute: PosAppStorefrontBuilderRoute,
   PosAppStudioAddonsRoute: PosAppStudioAddonsRoute,
