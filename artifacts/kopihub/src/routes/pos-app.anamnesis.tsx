@@ -64,7 +64,7 @@ const [search, setSearch] = useState("");
     const { data, error } = await (supabase as any)
       .from("anamnesis_forms").select("*").eq("shop_id", shopId)
       .order("submitted_at", { ascending: false }).limit(100);
-    if (error?.message?.includes("exist")) setShowSql(true);
+    if (error) toast.error(error.message);
     setForms((data ?? []) as AnamnesisForm[]);
     setLoading(false);
   }, []);

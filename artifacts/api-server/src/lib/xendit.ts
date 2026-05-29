@@ -1,3 +1,5 @@
+import { httpFetch } from "./fetch-types.js";
+
 export type XenditMode = "test" | "live";
 
 export interface XenditConfig {
@@ -64,7 +66,7 @@ export async function createXenditInvoice(
   config: XenditConfig,
   payload: XenditCreateInvoicePayload,
 ): Promise<XenditInvoice> {
-  const res = await fetch(`${XENDIT_BASE}/v2/invoices`, {
+  const res = await httpFetch(`${XENDIT_BASE}/v2/invoices`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -86,7 +88,7 @@ export async function getXenditInvoice(
   config: XenditConfig,
   invoiceId: string,
 ): Promise<XenditInvoice> {
-  const res = await fetch(`${XENDIT_BASE}/v2/invoices/${encodeURIComponent(invoiceId)}`, {
+  const res = await httpFetch(`${XENDIT_BASE}/v2/invoices/${encodeURIComponent(invoiceId)}`, {
     headers: {
       Accept: "application/json",
       Authorization: buildAuthHeader(config.secretKey),
