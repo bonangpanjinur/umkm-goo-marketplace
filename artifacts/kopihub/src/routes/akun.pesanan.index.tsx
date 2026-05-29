@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer, RotateCcw, Search, X } from "lucide-react";
+import { Loader2, ShoppingBag, Truck, Package, Clock, CheckCircle2, XCircle, Timer, RotateCcw, Search, X, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatIDR } from "@/lib/format";
 import { addToCart } from "@/lib/marketplace-cart";
 import { toast } from "sonner";
+import { MarketplaceReviewDialog } from "@/components/marketplace/MarketplaceReviewDialog";
 
 function OrderCountdownBadge({ createdAt }: { createdAt: string }) {
   const [label, setLabel] = useState("");
@@ -79,6 +80,12 @@ function matchTab(status: string, tab: FilterTab) {
   return true;
 }
 
+type ReviewTarget = {
+  orderId: string;
+  shopId: string;
+  items: { product_id: string; name: string }[];
+};
+
 function OrdersListPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -89,6 +96,25 @@ function OrdersListPage() {
   const [q, setQ] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [reviewTarget, setReviewTarget] = useState<ReviewTarget | null>(null);
+  const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
+
+  async function openReview(e: React.MouseEvent, order: any) {
+    e.preventDefault();
+    e.stopPropagation();
+    const { data: items } = await supabase
+      .from("order_items" as any)
+      .select("menu_item_id, name")
+      .eq("order_id", order.id);
+    setReviewTarget({
+      orderId: order.id,
+      shopId: order.shop?.id ?? order.shop_id ?? "",
+      items: (items as any[] ?? []).map((it: any) => ({
+        product_id: it.menu_item_id,
+        name: it.name,
+      })),
+    });
+  }
 
   async function reorderOrder(e: React.MouseEvent, orderId: string) {
     e.preventDefault();
@@ -143,7 +169,7 @@ function OrdersListPage() {
     if (!user) return;
     const { data } = await supabase
       .from("orders")
-      .select("id, order_no, status, payment_status, total, created_at, updated_at, fulfillment, shop:shops(name, slug, logo_url)")
+      .select("id, order_no, status, payment_status, total, created_at, updated_at, fulfillment, shop_id, shop:shops(id, name, slug, logo_url)")
       .eq("customer_user_id", user.id)
       .like("order_no", "MKT-%")
       .order("created_at", { ascending: false })
@@ -158,7 +184,7 @@ function OrdersListPage() {
 
   useEffect(() => {
     if (!user) return;
-    const ch = supabase.channel("buyer-orders-list")
+    const ch = supabase.channel(`buyer-orders-${user.id}`)
       .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "orders",
         filter: `customer_user_id=eq.${user.id}`,
@@ -249,6 +275,7 @@ function OrdersListPage() {
             const isDone   = DONE_STATUSES.has(o.status);
             const colorCls = STATUS_COLOR[o.status] ?? "bg-muted text-muted-foreground border-border";
             const isReordering = reordering === o.id;
+            const hasReviewed = reviewedOrders.has(o.id);
             return (
               <div key={o.id} className="relative">
                 <Link to="/akun/pesanan/$orderId" params={{ orderId: o.id }}>
@@ -283,8 +310,20 @@ function OrdersListPage() {
                     <span className="text-muted-foreground group-hover:text-foreground text-lg leading-none">›</span>
                   </div>
                 </Link>
+
                 {isDone && (
-                  <div className="absolute bottom-3 right-10">
+                  <div className="absolute bottom-3 right-10 flex gap-1.5">
+                    {!hasReviewed && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 gap-1.5 px-2.5 text-xs shadow-sm border-amber-300 text-amber-700 hover:bg-amber-50"
+                        onClick={(e) => openReview(e, o)}
+                      >
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        Ulasan
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="secondary"
@@ -303,6 +342,21 @@ function OrdersListPage() {
             );
           })}
         </div>
+      )}
+
+      {reviewTarget && user && (
+        <MarketplaceReviewDialog
+          open={!!reviewTarget}
+          onOpenChange={(v) => { if (!v) setReviewTarget(null); }}
+          orderId={reviewTarget.orderId}
+          shopId={reviewTarget.shopId}
+          userId={user.id}
+          items={reviewTarget.items}
+          onSubmitted={() => {
+            setReviewedOrders((prev) => new Set([...prev, reviewTarget.orderId]));
+            setReviewTarget(null);
+          }}
+        />
       )}
     </div>
   );

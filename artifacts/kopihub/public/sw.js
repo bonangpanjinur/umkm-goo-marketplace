@@ -1,17 +1,16 @@
-// Minimal service worker untuk syarat installability PWA.
-// Strategi NetworkFirst untuk HTML (tidak mengunci build lama),
-// stale cache otomatis dibersihkan saat activate.
+// Service Worker — UMKMgo PWA
+// Strategi NetworkFirst untuk HTML, CacheFirst untuk asset statis.
+// Push notification + notificationclick support (F4-4).
 
-const CACHE_VERSION = "umkmgo-v1";
+const CACHE_VERSION = "umkmgo-v2";
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // Bersihkan cache versi lama
       const names = await caches.keys();
       await Promise.all(
         names.filter((n) => n !== CACHE_VERSION).map((n) => caches.delete(n))
@@ -25,9 +24,7 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  // Hanya tangani same-origin
   if (url.origin !== self.location.origin) return;
-  // Jangan cache API/Supabase/Vite
   if (
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/@") ||
@@ -37,7 +34,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // NetworkFirst untuk navigasi HTML
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
@@ -55,7 +51,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // CacheFirst untuk asset statis (icon, manifest, font)
   if (
     url.pathname.startsWith("/icons/") ||
     url.pathname.endsWith(".webmanifest") ||
@@ -77,4 +72,55 @@ self.addEventListener("fetch", (event) => {
       })()
     );
   }
+});
+
+// ── F4-4: Push Notification ──────────────────────────────────────────────────
+// Payload format (JSON dari server):
+// {
+//   title: string,
+//   body: string,
+//   icon?: string,       // default "/icons/icon-192.png"
+//   badge?: string,      // default "/icons/badge-96.png"
+//   url?: string,        // URL yang dibuka saat notif diklik
+//   tag?: string,        // group key (mencegah duplikat notif sejenis)
+//   data?: object        // data tambahan
+// }
+
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = { title: "UMKMgo", body: event.data ? event.data.text() : "Ada notifikasi baru" };
+  }
+
+  const title   = payload.title  || "UMKMgo";
+  const options = {
+    body:    payload.body   || "",
+    icon:    payload.icon   || "/icons/icon-192.png",
+    badge:   payload.badge  || "/icons/badge-96.png",
+    tag:     payload.tag    || "umkmgo-default",
+    data:    { url: payload.url || "/", ...(payload.data || {}) },
+    vibrate: [200, 100, 200],
+    requireInteraction: false,
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === targetUrl && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

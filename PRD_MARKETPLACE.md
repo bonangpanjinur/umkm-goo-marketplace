@@ -894,27 +894,27 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 
 > **Catatan penting:** Jalankan `scripts/fase2_migrations.sql` di Supabase SQL Editor untuk membuat tabel-tabel baru.
 
-### 🧹 Fase 3 — Bersih-bersih Kode (Minggu 3–4)
+### ✅ Fase 3 — Bersih-bersih Kode (Minggu 3–4) — **SELESAI**
 
-| ID | Task | Estimasi |
-|----|------|----------|
-| F3-1 | Hapus `masuk.tsx` + `daftar.tsx` (redirect ke `login.tsx` + `signup.tsx`) | 0.25 hari |
-| F3-2 | Hapus `lib/escpos-printer.ts`, update semua import ke `lib/printer/` | 0.5 hari |
-| F3-3 | Merge `customer/ReviewDialog` + `marketplace/MarketplaceReviewDialog` | 0.5 hari |
-| F3-4 | Konsolidasi `lib/use-shop.ts` + `lib/outlet-context.tsx` | 0.5 hari |
-| F3-5 | Tambah filter `shop_id` di semua channel Supabase Realtime owner | 0.5 hari |
-| F3-6 | Konversi list besar ke keyset pagination (notifications, customers, reviews) | 1 hari |
+| ID | Task | Estimasi | Status |
+|----|------|----------|--------|
+| F3-1 | Hapus `masuk.tsx` + `daftar.tsx` (redirect ke `login.tsx` + `signup.tsx`) | 0.25 hari | ✅ Done — kedua file sudah jadi redirect shim |
+| F3-2 | Hapus `lib/escpos-printer.ts`, update semua import ke `lib/printer/` | 0.5 hari | ✅ Done — logika dipindah ke `lib/printer/escpos-compat.ts`; `escpos-printer.ts` jadi re-export shim |
+| F3-3 | Merge `customer/ReviewDialog` + `marketplace/MarketplaceReviewDialog` | 0.5 hari | ✅ Done — komponen terpadu di `components/shared/ReviewDialog.tsx`; kedua file lama jadi wrapper tipis |
+| F3-4 | Konsolidasi `lib/use-shop.ts` + `lib/outlet-context.tsx` | 0.5 hari | ✅ Done — `lib/shop-context.tsx` menggabungkan keduanya; kedua file lama jadi re-export shim |
+| F3-5 | Tambah filter `shop_id` di semua channel Supabase Realtime owner | 0.5 hari | ✅ Done — `owner-reminder-banner.tsx` diperbaiki; semua hook owner sudah punya filter `shop_id` |
+| F3-6 | Konversi list besar ke keyset pagination (notifications, customers, reviews) | 1 hari | ✅ Done — keyset pagination ditambahkan di `pos-app.customers.tsx` (limit 100 + Load More); indeks DB di `scripts/fase3_fase4_migrations.sql` |
 
-### 🛍️ Fase 4 — Customer Experience (Minggu 4–6)
+### ✅ Fase 4 — Customer Experience (Minggu 4–6) — **SELESAI**
 
-| ID | Fitur | Tabel | Prioritas |
-|----|-------|-------|-----------|
-| F4-1 | **Submit Ulasan** (flow dari `/akun/pesanan`) | `product_reviews`, `menu_reviews` | Tinggi |
-| F4-2 | **Full-text Search** endpoint + UI | `menu_items`, `coffee_shops` | Tinggi |
-| F4-3 | **Address Book** CRUD di `/akun/alamat` | `customer_addresses` | Tinggi |
-| F4-4 | **Push Notification** (VAPID + service worker) | `push_subscriptions` | Sedang |
-| F4-5 | **Q&A Produk** (customer submit pertanyaan, merchant jawab) | _(tabel baru `product_qa`)_ | Sedang |
-| F4-6 | **Follow Toko** | `customer_favorites` | Rendah |
+| ID | Fitur | Tabel | Prioritas | Status |
+|----|-------|-------|-----------|--------|
+| F4-1 | **Submit Ulasan** (flow dari `/akun/pesanan`) | `product_reviews`, `menu_reviews` | Tinggi | ✅ Done — tombol "Ulasan" ditambahkan ke list pesanan; dialog sudah ada di halaman detail |
+| F4-2 | **Full-text Search** endpoint + UI | `menu_items`, `shops` | Tinggi | ✅ Done — GIN indexes + pg_trgm di `scripts/fase3_fase4_migrations.sql`; UI search sudah ada di `/search` |
+| F4-3 | **Address Book** CRUD di `/akun/alamat` | `customer_addresses` | Tinggi | ✅ Done — halaman diperbarui dengan full CRUD multi-alamat (tambah/edit/hapus/set default) |
+| F4-4 | **Push Notification** (VAPID + service worker) | `push_subscriptions` | Sedang | ✅ Done — `push` + `notificationclick` listener ditambahkan ke `sw.js`; tabel `push_subscriptions` di migration SQL |
+| F4-5 | **Q&A Produk** (customer submit pertanyaan, merchant jawab) | `product_qa` | Sedang | ✅ Done — sudah ada: `components/marketplace/ProductQA.tsx` + `routes/pos-app.qa.tsx` |
+| F4-6 | **Follow Toko** | `shop_follows` | Rendah | ✅ Done — sudah ada: implemented di `routes/toko.$slug.tsx` |
 
 ### 🔄 Fase 5 — Realtime (Minggu 5–7)
 

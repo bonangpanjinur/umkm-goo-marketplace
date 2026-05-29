@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentShop } from "@/lib/use-shop";
 import { formatIDR } from "@/lib/format";
@@ -59,10 +59,15 @@ type ShopCustomer = {
   notes: string | null;
 };
 
+const PAGE_SIZE = 100;
+
 function CustomersPage() {
   const { shop, loading: shopLoading } = useCurrentShop();
   const [customers, setCustomers] = useState<ShopCustomer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [cursor, setCursor] = useState<{ total_spent: number; id: string } | null>(null);
   const [search, setSearch] = useState("");
   const [segmentFilter, setSegmentFilter] = useState("all");
   const [editCustomer, setEditCustomer] = useState<ShopCustomer | null>(null);
@@ -72,22 +77,52 @@ function CustomersPage() {
   const [saving, setSaving] = useState(false);
   const [autoLabeling, setAutoLabeling] = useState(false);
 
-  useEffect(() => {
-    if (!shop) return;
-    loadCustomers();
-  }, [shop]);
-
-  async function loadCustomers() {
+  const loadCustomers = useCallback(async () => {
     if (!shop) return;
     setLoading(true);
+    setCursor(null);
     const { data } = await supabase
       .from("shop_customers")
       .select("*")
       .eq("shop_id", shop.id)
-      .order("total_spent", { ascending: false });
-    setCustomers((data as ShopCustomer[]) ?? []);
+      .order("total_spent", { ascending: false })
+      .order("id", { ascending: true })
+      .limit(PAGE_SIZE);
+    const rows = (data as ShopCustomer[]) ?? [];
+    setCustomers(rows);
+    setHasMore(rows.length === PAGE_SIZE);
+    if (rows.length > 0) {
+      const last = rows[rows.length - 1];
+      setCursor({ total_spent: last.total_spent, id: last.id });
+    }
     setLoading(false);
-  }
+  }, [shop]);
+
+  const loadMore = useCallback(async () => {
+    if (!shop || !cursor || loadingMore) return;
+    setLoadingMore(true);
+    const { data } = await supabase
+      .from("shop_customers")
+      .select("*")
+      .eq("shop_id", shop.id)
+      .or(`total_spent.lt.${cursor.total_spent},and(total_spent.eq.${cursor.total_spent},id.gt.${cursor.id})`)
+      .order("total_spent", { ascending: false })
+      .order("id", { ascending: true })
+      .limit(PAGE_SIZE);
+    const rows = (data as ShopCustomer[]) ?? [];
+    setCustomers((prev) => [...prev, ...rows]);
+    setHasMore(rows.length === PAGE_SIZE);
+    if (rows.length > 0) {
+      const last = rows[rows.length - 1];
+      setCursor({ total_spent: last.total_spent, id: last.id });
+    }
+    setLoadingMore(false);
+  }, [shop, cursor, loadingMore]);
+
+  useEffect(() => {
+    if (!shop) return;
+    loadCustomers();
+  }, [shop, loadCustomers]);
 
   const segments = useMemo(() => {
     const s = new Set(customers.map((c) => c.segment).filter(Boolean));
@@ -351,6 +386,15 @@ function CustomersPage() {
               </TableBody>
             </Table>
           </div>
+        {/* F3-6: Keyset pagination — Load More */}
+        {hasMore && !search && segmentFilter === "all" && (
+          <div className="mt-3 flex justify-center border-t pt-3">
+            <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore} className="gap-1.5">
+              {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+              {loadingMore ? "Memuat…" : `Muat lebih banyak (${customers.length} ditampilkan)`}
+            </Button>
+          </div>
+        )}
         </CardContent>
       </Card>
 
