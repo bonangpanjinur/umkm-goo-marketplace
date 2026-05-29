@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { randomUUID } from "node:crypto";
 import { logger } from "../lib/logger.js";
 import { httpFetch } from "../lib/fetch-types.js";
 
@@ -402,7 +403,7 @@ router.post("/staff/resend-invitation", async (req, res) => {
   if (!(await assertOwnsShop(callerId, shop_id))) {
     res.status(403).json({ ok: false, error: "Bukan pemilik toko" }); return;
   }
-  const newToken = (globalThis.crypto?.randomUUID?.() ?? "").replace(/-/g, "") || `${Date.now()}${Math.random()}`.replace(/\D/g, "");
+  const newToken = randomUUID().replace(/-/g, "");
   const newExpiry = new Date(Date.now() + 14 * 86400000).toISOString();
   const r = await httpFetch(
     `${SUPABASE_URL()}/rest/v1/staff_invitations?id=eq.${invitation_id}&shop_id=eq.${shop_id}&select=email,token,expires_at`,
