@@ -1,7 +1,7 @@
 # PRD — UMKMgo
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
 
-**Versi:** 7.0 | **Diperbarui:** 29 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran  
+**Versi:** 8.0 | **Diperbarui:** 29 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran  
 _(Menggantikan: `ANALISIS_FITUR_DAN_RENCANA_PERBAIKAN.md` + `.lovable/plan.md` — kedua file itu dihapus)_
 
 ---
@@ -672,14 +672,14 @@ Dikelompokkan per domain bisnis. Semua tabel ada di Supabase (`public` schema) k
 | `/akun/pesanan` | Update status realtime bergantung Supabase Realtime (K3) |
 | `/akun/notifikasi` | Push notification belum aktif (VAPID keys belum dikonfigurasi) |
 
-#### ❌ Belum Ada
+#### ✅ Sebelumnya ❌ — Sekarang Sudah Selesai
 
-| Fitur | Tabel DB | Prioritas |
+| Fitur | Tabel DB | Status |
 |---|---|---|
-| **Full-text search produk & toko** | `menu_items`, `coffee_shops` | Tinggi |
-| **Submit ulasan produk** (flow dari akun) | `product_reviews`, `menu_reviews` | Tinggi |
-| **Follow toko** | `customer_favorites` | Sedang |
-| **Q&A Produk** (customer submit pertanyaan) | _(tidak ada tabel product_qa)_ | Sedang |
+| **Full-text search produk & toko** | `menu_items`, `shops` | ✅ Done — GIN indexes + pg_trgm (F4-2); UI di `/search` |
+| **Submit ulasan produk** (flow dari `/akun/pesanan`) | `product_reviews`, `menu_reviews` | ✅ Done — tombol "Ulasan" di list pesanan (F4-1) |
+| **Follow toko** | `shop_follows` | ✅ Done — implemented di `toko.$slug.tsx` (F4-6) |
+| **Q&A Produk** (customer submit pertanyaan) | `product_qa` | ✅ Done — `ProductQA.tsx` + `pos-app.qa.tsx` (F4-5) |
 
 ---
 
@@ -945,6 +945,65 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 | F6-8 | **Telemedicine / Konsultasi Video** (klinik) | _(WebRTC)_ | Rendah | ⏳ Belum |
 | F6-9 | **Live Streaming Commerce** | _(WebRTC/HLS)_ | Rendah | ⏳ Belum |
 
+### ⏳ Fase 7 — DB Migration & Lokasi Lanjutan (Minggu 9–10)
+
+> Langkah wajib agar fitur lokasi, search, dan TypeScript type-safe berfungsi di produksi. Semua SQL sudah siap di Bagian 9 & 10.
+
+| ID | Task | Tabel / Komponen | Prioritas | Status |
+|----|------|-----------------|-----------|--------|
+| F7-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | DB Supabase | Tinggi | ⏳ Belum — SQL siap di §10.2 |
+| F7-2 | **Buat `shops_nearby` RPC** di Supabase Dashboard | DB Supabase | Tinggi | ⏳ Belum — SQL siap di §10.3 |
+| F7-3 | **Regenerasi `types.ts`** dari Supabase CLI setelah semua migration dijalankan | `types.ts` | Tinggi | ⏳ Belum — perintah siap di §9.3 |
+| F7-4 | **Rename `coffee_shops` → `shops`** di DB Supabase (jika masih nama lama) | DB Supabase | Tinggi | ⏳ Belum — SQL siap di §9.1 |
+| F7-5 | **Rename `fnb_combos` → `product_combos`** di DB | DB Supabase | Sedang | ⏳ Belum — SQL siap di §9.2 |
+| L3-1 | **Marker clustering di peta `/sekitar`** — pakai `react-leaflet-cluster` agar tidak overlap saat toko banyak | `NearbyShopsMap.tsx` | Sedang | ⏳ Belum |
+| L3-2 | **Autocomplete alamat saat checkout** — saran alamat dari Nominatim ketika pembeli ketik di field pengiriman | `checkout.tsx` | Sedang | ⏳ Belum |
+| L3-3 | **Peta sebaran toko di admin** — choropleth/marker per provinsi di `/admin/shops` | `admin.shops.tsx` | Rendah | ⏳ Belum |
+| L3-4 | **Share lokasi toko** — tombol "Bagikan Lokasi" di halaman toko yang generate WhatsApp deep link koordinat | `toko.$slug.tsx` | Rendah | ⏳ Belum |
+| L3-5 | **Toko terdekat di halaman kategori** — strip toko paling dekat user di atas list `/kategori/$slug` | `kategori.$slug.tsx` | Sedang | ⏳ Belum |
+
+### ⏳ Fase 8 — Merchant Mock Data Lanjutan (Minggu 10–12)
+
+> Halaman merchant yang UI-nya sudah ada tapi masih mock / belum tersambung ke DB nyata.
+
+| ID | Task | Tabel / Komponen | Prioritas | Status |
+|----|------|-----------------|-----------|--------|
+| F8-1 | **Broadcast WA** — integrasi WhatsApp Business API (360dialog / Twilio) ke `/pos-app/broadcast-wa` | `marketing_campaigns`, `shop_customers` | Tinggi | ⏳ Belum — UI ada, pengiriman WA aktual belum ada |
+| F8-2 | **Bulk Pricing** — buat tabel `bulk_pricing_rules` + wire CRUD ke halaman `/pos-app/bulk-pricing` | `bulk_pricing_rules` _(tabel baru)_ | Sedang | ⏳ Belum — UI ada, tabel belum |
+| F8-3 | **Restock Notify** — kirim push/email aktual ke subscribers saat stok produk diisi ulang | `restock_subscribers`, `notifications` | Sedang | ⏳ Belum — UI ada, trigger belum |
+| F8-4 | **Storefront Builder save** — wire INSERT/UPDATE ke `storefront_layouts` (hapus `let _id = 1` lokal) | `storefront_layouts` | Sedang | ⏳ Belum — tabel ada (F2-2), save masih lokal |
+| F8-5 | **Flash Sale verifikasi** — konfirmasi kolom `flash_price`/`flash_starts_at`/`flash_ends_at` sudah exist di DB + countdown POS aktif | `menu_items` | Sedang | ⏳ Belum — SQL ada di F2-5, perlu verifikasi & uji end-to-end |
+| F8-6 | **Happy Hour verifikasi** — konfirmasi jam & diskon tersimpan di DB + tampil di POS saat jam aktif | `menu_items` | Sedang | ⏳ Belum — UI ada, perlu verifikasi implementasi jam |
+
+### ⏳ Fase 9 — Admin Platform Tools (Minggu 11–13)
+
+> Fitur admin yang UI-nya sudah ada tapi backend server-side belum dibuat.
+
+| ID | Task | Tabel / Komponen | Prioritas | Status |
+|----|------|-----------------|-----------|--------|
+| F9-1 | **Commission at Checkout** — pemotongan komisi platform otomatis terintegrasi ke RPC `marketplace_checkout` | `orders`, `shops` | Tinggi | ⏳ Belum — UI `/admin/commission` ada, logika checkout belum |
+| F9-2 | **Auto-cancel Expired Orders** — endpoint server-side `POST /api/admin/auto-cancel` + Supabase pg_cron | `orders` | Sedang | ⏳ Belum — UI `/admin/auto-cancel` ada, eksekusi server belum |
+| F9-3 | **GDPR Data Deletion** — endpoint `DELETE /api/admin/user/:id/data` (hapus semua data user sesuai GDPR) | `profiles`, `customer_profiles`, `orders` | Sedang | ⏳ Belum — UI `/admin/gdpr-tools` ada, endpoint dedicated belum |
+| F9-4 | **Admin Broadcast Buyers** — sambungkan delivery channel push + email ke `/admin/broadcast-buyers` | `notifications`, `push_subscriptions` | Sedang | ⏳ Belum — tabel ada, delivery belum terhubung |
+| F9-5 | **Churn Definition Backend** — definisi "churn" merchant di backend (no order X hari) + cron trigger | `shops`, `plan_invoices` | Sedang | ⏳ Belum — UI `/admin/churn` ada, logika backend belum |
+| F9-6 | **Platform Settings UI lengkap** — topup presets, API keys, billing settings di `/admin/settings` | `platform_settings`, `wallet_topup_presets` | Sedang | ⏳ Belum |
+| F9-7 | **Webhook Events Monitor** — halaman `/admin/webhook-monitor` tampilkan log semua merchant webhook delivery | `webhook_events` _(tabel baru)_ | Sedang | ⏳ Belum |
+| F9-8 | **API Keys Platform** — merchant generate API key untuk integrasi pihak ketiga | `api_keys` _(tabel baru)_ | Rendah | ⏳ Belum |
+
+### ⏳ Fase 10 — Kurir & Staff Lengkap (Minggu 13+)
+
+> Melengkapi role kurir (~65%) dan staff/kasir (~70%) yang saat ini paling tertinggal.
+
+| ID | Task | Tabel / Komponen | Prioritas | Status |
+|----|------|-----------------|-----------|--------|
+| F10-1 | **Upload foto bukti pengiriman** — kurir upload foto serah terima ke Supabase Storage dari `/kurir` | `orders`, Supabase Storage | Sedang | ⏳ Belum |
+| F10-2 | **Flow penarikan penghasilan kurir** — halaman `/kurir/withdraw` + form `withdrawal_requests` | `withdrawal_requests`, `couriers` | Sedang | ⏳ Belum |
+| F10-3 | **Peta navigasi kurir** — embed Google Maps / OpenStreetMap dengan rute ke alamat pengiriman di `/kurir` | `orders` | Sedang | ⏳ Belum |
+| F10-4 | **Rating kurir dari pembeli** — form bintang muncul setelah order terkirim, dikonfirmasi pembeli | `courier_ratings` _(tabel baru)_, `couriers` | Rendah | ⏳ Belum |
+| F10-5 | **Riwayat pengiriman kurir dengan filter** — filter tanggal, status, toko di `/kurir/history` | `orders` | Rendah | ⏳ Belum |
+| F10-6 | **Dashboard pribadi staff/kasir** — ringkasan shift aktif, order hari ini, total penjualan saya | `shifts`, `orders`, `attendances` | Sedang | ⏳ Belum |
+| F10-7 | **Slip gaji digital** — generate PDF/HTML slip gaji per shift/bulan untuk kasir | `shifts`, `attendances` | Rendah | ⏳ Belum |
+
 ---
 
 ## BAGIAN 7 — QUICK WINS
@@ -967,17 +1026,33 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 
 ## BAGIAN 8 — METRIK KELENGKAPAN PER ROLE (per 29 Mei 2026)
 
-| Role | Route Ada | Perlu Sambungkan ke DB | Fitur Belum Ada | % Siap |
+| Role | Route Ada | Sambungan DB | Fitur Belum Ada | % Siap |
 |---|---|---|---|---|
-| **Super Admin** | 61 route ✅ | 7 halaman ⚠️ | 3 fitur ❌ | ~88% |
-| **Merchant / Owner** | 150 route ✅ | 10 halaman ⚠️ | 2 fitur ❌ | ~90% |
-| **Staff / Kasir** | (via pos-app) | Login email belum terkirim (K5) | Dashboard pribadi, slip gaji | ~70% |
-| **Customer** | 20 route ✅ | Checkout belum aktif (K4) | Submit ulasan, search, Q&A | ~75% |
-| **Kurir** | 5 route ✅ | Upload foto (K2), penarikan | Rating, peta navigasi | ~65% |
-| **Marketplace Publik** | 30+ route ✅ | Search, realtime (K3) | — | ~80% |
-| **Infrastruktur** | — | K1–K5 belum selesai | — | ~40% |
+| **Super Admin** | 61 route ✅ | 5 halaman ⚠️ (commission, auto-cancel, GDPR, broadcast-buyers, churn) | Platform Settings UI, Webhook Monitor, API Keys | ~88% |
+| **Merchant / Owner** | 150 route ✅ | 6 halaman ⚠️ (broadcast-wa, bulk-pricing, restock-notify, storefront-save, flash-sale, happy-hour) | — | ~90% |
+| **Staff / Kasir** | (via pos-app) | Login email belum terkirim (K5) | Dashboard pribadi (F10-6), slip gaji (F10-7) | ~70% |
+| **Customer** | 20 route ✅ | Checkout belum aktif (K4) | — (search ✅ F4-2, ulasan ✅ F4-1, Q&A ✅ F4-5 sudah selesai) | ~85% |
+| **Kurir** | 5 route ✅ | Upload foto (F10-1), penarikan (F10-2) | Rating (F10-4), peta navigasi (F10-3) | ~65% |
+| **Marketplace Publik** | 30+ route ✅ | Search realtime ✅ F5 done; filter lokasi ✅ QW3 done | Autocomplete checkout (L3-2), clustering (L3-1) | ~88% |
+| **Infrastruktur** | — | K1 ✅ K3 ✅ K4 (secrets) K5 (email) masih pending | DB migration F7 belum | ~65% |
 
-> **Kesimpulan:** Struktur halaman hampir 100% lengkap. Bottleneck utama adalah **5 masalah infrastruktur (K1–K5)** dan **10 halaman yang masih pakai mock data**. Prioritaskan Fase 1 (infrastruktur) sebelum menambah fitur baru apapun.
+**Progres Roadmap:**
+| Fase | Nama | Status |
+|---|---|---|
+| Fase 1 | Infrastruktur Wajib | ✅ **100% Selesai** |
+| Fase 2 | Sambungkan Mock Data | ✅ **100% Selesai** |
+| Fase 3 | Bersih-bersih Kode | ✅ **100% Selesai** |
+| Fase 4 | Customer Experience | ✅ **100% Selesai** |
+| Fase 5 | Realtime SSE | ✅ **100% Selesai** |
+| Fase 6 | Platform Lanjutan | 🔶 **3/9 Selesai** (F6-1/F6-2/F6-3 ✅; F6-4 s/d F6-9 ⏳) |
+| Quick Wins | QW1–QW9 | 🔶 **5/9 Selesai** (QW3/QW4/QW6/QW7/QW9 ✅) |
+| Lokasi P1+P2 | L1-1 s/d L2-5 | 🔶 **6/9 Selesai** (L2-1 s/d L2-5 + L1-4 ✅; L1-1/L1-2/L1-3 ⏳ DB) |
+| Fase 7 | DB Migration + Lokasi P3 | ⏳ **0/10 Selesai** |
+| Fase 8 | Merchant Mock Lanjutan | ⏳ **0/6 Selesai** |
+| Fase 9 | Admin Platform Tools | ⏳ **0/8 Selesai** |
+| Fase 10 | Kurir & Staff Lengkap | ⏳ **0/7 Selesai** |
+
+> **Kesimpulan (Mei 2026):** Fase 1–5 selesai 100%. Bottleneck utama berikutnya: **(1) Fase 7 DB migration** (jalankan SQL di Supabase — SQL sudah siap), **(2) Fase 8 mock merchant** (6 halaman masih lokal/WA belum aktif), **(3) Fase 9 admin backend** (commission, auto-cancel, GDPR). Struktur UI hampir 100% lengkap — sisanya adalah koneksi backend.
 
 ---
 
