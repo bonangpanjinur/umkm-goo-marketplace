@@ -1,61 +1,8 @@
 import { Router } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
-import { httpFetch } from "../lib/fetch-types.js";
 
 const router = Router();
-
-
-
-const SUPABASE_URL = () => process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
-const SUPABASE_KEY = () =>
-  process.env["SUPABASE_SERVICE_KEY"] ??
-  process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
-  process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
-  "";
-
-function headers() {
-  return {
-    "Content-Type": "application/json",
-    "apikey": SUPABASE_KEY(),
-    "Authorization": `Bearer ${SUPABASE_KEY()}`,
-  };
-}
-
-async function sbGet<T = unknown>(path: string, params?: Record<string, string>): Promise<T[]> {
-  const url = new URL(`${SUPABASE_URL()}/rest/v1/${path}`);
-  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  url.searchParams.set("apikey", SUPABASE_KEY());
-  const res = await httpFetch<T[]>(url.toString(), {
-    headers: headers(),
-  });
-  if (!res.ok) throw new Error(`Supabase GET ${path} failed ${res.status}: ${await res.text()}`);
-  return res.json() as Promise<T[]>;
-}
-
-async function sbInsertBatch(table: string, rows: Record<string, unknown>[]): Promise<void> {
-  if (rows.length === 0) return;
-  const url = `${SUPABASE_URL()}/rest/v1/${table}`;
-  const res = await httpFetch(url, {
-    method: "POST",
-    headers: { ...headers(), "Prefer": "return=minimal,resolution=ignore-duplicates" },
-    body: JSON.stringify(rows),
-  });
-  if (!res.ok) throw new Error(`Supabase INSERT ${table} failed ${res.status}: ${await res.text()}`);
-}
-
-async function sbCountDedupeKeys(table: string, keys: string[]): Promise<Set<string>> {
-  if (keys.length === 0) return new Set();
-  const inList = keys.map(k => `"${k}"`).join(",");
-  const url = `${SUPABASE_URL()}/rest/v1/${table}?select=dedupe_key&dedupe_key=in.(${inList})`;
-  const res = await httpFetch<Array<{ dedupe_key: string }>>(url, {
-    headers: headers(),
-  });
-  if (!res.ok) return new Set();
-  const data = (await res.json()) as Array<{ dedupe_key: string }>;
-  return new Set(data.map(d => d.dedupe_key));
-}
-
 
 export type RenewalResult = {
   ran_at: string;
@@ -105,24 +52,13 @@ export async function runRenewalNotifications(
     const winEnd = new Date(Date.now() + (days + 0.5) * 86_400_000);
 
     try {
-
       const { rows } = await pool.query<{ id: string; name: string; plan_expires_at: string }>(
         `SELECT id, name, plan_expires_at
-           FROM coffee_shops
+           FROM shops
           WHERE plan = 'pro'
             AND plan_expires_at >= $1
             AND plan_expires_at <= $2`,
         [winStart.toISOString(), winEnd.toISOString()],
-
-      shops = await sbGet<{ id: string; name: string; plan_expires_at: string }>(
-        "shops",
-        {
-          select: "id,name,plan_expires_at",
-          plan: "eq.pro",
-          plan_expires_at: `gte.${winStart}`,
-          // Supabase REST: need to add second filter for <=winEnd via a different approach
-        },
-
       );
 
       for (const s of rows) {
@@ -147,7 +83,6 @@ export async function runRenewalNotifications(
   result.total_found = candidateShops.length;
   if (candidateShops.length === 0) return result;
 
-  // Check which dedupe keys already exist
   const allKeys = candidateShops.map((c) => c.dedupe_key);
   let existingKeys = new Set<string>();
   try {
@@ -229,7 +164,6 @@ export async function runRenewalNotifications(
     }
   }
 
-  // Log the run to renewal_notification_runs (best effort)
   try {
     await pool.query(
       `INSERT INTO renewal_notification_runs (ran_at, total_found, total_sent, total_skipped, triggered_by)
@@ -283,10 +217,9 @@ router.get("/cron/renewal-preview", async (req, res) => {
       name: string;
       slug: string;
       plan_expires_at: string;
-
     }>(
       `SELECT id, name, slug, plan_expires_at
-         FROM coffee_shops
+         FROM shops
         WHERE plan = 'pro'
           AND plan_expires_at <= $1
           AND plan_expires_at > NOW()
@@ -294,16 +227,6 @@ router.get("/cron/renewal-preview", async (req, res) => {
         LIMIT 100`,
       [cutoff.toISOString()],
     );
-
-    }>("shops", {
-      select: "id,name,slug,plan_expires_at",
-      plan: "eq.pro",
-      plan_expires_at: `lte.${cutoff}`,
-      "plan_expires_at.gte": new Date().toISOString(),
-      order: "plan_expires_at.asc",
-      limit: "100",
-    });
-
 
     const enriched = rows.map((s) => ({
       ...s,

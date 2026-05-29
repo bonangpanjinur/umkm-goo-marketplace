@@ -9,28 +9,14 @@ const GEMINI_MODEL = "gemini-1.5-flash";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 async function getAISettings(): Promise<{ gemini_api_key: string; enabled: boolean } | null> {
-  // 1. Prefer env var (fastest, no DB round-trip)
   const envKey = process.env["GEMINI_API_KEY"] ?? "";
   if (envKey) {
     return { gemini_api_key: envKey, enabled: true };
   }
 
-  // 2. Fall back to platform_settings table (admin-configurable key)
   try {
-
     const { rows } = await pool.query<{ value: unknown }>(
       `SELECT value FROM platform_settings WHERE key = 'ai_settings' LIMIT 1`,
-
-    const res = await httpFetch(
-      `${SUPABASE_URL}/rest/v1/platform_settings?key=eq.ai_settings&select=value&limit=1`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        },
-        signal: AbortSignal.timeout(5000),
-      },
-
     );
     if (!rows[0]?.value) return null;
     const val =
