@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { logger } from "../lib/logger.js";
+import { httpFetch } from "../lib/fetch-types.js";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ async function getCallerUserId(authHeader: string | undefined): Promise<string |
   if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7);
   const url = `${SUPABASE_URL()}/auth/v1/user`;
-  const res = await fetch(url, {
+  const res = await httpFetch(url, {
     headers: {
       apikey: SERVICE_KEY(),
       Authorization: `Bearer ${token}`,
@@ -35,7 +36,7 @@ async function getCallerUserId(authHeader: string | undefined): Promise<string |
 
 async function assertOwnsShop(userId: string, shopId: string): Promise<boolean> {
   const url = `${SUPABASE_URL()}/rest/v1/coffee_shops?select=id&id=eq.${encodeURIComponent(shopId)}&owner_id=eq.${encodeURIComponent(userId)}&limit=1`;
-  const res = await fetch(url, { headers: adminHeaders() });
+  const res = await httpFetch(url, { headers: adminHeaders() });
   if (!res.ok) return false;
   const rows = (await res.json()) as Array<{ id: string }>;
   return rows.length > 0;
@@ -43,7 +44,7 @@ async function assertOwnsShop(userId: string, shopId: string): Promise<boolean> 
 
 async function findUserByEmail(email: string): Promise<{ id: string; email: string } | null> {
   const url = `${SUPABASE_URL()}/auth/v1/admin/users?email=${encodeURIComponent(email)}`;
-  const res = await fetch(url, { headers: adminHeaders() });
+  const res = await httpFetch(url, { headers: adminHeaders() });
   if (!res.ok) return null;
   const data = (await res.json()) as { users?: Array<{ id: string; email: string }> };
   const u = data.users?.find((x) => (x.email ?? "").toLowerCase() === email.toLowerCase());
@@ -100,7 +101,7 @@ router.post("/staff/create-user", async (req, res) => {
 
   // 1) Create or fetch auth user
   let userId: string | null = null;
-  const createRes = await fetch(`${SUPABASE_URL()}/auth/v1/admin/users`, {
+  const createRes = await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/users`, {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({
@@ -124,7 +125,7 @@ router.post("/staff/create-user", async (req, res) => {
       }
       userId = existing.id;
       // Update password for existing user (admin override)
-      await fetch(`${SUPABASE_URL()}/auth/v1/admin/users/${userId}`, {
+      await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/users/${userId}`, {
         method: "PUT",
         headers: adminHeaders(),
         body: JSON.stringify({ password, email_confirm: true }),
@@ -141,7 +142,7 @@ router.post("/staff/create-user", async (req, res) => {
   }
 
   // 2) Upsert profile (display_name + avatar)
-  await fetch(`${SUPABASE_URL()}/rest/v1/profiles?on_conflict=id`, {
+  await httpFetch(`${SUPABASE_URL()}/rest/v1/profiles?on_conflict=id`, {
     method: "POST",
     headers: { ...adminHeaders(), Prefer: "resolution=merge-duplicates,return=minimal" },
     body: JSON.stringify({
@@ -153,11 +154,11 @@ router.post("/staff/create-user", async (req, res) => {
 
   // 3) Upsert user_roles for this shop
   // Delete any existing role row for this user+shop, then insert fresh
-  await fetch(
+  await httpFetch(
     `${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${userId}&shop_id=eq.${shop_id}`,
     { method: "DELETE", headers: adminHeaders() },
   );
-  const roleRes = await fetch(`${SUPABASE_URL()}/rest/v1/user_roles`, {
+  const roleRes = await httpFetch(`${SUPABASE_URL()}/rest/v1/user_roles`, {
     method: "POST",
     headers: { ...adminHeaders(), Prefer: "return=minimal" },
     body: JSON.stringify({ user_id: userId, shop_id, role, outlet_id }),
@@ -169,7 +170,7 @@ router.post("/staff/create-user", async (req, res) => {
 
   // 4) Optionally also create staff_members entry (so the candidate appears in schedule)
   if (create_staff_member) {
-    await fetch(`${SUPABASE_URL()}/rest/v1/staff_members`, {
+    await httpFetch(`${SUPABASE_URL()}/rest/v1/staff_members`, {
       method: "POST",
       headers: { ...adminHeaders(), Prefer: "return=minimal" },
       body: JSON.stringify({
@@ -213,14 +214,14 @@ router.post("/staff/set-password", async (req, res) => {
 
   // Verify target user is actually staff of this shop
   const checkUrl = `${SUPABASE_URL()}/rest/v1/user_roles?select=id&user_id=eq.${user_id}&shop_id=eq.${shop_id}&limit=1`;
-  const cr = await fetch(checkUrl, { headers: adminHeaders() });
+  const cr = await httpFetch(checkUrl, { headers: adminHeaders() });
   const rows = (await cr.json()) as Array<unknown>;
   if (rows.length === 0) {
     res.status(403).json({ ok: false, error: "User bukan pegawai toko ini" });
     return;
   }
 
-  const upRes = await fetch(`${SUPABASE_URL()}/auth/v1/admin/users/${user_id}`, {
+  const upRes = await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/users/${user_id}`, {
     method: "PUT",
     headers: adminHeaders(),
     body: JSON.stringify({ password }),
@@ -259,7 +260,7 @@ router.post("/staff/reset-password", async (req, res) => {
 
   // Resolve email from user_id if needed
   if (!email && user_id) {
-    const ur = await fetch(`${SUPABASE_URL()}/auth/v1/admin/users/${user_id}`, {
+    const ur = await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/users/${user_id}`, {
       headers: adminHeaders(),
     });
     if (!ur.ok) {
@@ -274,7 +275,7 @@ router.post("/staff/reset-password", async (req, res) => {
     }
   }
 
-  const linkRes = await fetch(`${SUPABASE_URL()}/auth/v1/admin/generate_link`, {
+  const linkRes = await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/generate_link`, {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({
@@ -313,7 +314,7 @@ router.post("/staff/delete-user", async (req, res) => {
     res.status(403).json({ ok: false, error: "Bukan pemilik toko" });
     return;
   }
-  await fetch(
+  await httpFetch(
     `${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${user_id}&shop_id=eq.${shop_id}`,
     { method: "DELETE", headers: adminHeaders() },
   );
@@ -333,7 +334,7 @@ async function audit(
   },
 ) {
   try {
-    await fetch(`${SUPABASE_URL()}/rest/v1/staff_audit_logs`, {
+    await httpFetch(`${SUPABASE_URL()}/rest/v1/staff_audit_logs`, {
       method: "POST",
       headers: { ...adminHeaders(), Prefer: "return=minimal" },
       body: JSON.stringify({
@@ -376,7 +377,7 @@ router.post("/staff/update-role", async (req, res) => {
   if (body["is_active"] !== undefined) patch["is_active"] = !!body["is_active"];
   if (Object.keys(patch).length === 0) return badRequest(res, "Tidak ada perubahan");
 
-  const r = await fetch(
+  const r = await httpFetch(
     `${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${user_id}&shop_id=eq.${shop_id}`,
     { method: "PATCH", headers: { ...adminHeaders(), Prefer: "return=minimal" }, body: JSON.stringify(patch) },
   );
@@ -403,7 +404,7 @@ router.post("/staff/resend-invitation", async (req, res) => {
   }
   const newToken = (globalThis.crypto?.randomUUID?.() ?? "").replace(/-/g, "") || `${Date.now()}${Math.random()}`.replace(/\D/g, "");
   const newExpiry = new Date(Date.now() + 14 * 86400000).toISOString();
-  const r = await fetch(
+  const r = await httpFetch(
     `${SUPABASE_URL()}/rest/v1/staff_invitations?id=eq.${invitation_id}&shop_id=eq.${shop_id}&select=email,token,expires_at`,
     {
       method: "PATCH",
@@ -444,7 +445,7 @@ router.post("/staff/promote-to-login", async (req, res) => {
   }
 
   // Fetch the manual staff member
-  const sr = await fetch(
+  const sr = await httpFetch(
     `${SUPABASE_URL()}/rest/v1/staff_members?id=eq.${staff_member_id}&shop_id=eq.${shop_id}&select=id,name,role,outlet_id,phone,avatar_url`,
     { headers: adminHeaders() },
   );
@@ -454,7 +455,7 @@ router.post("/staff/promote-to-login", async (req, res) => {
 
   // Create or fetch auth user
   let userId: string | null = null;
-  const cRes = await fetch(`${SUPABASE_URL()}/auth/v1/admin/users`, {
+  const cRes = await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/users`, {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: member.name } }),
@@ -467,7 +468,7 @@ router.post("/staff/promote-to-login", async (req, res) => {
       const ex = await findUserByEmail(email);
       if (!ex) { res.status(409).json({ ok: false, error: "Email terdaftar tapi tidak ditemukan" }); return; }
       userId = ex.id;
-      await fetch(`${SUPABASE_URL()}/auth/v1/admin/users/${userId}`, {
+      await httpFetch(`${SUPABASE_URL()}/auth/v1/admin/users/${userId}`, {
         method: "PUT", headers: adminHeaders(),
         body: JSON.stringify({ password, email_confirm: true }),
       });
@@ -476,24 +477,24 @@ router.post("/staff/promote-to-login", async (req, res) => {
   if (!userId) { res.status(500).json({ ok: false, error: "User ID tidak diperoleh" }); return; }
 
   // Upsert profile
-  await fetch(`${SUPABASE_URL()}/rest/v1/profiles?on_conflict=id`, {
+  await httpFetch(`${SUPABASE_URL()}/rest/v1/profiles?on_conflict=id`, {
     method: "POST",
     headers: { ...adminHeaders(), Prefer: "resolution=merge-duplicates,return=minimal" },
     body: JSON.stringify({ id: userId, display_name: member.name, avatar_url: member.avatar_url }),
   });
 
   // Insert role
-  await fetch(`${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${userId}&shop_id=eq.${shop_id}`, {
+  await httpFetch(`${SUPABASE_URL()}/rest/v1/user_roles?user_id=eq.${userId}&shop_id=eq.${shop_id}`, {
     method: "DELETE", headers: adminHeaders(),
   });
-  await fetch(`${SUPABASE_URL()}/rest/v1/user_roles`, {
+  await httpFetch(`${SUPABASE_URL()}/rest/v1/user_roles`, {
     method: "POST",
     headers: { ...adminHeaders(), Prefer: "return=minimal" },
     body: JSON.stringify({ user_id: userId, shop_id, role: member.role, outlet_id: member.outlet_id }),
   });
 
   // Link the manual staff_members row to the new auth user so the UI can dedupe
-  await fetch(
+  await httpFetch(
     `${SUPABASE_URL()}/rest/v1/staff_members?id=eq.${staff_member_id}&shop_id=eq.${shop_id}`,
     {
       method: "PATCH",
@@ -525,7 +526,7 @@ router.post("/staff/set-manual-active", async (req, res) => {
   if (!(await assertOwnsShop(callerId, shop_id))) {
     res.status(403).json({ ok: false, error: "Bukan pemilik toko" }); return;
   }
-  const r = await fetch(
+  const r = await httpFetch(
     `${SUPABASE_URL()}/rest/v1/staff_members?id=eq.${staff_member_id}&shop_id=eq.${shop_id}`,
     { method: "PATCH", headers: { ...adminHeaders(), Prefer: "return=minimal" }, body: JSON.stringify({ is_active }) },
   );

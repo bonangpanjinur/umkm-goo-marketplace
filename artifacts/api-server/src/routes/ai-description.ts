@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { logger } from "../lib/logger.js";
+import { httpFetch } from "../lib/fetch-types.js";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ async function getAISettings(): Promise<{ gemini_api_key: string; enabled: boole
   if (!SUPABASE_URL || !SUPABASE_KEY) return null;
 
   try {
-    const res = await fetch(
+    const res = await httpFetch(
       `${SUPABASE_URL}/rest/v1/platform_settings?key=eq.ai_settings&select=value&limit=1`,
       {
         headers: {
@@ -38,7 +39,7 @@ async function imageUrlToBase64(
   url: string,
 ): Promise<{ data: string; mimeType: string } | null> {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const res = await httpFetch(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) return null;
     const contentType = res.headers.get("content-type") ?? "image/jpeg";
     const mimeType = contentType.split(";")[0].trim();
@@ -105,7 +106,7 @@ Aturan ketat:
       }
     }
 
-    const geminiRes = await fetch(
+    const geminiRes = await httpFetch(
       `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${aiSettings.gemini_api_key}`,
       {
         method: "POST",

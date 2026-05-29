@@ -1,3 +1,5 @@
+import { httpFetch } from "./fetch-types.js";
+
 const SUPABASE_URL = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
 const SUPABASE_SERVICE_KEY = process.env["SUPABASE_SERVICE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
 
@@ -15,7 +17,7 @@ export async function supabaseUpdate(
     return;
   }
   const url = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`;
-  const res = await fetch(url, {
+  const res = await httpFetch(url, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -45,7 +47,7 @@ export async function supabaseSelect(
     .map(([col, val]) => `${encodeURIComponent(col)}=eq.${encodeURIComponent(val)}`)
     .join("&");
   const url = `${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(columns)}&${query}`;
-  const res = await fetch(url, {
+  const res = await httpFetch(url, {
     headers: {
       "apikey": SUPABASE_SERVICE_KEY,
       "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -68,7 +70,7 @@ export async function supabaseInsert(
 ): Promise<void> {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return;
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
-  const res = await fetch(url, {
+  const res = await httpFetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,3 +1,5 @@
+import { httpFetch } from "./fetch-types.js";
+
 const MIDTRANS_SANDBOX_BASE = "https://app.sandbox.midtrans.com";
 const MIDTRANS_PRODUCTION_BASE = "https://app.midtrans.com";
 
@@ -55,7 +57,7 @@ export async function createSnapTransaction(
   payload: MidtransSnapPayload,
 ): Promise<MidtransSnapResponse> {
   const base = config.mode === "production" ? MIDTRANS_PRODUCTION_BASE : MIDTRANS_SANDBOX_BASE;
-  const res = await fetch(`${base}/snap/v1/transactions`, {
+  const res = await httpFetch(`${base}/snap/v1/transactions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -78,7 +80,7 @@ export async function getMidtransTransactionStatus(
   orderId: string,
 ): Promise<Record<string, unknown>> {
   const base = config.mode === "production" ? MIDTRANS_PRODUCTION_BASE : MIDTRANS_SANDBOX_BASE;
-  const res = await fetch(`${base}/v2/${encodeURIComponent(orderId)}/status`, {
+  const res = await httpFetch(`${base}/v2/${encodeURIComponent(orderId)}/status`, {
     headers: {
       Accept: "application/json",
       Authorization: buildAuthHeader(config.serverKey),
