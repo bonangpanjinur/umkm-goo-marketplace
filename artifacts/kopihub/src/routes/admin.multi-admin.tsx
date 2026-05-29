@@ -57,7 +57,7 @@ const [open, setOpen] = useState(false);
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from("admin_users").select("*").order("created_at", { ascending: false });
-    if (error?.message?.includes("exist")) setShowSql(true);
+    if (error) toast.error(error.message);
     setAdmins((data ?? []) as AdminUser[]);
     setLoading(false);
   };
