@@ -21,6 +21,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/pos-app/reports/profit")({
+  head: () => ({ meta: [{ title: "Laporan Keuntungan — Merchant" }] }),
   component: ProfitReportPage,
 });
 

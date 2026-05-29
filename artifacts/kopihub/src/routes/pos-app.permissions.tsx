@@ -23,6 +23,7 @@ import { STAFF_ROLE_LABELS } from "@/lib/use-staff";
 import { logStaffAction } from "@/lib/staff-audit";
 
 export const Route = createFileRoute("/pos-app/permissions")({
+  head: () => ({ meta: [{ title: "Izin Akses — Merchant" }] }),
   component: PermissionsPage,
 });
 

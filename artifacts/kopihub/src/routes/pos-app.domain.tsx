@@ -16,6 +16,7 @@ import {
 } from "@/lib/domain-bridge";
 
 export const Route = createFileRoute("/pos-app/domain")({
+  head: () => ({ meta: [{ title: "Domain Toko — Merchant" }] }),
   component: DomainPage,
 });
 

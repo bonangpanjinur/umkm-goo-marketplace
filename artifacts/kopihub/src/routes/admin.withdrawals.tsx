@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/withdrawals")({
+  head: () => ({ meta: [{ title: "Penarikan Dana — Admin" }] }),
   component: AdminWithdrawals,
 });
 

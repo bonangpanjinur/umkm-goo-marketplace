@@ -36,6 +36,7 @@ function OrderCountdownBadge({ createdAt }: { createdAt: string }) {
 }
 
 export const Route = createFileRoute("/akun/pesanan/")({
+  head: () => ({ meta: [{ title: "Pesanan Saya — UMKMgo" }] }),
   component: OrdersListPage,
 });
 

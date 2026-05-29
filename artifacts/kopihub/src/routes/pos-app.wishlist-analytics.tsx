@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Heart, TrendingUp, Search, Loader2, Package } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/pos-app/wishlist-analytics")({ component: WishlistAnalyticsPage });
+export const Route = createFileRoute("/pos-app/wishlist-analytics")({
+  head: () => ({ meta: [{ title: "Analitik Wishlist — Merchant" }] }), component: WishlistAnalyticsPage });
 
 type WishlistProduct = {
   product_id: string;

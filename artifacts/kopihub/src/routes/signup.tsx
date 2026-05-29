@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { AuthShell } from "./login";
 
 export const Route = createFileRoute("/signup")({
+  head: () => ({ meta: [{ title: "Daftar Akun — UMKMgo" }] }),
   component: SignupPage,
 });
 

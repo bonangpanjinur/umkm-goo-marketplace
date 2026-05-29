@@ -12,6 +12,7 @@ import { formatIDR } from "@/lib/format";
 import { TrendingDown, Loader2, RefreshCw, Send, Play, Users, Clock, AlertTriangle, CheckCircle2, Save, Zap, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/churn-reengagement")({
+  head: () => ({ meta: [{ title: "Re-engagement — Admin" }] }),
   component: ChurnReengagementPage,
 });
 

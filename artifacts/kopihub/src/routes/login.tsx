@@ -12,6 +12,7 @@ import { Store, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
+  head: () => ({ meta: [{ title: "Masuk — UMKMgo" }] }),
   component: LoginPage,
 });
 

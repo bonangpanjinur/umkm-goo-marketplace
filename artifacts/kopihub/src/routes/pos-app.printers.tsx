@@ -32,6 +32,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/pos-app/printers")({
+  head: () => ({ meta: [{ title: "Pengaturan Printer — Merchant" }] }),
   component: PrintersPage,
 });
 

@@ -27,6 +27,7 @@ import { LowStockDialog } from "@/components/inventory/low-stock-dialog";
 import { useStockForecast, formatDaysRemaining } from "@/hooks/use-stock-forecast";
 
 export const Route = createFileRoute("/pos-app/inventory")({
+  head: () => ({ meta: [{ title: "Manajemen Inventori — Merchant" }] }),
   component: InventoryPage,
 });
 

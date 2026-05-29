@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, LayoutDashboard, Clock, ShoppingBag, Banknote, CalendarCheck } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/staff-dashboard")({
+  head: () => ({ meta: [{ title: "Dashboard Saya — Merchant" }] }),
   component: StaffDashboard,
 });
 

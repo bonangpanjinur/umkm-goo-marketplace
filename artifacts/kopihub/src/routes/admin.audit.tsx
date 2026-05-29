@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollText, Search, ChevronLeft, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/admin/audit")({ component: AdminAudit });
+export const Route = createFileRoute("/admin/audit")({
+  head: () => ({ meta: [{ title: "Audit Trail — Admin" }] }), component: AdminAudit });
 
 type AuditEntry = {
   id: string;

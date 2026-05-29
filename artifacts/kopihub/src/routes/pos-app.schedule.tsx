@@ -45,6 +45,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/schedule")({
+  head: () => ({ meta: [{ title: "Jadwal & Shift — Merchant" }] }),
   component: SchedulePage,
 });
 

@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/toko/$slug/chat")({
+  head: () => ({ meta: [{ title: "Chat Toko — UMKMgo" }] }),
   component: ShopChatPage,
 });
 

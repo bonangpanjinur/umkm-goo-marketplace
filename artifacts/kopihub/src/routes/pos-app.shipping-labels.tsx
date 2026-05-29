@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Printer, Search, Package, MapPin, Phone, User, Loader2, CheckSquare, Square } from "lucide-react";
 
-export const Route = createFileRoute("/pos-app/shipping-labels")({ component: ShippingLabelsPage });
+export const Route = createFileRoute("/pos-app/shipping-labels")({
+  head: () => ({ meta: [{ title: "Label Pengiriman — Merchant" }] }), component: ShippingLabelsPage });
 
 type Order = {
   id: string;

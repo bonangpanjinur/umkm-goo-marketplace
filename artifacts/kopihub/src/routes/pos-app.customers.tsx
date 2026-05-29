@@ -41,6 +41,7 @@ function computeAutoSegment(c: { total_orders: number; total_spent: number; last
 }
 
 export const Route = createFileRoute("/pos-app/customers")({
+  head: () => ({ meta: [{ title: "Manajemen Pelanggan — Merchant" }] }),
   component: CustomersPage,
 });
 

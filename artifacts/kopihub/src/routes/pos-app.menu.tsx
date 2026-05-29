@@ -31,6 +31,7 @@ import { formatIDR } from "@/lib/format";
 import { logStaffAction } from "@/lib/staff-audit";
 
 export const Route = createFileRoute("/pos-app/menu")({
+  head: () => ({ meta: [{ title: "Manajemen Menu — Merchant" }] }),
   component: MenuPage,
 });
 

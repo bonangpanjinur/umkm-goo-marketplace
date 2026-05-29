@@ -25,6 +25,7 @@ import { Plus, Trash2, Edit2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/table-maps")({
+  head: () => ({ meta: [{ title: "Peta Meja — Merchant" }] }),
   component: TableMapsPage,
 });
 

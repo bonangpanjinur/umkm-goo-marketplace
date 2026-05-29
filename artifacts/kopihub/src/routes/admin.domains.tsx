@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin/domains")({ component: AdminDomains });
+export const Route = createFileRoute("/admin/domains")({
+  head: () => ({ meta: [{ title: "Domain Kustom — Admin" }] }), component: AdminDomains });
 
 type Row = { id: string; name: string; slug: string; custom_domain: string | null; custom_domain_verified_at: string | null };
 

@@ -42,6 +42,7 @@ import { refundOrder } from "@/lib/shift";
 import { ReasonDialog } from "@/components/reason-dialog";
 
 export const Route = createFileRoute("/pos-app/orders")({
+  head: () => ({ meta: [{ title: "Manajemen Pesanan — Merchant" }] }),
   component: OrdersPage,
 });
 

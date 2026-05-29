@@ -27,6 +27,7 @@ import "@measured/puck/puck.css";
 const Puck = lazy(() => import("@measured/puck").then((m) => ({ default: m.Puck })));
 
 export const Route = createFileRoute("/pos-app/website-builder/$layoutId")({
+  head: () => ({ meta: [{ title: "Edit Layout — Merchant" }] }),
   component: BuilderEditorPage,
 });
 

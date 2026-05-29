@@ -14,7 +14,8 @@ import { useCurrentShop } from "@/lib/use-shop";
 import { UploadableImage } from "@/components/UploadableImage";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/pos-app/storefront-builder")({ component: StorefrontBuilderPage });
+export const Route = createFileRoute("/pos-app/storefront-builder")({
+  head: () => ({ meta: [{ title: "Tata Toko Online — Merchant" }] }), component: StorefrontBuilderPage });
 
 type SectionType = "hero_banner" | "featured_products" | "promo_text" | "categories" | "testimonials";
 

@@ -21,6 +21,7 @@ import { seedSampleData } from "@/lib/seed-sample-data";
 import { DbHealthBadge } from "@/components/db-health-badge";
 
 export const Route = createFileRoute("/onboarding")({
+  head: () => ({ meta: [{ title: "Onboarding Merchant — UMKMgo" }] }),
   component: OnboardingPage,
 });
 

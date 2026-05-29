@@ -57,7 +57,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export const Route = createFileRoute("/pos-app/kursus")({ component: KursusPage });
+export const Route = createFileRoute("/pos-app/kursus")({
+  head: () => ({ meta: [{ title: "Manajemen Kursus — Merchant" }] }), component: KursusPage });
 
 type Course = {
   id: string;

@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/website-builder/templates")({
+  head: () => ({ meta: [{ title: "Template Website — Merchant" }] }),
   component: TemplatesPage,
 });
 

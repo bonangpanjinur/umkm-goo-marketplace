@@ -9,6 +9,7 @@ import { formatIDR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin/category-revenue")({
+  head: () => ({ meta: [{ title: "Pendapatan per Kategori — Admin" }] }),
   component: CategoryRevenuePage,
 });
 

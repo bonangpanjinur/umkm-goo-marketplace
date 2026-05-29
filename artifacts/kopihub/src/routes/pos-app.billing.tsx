@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/pos-app/billing")({
+  head: () => ({ meta: [{ title: "Tagihan & Langganan — Merchant" }] }),
   component: BillingPage,
 });
 

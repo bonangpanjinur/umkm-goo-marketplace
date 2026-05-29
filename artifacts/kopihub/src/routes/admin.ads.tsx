@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/ads")({
+  head: () => ({ meta: [{ title: "Manajemen Iklan — Admin" }] }),
   component: AdminAdsPage,
 });
 

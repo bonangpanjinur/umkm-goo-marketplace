@@ -8,6 +8,7 @@ import { Loader2, Clock, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/attendance")({
+  head: () => ({ meta: [{ title: "Absensi Karyawan — Merchant" }] }),
   component: AttendancePage,
 });
 

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Users, Plus, Pencil, Trash2, Loader2, RefreshCw, Shield, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/admin/multi-admin")({
+  head: () => ({ meta: [{ title: "Multi-Admin — Admin" }] }),
   component: MultiAdminPage,
 });
 

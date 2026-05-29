@@ -21,6 +21,7 @@ import { Truck, Loader2, Plus, Pencil, Trash2, MapPin, Calculator } from "lucide
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/outlet-shipping")({
+  head: () => ({ meta: [{ title: "Pengiriman Outlet — Merchant" }] }),
   component: OutletShippingPage,
 });
 

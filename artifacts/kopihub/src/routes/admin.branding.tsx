@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, Upload, ImageIcon, Save, RefreshCw, Globe, Palette, Type, FileImage } from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding")({
+  head: () => ({ meta: [{ title: "Branding Platform — Admin" }] }),
   component: AdminBranding,
 });
 

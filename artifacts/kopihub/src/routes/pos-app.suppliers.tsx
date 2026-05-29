@@ -12,7 +12,8 @@ import {
 import { Loader2, Plus, Pencil, Trash2, Truck, Building2, User, Phone, Mail, MapPin, StickyNote, Clock, CreditCard, AlertCircle, CheckCircle2, FileText } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/pos-app/suppliers")({ component: SuppliersPage });
+export const Route = createFileRoute("/pos-app/suppliers")({
+  head: () => ({ meta: [{ title: "Manajemen Supplier — Merchant" }] }), component: SuppliersPage });
 
 type Supplier = {
   id: string; name: string; contact_name: string | null; phone: string | null;

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/keuangan")({
+  head: () => ({ meta: [{ title: "Laporan Keuangan — Merchant" }] }),
   component: KeuanganPage,
 });
 

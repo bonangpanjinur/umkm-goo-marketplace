@@ -158,6 +158,7 @@ function Avatar({
 }
 
 export const Route = createFileRoute("/pos-app/employees")({
+  head: () => ({ meta: [{ title: "Manajemen Karyawan — Merchant" }] }),
   component: EmployeesPage,
 });
 

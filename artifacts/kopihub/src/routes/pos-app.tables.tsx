@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/pos-app/tables")({
+  head: () => ({ meta: [{ title: "Manajemen Meja — Merchant" }] }),
   component: TablesPage,
 });
 

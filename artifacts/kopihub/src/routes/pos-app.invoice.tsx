@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Printer, Download, FileText, Search, Loader2, ArrowLeft } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/pos-app/invoice")({ component: InvoicePage });
+export const Route = createFileRoute("/pos-app/invoice")({
+  head: () => ({ meta: [{ title: "Invoice — Merchant" }] }), component: InvoicePage });
 
 type Order = {
   id: string;

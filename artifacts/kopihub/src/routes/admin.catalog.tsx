@@ -12,7 +12,8 @@ import { Plus, Trash2, Save, Package, Palette } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/admin/catalog")({ component: AdminCatalog });
+export const Route = createFileRoute("/admin/catalog")({
+  head: () => ({ meta: [{ title: "Katalog Platform — Admin" }] }), component: AdminCatalog });
 
 type Feature = { key: string; name: string; description: string | null; category: string; is_active: boolean; sort_order: number };
 type Theme = { key: string; name: string; description: string | null; preview_image_url: string | null; component_id: string | null; tier_hint: string | null; is_active: boolean; sort_order: number };

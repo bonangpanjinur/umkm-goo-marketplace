@@ -23,7 +23,8 @@ import {
 import { toast } from "sonner";
 import { Tag, Plus, Trash2, Pencil, RefreshCw, GripVertical, Info } from "lucide-react";
 
-export const Route = createFileRoute("/pos-app/atribut")({ component: AtributProduk });
+export const Route = createFileRoute("/pos-app/atribut")({
+  head: () => ({ meta: [{ title: "Atribut Produk — Merchant" }] }), component: AtributProduk });
 
 type Category = { id: string; name: string };
 type AttributeDef = {

@@ -7,6 +7,7 @@ import { formatIDR } from "@/lib/format";
 import { TrendingUp, Loader2, RefreshCw, Users, Banknote, Activity, Download } from "lucide-react";
 
 export const Route = createFileRoute("/admin/cohort-analytics")({
+  head: () => ({ meta: [{ title: "Analisis Kohort — Admin" }] }),
   component: CohortAnalyticsPage,
 });
 

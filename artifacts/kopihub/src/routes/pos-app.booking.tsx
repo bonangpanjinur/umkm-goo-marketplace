@@ -60,6 +60,7 @@ import { logStaffAction } from "@/lib/staff-audit";
 import { RecurringSlotDialog } from "@/components/booking/RecurringSlotDialog";
 
 export const Route = createFileRoute("/pos-app/booking")({
+  head: () => ({ meta: [{ title: "Manajemen Booking — Merchant" }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     type: (search.type === "table" ? "table" : "service") as "service" | "table",
   }),

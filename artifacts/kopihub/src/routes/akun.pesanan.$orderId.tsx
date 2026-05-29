@@ -17,6 +17,7 @@ import { DisputeDialog } from "@/components/marketplace/DisputeDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/akun/pesanan/$orderId")({
+  head: () => ({ meta: [{ title: "Detail Pesanan — UMKMgo" }] }),
   component: OrderDetailPage,
 });
 

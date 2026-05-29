@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calculator, TrendingUp, Store, ShoppingCart, Percent, BarChart3 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/fee-simulator")({ component: FeeSimulator });
+export const Route = createFileRoute("/admin/fee-simulator")({
+  head: () => ({ meta: [{ title: "Simulasi Biaya — Admin" }] }), component: FeeSimulator });
 
 const PLANS = [
   { id: "free", label: "Gratis", commissionPct: 10, monthlyFee: 0 },

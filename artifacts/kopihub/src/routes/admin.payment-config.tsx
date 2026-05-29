@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, CreditCard, Zap, CheckCircle2, AlertCircle, Save } from "lucide-react";
 
 export const Route = createFileRoute("/admin/payment-config")({
+  head: () => ({ meta: [{ title: "Konfigurasi Pembayaran — Admin" }] }),
   component: AdminPaymentConfig,
 });
 

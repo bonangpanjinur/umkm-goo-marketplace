@@ -295,14 +295,24 @@ function computeShopTier(shop: { kyc_status?: string | null; rating_avg?: number
 }
 
 export const Route = createFileRoute("/toko/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `${params.slug.replace(/-/g, " ")} — UMKMgo` },
-      { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "UMKMgo" },
-      { property: "og:url", content: `https://umkmgo.replit.app/toko/${params.slug}` },
-    ],
-  }),
+  head: ({ params }) => {
+    const name = params.slug.replace(/-/g, " ");
+    return {
+      meta: [
+        { title: `${name} — UMKMgo` },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "UMKMgo" },
+        { property: "og:locale", content: "id_ID" },
+        { property: "og:url", content: `https://umkmgo.replit.app/toko/${params.slug}` },
+        { property: "og:title", content: `${name} — UMKMgo` },
+        { property: "og:description", content: `Kunjungi toko ${name} di UMKMgo — temukan produk & layanan terbaik dari UMKM lokal Indonesia.` },
+        { property: "og:image", content: "https://umkmgo.replit.app/og-default.png" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: `${name} — UMKMgo` },
+        { name: "twitter:description", content: `Kunjungi toko ${name} di UMKMgo.` },
+      ],
+    };
+  },
   component: ShopPage,
 });
 

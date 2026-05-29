@@ -9,7 +9,8 @@ import { TampilanTabs } from "@/components/TampilanTabs";
 import { useShop } from "@/lib/use-shop";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/pos-app/custom-css")({ component: CustomCSSPage });
+export const Route = createFileRoute("/pos-app/custom-css")({
+  head: () => ({ meta: [{ title: "Custom CSS — Merchant" }] }), component: CustomCSSPage });
 
 const STARTER = `/* Custom CSS untuk storefront toko Anda (Paket Pro) */\n/* Perubahan hanya mempengaruhi tampilan toko publik Anda */\n\n`;
 

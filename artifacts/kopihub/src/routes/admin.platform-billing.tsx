@@ -16,6 +16,7 @@ import {
 import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/admin/platform-billing")({
+  head: () => ({ meta: [{ title: "Tagihan Platform — Admin" }] }),
   component: AdminPlatformBilling,
 });
 

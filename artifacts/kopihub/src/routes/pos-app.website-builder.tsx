@@ -16,6 +16,7 @@ import {
 import { TampilanTabs } from "@/components/TampilanTabs";
 
 export const Route = createFileRoute("/pos-app/website-builder")({
+  head: () => ({ meta: [{ title: "Website Builder — Merchant" }] }),
   component: BuilderListPage,
 });
 

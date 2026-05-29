@@ -19,6 +19,7 @@ import { Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package } fro
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/variants")({
+  head: () => ({ meta: [{ title: "Varian Produk — Merchant" }] }),
   component: VariantsPage,
 });
 

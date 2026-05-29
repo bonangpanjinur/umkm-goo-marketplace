@@ -10,6 +10,7 @@ import { Loader2, Sparkles, ChevronLeft, CheckCircle2, Upload, X, ImageIcon } fr
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/toko/$slug/custom-order")({
+  head: () => ({ meta: [{ title: "Pesanan Khusus — UMKMgo" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ produk: typeof s.produk === "string" ? s.produk : undefined }),
   component: CustomOrderForm,
 });

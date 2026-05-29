@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Heart, ShoppingBag, Award, MapPin, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/s/$slug/me")({
+  head: () => ({ meta: [{ title: "Akun Saya — UMKMgo" }] }),
   component: CustomerProfilePage,
 });
 

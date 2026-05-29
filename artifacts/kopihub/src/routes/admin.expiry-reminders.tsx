@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/expiry-reminders")({
+  head: () => ({ meta: [{ title: "Pengingat Kadaluarsa — Admin" }] }),
   component: AdminExpiryReminders,
 });
 

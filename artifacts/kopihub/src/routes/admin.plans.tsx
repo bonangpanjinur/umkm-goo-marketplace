@@ -20,7 +20,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/admin/plans")({ component: AdminPlans });
+export const Route = createFileRoute("/admin/plans")({
+  head: () => ({ meta: [{ title: "Paket Langganan — Admin" }] }), component: AdminPlans });
 
 type PlanFeatures = {
   description?: string;

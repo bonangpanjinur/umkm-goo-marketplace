@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { Send, Megaphone, Loader2, Clock, CheckCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/admin/broadcast")({ component: AdminBroadcast });
+export const Route = createFileRoute("/admin/broadcast")({
+  head: () => ({ meta: [{ title: "Broadcast Notifikasi — Admin" }] }), component: AdminBroadcast });
 
 function AdminBroadcast() {
   const { user } = useAuth();

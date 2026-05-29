@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/pos-app/kds")({
+  head: () => ({ meta: [{ title: "Kitchen Display System — Merchant" }] }),
   component: KDSPage,
 });
 

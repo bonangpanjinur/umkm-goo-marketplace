@@ -20,6 +20,7 @@ import { STAFF_ROLE_LABELS } from "@/lib/use-staff";
 import { logStaffAction } from "@/lib/staff-audit";
 
 export const Route = createFileRoute("/pos-app/role-mapping")({
+  head: () => ({ meta: [{ title: "Pemetaan Peran — Merchant" }] }),
   component: RoleMappingPage,
 });
 

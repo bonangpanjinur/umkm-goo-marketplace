@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/subscriptions")({
+  head: () => ({ meta: [{ title: "Langganan — Merchant" }] }),
   component: SubscriptionsPage,
 });
 

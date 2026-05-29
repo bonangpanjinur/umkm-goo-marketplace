@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AuthShell } from "./login";
 
 export const Route = createFileRoute("/reset-password")({
+  head: () => ({ meta: [{ title: "Reset Kata Sandi — UMKMgo" }] }),
   component: ResetPasswordPage,
 });
 

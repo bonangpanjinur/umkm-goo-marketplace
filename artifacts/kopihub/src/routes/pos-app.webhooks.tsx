@@ -36,6 +36,7 @@ import { formatDistanceToNow } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
 export const Route = createFileRoute("/pos-app/webhooks")({
+  head: () => ({ meta: [{ title: "Webhook — Merchant" }] }),
   component: WebhooksPage,
 });
 

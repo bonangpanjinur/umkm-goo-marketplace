@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { Flag, Plus, Pencil, Trash2, RefreshCw, Store, Loader2, FlaskConical } from "lucide-react";
 
-export const Route = createFileRoute("/admin/feature-flags")({ component: FeatureFlags });
+export const Route = createFileRoute("/admin/feature-flags")({
+  head: () => ({ meta: [{ title: "Feature Flags — Admin" }] }), component: FeatureFlags });
 
 type FeatureFlag = {
   id: string;

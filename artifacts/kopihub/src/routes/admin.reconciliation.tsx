@@ -11,7 +11,8 @@ import { RefreshCw, CheckCircle2, AlertCircle, Clock, Download, ArrowUpDown, Loa
 import { formatIDR } from "@/lib/format";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin/reconciliation")({ component: ReconciliationPage });
+export const Route = createFileRoute("/admin/reconciliation")({
+  head: () => ({ meta: [{ title: "Rekonsiliasi — Admin" }] }), component: ReconciliationPage });
 
 type Order = {
   id: string;

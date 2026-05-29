@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { AuthShell } from "./login";
 
 export const Route = createFileRoute("/forgot-password")({
+  head: () => ({ meta: [{ title: "Lupa Kata Sandi — UMKMgo" }] }),
   component: ForgotPasswordPage,
 });
 

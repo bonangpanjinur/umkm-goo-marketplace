@@ -7,7 +7,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listCronRuns, listSystemAudit } from "@/lib/api/observability.functions";
 
-export const Route = createFileRoute("/admin/activity")({ component: AdminActivity });
+export const Route = createFileRoute("/admin/activity")({
+  head: () => ({ meta: [{ title: "Log Aktivitas — Admin" }] }), component: AdminActivity });
 
 type CronRun = {
   id: string;

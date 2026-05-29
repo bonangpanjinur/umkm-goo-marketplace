@@ -8,7 +8,8 @@ import { useAuth } from "@/lib/auth";
 import { Send, ChevronLeft, MessageCircle, Loader2, AlertCircle, Store } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/pesanan/$orderId/chat")({ component: OrderChatPage });
+export const Route = createFileRoute("/pesanan/$orderId/chat")({
+  head: () => ({ meta: [{ title: "Chat Pesanan — UMKMgo" }] }), component: OrderChatPage });
 
 type Message = {
   id: string;

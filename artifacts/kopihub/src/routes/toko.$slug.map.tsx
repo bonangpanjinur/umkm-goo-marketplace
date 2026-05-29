@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Navigation, Clock, Phone, Globe, ChevronLeft, ExternalLink, Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/toko/$slug/map")({ component: ShopMapPage });
+export const Route = createFileRoute("/toko/$slug/map")({
+  head: () => ({ meta: [{ title: "Lokasi Toko — UMKMgo" }] }), component: ShopMapPage });
 
 type ShopInfo = {
   id: string;

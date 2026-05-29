@@ -19,7 +19,8 @@ import {
   Ban,
 } from "lucide-react";
 
-export const Route = createFileRoute("/admin/auto-cancel")({ component: AdminAutoCancel });
+export const Route = createFileRoute("/admin/auto-cancel")({
+  head: () => ({ meta: [{ title: "Auto-Cancel — Admin" }] }), component: AdminAutoCancel });
 
 type PendingOrder = {
   id: string;

@@ -34,6 +34,7 @@ import {
 } from "@/components/reports/CategoryReports";
 
 export const Route = createFileRoute("/pos-app/reports")({
+  head: () => ({ meta: [{ title: "Laporan — Merchant" }] }),
   component: ReportsPage,
 });
 

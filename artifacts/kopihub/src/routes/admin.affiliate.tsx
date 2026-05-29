@@ -14,6 +14,7 @@ import { formatIDR } from "@/lib/format";
 import { Link2, Plus, Loader2, RefreshCw, Copy, TrendingUp, Banknote, Users, CheckCircle2, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/admin/affiliate")({
+  head: () => ({ meta: [{ title: "Program Afiliasi — Admin" }] }),
   component: AffiliatePage,
 });
 

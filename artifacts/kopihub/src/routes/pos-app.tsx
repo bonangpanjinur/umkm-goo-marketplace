@@ -103,6 +103,7 @@ import { useSSEPublisher } from "@/hooks/use-sse-publisher";
 import { FEATURE_LABEL, type FeatureKey } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/pos-app")({
+  head: () => ({ meta: [{ title: "Dashboard Merchant — UMKMgo" }] }),
   component: AppLayout,
 });
 

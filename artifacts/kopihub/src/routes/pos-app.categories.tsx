@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/pos-app/categories")({
+  head: () => ({ meta: [{ title: "Kategori Produk — Merchant" }] }),
   component: CategoriesPage,
 });
 

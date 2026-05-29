@@ -11,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Play, RefreshCw, Eye, EyeOff, Plus, Trash2, Star } from "lucide-react";
 
-export const Route = createFileRoute("/admin/settings")({ component: AdminSettings });
+export const Route = createFileRoute("/admin/settings")({
+  head: () => ({ meta: [{ title: "Pengaturan Platform — Admin" }] }), component: AdminSettings });
 
 type Settings = {
   bank_name: string | null;

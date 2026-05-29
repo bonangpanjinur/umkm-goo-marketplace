@@ -23,6 +23,7 @@ const NearbyShopsMap = lazy(() =>
 );
 
 export const Route = createFileRoute("/admin/shops")({
+  head: () => ({ meta: [{ title: "Manajemen Toko — Admin" }] }),
   component: AdminShops,
 });
 

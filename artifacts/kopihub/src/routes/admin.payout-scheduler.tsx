@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/payout-scheduler")({
+  head: () => ({ meta: [{ title: "Jadwal Pembayaran — Admin" }] }),
   component: PayoutSchedulerPage,
 });
 

@@ -20,6 +20,7 @@ import { Loader2, Plus, MapPin, Edit2, Trash2, Star, Home, Briefcase } from "luc
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/akun/alamat")({
+  head: () => ({ meta: [{ title: "Alamat Pengiriman — UMKMgo" }] }),
   component: AddressPage,
 });
 

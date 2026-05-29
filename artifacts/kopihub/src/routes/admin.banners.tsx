@@ -12,6 +12,7 @@ import {
 import { UploadableImage } from "@/components/UploadableImage";
 
 export const Route = createFileRoute("/admin/banners")({
+  head: () => ({ meta: [{ title: "Banner Promosi — Admin" }] }),
   component: AdminBannersPage,
 });
 

@@ -6,6 +6,7 @@ import { formatIDR } from "@/lib/format";
 import { Loader2, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/kurir/earnings")({
+  head: () => ({ meta: [{ title: "Penghasilan Kurir — UMKMgo" }] }),
   component: CourierEarnings,
 });
 

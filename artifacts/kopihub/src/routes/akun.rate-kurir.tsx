@@ -14,6 +14,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/akun/rate-kurir")({
+  head: () => ({ meta: [{ title: "Nilai Kurir — UMKMgo" }] }),
   validateSearch: searchSchema,
   component: RateKurir,
 });

@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { FEATURE_KEYS, FEATURE_LABEL, FLOW_TYPE_LABEL, type FeatureKey, type FlowType } from "@/lib/feature-keys";
 
 export const Route = createFileRoute("/admin/categories")({
+  head: () => ({ meta: [{ title: "Manajemen Kategori — Admin" }] }),
   component: AdminCategories,
 });
 

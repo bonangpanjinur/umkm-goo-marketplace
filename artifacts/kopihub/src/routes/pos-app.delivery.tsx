@@ -13,6 +13,7 @@ import { Loader2, Plus, Trash2, Save, Clock } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/delivery")({
+  head: () => ({ meta: [{ title: "Pengiriman — Merchant" }] }),
   component: DeliveryPage,
 });
 

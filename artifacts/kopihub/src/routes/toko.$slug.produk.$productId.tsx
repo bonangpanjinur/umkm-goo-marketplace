@@ -25,6 +25,22 @@ function savePriceAlerts(d: Record<string, { price: number; name: string }>) {
 }
 
 export const Route = createFileRoute("/toko/$slug/produk/$productId")({
+  head: ({ params }) => {
+    const shopName = params.slug.replace(/-/g, " ");
+    return {
+      meta: [
+        { title: `Produk — ${shopName} — UMKMgo` },
+        { property: "og:type", content: "product" },
+        { property: "og:site_name", content: "UMKMgo" },
+        { property: "og:locale", content: "id_ID" },
+        { property: "og:url", content: `https://umkmgo.replit.app/toko/${params.slug}/produk/${params.productId}` },
+        { property: "og:title", content: `Produk — ${shopName} — UMKMgo` },
+        { property: "og:description", content: `Lihat detail produk dari toko ${shopName} di UMKMgo.` },
+        { property: "og:image", content: "https://umkmgo.replit.app/og-default.png" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+    };
+  },
   component: ProductDetailPage,
 });
 

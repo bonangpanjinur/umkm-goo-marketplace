@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/tax-report")({
+  head: () => ({ meta: [{ title: "Laporan Pajak — Admin" }] }),
   component: AdminTaxReportPage,
 });
 

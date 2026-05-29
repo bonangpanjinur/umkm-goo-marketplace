@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/onboarding-automation")({
+  head: () => ({ meta: [{ title: "Otomasi Onboarding — Admin" }] }),
   component: OnboardingAutomationPage,
 });
 

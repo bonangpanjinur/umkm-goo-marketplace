@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Minus, Trash2, ShoppingBag, ChevronLeft, ScanQrCode } from "lucide-react";
 
 export const Route = createFileRoute("/order/$slug/cart")({
+  head: () => ({ meta: [{ title: "Keranjang — UMKMgo" }] }),
   component: DineInCartPage,
 });
 

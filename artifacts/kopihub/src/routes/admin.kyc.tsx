@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/kyc")({
+  head: () => ({ meta: [{ title: "Verifikasi KYC — Admin" }] }),
   component: AdminKycPage,
 });
 

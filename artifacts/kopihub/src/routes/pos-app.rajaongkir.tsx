@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/pos-app/rajaongkir")({ component: RajaOngkirPage });
+export const Route = createFileRoute("/pos-app/rajaongkir")({
+  head: () => ({ meta: [{ title: "Integrasi RajaOngkir — Merchant" }] }), component: RajaOngkirPage });
 
 const COURIERS = [
   { id: "jne",      name: "JNE",            logo: "📦" },

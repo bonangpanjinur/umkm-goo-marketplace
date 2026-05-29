@@ -13,6 +13,7 @@ import { NotificationSettings } from "@/components/NotificationSettings";
 import { ShopLocationPicker } from "@/components/ShopLocationPicker";
 
 export const Route = createFileRoute("/pos-app/settings")({
+  head: () => ({ meta: [{ title: "Pengaturan Toko — Merchant" }] }),
   component: SettingsPage,
 });
 

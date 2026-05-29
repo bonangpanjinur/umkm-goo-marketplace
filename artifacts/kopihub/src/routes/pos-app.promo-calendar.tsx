@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Zap, TicketPercent, Calendar, RefreshCw } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/pos-app/promo-calendar")({ component: PromoCalendar });
+export const Route = createFileRoute("/pos-app/promo-calendar")({
+  head: () => ({ meta: [{ title: "Kalender Promo — Merchant" }] }), component: PromoCalendar });
 
 type CalendarEvent = {
   id: string;

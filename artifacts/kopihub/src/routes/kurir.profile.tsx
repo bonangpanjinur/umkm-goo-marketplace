@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Loader2, Phone, Store } from "lucide-react";
 
 export const Route = createFileRoute("/kurir/profile")({
+  head: () => ({ meta: [{ title: "Profil Kurir — UMKMgo" }] }),
   component: CourierProfile,
 });
 

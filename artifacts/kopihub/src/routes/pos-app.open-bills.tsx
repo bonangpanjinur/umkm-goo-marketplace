@@ -12,6 +12,7 @@ import { cartCount, cartTotal, type CartItem } from "@/lib/cart";
 import { listParkedCarts, deleteParkedCart, type ParkedCart } from "@/lib/parked-carts";
 
 export const Route = createFileRoute("/pos-app/open-bills")({
+  head: () => ({ meta: [{ title: "Tagihan Terbuka — Merchant" }] }),
   component: OpenBillsPage,
 });
 

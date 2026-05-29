@@ -25,6 +25,7 @@ import { formatIDR } from "@/lib/format";
 import { downloadXLSX } from "@/lib/export";
 
 export const Route = createFileRoute("/pos-app/reports/multi-outlet")({
+  head: () => ({ meta: [{ title: "Laporan Multi-Outlet — Merchant" }] }),
   component: MultiOutletReportPage,
 });
 

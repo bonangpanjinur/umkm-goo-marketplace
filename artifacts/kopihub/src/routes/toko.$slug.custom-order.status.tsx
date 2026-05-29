@@ -51,6 +51,7 @@ function fmtDate(s: string | null) {
 }
 
 export const Route = createFileRoute("/toko/$slug/custom-order/status")({
+  head: () => ({ meta: [{ title: "Status Pesanan Khusus — UMKMgo" }] }),
   component: CustomOrderStatusPage,
 });
 

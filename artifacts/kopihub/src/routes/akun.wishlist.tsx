@@ -19,6 +19,7 @@ function savePriceAlerts(alerts: Record<string, { price: number; name: string }>
 }
 
 export const Route = createFileRoute("/akun/wishlist")({
+  head: () => ({ meta: [{ title: "Wishlist — UMKMgo" }] }),
   component: WishlistPage,
 });
 

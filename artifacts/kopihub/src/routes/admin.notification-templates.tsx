@@ -11,7 +11,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Mail, Bell, Loader2, Save, RefreshCw, Eye, ChevronDown, ChevronUp } from "lucide-react";
 
-export const Route = createFileRoute("/admin/notification-templates")({ component: NotificationTemplates });
+export const Route = createFileRoute("/admin/notification-templates")({
+  head: () => ({ meta: [{ title: "Template Notifikasi — Admin" }] }), component: NotificationTemplates });
 
 type Template = {
   key: string;

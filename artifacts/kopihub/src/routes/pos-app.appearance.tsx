@@ -9,7 +9,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TampilanTabs } from "@/components/TampilanTabs";
 
-export const Route = createFileRoute("/pos-app/appearance")({ component: AppearancePage });
+export const Route = createFileRoute("/pos-app/appearance")({
+  head: () => ({ meta: [{ title: "Tampilan Toko — Merchant" }] }), component: AppearancePage });
 
 type Viewport = "mobile" | "tablet" | "desktop";
 

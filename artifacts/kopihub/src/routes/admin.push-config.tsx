@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, Bell, Save, AlertCircle, CheckCircle2, Copy, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/admin/push-config")({
+  head: () => ({ meta: [{ title: "Konfigurasi Push — Admin" }] }),
   component: AdminPushConfig,
 });
 

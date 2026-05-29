@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ShieldCheck, Loader2, RefreshCw, Download, Trash2, Search, AlertTriangle, FileDown, UserX } from "lucide-react";
 
 export const Route = createFileRoute("/admin/gdpr-tools")({
+  head: () => ({ meta: [{ title: "Alat GDPR — Admin" }] }),
   component: GdprToolsPage,
 });
 

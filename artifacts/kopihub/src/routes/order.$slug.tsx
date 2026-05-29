@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/order/$slug")({
+  head: () => ({ meta: [{ title: "Order — UMKMgo" }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     table: (search.table as string) || "",
     tableName: (search.tableName as string) || "",

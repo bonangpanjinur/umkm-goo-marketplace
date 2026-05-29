@@ -19,6 +19,7 @@ import { Loader2, Plus, Trophy, Gift, Trash2, ArrowLeft, Crown } from "lucide-re
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/loyalty/rewards")({
+  head: () => ({ meta: [{ title: "Hadiah Loyalty — Merchant" }] }),
   component: LoyaltyRewardsPage,
 });
 

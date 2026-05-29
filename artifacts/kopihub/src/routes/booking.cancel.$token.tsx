@@ -13,6 +13,7 @@ import { formatIDR } from "@/lib/format";
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "/api";
 
 export const Route = createFileRoute("/booking/cancel/$token")({
+  head: () => ({ meta: [{ title: "Batalkan Booking — UMKMgo" }] }),
   component: BookingCancelPage,
 });
 

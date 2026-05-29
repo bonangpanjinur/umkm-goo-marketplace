@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,12 @@ import { toast } from "sonner";
 import { FlaskConical, Loader2, Play, Trash2, RefreshCw, AlertTriangle, CheckCircle2, Info, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/admin/sandbox")({
+  beforeLoad: () => {
+    if (import.meta.env.PROD) {
+      throw redirect({ to: "/admin" });
+    }
+  },
+  head: () => ({ meta: [{ title: "Sandbox & Demo — UMKMgo Admin" }] }),
   component: SandboxPage,
 });
 

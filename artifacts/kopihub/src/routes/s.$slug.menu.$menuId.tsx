@@ -32,6 +32,7 @@ async function fetchMenuItemForStorefront(slug: string, menuId: string) {
 }
 
 export const Route = createFileRoute("/s/$slug/menu/$menuId")({
+  head: () => ({ meta: [{ title: "Menu — UMKMgo" }] }),
   loader: async ({ params }) => {
     const res = await fetchMenuItemForStorefront(params.slug, params.menuId);
     if (!res.item || !res.shop) throw notFound();

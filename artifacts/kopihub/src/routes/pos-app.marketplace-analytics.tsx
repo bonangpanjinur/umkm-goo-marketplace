@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 export const Route = createFileRoute("/pos-app/marketplace-analytics")({
+  head: () => ({ meta: [{ title: "Analitik Marketplace — Merchant" }] }),
   component: ShopMarketplaceAnalyticsPage,
 });
 

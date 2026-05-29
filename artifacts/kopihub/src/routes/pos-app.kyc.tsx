@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/pos-app/kyc")({
+  head: () => ({ meta: [{ title: "Verifikasi KYC — Merchant" }] }),
   component: KycPage,
 });
 

@@ -10,6 +10,7 @@ import { Loader2, Eye } from "lucide-react";
 // import { approveInvoice, rejectInvoice, getProofSignedUrl } from "@/lib/api/billing.functions";
 
 export const Route = createFileRoute("/admin/invoices")({
+  head: () => ({ meta: [{ title: "Tagihan Platform — Admin" }] }),
   component: AdminInvoices,
 });
 

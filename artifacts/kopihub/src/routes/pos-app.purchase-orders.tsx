@@ -30,7 +30,8 @@ import {
   WA_TEMPLATE_LABELS, WA_TEMPLATE_DESC, type WATemplate,
 } from "@/lib/po-whatsapp";
 
-export const Route = createFileRoute("/pos-app/purchase-orders")({ component: POPage });
+export const Route = createFileRoute("/pos-app/purchase-orders")({
+  head: () => ({ meta: [{ title: "Purchase Order — Merchant" }] }), component: POPage });
 
 type Supplier = { id: string; name: string; phone?: string | null };
 type Ingredient = { id: string; name: string; unit: string; cost_per_unit: number };

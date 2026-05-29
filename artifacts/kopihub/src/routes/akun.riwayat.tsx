@@ -9,7 +9,8 @@ import { History, Trash2, ShoppingCart, ExternalLink, Loader2 } from "lucide-rea
 import { formatIDR } from "@/lib/format";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/akun/riwayat")({ component: RiwayatPage });
+export const Route = createFileRoute("/akun/riwayat")({
+  head: () => ({ meta: [{ title: "Riwayat Pesanan — UMKMgo" }] }), component: RiwayatPage });
 
 type ViewedProduct = {
   id: string;

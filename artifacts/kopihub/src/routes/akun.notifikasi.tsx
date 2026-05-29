@@ -8,6 +8,7 @@ import {
 import { useNotifications, type Notification } from "@/hooks/use-notifications";
 
 export const Route = createFileRoute("/akun/notifikasi")({
+  head: () => ({ meta: [{ title: "Notifikasi — UMKMgo" }] }),
   component: NotifikasiPage,
 });
 

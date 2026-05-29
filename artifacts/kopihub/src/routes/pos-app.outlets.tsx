@@ -12,7 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useShop } from "@/lib/use-shop";
 import { ShopLocationPicker } from "@/components/ShopLocationPicker";
 
-export const Route = createFileRoute("/pos-app/outlets")({ component: OutletsPage });
+export const Route = createFileRoute("/pos-app/outlets")({
+  head: () => ({ meta: [{ title: "Manajemen Outlet — Merchant" }] }), component: OutletsPage });
 
 type Outlet = {
   id: string;

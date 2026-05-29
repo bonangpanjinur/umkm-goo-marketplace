@@ -10,6 +10,7 @@ import { CalendarCheck, Loader2, CheckCircle2, AlertTriangle, ArrowLeft } from "
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/booking/reschedule/$token")({
+  head: () => ({ meta: [{ title: "Jadwal Ulang Booking — UMKMgo" }] }),
   component: BookingReschedulePage,
 });
 

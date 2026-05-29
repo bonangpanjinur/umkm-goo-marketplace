@@ -16,7 +16,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { updateMinMonths, undoMinMonths, fetchMatrixAuditLogs } from "@/lib/api/plan-matrix.functions";
 import { downloadCSV } from "@/lib/export";
 
-export const Route = createFileRoute("/admin/plans/$id/matrix")({ component: PlanMatrix });
+export const Route = createFileRoute("/admin/plans/$id/matrix")({
+  head: () => ({ meta: [{ title: "Matriks Paket — Admin" }] }), component: PlanMatrix });
 
 type Feature = { key: string; name: string; category: string };
 type Theme = { key: string; name: string; tier_hint: string | null };

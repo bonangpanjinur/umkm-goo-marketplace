@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, Percent, Save, Info } from "lucide-react";
 
 export const Route = createFileRoute("/admin/commission")({
+  head: () => ({ meta: [{ title: "Komisi Platform — Admin" }] }),
   component: AdminCommission,
 });
 

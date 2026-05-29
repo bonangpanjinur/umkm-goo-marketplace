@@ -45,6 +45,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/table-qr")({
+  head: () => ({ meta: [{ title: "QR Meja — Merchant" }] }),
   component: TableQRPage,
 });
 

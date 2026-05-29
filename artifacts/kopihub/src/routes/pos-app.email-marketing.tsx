@@ -15,7 +15,8 @@ import { Mail, Send, Users, BarChart2, Plus, Calendar, CheckCircle2, Clock, Load
 import { useShop } from "@/lib/use-shop";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/pos-app/email-marketing")({ component: EmailMarketingPage });
+export const Route = createFileRoute("/pos-app/email-marketing")({
+  head: () => ({ meta: [{ title: "Email Marketing — Merchant" }] }), component: EmailMarketingPage });
 
 type Campaign = {
   id: string;

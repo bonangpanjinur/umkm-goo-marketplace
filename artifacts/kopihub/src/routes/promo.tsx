@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useSeo } from "@/lib/use-seo";
 
 export const Route = createFileRoute("/promo")({
+  head: () => ({ meta: [{ title: "Promo & Diskon — UMKMgo" }] }),
   component: PromoPage,
 });
 

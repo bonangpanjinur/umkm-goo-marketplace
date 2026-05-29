@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
  * Midtrans akan menambahkan query: ?order_id=booking-<uuid>&status_code=200&transaction_status=settlement
  */
 export const Route = createFileRoute("/booking/$id/payment-callback")({
+  head: () => ({ meta: [{ title: "Konfirmasi Pembayaran — UMKMgo" }] }),
   component: PaymentCallbackPage,
 });
 

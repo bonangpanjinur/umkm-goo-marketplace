@@ -19,6 +19,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/admin/revenue-leakage")({
+  head: () => ({ meta: [{ title: "Revenue Leakage — Admin" }] }),
   component: AdminRevenueLeakagePage,
 });
 

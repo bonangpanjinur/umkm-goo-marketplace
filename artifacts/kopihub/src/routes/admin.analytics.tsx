@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 export const Route = createFileRoute("/admin/analytics")({
+  head: () => ({ meta: [{ title: "Analitik Platform — Admin" }] }),
   component: AdminAnalyticsPage,
 });
 

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Store, ScanQrCode, BellRing, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/order/$slug/")({
+  head: () => ({ meta: [{ title: "Menu Dine-In — UMKMgo" }] }),
   component: DineInMenuPage,
 });
 

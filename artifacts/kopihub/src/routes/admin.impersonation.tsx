@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { UserCog, Search, Store, ExternalLink, LogOut, ShieldAlert, RefreshCw } from "lucide-react";
 
-export const Route = createFileRoute("/admin/impersonation")({ component: AdminImpersonation });
+export const Route = createFileRoute("/admin/impersonation")({
+  head: () => ({ meta: [{ title: "Impersonasi Akun — Admin" }] }), component: AdminImpersonation });
 
 const IMPERSONATE_KEY = "umkmgo_impersonate_shop_id";
 

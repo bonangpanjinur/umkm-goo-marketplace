@@ -8,6 +8,7 @@ import { Loader2, ArrowLeft, QrCode, Upload, CheckCircle2, ImageIcon, Clock as C
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/s/$slug/pay/$orderId")({
+  head: () => ({ meta: [{ title: "Pembayaran — UMKMgo" }] }),
   component: PayPage,
 });
 

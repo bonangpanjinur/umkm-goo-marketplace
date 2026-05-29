@@ -12,7 +12,8 @@ import {
 import { useAuth } from "@/lib/auth";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/akun/loyalty")({ component: LoyaltyPage });
+export const Route = createFileRoute("/akun/loyalty")({
+  head: () => ({ meta: [{ title: "Poin Loyalty — UMKMgo" }] }), component: LoyaltyPage });
 
 type LoyaltyPoint = {
   shop_id: string;

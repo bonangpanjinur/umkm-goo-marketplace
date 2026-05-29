@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/fraud")({
+  head: () => ({ meta: [{ title: "Deteksi Fraud — Admin" }] }),
   component: AdminFraudPage,
 });
 

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/s/$slug/login")({
+  head: () => ({ meta: [{ title: "Masuk — UMKMgo" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     redirect: typeof s.redirect === "string" ? s.redirect : "",
   }),

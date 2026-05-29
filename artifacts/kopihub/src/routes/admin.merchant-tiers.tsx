@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Trophy, Search, Star, ShoppingBag, BadgeCheck, Rocket, Crown } from "lucide-react";
 
 export const Route = createFileRoute("/admin/merchant-tiers")({
+  head: () => ({ meta: [{ title: "Tier Merchant — Admin" }] }),
   component: MerchantTiersPage,
 });
 

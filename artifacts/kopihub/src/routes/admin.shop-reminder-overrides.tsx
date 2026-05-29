@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Bell, Loader2, Save, Plus, Trash2, Search, ArrowLeft, Store, Mail, MessageCircle, Smartphone, Bell as BellIcon } from "lucide-react";
 
 export const Route = createFileRoute("/admin/shop-reminder-overrides")({
+  head: () => ({ meta: [{ title: "Override Pengingat Toko — Admin" }] }),
   component: AdminShopReminderOverrides,
 });
 

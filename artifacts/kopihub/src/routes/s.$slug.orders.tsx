@@ -10,6 +10,7 @@ import { ChevronDown, ChevronUp, RotateCw, Star } from "lucide-react";
 import { ReviewDialog } from "@/components/customer/ReviewDialog";
 
 export const Route = createFileRoute("/s/$slug/orders")({
+  head: () => ({ meta: [{ title: "Pesanan Saya — UMKMgo" }] }),
   component: MyOrders,
 });
 

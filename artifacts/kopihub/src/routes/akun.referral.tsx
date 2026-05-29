@@ -9,7 +9,8 @@ import { Gift, Copy, Users, Coins, CheckCircle2, Clock, Share2, Loader2, Link as
 import { useAuth } from "@/lib/auth";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/akun/referral")({ component: ReferralPage });
+export const Route = createFileRoute("/akun/referral")({
+  head: () => ({ meta: [{ title: "Referral — UMKMgo" }] }), component: ReferralPage });
 
 type Referral = {
   id: string;

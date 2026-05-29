@@ -16,7 +16,8 @@ import {
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
-export const Route = createFileRoute("/akun/favorit")({ component: FavoritPage });
+export const Route = createFileRoute("/akun/favorit")({
+  head: () => ({ meta: [{ title: "Favorit Saya — UMKMgo" }] }), component: FavoritPage });
 
 type OrderItem = {
   id: string;

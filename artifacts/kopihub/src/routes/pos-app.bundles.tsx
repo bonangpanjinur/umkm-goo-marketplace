@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/bundles")({
+  head: () => ({ meta: [{ title: "Paket Produk — Merchant" }] }),
   component: BundlesPage,
 });
 

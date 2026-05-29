@@ -34,6 +34,7 @@ import {
 } from "@/lib/shift";
 
 export const Route = createFileRoute("/pos-app/shifts")({
+  head: () => ({ meta: [{ title: "Manajemen Shift — Merchant" }] }),
   component: ShiftsPage,
 });
 

@@ -22,6 +22,7 @@ import { formatIDR } from "@/lib/format";
 
 
 export const Route = createFileRoute("/pos-app/purchase-orders/$poId")({
+  head: () => ({ meta: [{ title: "Detail Purchase Order — Merchant" }] }),
   component: PODetailPage,
 });
 

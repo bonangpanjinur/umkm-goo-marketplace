@@ -12,6 +12,7 @@ import { Loader2, Printer, FileText, ChevronDown, ChevronUp } from "lucide-react
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/payslip")({
+  head: () => ({ meta: [{ title: "Slip Gaji — Merchant" }] }),
   component: PayslipPage,
 });
 

@@ -17,6 +17,7 @@ import {
 } from "@/lib/api/admin-shops.functions";
 
 export const Route = createFileRoute("/admin/shops/$id")({
+  head: () => ({ meta: [{ title: "Detail Toko — Admin" }] }),
   component: AdminShopDetail,
 });
 

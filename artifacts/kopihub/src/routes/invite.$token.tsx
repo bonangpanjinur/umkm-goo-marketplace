@@ -7,6 +7,7 @@ import { Loader2, Store, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({
+  head: () => ({ meta: [{ title: "Undangan Toko — UMKMgo" }] }),
   component: AcceptInvitationPage,
 });
 

@@ -16,6 +16,7 @@ import { Loader2, Save, RotateCcw, Info, CheckCircle2, XCircle, Circle } from "l
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/capabilities")({
+  head: () => ({ meta: [{ title: "Kapabilitas Toko — Merchant" }] }),
   component: CapabilitiesPage,
 });
 

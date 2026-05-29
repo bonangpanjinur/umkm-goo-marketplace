@@ -19,7 +19,8 @@ import {
 import { formatIDR } from "@/lib/format";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/download/$token")({ component: DownloadPage });
+export const Route = createFileRoute("/download/$token")({
+  head: () => ({ meta: [{ title: "Unduh Produk — UMKMgo" }] }), component: DownloadPage });
 
 type DownloadInfo = {
   product_name: string;

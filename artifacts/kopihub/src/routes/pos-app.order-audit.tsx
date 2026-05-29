@@ -13,6 +13,7 @@ import { ScrollText, Search, RefreshCw, Download, Loader2, User, Receipt } from 
 import { formatIDR } from "@/lib/format";
 
 export const Route = createFileRoute("/pos-app/order-audit")({
+  head: () => ({ meta: [{ title: "Audit Pesanan — Merchant" }] }),
   component: OrderAuditPage,
 });
 

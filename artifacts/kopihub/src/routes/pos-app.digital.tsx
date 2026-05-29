@@ -37,7 +37,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-export const Route = createFileRoute("/pos-app/digital")({ component: DigitalProducts });
+export const Route = createFileRoute("/pos-app/digital")({
+  head: () => ({ meta: [{ title: "Produk Digital — Merchant" }] }), component: DigitalProducts });
 
 type DigitalProduct = {
   id: string;

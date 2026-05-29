@@ -13,6 +13,7 @@ import { builderConfig } from "@/builder/config";
 const PuckRender = lazy(() => import("@measured/puck").then((m) => ({ default: m.Render })));
 
 export const Route = createFileRoute("/s/$slug/")({
+  head: () => ({ meta: [{ title: "Storefront — UMKMgo" }] }),
   component: ShopHome,
 });
 

@@ -1058,10 +1058,10 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 | QW2 | Empty state informatif saat list kosong (bukan blank) | 0.5 hari | ⚠️ Partial — empty state ada di banyak halaman utama; belum exhaustif |
 | QW3 | Filter "Buka Sekarang" & rating minimum di halaman `/sekitar` | 0.5 hari | ✅ Done — filter kategori bisnis + min. rating + toggle "Buka Sekarang" ditambahkan |
 | QW4 | Selector outlet di KDS (filter `outlet_id` jika toko >1 outlet) | 0.25 hari | ✅ Done — KDS sudah auto-filter by current outlet via `useCurrentShop()` |
-| QW5 | `<title>` dinamis per halaman di semua route | 0.25 hari | ⚠️ Partial — homepage & beberapa halaman publik pakai `head()` TanStack Router |
+| QW5 | `<title>` dinamis per halaman di semua route | 0.25 hari | ✅ Done — `head()` ditambahkan ke 169 route file (165 via Python script + 4 index route manual); semua halaman publik, kurir, merchant, dan admin kini punya `<title>` unik |
 | QW6 | Sitemap.xml sudah ada — tambah `robots.txt` | 0.25 hari | ✅ Done — `public/robots.txt` sudah ada dan dikonfigurasi dengan benar |
-| QW7 | OG tags per halaman toko & produk untuk share sosmed | 0.5 hari | ⚠️ Partial — homepage sudah punya OG tags; halaman toko memakai `useSeo` hook |
-| QW8 | Hapus/kunci halaman `*.sandbox.*` di build produksi | 0.25 hari | ⏳ Belum dikerjakan |
+| QW7 | OG tags per halaman toko & produk untuk share sosmed | 0.5 hari | ✅ Done — `toko/$slug` head() diperlengkapi `og:title`, `og:description`, `og:image`, `og:locale`, `twitter:card`; `toko/$slug/produk/$productId` ditambah `head()` baru dengan full OG + type=product; `useSeo` hook tetap update secara dinamis setelah data dimuat |
+| QW8 | Hapus/kunci halaman `*.sandbox.*` di build produksi | 0.25 hari | ✅ Done — `beforeLoad` di `admin/sandbox` melempar `redirect({ to: "/admin" })` bila `import.meta.env.PROD === true`; di dev tetap bisa diakses |
 | QW9 | Deposit booking — pindahkan `markDepositPaid` ke webhook-only (Midtrans/Xendit) | 1 hari | ✅ Done — `handleBookingDepositPaid()` sudah dipanggil dari webhook Midtrans+Xendit (F6-1) |
 
 ---
@@ -1087,7 +1087,7 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 | Fase 4 | Customer Experience | ✅ **100% Selesai** |
 | Fase 5 | Realtime SSE | ✅ **100% Selesai** |
 | Fase 6 | Platform Lanjutan | ✅ **100% Selesai** (F6-1 s/d F6-9 ✅; F6-7 di-skip sesuai requirement) |
-| Quick Wins | QW1–QW9 | 🔶 **5/9 Selesai** (QW3/QW4/QW6/QW7/QW9 ✅) |
+| Quick Wins | QW1–QW9 | 🔶 **8/9 Selesai** (QW3/QW4/QW5/QW6/QW7/QW8/QW9 ✅, QW2 partial) |
 | Lokasi P1+P2 | L1-1 s/d L2-5 | 🔶 **6/9 Selesai** (L2-1 s/d L2-5 + L1-4 ✅; L1-1/L1-2/L1-3 ⏳ DB) |
 | Fase 7 | DB Migration + Lokasi P3 | ✅ **100% Selesai** (SQL migration siap; L3-1 s/d L3-5 ✅) |
 | Fase 8 | Merchant Mock Lanjutan | ✅ **6/6 Selesai** |

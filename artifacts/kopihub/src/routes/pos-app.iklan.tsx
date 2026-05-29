@@ -15,6 +15,7 @@ import {
 import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib/payment-gateway";
 
 export const Route = createFileRoute("/pos-app/iklan")({
+  head: () => ({ meta: [{ title: "Iklan Berbayar — Merchant" }] }),
   component: IklanPage,
 });
 

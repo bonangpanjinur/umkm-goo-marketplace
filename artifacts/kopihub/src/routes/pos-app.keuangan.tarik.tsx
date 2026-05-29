@@ -11,6 +11,7 @@ import { ArrowLeft, Wallet, Info, Clock, CheckCircle2, Loader2, AlertTriangle } 
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/keuangan/tarik")({
+  head: () => ({ meta: [{ title: "Penarikan Dana — Merchant" }] }),
   component: WithdrawalPage,
 });
 

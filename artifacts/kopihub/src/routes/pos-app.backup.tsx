@@ -11,7 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 // import { listShopBackups, getBackupSchedule, requestShopBackup, getBackupDownloadUrl, deleteBackup, upsertBackupSchedule } from "@/lib/api/backup.functions";
 
-export const Route = createFileRoute("/pos-app/backup")({ component: BackupPage });
+export const Route = createFileRoute("/pos-app/backup")({
+  head: () => ({ meta: [{ title: "Backup Data — Merchant" }] }), component: BackupPage });
 
 type Backup = {
   id: string;

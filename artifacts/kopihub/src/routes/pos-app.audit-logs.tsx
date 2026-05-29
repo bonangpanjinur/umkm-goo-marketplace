@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/pos-app/audit-logs")({
+  head: () => ({ meta: [{ title: "Log Audit — Merchant" }] }),
   component: AuditLogsPage,
 });
 

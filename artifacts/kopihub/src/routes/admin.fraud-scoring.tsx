@@ -8,6 +8,7 @@ import { formatIDR } from "@/lib/format";
 import { ShieldAlert, Loader2, RefreshCw, AlertTriangle, CheckCircle2, XCircle, Eye, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/admin/fraud-scoring")({
+  head: () => ({ meta: [{ title: "Skor Fraud — Admin" }] }),
   component: FraudScoringPage,
 });
 

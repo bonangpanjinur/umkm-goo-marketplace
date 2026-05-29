@@ -16,6 +16,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/admin/revenue")({
+  head: () => ({ meta: [{ title: "Pendapatan Platform — Admin" }] }),
   component: AdminRevenuePage,
 });
 

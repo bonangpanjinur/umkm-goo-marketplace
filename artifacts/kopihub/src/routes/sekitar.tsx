@@ -19,7 +19,8 @@ import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, 
 import { toast } from "sonner";
 import { NearbyShopsMap } from "@/components/marketplace/NearbyShopsMap";
 
-export const Route = createFileRoute("/sekitar")({ component: NearbyPage });
+export const Route = createFileRoute("/sekitar")({
+  head: () => ({ meta: [{ title: "Toko Terdekat — UMKMgo" }] }), component: NearbyPage });
 
 const LOCATION_KEY = "umkmgo.userLocation";
 

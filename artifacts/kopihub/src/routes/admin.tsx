@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { useAdminPendingAdCount } from "@/hooks/useAdNotifications";
 
 export const Route = createFileRoute("/admin")({
+  head: () => ({ meta: [{ title: "Dashboard Admin — UMKMgo" }] }),
   component: AdminLayout,
 });
 

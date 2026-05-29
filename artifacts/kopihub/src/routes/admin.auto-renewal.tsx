@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/auto-renewal")({
+  head: () => ({ meta: [{ title: "Auto-Renewal — Admin" }] }),
   component: AdminAutoRenewalPage,
 });
 

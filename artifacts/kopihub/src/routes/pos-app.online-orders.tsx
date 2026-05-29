@@ -14,6 +14,7 @@ import { ensureNotificationPermission, notifyOrder } from "@/lib/notify";
 import { getAutoPrintEnabled } from "./pos-app.settings";
 
 export const Route = createFileRoute("/pos-app/online-orders")({
+  head: () => ({ meta: [{ title: "Pesanan Online — Merchant" }] }),
   component: OnlineOrders,
 });
 

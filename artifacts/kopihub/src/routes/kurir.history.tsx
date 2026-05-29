@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Filter, X } from "lucide-react";
 
-export const Route = createFileRoute("/kurir/history")({ component: CourierHistory });
+export const Route = createFileRoute("/kurir/history")({
+  head: () => ({ meta: [{ title: "Riwayat Pengiriman — UMKMgo" }] }), component: CourierHistory });
 
 type Row = {
   id: string;

@@ -14,6 +14,7 @@ import { formatIDR } from "@/lib/format";
 import { Users, Search, Loader2, RefreshCw, Banknote, ShieldOff, ShieldCheck, Plus, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/admin/buyer-actions")({
+  head: () => ({ meta: [{ title: "Tindakan Pembeli — Admin" }] }),
   component: BuyerActionsPage,
 });
 

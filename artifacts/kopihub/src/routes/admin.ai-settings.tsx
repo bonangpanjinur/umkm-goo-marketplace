@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff, Sparkles, CheckCircle2, XCircle, Save, ExternalLink, Info } from "lucide-react";
 
-export const Route = createFileRoute("/admin/ai-settings")({ component: AdminAISettings });
+export const Route = createFileRoute("/admin/ai-settings")({
+  head: () => ({ meta: [{ title: "Pengaturan AI — Admin" }] }), component: AdminAISettings });
 
 type AISettings = {
   gemini_api_key: string;

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Wallet, ArrowUpRight, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/kurir/withdraw")({
+  head: () => ({ meta: [{ title: "Penarikan Dana — UMKMgo" }] }),
   component: KurirWithdraw,
 });
 

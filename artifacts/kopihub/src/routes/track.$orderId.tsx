@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/track/$orderId")({
+  head: () => ({ meta: [{ title: "Lacak Pesanan — UMKMgo" }] }),
   component: TrackPage,
 });
 

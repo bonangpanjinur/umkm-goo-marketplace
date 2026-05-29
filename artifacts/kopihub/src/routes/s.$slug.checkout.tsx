@@ -22,6 +22,7 @@ import {
 } from "@/lib/promo-loyalty";
 
 export const Route = createFileRoute("/s/$slug/checkout")({
+  head: () => ({ meta: [{ title: "Checkout — UMKMgo" }] }),
   component: CheckoutPage,
 });
 

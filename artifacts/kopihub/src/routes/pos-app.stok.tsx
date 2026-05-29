@@ -22,7 +22,8 @@ import {
   Save,
 } from "lucide-react";
 
-export const Route = createFileRoute("/pos-app/stok")({ component: StokTerpadu });
+export const Route = createFileRoute("/pos-app/stok")({
+  head: () => ({ meta: [{ title: "Manajemen Stok — Merchant" }] }), component: StokTerpadu });
 
 type StokItem = {
   id: string;
