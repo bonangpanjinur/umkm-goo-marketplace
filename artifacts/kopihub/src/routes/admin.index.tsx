@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Store, Crown, FileText, Coins, ArrowRight, AlertTriangle, Globe,
   BadgeCheck, Banknote, ShoppingCart, TrendingUp, UserX, Clock,
-  RefreshCw, Activity,
+  RefreshCw, Activity, KeyRound, Database,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import {
@@ -271,8 +271,10 @@ function AdminDashboard() {
             { to: "/admin/analytics",   label: "Analitik Marketplace",   icon: TrendingUp,  badge: 0 },
             { to: "/admin/broadcast",   label: "Broadcast ke Owner",     icon: Activity,    badge: 0 },
             { to: "/admin/shops",       label: "Kelola Toko",            icon: Store,       badge: stats.suspended, badgeTone: "bad" as const },
-            { to: "/admin/audit",       label: "Audit Log",              icon: Clock,       badge: 0 },
+            { to: "/admin/audit",        label: "Audit Log",              icon: Clock,       badge: 0 },
             { to: "/admin/settings",    label: "Pengaturan Platform",    icon: Globe,       badge: 0 },
+            { to: "/admin/credentials", label: "Kredensial & API Keys",  icon: KeyRound,    badge: 0 },
+            { to: "/admin/migrations",  label: "Database Migrations",    icon: Database,    badge: 0 },
           ].map(item => (
             <Link key={item.to} to={item.to} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium hover:border-primary/40 hover:bg-muted/30 transition-colors">
               <item.icon className="h-4 w-4 text-muted-foreground shrink-0" />

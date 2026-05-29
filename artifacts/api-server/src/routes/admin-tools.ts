@@ -1,15 +1,24 @@
 /**
- * Admin Tools API Routes — Fase 9
+ * Admin Tools API Routes
  *
  * POST /admin/auto-cancel         — run fn_auto_cancel_expired()
  * DELETE /admin/user/:userId/data — GDPR erasure via fn_gdpr_erase_user()
  * POST /admin/churn/snapshot      — run fn_churn_metrics_snapshot()
  * POST /admin/restock-notify      — trigger fn_notify_restock() for a menu_item
  * POST /admin/commission/apply    — apply commission to a specific order
+ * GET  /admin/migrations/status   — cek status migration Fase A
+ * POST /admin/migrations/run      — jalankan migration (requires SUPABASE_DB_URL)
+ * POST /admin/credentials/invalidate-cache — hapus cache platform credentials
  */
 import { Router, type Request, type Response } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
+import {
+  checkMigrationStatus,
+  runMigration,
+  runAllMigrations,
+} from "../lib/supabase-migration.js";
+import { invalidateCredentialsCache } from "../lib/platform-credentials.js";
 
 const router = Router();
 
@@ -113,6 +122,49 @@ router.post("/admin/commission/apply", async (req: Request, res: Response) => {
     logger.error({ err: e, order_id }, "[admin-tools] apply-commission failed");
     res.status(500).json({ error: e?.message ?? "Internal error" });
   }
+});
+
+// ── GET /admin/migrations/status ──────────────────────────────────────────
+router.get("/admin/migrations/status", async (req: Request, res: Response) => {
+  if (!(await requireSuperAdmin(req, res))) return;
+
+  try {
+    const status = await checkMigrationStatus();
+    const hasDbUrl = Boolean(process.env["SUPABASE_DB_URL"]);
+    res.json({ ok: true, has_db_url: hasDbUrl, migrations: status });
+  } catch (e: any) {
+    logger.error({ err: e }, "[admin-tools] migration-status failed");
+    res.status(500).json({ error: e?.message ?? "Internal error" });
+  }
+});
+
+// ── POST /admin/migrations/run ────────────────────────────────────────────
+router.post("/admin/migrations/run", async (req: Request, res: Response) => {
+  if (!(await requireSuperAdmin(req, res))) return;
+
+  const { id } = req.body ?? {};
+
+  try {
+    if (id === "all" || !id) {
+      const results = await runAllMigrations();
+      const allOk = results.every((r) => r.ok);
+      res.json({ ok: allOk, results });
+    } else {
+      const result = await runMigration(id);
+      res.json({ ok: result.ok, results: [{ id, ...result }] });
+    }
+  } catch (e: any) {
+    logger.error({ err: e }, "[admin-tools] migration-run failed");
+    res.status(500).json({ error: e?.message ?? "Internal error" });
+  }
+});
+
+// ── POST /admin/credentials/invalidate-cache ──────────────────────────────
+router.post("/admin/credentials/invalidate-cache", async (req: Request, res: Response) => {
+  if (!(await requireSuperAdmin(req, res))) return;
+
+  invalidateCredentialsCache();
+  res.json({ ok: true, message: "Cache credentials dihapus. Credentials baru akan dimuat pada request berikutnya." });
 });
 
 export default router;

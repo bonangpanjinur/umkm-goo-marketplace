@@ -239,6 +239,7 @@ import { Route as AdminOnboardingAutomationRouteImport } from './routes/admin.on
 import { Route as AdminNotificationTemplatesRouteImport } from './routes/admin.notification-templates'
 import { Route as AdminMultiAdminRouteImport } from './routes/admin.multi-admin'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
+import { Route as AdminMigrationsRouteImport } from './routes/admin.migrations'
 import { Route as AdminMerchantTiersRouteImport } from './routes/admin.merchant-tiers'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
@@ -253,6 +254,7 @@ import { Route as AdminFeatureFlagsRouteImport } from './routes/admin.feature-fl
 import { Route as AdminExpiryRemindersRouteImport } from './routes/admin.expiry-reminders'
 import { Route as AdminDomainsRouteImport } from './routes/admin.domains'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
+import { Route as AdminCredentialsRouteImport } from './routes/admin.credentials'
 import { Route as AdminCommissionRouteImport } from './routes/admin.commission'
 import { Route as AdminCohortAnalyticsRouteImport } from './routes/admin.cohort-analytics'
 import { Route as AdminChurnReengagementRouteImport } from './routes/admin.churn-reengagement'
@@ -1484,6 +1486,11 @@ const AdminModerationRoute = AdminModerationRouteImport.update({
   path: '/moderation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMigrationsRoute = AdminMigrationsRouteImport.update({
+  id: '/migrations',
+  path: '/migrations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMerchantTiersRoute = AdminMerchantTiersRouteImport.update({
   id: '/merchant-tiers',
   path: '/merchant-tiers',
@@ -1552,6 +1559,11 @@ const AdminDomainsRoute = AdminDomainsRouteImport.update({
 const AdminDisputesRoute = AdminDisputesRouteImport.update({
   id: '/disputes',
   path: '/disputes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCredentialsRoute = AdminCredentialsRouteImport.update({
+  id: '/credentials',
+  path: '/credentials',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCommissionRoute = AdminCommissionRouteImport.update({
@@ -1951,6 +1963,7 @@ export interface FileRoutesByFullPath {
   '/admin/churn-reengagement': typeof AdminChurnReengagementRoute
   '/admin/cohort-analytics': typeof AdminCohortAnalyticsRoute
   '/admin/commission': typeof AdminCommissionRoute
+  '/admin/credentials': typeof AdminCredentialsRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
@@ -1965,6 +1978,7 @@ export interface FileRoutesByFullPath {
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/merchant-tiers': typeof AdminMerchantTiersRoute
+  '/admin/migrations': typeof AdminMigrationsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/multi-admin': typeof AdminMultiAdminRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
@@ -2262,6 +2276,7 @@ export interface FileRoutesByTo {
   '/admin/churn-reengagement': typeof AdminChurnReengagementRoute
   '/admin/cohort-analytics': typeof AdminCohortAnalyticsRoute
   '/admin/commission': typeof AdminCommissionRoute
+  '/admin/credentials': typeof AdminCredentialsRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
@@ -2276,6 +2291,7 @@ export interface FileRoutesByTo {
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/merchant-tiers': typeof AdminMerchantTiersRoute
+  '/admin/migrations': typeof AdminMigrationsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/multi-admin': typeof AdminMultiAdminRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
@@ -2576,6 +2592,7 @@ export interface FileRoutesById {
   '/admin/churn-reengagement': typeof AdminChurnReengagementRoute
   '/admin/cohort-analytics': typeof AdminCohortAnalyticsRoute
   '/admin/commission': typeof AdminCommissionRoute
+  '/admin/credentials': typeof AdminCredentialsRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/domains': typeof AdminDomainsRoute
   '/admin/expiry-reminders': typeof AdminExpiryRemindersRoute
@@ -2590,6 +2607,7 @@ export interface FileRoutesById {
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/merchant-tiers': typeof AdminMerchantTiersRoute
+  '/admin/migrations': typeof AdminMigrationsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/multi-admin': typeof AdminMultiAdminRoute
   '/admin/notification-templates': typeof AdminNotificationTemplatesRoute
@@ -2893,6 +2911,7 @@ export interface FileRouteTypes {
     | '/admin/churn-reengagement'
     | '/admin/cohort-analytics'
     | '/admin/commission'
+    | '/admin/credentials'
     | '/admin/disputes'
     | '/admin/domains'
     | '/admin/expiry-reminders'
@@ -2907,6 +2926,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/kyc'
     | '/admin/merchant-tiers'
+    | '/admin/migrations'
     | '/admin/moderation'
     | '/admin/multi-admin'
     | '/admin/notification-templates'
@@ -3204,6 +3224,7 @@ export interface FileRouteTypes {
     | '/admin/churn-reengagement'
     | '/admin/cohort-analytics'
     | '/admin/commission'
+    | '/admin/credentials'
     | '/admin/disputes'
     | '/admin/domains'
     | '/admin/expiry-reminders'
@@ -3218,6 +3239,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/kyc'
     | '/admin/merchant-tiers'
+    | '/admin/migrations'
     | '/admin/moderation'
     | '/admin/multi-admin'
     | '/admin/notification-templates'
@@ -3517,6 +3539,7 @@ export interface FileRouteTypes {
     | '/admin/churn-reengagement'
     | '/admin/cohort-analytics'
     | '/admin/commission'
+    | '/admin/credentials'
     | '/admin/disputes'
     | '/admin/domains'
     | '/admin/expiry-reminders'
@@ -3531,6 +3554,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/kyc'
     | '/admin/merchant-tiers'
+    | '/admin/migrations'
     | '/admin/moderation'
     | '/admin/multi-admin'
     | '/admin/notification-templates'
@@ -5445,6 +5469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminModerationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/migrations': {
+      id: '/admin/migrations'
+      path: '/migrations'
+      fullPath: '/admin/migrations'
+      preLoaderRoute: typeof AdminMigrationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/merchant-tiers': {
       id: '/admin/merchant-tiers'
       path: '/merchant-tiers'
@@ -5541,6 +5572,13 @@ declare module '@tanstack/react-router' {
       path: '/disputes'
       fullPath: '/admin/disputes'
       preLoaderRoute: typeof AdminDisputesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/credentials': {
+      id: '/admin/credentials'
+      path: '/credentials'
+      fullPath: '/admin/credentials'
+      preLoaderRoute: typeof AdminCredentialsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/commission': {
@@ -6087,6 +6125,7 @@ interface AdminRouteChildren {
   AdminChurnReengagementRoute: typeof AdminChurnReengagementRoute
   AdminCohortAnalyticsRoute: typeof AdminCohortAnalyticsRoute
   AdminCommissionRoute: typeof AdminCommissionRoute
+  AdminCredentialsRoute: typeof AdminCredentialsRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminDomainsRoute: typeof AdminDomainsRoute
   AdminExpiryRemindersRoute: typeof AdminExpiryRemindersRoute
@@ -6101,6 +6140,7 @@ interface AdminRouteChildren {
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminMerchantTiersRoute: typeof AdminMerchantTiersRoute
+  AdminMigrationsRoute: typeof AdminMigrationsRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AdminMultiAdminRoute: typeof AdminMultiAdminRoute
   AdminNotificationTemplatesRoute: typeof AdminNotificationTemplatesRoute
@@ -6149,6 +6189,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminChurnReengagementRoute: AdminChurnReengagementRoute,
   AdminCohortAnalyticsRoute: AdminCohortAnalyticsRoute,
   AdminCommissionRoute: AdminCommissionRoute,
+  AdminCredentialsRoute: AdminCredentialsRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminDomainsRoute: AdminDomainsRoute,
   AdminExpiryRemindersRoute: AdminExpiryRemindersRoute,
@@ -6163,6 +6204,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminKycRoute: AdminKycRoute,
   AdminMerchantTiersRoute: AdminMerchantTiersRoute,
+  AdminMigrationsRoute: AdminMigrationsRoute,
   AdminModerationRoute: AdminModerationRoute,
   AdminMultiAdminRoute: AdminMultiAdminRoute,
   AdminNotificationTemplatesRoute: AdminNotificationTemplatesRoute,
