@@ -8,6 +8,7 @@ import printerRouter from "./printer.js";
 import rajaongkirRouter from "./rajaongkir.js";
 import sseRouter from "./sse.js";
 import webhooksRouter from "./webhooks.js";
+import adminToolsRouter from "./admin-tools.js";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,7 @@ router.use(rajaongkirRouter);
 router.use(sseRouter);
 // F6-3 — Outgoing Webhooks
 router.use(webhooksRouter);
+// F9 — Admin Platform Tools (auto-cancel, GDPR, churn, commission)
+router.use(adminToolsRouter);
 
 export default router;

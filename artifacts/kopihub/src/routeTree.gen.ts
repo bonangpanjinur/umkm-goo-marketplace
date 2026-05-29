@@ -214,6 +214,7 @@ import { Route as AkunCashbackRouteImport } from './routes/akun.cashback'
 import { Route as AkunBookingsRouteImport } from './routes/akun.bookings'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
+import { Route as AdminWebhookMonitorRouteImport } from './routes/admin.webhook-monitor'
 import { Route as AdminVouchersRouteImport } from './routes/admin.vouchers'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTaxReportRouteImport } from './routes/admin.tax-report'
@@ -264,6 +265,7 @@ import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 import { Route as AdminAutoRenewalRouteImport } from './routes/admin.auto-renewal'
 import { Route as AdminAutoCancelRouteImport } from './routes/admin.auto-cancel'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminApiKeysRouteImport } from './routes/admin.api-keys'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAiSettingsRouteImport } from './routes/admin.ai-settings'
 import { Route as AdminAffiliateRouteImport } from './routes/admin.affiliate'
@@ -1350,6 +1352,11 @@ const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
   path: '/withdrawals',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminWebhookMonitorRoute = AdminWebhookMonitorRouteImport.update({
+  id: '/webhook-monitor',
+  path: '/webhook-monitor',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminVouchersRoute = AdminVouchersRouteImport.update({
   id: '/vouchers',
   path: '/vouchers',
@@ -1601,6 +1608,11 @@ const AdminAutoCancelRoute = AdminAutoCancelRouteImport.update({
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApiKeysRoute = AdminApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
@@ -1898,6 +1910,7 @@ export interface FileRoutesByFullPath {
   '/admin/affiliate': typeof AdminAffiliateRoute
   '/admin/ai-settings': typeof AdminAiSettingsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/api-keys': typeof AdminApiKeysRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
   '/admin/auto-renewal': typeof AdminAutoRenewalRoute
@@ -1948,6 +1961,7 @@ export interface FileRoutesByFullPath {
   '/admin/tax-report': typeof AdminTaxReportRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/vouchers': typeof AdminVouchersRoute
+  '/admin/webhook-monitor': typeof AdminWebhookMonitorRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
@@ -2203,6 +2217,7 @@ export interface FileRoutesByTo {
   '/admin/affiliate': typeof AdminAffiliateRoute
   '/admin/ai-settings': typeof AdminAiSettingsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/api-keys': typeof AdminApiKeysRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
   '/admin/auto-renewal': typeof AdminAutoRenewalRoute
@@ -2253,6 +2268,7 @@ export interface FileRoutesByTo {
   '/admin/tax-report': typeof AdminTaxReportRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/vouchers': typeof AdminVouchersRoute
+  '/admin/webhook-monitor': typeof AdminWebhookMonitorRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
@@ -2511,6 +2527,7 @@ export interface FileRoutesById {
   '/admin/affiliate': typeof AdminAffiliateRoute
   '/admin/ai-settings': typeof AdminAiSettingsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/api-keys': typeof AdminApiKeysRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/auto-cancel': typeof AdminAutoCancelRoute
   '/admin/auto-renewal': typeof AdminAutoRenewalRoute
@@ -2561,6 +2578,7 @@ export interface FileRoutesById {
   '/admin/tax-report': typeof AdminTaxReportRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/vouchers': typeof AdminVouchersRoute
+  '/admin/webhook-monitor': typeof AdminWebhookMonitorRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/bookings': typeof AkunBookingsRoute
@@ -2822,6 +2840,7 @@ export interface FileRouteTypes {
     | '/admin/affiliate'
     | '/admin/ai-settings'
     | '/admin/analytics'
+    | '/admin/api-keys'
     | '/admin/audit'
     | '/admin/auto-cancel'
     | '/admin/auto-renewal'
@@ -2872,6 +2891,7 @@ export interface FileRouteTypes {
     | '/admin/tax-report'
     | '/admin/users'
     | '/admin/vouchers'
+    | '/admin/webhook-monitor'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/akun/bookings'
@@ -3127,6 +3147,7 @@ export interface FileRouteTypes {
     | '/admin/affiliate'
     | '/admin/ai-settings'
     | '/admin/analytics'
+    | '/admin/api-keys'
     | '/admin/audit'
     | '/admin/auto-cancel'
     | '/admin/auto-renewal'
@@ -3177,6 +3198,7 @@ export interface FileRouteTypes {
     | '/admin/tax-report'
     | '/admin/users'
     | '/admin/vouchers'
+    | '/admin/webhook-monitor'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/akun/bookings'
@@ -3434,6 +3456,7 @@ export interface FileRouteTypes {
     | '/admin/affiliate'
     | '/admin/ai-settings'
     | '/admin/analytics'
+    | '/admin/api-keys'
     | '/admin/audit'
     | '/admin/auto-cancel'
     | '/admin/auto-renewal'
@@ -3484,6 +3507,7 @@ export interface FileRouteTypes {
     | '/admin/tax-report'
     | '/admin/users'
     | '/admin/vouchers'
+    | '/admin/webhook-monitor'
     | '/admin/withdrawals'
     | '/akun/alamat'
     | '/akun/bookings'
@@ -5198,6 +5222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWithdrawalsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/webhook-monitor': {
+      id: '/admin/webhook-monitor'
+      path: '/webhook-monitor'
+      fullPath: '/admin/webhook-monitor'
+      preLoaderRoute: typeof AdminWebhookMonitorRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/vouchers': {
       id: '/admin/vouchers'
       path: '/vouchers'
@@ -5546,6 +5577,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/api-keys': {
+      id: '/admin/api-keys'
+      path: '/api-keys'
+      fullPath: '/admin/api-keys'
+      preLoaderRoute: typeof AdminApiKeysRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/analytics': {
@@ -5956,6 +5994,7 @@ interface AdminRouteChildren {
   AdminAffiliateRoute: typeof AdminAffiliateRoute
   AdminAiSettingsRoute: typeof AdminAiSettingsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminApiKeysRoute: typeof AdminApiKeysRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminAutoCancelRoute: typeof AdminAutoCancelRoute
   AdminAutoRenewalRoute: typeof AdminAutoRenewalRoute
@@ -6006,6 +6045,7 @@ interface AdminRouteChildren {
   AdminTaxReportRoute: typeof AdminTaxReportRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVouchersRoute: typeof AdminVouchersRoute
+  AdminWebhookMonitorRoute: typeof AdminWebhookMonitorRoute
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -6016,6 +6056,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAffiliateRoute: AdminAffiliateRoute,
   AdminAiSettingsRoute: AdminAiSettingsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminApiKeysRoute: AdminApiKeysRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminAutoCancelRoute: AdminAutoCancelRoute,
   AdminAutoRenewalRoute: AdminAutoRenewalRoute,
@@ -6066,6 +6107,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminTaxReportRoute: AdminTaxReportRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVouchersRoute: AdminVouchersRoute,
+  AdminWebhookMonitorRoute: AdminWebhookMonitorRoute,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
