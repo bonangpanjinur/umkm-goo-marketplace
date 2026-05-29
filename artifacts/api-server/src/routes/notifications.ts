@@ -111,7 +111,7 @@ export async function runRenewalNotifications(
     let shops: Array<{ id: string; name: string; plan_expires_at: string }> = [];
     try {
       shops = await sbGet<{ id: string; name: string; plan_expires_at: string }>(
-        "coffee_shops",
+        "shops",
         {
           select: "id,name,plan_expires_at",
           plan: "eq.pro",
@@ -275,7 +275,7 @@ router.get("/cron/renewal-preview", async (req, res) => {
       name: string;
       slug: string;
       plan_expires_at: string;
-    }>("coffee_shops", {
+    }>("shops", {
       select: "id,name,slug,plan_expires_at",
       plan: "eq.pro",
       plan_expires_at: `lte.${cutoff}`,
