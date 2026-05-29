@@ -127,3 +127,47 @@ export function isXenditPaymentSuccess(payload: XenditWebhookPayload): boolean {
 export function isXenditPaymentFailed(payload: XenditWebhookPayload): boolean {
   return ["EXPIRED", "FAILED"].includes(payload.status);
 }
+
+export interface XenditRefundPayload {
+  invoice_id: string;
+  amount: number;
+  external_id: string;
+  reason?: string;
+}
+
+export interface XenditRefundResponse {
+  id: string;
+  external_id: string;
+  amount: number;
+  status: string;
+  reason?: string;
+  created: string;
+}
+
+export async function refundXenditPayment(
+  config: XenditConfig,
+  payload: XenditRefundPayload,
+): Promise<XenditRefundResponse> {
+  const res = await httpFetch(`${XENDIT_BASE}/refunds`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: buildAuthHeader(config.secretKey),
+      "idempotency-key": payload.external_id,
+    },
+    body: JSON.stringify({
+      invoice_id: payload.invoice_id,
+      amount: payload.amount,
+      external_id: payload.external_id,
+      reason: payload.reason ?? "refund",
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Xendit refund error ${res.status}: ${body}`);
+  }
+
+  return res.json() as Promise<XenditRefundResponse>;
+}

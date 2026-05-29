@@ -41,6 +41,7 @@ import { Route as QuoteIdRouteImport } from './routes/quote.$id'
 import { Route as PosAppWishlistAnalyticsRouteImport } from './routes/pos-app.wishlist-analytics'
 import { Route as PosAppWipGalleryRouteImport } from './routes/pos-app.wip-gallery'
 import { Route as PosAppWebsiteBuilderRouteImport } from './routes/pos-app.website-builder'
+import { Route as PosAppWebhooksRouteImport } from './routes/pos-app.webhooks'
 import { Route as PosAppWalletConfigRouteImport } from './routes/pos-app.wallet-config'
 import { Route as PosAppWalletApprovalsRouteImport } from './routes/pos-app.wallet-approvals'
 import { Route as PosAppWaitlistRouteImport } from './routes/pos-app.waitlist'
@@ -282,6 +283,7 @@ import { Route as SSlugCartRouteImport } from './routes/s.$slug.cart'
 import { Route as PosAppWebsiteBuilderTemplatesRouteImport } from './routes/pos-app.website-builder.templates'
 import { Route as PosAppWebsiteBuilderLayoutIdRouteImport } from './routes/pos-app.website-builder.$layoutId'
 import { Route as PosAppReportsProfitRouteImport } from './routes/pos-app.reports.profit'
+import { Route as PosAppReportsMultiOutletRouteImport } from './routes/pos-app.reports.multi-outlet'
 import { Route as PosAppPurchaseOrdersPoIdRouteImport } from './routes/pos-app.purchase-orders.$poId'
 import { Route as PosAppMenuImportRouteImport } from './routes/pos-app.menu.import'
 import { Route as PosAppLoyaltyRewardsRouteImport } from './routes/pos-app.loyalty.rewards'
@@ -465,6 +467,11 @@ const PosAppWipGalleryRoute = PosAppWipGalleryRouteImport.update({
 const PosAppWebsiteBuilderRoute = PosAppWebsiteBuilderRouteImport.update({
   id: '/website-builder',
   path: '/website-builder',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppWebhooksRoute = PosAppWebhooksRouteImport.update({
+  id: '/webhooks',
+  path: '/webhooks',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppWalletConfigRoute = PosAppWalletConfigRouteImport.update({
@@ -1684,6 +1691,12 @@ const PosAppReportsProfitRoute = PosAppReportsProfitRouteImport.update({
   path: '/profit',
   getParentRoute: () => PosAppReportsRoute,
 } as any)
+const PosAppReportsMultiOutletRoute =
+  PosAppReportsMultiOutletRouteImport.update({
+    id: '/multi-outlet',
+    path: '/multi-outlet',
+    getParentRoute: () => PosAppReportsRoute,
+  } as any)
 const PosAppPurchaseOrdersPoIdRoute =
   PosAppPurchaseOrdersPoIdRouteImport.update({
     id: '/$poId',
@@ -2052,6 +2065,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
   '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
+  '/pos-app/webhooks': typeof PosAppWebhooksRoute
   '/pos-app/website-builder': typeof PosAppWebsiteBuilderRouteWithChildren
   '/pos-app/wip-gallery': typeof PosAppWipGalleryRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
@@ -2080,6 +2094,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/loyalty/rewards': typeof PosAppLoyaltyRewardsRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
+  '/pos-app/reports/multi-outlet': typeof PosAppReportsMultiOutletRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
   '/pos-app/website-builder/templates': typeof PosAppWebsiteBuilderTemplatesRoute
@@ -2346,6 +2361,7 @@ export interface FileRoutesByTo {
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
   '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
+  '/pos-app/webhooks': typeof PosAppWebhooksRoute
   '/pos-app/website-builder': typeof PosAppWebsiteBuilderRouteWithChildren
   '/pos-app/wip-gallery': typeof PosAppWipGalleryRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
@@ -2373,6 +2389,7 @@ export interface FileRoutesByTo {
   '/pos-app/loyalty/rewards': typeof PosAppLoyaltyRewardsRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
+  '/pos-app/reports/multi-outlet': typeof PosAppReportsMultiOutletRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
   '/pos-app/website-builder/templates': typeof PosAppWebsiteBuilderTemplatesRoute
@@ -2645,6 +2662,7 @@ export interface FileRoutesById {
   '/pos-app/waitlist': typeof PosAppWaitlistRoute
   '/pos-app/wallet-approvals': typeof PosAppWalletApprovalsRoute
   '/pos-app/wallet-config': typeof PosAppWalletConfigRoute
+  '/pos-app/webhooks': typeof PosAppWebhooksRoute
   '/pos-app/website-builder': typeof PosAppWebsiteBuilderRouteWithChildren
   '/pos-app/wip-gallery': typeof PosAppWipGalleryRoute
   '/pos-app/wishlist-analytics': typeof PosAppWishlistAnalyticsRoute
@@ -2673,6 +2691,7 @@ export interface FileRoutesById {
   '/pos-app/loyalty/rewards': typeof PosAppLoyaltyRewardsRoute
   '/pos-app/menu/import': typeof PosAppMenuImportRoute
   '/pos-app/purchase-orders/$poId': typeof PosAppPurchaseOrdersPoIdRoute
+  '/pos-app/reports/multi-outlet': typeof PosAppReportsMultiOutletRoute
   '/pos-app/reports/profit': typeof PosAppReportsProfitRoute
   '/pos-app/website-builder/$layoutId': typeof PosAppWebsiteBuilderLayoutIdRoute
   '/pos-app/website-builder/templates': typeof PosAppWebsiteBuilderTemplatesRoute
@@ -2946,6 +2965,7 @@ export interface FileRouteTypes {
     | '/pos-app/waitlist'
     | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
+    | '/pos-app/webhooks'
     | '/pos-app/website-builder'
     | '/pos-app/wip-gallery'
     | '/pos-app/wishlist-analytics'
@@ -2974,6 +2994,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty/rewards'
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
+    | '/pos-app/reports/multi-outlet'
     | '/pos-app/reports/profit'
     | '/pos-app/website-builder/$layoutId'
     | '/pos-app/website-builder/templates'
@@ -3240,6 +3261,7 @@ export interface FileRouteTypes {
     | '/pos-app/waitlist'
     | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
+    | '/pos-app/webhooks'
     | '/pos-app/website-builder'
     | '/pos-app/wip-gallery'
     | '/pos-app/wishlist-analytics'
@@ -3267,6 +3289,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty/rewards'
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
+    | '/pos-app/reports/multi-outlet'
     | '/pos-app/reports/profit'
     | '/pos-app/website-builder/$layoutId'
     | '/pos-app/website-builder/templates'
@@ -3538,6 +3561,7 @@ export interface FileRouteTypes {
     | '/pos-app/waitlist'
     | '/pos-app/wallet-approvals'
     | '/pos-app/wallet-config'
+    | '/pos-app/webhooks'
     | '/pos-app/website-builder'
     | '/pos-app/wip-gallery'
     | '/pos-app/wishlist-analytics'
@@ -3566,6 +3590,7 @@ export interface FileRouteTypes {
     | '/pos-app/loyalty/rewards'
     | '/pos-app/menu/import'
     | '/pos-app/purchase-orders/$poId'
+    | '/pos-app/reports/multi-outlet'
     | '/pos-app/reports/profit'
     | '/pos-app/website-builder/$layoutId'
     | '/pos-app/website-builder/templates'
@@ -3862,6 +3887,13 @@ declare module '@tanstack/react-router' {
       path: '/website-builder'
       fullPath: '/pos-app/website-builder'
       preLoaderRoute: typeof PosAppWebsiteBuilderRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/webhooks': {
+      id: '/pos-app/webhooks'
+      path: '/webhooks'
+      fullPath: '/pos-app/webhooks'
+      preLoaderRoute: typeof PosAppWebhooksRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/wallet-config': {
@@ -5551,6 +5583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppReportsProfitRouteImport
       parentRoute: typeof PosAppReportsRoute
     }
+    '/pos-app/reports/multi-outlet': {
+      id: '/pos-app/reports/multi-outlet'
+      path: '/multi-outlet'
+      fullPath: '/pos-app/reports/multi-outlet'
+      preLoaderRoute: typeof PosAppReportsMultiOutletRouteImport
+      parentRoute: typeof PosAppReportsRoute
+    }
     '/pos-app/purchase-orders/$poId': {
       id: '/pos-app/purchase-orders/$poId'
       path: '/$poId'
@@ -6011,10 +6050,12 @@ const PosAppPurchaseOrdersRouteWithChildren =
   PosAppPurchaseOrdersRoute._addFileChildren(PosAppPurchaseOrdersRouteChildren)
 
 interface PosAppReportsRouteChildren {
+  PosAppReportsMultiOutletRoute: typeof PosAppReportsMultiOutletRoute
   PosAppReportsProfitRoute: typeof PosAppReportsProfitRoute
 }
 
 const PosAppReportsRouteChildren: PosAppReportsRouteChildren = {
+  PosAppReportsMultiOutletRoute: PosAppReportsMultiOutletRoute,
   PosAppReportsProfitRoute: PosAppReportsProfitRoute,
 }
 
@@ -6175,6 +6216,7 @@ interface PosAppRouteChildren {
   PosAppWaitlistRoute: typeof PosAppWaitlistRoute
   PosAppWalletApprovalsRoute: typeof PosAppWalletApprovalsRoute
   PosAppWalletConfigRoute: typeof PosAppWalletConfigRoute
+  PosAppWebhooksRoute: typeof PosAppWebhooksRoute
   PosAppWebsiteBuilderRoute: typeof PosAppWebsiteBuilderRouteWithChildren
   PosAppWipGalleryRoute: typeof PosAppWipGalleryRoute
   PosAppWishlistAnalyticsRoute: typeof PosAppWishlistAnalyticsRoute
@@ -6321,6 +6363,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppWaitlistRoute: PosAppWaitlistRoute,
   PosAppWalletApprovalsRoute: PosAppWalletApprovalsRoute,
   PosAppWalletConfigRoute: PosAppWalletConfigRoute,
+  PosAppWebhooksRoute: PosAppWebhooksRoute,
   PosAppWebsiteBuilderRoute: PosAppWebsiteBuilderRouteWithChildren,
   PosAppWipGalleryRoute: PosAppWipGalleryRoute,
   PosAppWishlistAnalyticsRoute: PosAppWishlistAnalyticsRoute,

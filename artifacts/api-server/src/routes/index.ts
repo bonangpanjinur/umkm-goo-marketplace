@@ -7,6 +7,7 @@ import staffRouter from "./staff.js";
 import printerRouter from "./printer.js";
 import rajaongkirRouter from "./rajaongkir.js";
 import sseRouter from "./sse.js";
+import webhooksRouter from "./webhooks.js";
 
 const router: IRouter = Router();
 
@@ -19,5 +20,7 @@ router.use(printerRouter);
 router.use(rajaongkirRouter);
 // F5-1 · F5-2 · F5-3 — SSE Realtime relay
 router.use(sseRouter);
+// F6-3 — Outgoing Webhooks
+router.use(webhooksRouter);
 
 export default router;

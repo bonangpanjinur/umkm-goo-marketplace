@@ -121,3 +121,45 @@ export function isMidtransPaymentSuccess(notification: MidtransNotification): bo
 export function isMidtransPaymentFailed(notification: MidtransNotification): boolean {
   return ["deny", "cancel", "expire", "failure"].includes(notification.transaction_status);
 }
+
+export interface MidtransRefundPayload {
+  refund_key: string;
+  amount: number;
+  reason: string;
+}
+
+export interface MidtransRefundResponse {
+  transaction_id: string;
+  order_id: string;
+  refund_key: string;
+  refund_amount: string;
+  refund_status: string;
+  reason: string;
+}
+
+export async function refundMidtransTransaction(
+  config: MidtransConfig,
+  gatewayTransactionId: string,
+  payload: MidtransRefundPayload,
+): Promise<MidtransRefundResponse> {
+  const base = config.mode === "production" ? MIDTRANS_PRODUCTION_BASE : MIDTRANS_SANDBOX_BASE;
+  const res = await httpFetch(
+    `${base}/v2/${encodeURIComponent(gatewayTransactionId)}/refund`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: buildAuthHeader(config.serverKey),
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Midtrans refund error ${res.status}: ${body}`);
+  }
+
+  return res.json() as Promise<MidtransRefundResponse>;
+}

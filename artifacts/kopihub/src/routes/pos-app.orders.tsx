@@ -502,6 +502,36 @@ function DetailDialog({
     }
   }
 
+  async function handleGatewayRefund() {
+    const amt = Number(refundAmount || 0);
+    if (amt <= 0) { toast.error("Jumlah refund harus > 0"); return; }
+    const reason = refundReason.trim() || "Pembatalan order";
+    setRefunding(true);
+    try {
+      const res = await fetch("/api/payments/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: order.id, amount: amt, reason }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Refund gateway gagal");
+      await refundOrder(order.id, amt, reason, refundMethod);
+      logStaffAction({
+        shopId,
+        action: "order.refund_gateway",
+        meta: { order_id: order.id, order_no: order.order_no, amount: amt, reason, gateway: json.gateway },
+      });
+      toast.success(`Refund ${formatIDR(amt)} via ${json.gateway} berhasil`);
+      setRefundOpen(false);
+      onVoided();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Gagal refund gateway";
+      toast.error(msg);
+    } finally {
+      setRefunding(false);
+    }
+  }
+
   async function handleVoid(reason: string) {
     setVoiding(true);
     try {
@@ -779,8 +809,12 @@ function DetailDialog({
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-wrap gap-2 sm:gap-0">
               <Button variant="ghost" onClick={() => setRefundOpen(false)}>Batal</Button>
+              <Button variant="outline" onClick={handleGatewayRefund} disabled={refunding} title="Kirim permintaan refund ke Midtrans/Xendit (hanya jika order dibayar via gateway)">
+                {refunding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Refund via Gateway
+              </Button>
               <Button onClick={handleRefund} disabled={refunding}>
                 {refunding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Konfirmasi refund

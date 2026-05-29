@@ -8,6 +8,7 @@ import {
   verifyMidtransSignature,
   isMidtransPaymentSuccess,
   isMidtransPaymentFailed,
+  refundMidtransTransaction,
   type MidtransNotification,
 } from "../lib/midtrans.js";
 import {
@@ -15,6 +16,7 @@ import {
   verifyXenditWebhookToken,
   isXenditPaymentSuccess,
   isXenditPaymentFailed,
+  refundXenditPayment,
   type XenditWebhookPayload,
 } from "../lib/xendit.js";
 import {
@@ -23,6 +25,7 @@ import {
   buildXenditConfig,
 } from "../lib/gateway-config.js";
 import { supabaseUpdate, supabaseInsert, supabaseSelect } from "../lib/supabase-admin.js";
+import { dispatchWebhookEvent } from "./webhooks.js";
 
 /** If the orderId belongs to an ad payment (format: "ad-{adRequestId}-{ts}"),
  *  extract and return the ad_request id. */
@@ -388,6 +391,16 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
         await handleBookingDepositPaid(tx.orderId, notification.transaction_id);
+        if (tx.shopId) {
+          dispatchWebhookEvent(tx.shopId, "payment.paid", {
+            order_id: tx.orderId,
+            transaction_id: tx.id,
+            gateway: "midtrans",
+            amount: tx.amount,
+            payment_method: tx.paymentMethod,
+            paid_at: paidAt?.toISOString(),
+          }).catch(() => {/* fire-and-forget */});
+        }
       }
     }
 
@@ -479,6 +492,16 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
         await handleBookingDepositPaid(tx.orderId, payload.payment_id ?? payload.id);
+        if (tx.shopId) {
+          dispatchWebhookEvent(tx.shopId, "payment.paid", {
+            order_id: tx.orderId,
+            transaction_id: tx.id,
+            gateway: "xendit",
+            amount: tx.amount,
+            payment_method: tx.paymentMethod,
+            paid_at: paidAt?.toISOString(),
+          }).catch(() => {/* fire-and-forget */});
+        }
       }
     }
 
@@ -519,6 +542,104 @@ router.get("/payments/gateway-config", (_req: Request, res: Response) => {
     midtrans_mode: settings.midtrans_mode,
     xendit_enabled: settings.xendit_enabled,
   });
+});
+
+// ── F6-1: Auto Refund ke Gateway ───────────────────────────────────────────
+// POST /api/payments/refund
+// Body: { order_id, amount, reason? }
+// Mencari transaksi yang "paid" → kirim refund ke Midtrans/Xendit → update status
+router.post("/payments/refund", async (req: Request, res: Response) => {
+  const { order_id, amount, reason } = req.body as {
+    order_id: string;
+    amount?: number;
+    reason?: string;
+  };
+
+  if (!order_id) {
+    res.status(400).json({ error: "order_id wajib diisi" });
+    return;
+  }
+
+  const txRows = await db
+    .select()
+    .from(paymentTransactions)
+    .where(eq(paymentTransactions.orderId, order_id))
+    .orderBy(paymentTransactions.createdAt);
+
+  const paid = txRows.filter((t) => t.status === "paid");
+  if (paid.length === 0) {
+    res.status(404).json({ error: "Tidak ada transaksi yang lunas untuk order ini" });
+    return;
+  }
+
+  const tx = paid[paid.length - 1]!;
+  const refundAmount = amount ? Math.round(amount) : Math.round(Number(tx.amount));
+  const refundReason = reason ?? "Pembatalan order";
+
+  const settings = mergeGatewaySettings(null);
+
+  try {
+    let gatewayResult: Record<string, unknown> = {};
+
+    if (tx.gateway === "midtrans" && tx.gatewayTransactionId) {
+      if (!settings.midtrans_enabled || !settings.midtrans_server_key) {
+        res.status(422).json({ error: "Midtrans belum dikonfigurasi" });
+        return;
+      }
+      const config = buildMidtransConfig(settings);
+      const refundKey = `refund-${order_id}-${Date.now()}`;
+      const result = await refundMidtransTransaction(config, tx.gatewayTransactionId, {
+        refund_key: refundKey,
+        amount: refundAmount,
+        reason: refundReason,
+      });
+      gatewayResult = result as unknown as Record<string, unknown>;
+
+    } else if (tx.gateway === "xendit" && tx.gatewayTransactionId) {
+      if (!settings.xendit_enabled || !settings.xendit_secret_key) {
+        res.status(422).json({ error: "Xendit belum dikonfigurasi" });
+        return;
+      }
+      const config = buildXenditConfig(settings);
+      const result = await refundXenditPayment(config, {
+        invoice_id: tx.gatewayTransactionId,
+        amount: refundAmount,
+        external_id: `refund-${order_id}-${Date.now()}`,
+        reason: refundReason,
+      });
+      gatewayResult = result as unknown as Record<string, unknown>;
+
+    } else if (tx.gateway === "manual") {
+      gatewayResult = { note: "Refund manual — transfer balik ke rekening pelanggan" };
+    } else {
+      res.status(422).json({ error: "Gateway tidak didukung untuk refund otomatis" });
+      return;
+    }
+
+    await db
+      .update(paymentTransactions)
+      .set({
+        status: "refunded",
+        gatewayResponse: { ...((tx.gatewayResponse as Record<string, unknown>) ?? {}), refund: gatewayResult },
+        updatedAt: new Date(),
+      })
+      .where(eq(paymentTransactions.id, tx.id));
+
+    logger.info({ order_id, gateway: tx.gateway, amount: refundAmount }, "Refund processed");
+
+    res.json({
+      ok: true,
+      order_id,
+      gateway: tx.gateway,
+      refund_amount: refundAmount,
+      reason: refundReason,
+      gateway_result: gatewayResult,
+    });
+  } catch (err: unknown) {
+    logger.error({ err, order_id }, "Refund failed");
+    const message = err instanceof Error ? err.message : "Gagal memproses refund";
+    res.status(502).json({ error: message });
+  }
 });
 
 export default router;
