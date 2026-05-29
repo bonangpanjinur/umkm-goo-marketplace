@@ -57,6 +57,7 @@ import { Route as PosAppTravelManifestRouteImport } from './routes/pos-app.trave
 import { Route as PosAppTravelItineraryRouteImport } from './routes/pos-app.travel-itinerary'
 import { Route as PosAppTravelInstallmentsRouteImport } from './routes/pos-app.travel-installments'
 import { Route as PosAppTestimonialsRouteImport } from './routes/pos-app.testimonials'
+import { Route as PosAppTelemedicineRouteImport } from './routes/pos-app.telemedicine'
 import { Route as PosAppTablesRouteImport } from './routes/pos-app.tables'
 import { Route as PosAppTableQrRouteImport } from './routes/pos-app.table-qr'
 import { Route as PosAppTableMapsRouteImport } from './routes/pos-app.table-maps'
@@ -101,6 +102,7 @@ import { Route as PosAppQaRouteImport } from './routes/pos-app.qa'
 import { Route as PosAppPurchaseOrdersRouteImport } from './routes/pos-app.purchase-orders'
 import { Route as PosAppPromosRouteImport } from './routes/pos-app.promos'
 import { Route as PosAppPromoCalendarRouteImport } from './routes/pos-app.promo-calendar'
+import { Route as PosAppProductSubscriptionsRouteImport } from './routes/pos-app.product-subscriptions'
 import { Route as PosAppProductReturnsRouteImport } from './routes/pos-app.product-returns'
 import { Route as PosAppPrintersRouteImport } from './routes/pos-app.printers'
 import { Route as PosAppPrescriptionsRouteImport } from './routes/pos-app.prescriptions'
@@ -125,6 +127,7 @@ import { Route as PosAppMarketplaceOrdersRouteImport } from './routes/pos-app.ma
 import { Route as PosAppMarketplaceAnalyticsRouteImport } from './routes/pos-app.marketplace-analytics'
 import { Route as PosAppLoyaltyRouteImport } from './routes/pos-app.loyalty'
 import { Route as PosAppLookbookRouteImport } from './routes/pos-app.lookbook'
+import { Route as PosAppLiveCommerceRouteImport } from './routes/pos-app.live-commerce'
 import { Route as PosAppLimitedEditionsRouteImport } from './routes/pos-app.limited-editions'
 import { Route as PosAppLessonProgressRouteImport } from './routes/pos-app.lesson-progress'
 import { Route as PosAppLeadsRouteImport } from './routes/pos-app.leads'
@@ -141,6 +144,7 @@ import { Route as PosAppInventoryRouteImport } from './routes/pos-app.inventory'
 import { Route as PosAppInboxRouteImport } from './routes/pos-app.inbox'
 import { Route as PosAppIklanRouteImport } from './routes/pos-app.iklan'
 import { Route as PosAppHappyHourRouteImport } from './routes/pos-app.happy-hour'
+import { Route as PosAppGroupBuyRouteImport } from './routes/pos-app.group-buy'
 import { Route as PosAppFollowupRemindersRouteImport } from './routes/pos-app.followup-reminders'
 import { Route as PosAppFlyersRouteImport } from './routes/pos-app.flyers'
 import { Route as PosAppFlashSaleRouteImport } from './routes/pos-app.flash-sale'
@@ -183,6 +187,7 @@ import { Route as PosAppAnamnesisRouteImport } from './routes/pos-app.anamnesis'
 import { Route as PosAppAboutPageRouteImport } from './routes/pos-app.about-page'
 import { Route as PesananOrderIdRouteImport } from './routes/pesanan.$orderId'
 import { Route as OrderSlugRouteImport } from './routes/order.$slug'
+import { Route as LiveShopSlugRouteImport } from './routes/live.$shopSlug'
 import { Route as KurirProfileRouteImport } from './routes/kurir.profile'
 import { Route as KurirHistoryRouteImport } from './routes/kurir.history'
 import { Route as KurirEarningsRouteImport } from './routes/kurir.earnings'
@@ -199,6 +204,7 @@ import { Route as AkunReturnsRouteImport } from './routes/akun.returns'
 import { Route as AkunReferralRouteImport } from './routes/akun.referral'
 import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunLoyaltyRouteImport } from './routes/akun.loyalty'
+import { Route as AkunLanggananRouteImport } from './routes/akun.langganan'
 import { Route as AkunKursusRouteImport } from './routes/akun.kursus'
 import { Route as AkunInboxRouteImport } from './routes/akun.inbox'
 import { Route as AkunFavoritRouteImport } from './routes/akun.favorit'
@@ -271,6 +277,8 @@ import { Route as TokoSlugSaldoRouteImport } from './routes/toko.$slug.saldo'
 import { Route as TokoSlugReservasiRouteImport } from './routes/toko.$slug.reservasi'
 import { Route as TokoSlugMembershipRouteImport } from './routes/toko.$slug.membership'
 import { Route as TokoSlugMapRouteImport } from './routes/toko.$slug.map'
+import { Route as TokoSlugKonsultasiRouteImport } from './routes/toko.$slug.konsultasi'
+import { Route as TokoSlugGroupBuyRouteImport } from './routes/toko.$slug.group-buy'
 import { Route as TokoSlugCustomOrderRouteImport } from './routes/toko.$slug.custom-order'
 import { Route as TokoSlugChatRouteImport } from './routes/toko.$slug.chat'
 import { Route as TokoSlugBookingRouteImport } from './routes/toko.$slug.booking'
@@ -550,6 +558,11 @@ const PosAppTestimonialsRoute = PosAppTestimonialsRouteImport.update({
   path: '/testimonials',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppTelemedicineRoute = PosAppTelemedicineRouteImport.update({
+  id: '/telemedicine',
+  path: '/telemedicine',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppTablesRoute = PosAppTablesRouteImport.update({
   id: '/tables',
   path: '/tables',
@@ -774,6 +787,12 @@ const PosAppPromoCalendarRoute = PosAppPromoCalendarRouteImport.update({
   path: '/promo-calendar',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppProductSubscriptionsRoute =
+  PosAppProductSubscriptionsRouteImport.update({
+    id: '/product-subscriptions',
+    path: '/product-subscriptions',
+    getParentRoute: () => PosAppRoute,
+  } as any)
 const PosAppProductReturnsRoute = PosAppProductReturnsRouteImport.update({
   id: '/product-returns',
   path: '/product-returns',
@@ -895,6 +914,11 @@ const PosAppLookbookRoute = PosAppLookbookRouteImport.update({
   path: '/lookbook',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppLiveCommerceRoute = PosAppLiveCommerceRouteImport.update({
+  id: '/live-commerce',
+  path: '/live-commerce',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppLimitedEditionsRoute = PosAppLimitedEditionsRouteImport.update({
   id: '/limited-editions',
   path: '/limited-editions',
@@ -973,6 +997,11 @@ const PosAppIklanRoute = PosAppIklanRouteImport.update({
 const PosAppHappyHourRoute = PosAppHappyHourRouteImport.update({
   id: '/happy-hour',
   path: '/happy-hour',
+  getParentRoute: () => PosAppRoute,
+} as any)
+const PosAppGroupBuyRoute = PosAppGroupBuyRouteImport.update({
+  id: '/group-buy',
+  path: '/group-buy',
   getParentRoute: () => PosAppRoute,
 } as any)
 const PosAppFollowupRemindersRoute = PosAppFollowupRemindersRouteImport.update({
@@ -1186,6 +1215,11 @@ const OrderSlugRoute = OrderSlugRouteImport.update({
   path: '/order/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LiveShopSlugRoute = LiveShopSlugRouteImport.update({
+  id: '/live/$shopSlug',
+  path: '/live/$shopSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KurirProfileRoute = KurirProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -1264,6 +1298,11 @@ const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
 const AkunLoyaltyRoute = AkunLoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunLanggananRoute = AkunLanggananRouteImport.update({
+  id: '/langganan',
+  path: '/langganan',
   getParentRoute: () => AkunRoute,
 } as any)
 const AkunKursusRoute = AkunKursusRouteImport.update({
@@ -1629,6 +1668,16 @@ const TokoSlugMapRoute = TokoSlugMapRouteImport.update({
   path: '/map',
   getParentRoute: () => TokoSlugRoute,
 } as any)
+const TokoSlugKonsultasiRoute = TokoSlugKonsultasiRouteImport.update({
+  id: '/konsultasi',
+  path: '/konsultasi',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
+const TokoSlugGroupBuyRoute = TokoSlugGroupBuyRouteImport.update({
+  id: '/group-buy',
+  path: '/group-buy',
+  getParentRoute: () => TokoSlugRoute,
+} as any)
 const TokoSlugCustomOrderRoute = TokoSlugCustomOrderRouteImport.update({
   id: '/custom-order',
   path: '/custom-order',
@@ -1908,6 +1957,7 @@ export interface FileRoutesByFullPath {
   '/akun/favorit': typeof AkunFavoritRoute
   '/akun/inbox': typeof AkunInboxRoute
   '/akun/kursus': typeof AkunKursusRouteWithChildren
+  '/akun/langganan': typeof AkunLanggananRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -1924,6 +1974,7 @@ export interface FileRoutesByFullPath {
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
+  '/live/$shopSlug': typeof LiveShopSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
@@ -1966,6 +2017,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
   '/pos-app/flyers': typeof PosAppFlyersRoute
   '/pos-app/followup-reminders': typeof PosAppFollowupRemindersRoute
+  '/pos-app/group-buy': typeof PosAppGroupBuyRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inbox': typeof PosAppInboxRoute
@@ -1982,6 +2034,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/leads': typeof PosAppLeadsRoute
   '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
+  '/pos-app/live-commerce': typeof PosAppLiveCommerceRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRouteWithChildren
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
@@ -2006,6 +2059,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/prescriptions': typeof PosAppPrescriptionsRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
   '/pos-app/product-returns': typeof PosAppProductReturnsRoute
+  '/pos-app/product-subscriptions': typeof PosAppProductSubscriptionsRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
@@ -2050,6 +2104,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/telemedicine': typeof PosAppTelemedicineRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
   '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
@@ -2107,6 +2162,8 @@ export interface FileRoutesByFullPath {
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
+  '/toko/$slug/group-buy': typeof TokoSlugGroupBuyRoute
+  '/toko/$slug/konsultasi': typeof TokoSlugKonsultasiRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
   '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
@@ -2205,6 +2262,7 @@ export interface FileRoutesByTo {
   '/akun/favorit': typeof AkunFavoritRoute
   '/akun/inbox': typeof AkunInboxRoute
   '/akun/kursus': typeof AkunKursusRouteWithChildren
+  '/akun/langganan': typeof AkunLanggananRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -2221,6 +2279,7 @@ export interface FileRoutesByTo {
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
+  '/live/$shopSlug': typeof LiveShopSlugRoute
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
   '/pos-app/anamnesis': typeof PosAppAnamnesisRoute
@@ -2262,6 +2321,7 @@ export interface FileRoutesByTo {
   '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
   '/pos-app/flyers': typeof PosAppFlyersRoute
   '/pos-app/followup-reminders': typeof PosAppFollowupRemindersRoute
+  '/pos-app/group-buy': typeof PosAppGroupBuyRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inbox': typeof PosAppInboxRoute
@@ -2278,6 +2338,7 @@ export interface FileRoutesByTo {
   '/pos-app/leads': typeof PosAppLeadsRoute
   '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
+  '/pos-app/live-commerce': typeof PosAppLiveCommerceRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRouteWithChildren
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
@@ -2302,6 +2363,7 @@ export interface FileRoutesByTo {
   '/pos-app/prescriptions': typeof PosAppPrescriptionsRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
   '/pos-app/product-returns': typeof PosAppProductReturnsRoute
+  '/pos-app/product-subscriptions': typeof PosAppProductSubscriptionsRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
@@ -2346,6 +2408,7 @@ export interface FileRoutesByTo {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/telemedicine': typeof PosAppTelemedicineRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
   '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
@@ -2402,6 +2465,8 @@ export interface FileRoutesByTo {
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
+  '/toko/$slug/group-buy': typeof TokoSlugGroupBuyRoute
+  '/toko/$slug/konsultasi': typeof TokoSlugKonsultasiRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
   '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
@@ -2505,6 +2570,7 @@ export interface FileRoutesById {
   '/akun/favorit': typeof AkunFavoritRoute
   '/akun/inbox': typeof AkunInboxRoute
   '/akun/kursus': typeof AkunKursusRouteWithChildren
+  '/akun/langganan': typeof AkunLanggananRoute
   '/akun/loyalty': typeof AkunLoyaltyRoute
   '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/referral': typeof AkunReferralRoute
@@ -2521,6 +2587,7 @@ export interface FileRoutesById {
   '/kurir/earnings': typeof KurirEarningsRoute
   '/kurir/history': typeof KurirHistoryRoute
   '/kurir/profile': typeof KurirProfileRoute
+  '/live/$shopSlug': typeof LiveShopSlugRoute
   '/order/$slug': typeof OrderSlugRouteWithChildren
   '/pesanan/$orderId': typeof PesananOrderIdRouteWithChildren
   '/pos-app/about-page': typeof PosAppAboutPageRoute
@@ -2563,6 +2630,7 @@ export interface FileRoutesById {
   '/pos-app/flash-sale': typeof PosAppFlashSaleRoute
   '/pos-app/flyers': typeof PosAppFlyersRoute
   '/pos-app/followup-reminders': typeof PosAppFollowupRemindersRoute
+  '/pos-app/group-buy': typeof PosAppGroupBuyRoute
   '/pos-app/happy-hour': typeof PosAppHappyHourRoute
   '/pos-app/iklan': typeof PosAppIklanRoute
   '/pos-app/inbox': typeof PosAppInboxRoute
@@ -2579,6 +2647,7 @@ export interface FileRoutesById {
   '/pos-app/leads': typeof PosAppLeadsRoute
   '/pos-app/lesson-progress': typeof PosAppLessonProgressRoute
   '/pos-app/limited-editions': typeof PosAppLimitedEditionsRoute
+  '/pos-app/live-commerce': typeof PosAppLiveCommerceRoute
   '/pos-app/lookbook': typeof PosAppLookbookRoute
   '/pos-app/loyalty': typeof PosAppLoyaltyRouteWithChildren
   '/pos-app/marketplace-analytics': typeof PosAppMarketplaceAnalyticsRoute
@@ -2603,6 +2672,7 @@ export interface FileRoutesById {
   '/pos-app/prescriptions': typeof PosAppPrescriptionsRoute
   '/pos-app/printers': typeof PosAppPrintersRoute
   '/pos-app/product-returns': typeof PosAppProductReturnsRoute
+  '/pos-app/product-subscriptions': typeof PosAppProductSubscriptionsRoute
   '/pos-app/promo-calendar': typeof PosAppPromoCalendarRoute
   '/pos-app/promos': typeof PosAppPromosRoute
   '/pos-app/purchase-orders': typeof PosAppPurchaseOrdersRouteWithChildren
@@ -2647,6 +2717,7 @@ export interface FileRoutesById {
   '/pos-app/table-maps': typeof PosAppTableMapsRoute
   '/pos-app/table-qr': typeof PosAppTableQrRoute
   '/pos-app/tables': typeof PosAppTablesRoute
+  '/pos-app/telemedicine': typeof PosAppTelemedicineRoute
   '/pos-app/testimonials': typeof PosAppTestimonialsRoute
   '/pos-app/travel-installments': typeof PosAppTravelInstallmentsRoute
   '/pos-app/travel-itinerary': typeof PosAppTravelItineraryRoute
@@ -2704,6 +2775,8 @@ export interface FileRoutesById {
   '/toko/$slug/booking': typeof TokoSlugBookingRoute
   '/toko/$slug/chat': typeof TokoSlugChatRoute
   '/toko/$slug/custom-order': typeof TokoSlugCustomOrderRouteWithChildren
+  '/toko/$slug/group-buy': typeof TokoSlugGroupBuyRoute
+  '/toko/$slug/konsultasi': typeof TokoSlugKonsultasiRoute
   '/toko/$slug/map': typeof TokoSlugMapRoute
   '/toko/$slug/membership': typeof TokoSlugMembershipRoute
   '/toko/$slug/reservasi': typeof TokoSlugReservasiRoute
@@ -2808,6 +2881,7 @@ export interface FileRouteTypes {
     | '/akun/favorit'
     | '/akun/inbox'
     | '/akun/kursus'
+    | '/akun/langganan'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -2824,6 +2898,7 @@ export interface FileRouteTypes {
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
+    | '/live/$shopSlug'
     | '/order/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
@@ -2866,6 +2941,7 @@ export interface FileRouteTypes {
     | '/pos-app/flash-sale'
     | '/pos-app/flyers'
     | '/pos-app/followup-reminders'
+    | '/pos-app/group-buy'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
     | '/pos-app/inbox'
@@ -2882,6 +2958,7 @@ export interface FileRouteTypes {
     | '/pos-app/leads'
     | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
+    | '/pos-app/live-commerce'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
@@ -2906,6 +2983,7 @@ export interface FileRouteTypes {
     | '/pos-app/prescriptions'
     | '/pos-app/printers'
     | '/pos-app/product-returns'
+    | '/pos-app/product-subscriptions'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
@@ -2950,6 +3028,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/telemedicine'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
     | '/pos-app/travel-itinerary'
@@ -3007,6 +3086,8 @@ export interface FileRouteTypes {
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
+    | '/toko/$slug/group-buy'
+    | '/toko/$slug/konsultasi'
     | '/toko/$slug/map'
     | '/toko/$slug/membership'
     | '/toko/$slug/reservasi'
@@ -3105,6 +3186,7 @@ export interface FileRouteTypes {
     | '/akun/favorit'
     | '/akun/inbox'
     | '/akun/kursus'
+    | '/akun/langganan'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -3121,6 +3203,7 @@ export interface FileRouteTypes {
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
+    | '/live/$shopSlug'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
     | '/pos-app/anamnesis'
@@ -3162,6 +3245,7 @@ export interface FileRouteTypes {
     | '/pos-app/flash-sale'
     | '/pos-app/flyers'
     | '/pos-app/followup-reminders'
+    | '/pos-app/group-buy'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
     | '/pos-app/inbox'
@@ -3178,6 +3262,7 @@ export interface FileRouteTypes {
     | '/pos-app/leads'
     | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
+    | '/pos-app/live-commerce'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
@@ -3202,6 +3287,7 @@ export interface FileRouteTypes {
     | '/pos-app/prescriptions'
     | '/pos-app/printers'
     | '/pos-app/product-returns'
+    | '/pos-app/product-subscriptions'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
@@ -3246,6 +3332,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/telemedicine'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
     | '/pos-app/travel-itinerary'
@@ -3302,6 +3389,8 @@ export interface FileRouteTypes {
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
+    | '/toko/$slug/group-buy'
+    | '/toko/$slug/konsultasi'
     | '/toko/$slug/map'
     | '/toko/$slug/membership'
     | '/toko/$slug/reservasi'
@@ -3404,6 +3493,7 @@ export interface FileRouteTypes {
     | '/akun/favorit'
     | '/akun/inbox'
     | '/akun/kursus'
+    | '/akun/langganan'
     | '/akun/loyalty'
     | '/akun/notifikasi'
     | '/akun/referral'
@@ -3420,6 +3510,7 @@ export interface FileRouteTypes {
     | '/kurir/earnings'
     | '/kurir/history'
     | '/kurir/profile'
+    | '/live/$shopSlug'
     | '/order/$slug'
     | '/pesanan/$orderId'
     | '/pos-app/about-page'
@@ -3462,6 +3553,7 @@ export interface FileRouteTypes {
     | '/pos-app/flash-sale'
     | '/pos-app/flyers'
     | '/pos-app/followup-reminders'
+    | '/pos-app/group-buy'
     | '/pos-app/happy-hour'
     | '/pos-app/iklan'
     | '/pos-app/inbox'
@@ -3478,6 +3570,7 @@ export interface FileRouteTypes {
     | '/pos-app/leads'
     | '/pos-app/lesson-progress'
     | '/pos-app/limited-editions'
+    | '/pos-app/live-commerce'
     | '/pos-app/lookbook'
     | '/pos-app/loyalty'
     | '/pos-app/marketplace-analytics'
@@ -3502,6 +3595,7 @@ export interface FileRouteTypes {
     | '/pos-app/prescriptions'
     | '/pos-app/printers'
     | '/pos-app/product-returns'
+    | '/pos-app/product-subscriptions'
     | '/pos-app/promo-calendar'
     | '/pos-app/promos'
     | '/pos-app/purchase-orders'
@@ -3546,6 +3640,7 @@ export interface FileRouteTypes {
     | '/pos-app/table-maps'
     | '/pos-app/table-qr'
     | '/pos-app/tables'
+    | '/pos-app/telemedicine'
     | '/pos-app/testimonials'
     | '/pos-app/travel-installments'
     | '/pos-app/travel-itinerary'
@@ -3603,6 +3698,8 @@ export interface FileRouteTypes {
     | '/toko/$slug/booking'
     | '/toko/$slug/chat'
     | '/toko/$slug/custom-order'
+    | '/toko/$slug/group-buy'
+    | '/toko/$slug/konsultasi'
     | '/toko/$slug/map'
     | '/toko/$slug/membership'
     | '/toko/$slug/reservasi'
@@ -3648,6 +3745,7 @@ export interface RootRouteChildren {
   KatalogSlugRoute: typeof KatalogSlugRoute
   KategoriSlugRoute: typeof KategoriSlugRouteWithChildren
   KontrakTokenRoute: typeof KontrakTokenRoute
+  LiveShopSlugRoute: typeof LiveShopSlugRoute
   OrderSlugRoute: typeof OrderSlugRouteWithChildren
   PesananOrderIdRoute: typeof PesananOrderIdRouteWithChildren
   QuoteIdRoute: typeof QuoteIdRoute
@@ -4001,6 +4099,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppTestimonialsRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/telemedicine': {
+      id: '/pos-app/telemedicine'
+      path: '/telemedicine'
+      fullPath: '/pos-app/telemedicine'
+      preLoaderRoute: typeof PosAppTelemedicineRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/tables': {
       id: '/pos-app/tables'
       path: '/tables'
@@ -4309,6 +4414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppPromoCalendarRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/product-subscriptions': {
+      id: '/pos-app/product-subscriptions'
+      path: '/product-subscriptions'
+      fullPath: '/pos-app/product-subscriptions'
+      preLoaderRoute: typeof PosAppProductSubscriptionsRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/product-returns': {
       id: '/pos-app/product-returns'
       path: '/product-returns'
@@ -4477,6 +4589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosAppLookbookRouteImport
       parentRoute: typeof PosAppRoute
     }
+    '/pos-app/live-commerce': {
+      id: '/pos-app/live-commerce'
+      path: '/live-commerce'
+      fullPath: '/pos-app/live-commerce'
+      preLoaderRoute: typeof PosAppLiveCommerceRouteImport
+      parentRoute: typeof PosAppRoute
+    }
     '/pos-app/limited-editions': {
       id: '/pos-app/limited-editions'
       path: '/limited-editions'
@@ -4587,6 +4706,13 @@ declare module '@tanstack/react-router' {
       path: '/happy-hour'
       fullPath: '/pos-app/happy-hour'
       preLoaderRoute: typeof PosAppHappyHourRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/group-buy': {
+      id: '/pos-app/group-buy'
+      path: '/group-buy'
+      fullPath: '/pos-app/group-buy'
+      preLoaderRoute: typeof PosAppGroupBuyRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/followup-reminders': {
@@ -4883,6 +5009,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/live/$shopSlug': {
+      id: '/live/$shopSlug'
+      path: '/live/$shopSlug'
+      fullPath: '/live/$shopSlug'
+      preLoaderRoute: typeof LiveShopSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kurir/profile': {
       id: '/kurir/profile'
       path: '/profile'
@@ -4993,6 +5126,13 @@ declare module '@tanstack/react-router' {
       path: '/loyalty'
       fullPath: '/akun/loyalty'
       preLoaderRoute: typeof AkunLoyaltyRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/langganan': {
+      id: '/akun/langganan'
+      path: '/langganan'
+      fullPath: '/akun/langganan'
+      preLoaderRoute: typeof AkunLanggananRouteImport
       parentRoute: typeof AkunRoute
     }
     '/akun/kursus': {
@@ -5499,6 +5639,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TokoSlugMapRouteImport
       parentRoute: typeof TokoSlugRoute
     }
+    '/toko/$slug/konsultasi': {
+      id: '/toko/$slug/konsultasi'
+      path: '/konsultasi'
+      fullPath: '/toko/$slug/konsultasi'
+      preLoaderRoute: typeof TokoSlugKonsultasiRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
+    '/toko/$slug/group-buy': {
+      id: '/toko/$slug/group-buy'
+      path: '/group-buy'
+      fullPath: '/toko/$slug/group-buy'
+      preLoaderRoute: typeof TokoSlugGroupBuyRouteImport
+      parentRoute: typeof TokoSlugRoute
+    }
     '/toko/$slug/custom-order': {
       id: '/toko/$slug/custom-order'
       path: '/custom-order'
@@ -5939,6 +6093,7 @@ interface AkunRouteChildren {
   AkunFavoritRoute: typeof AkunFavoritRoute
   AkunInboxRoute: typeof AkunInboxRoute
   AkunKursusRoute: typeof AkunKursusRouteWithChildren
+  AkunLanggananRoute: typeof AkunLanggananRoute
   AkunLoyaltyRoute: typeof AkunLoyaltyRoute
   AkunNotifikasiRoute: typeof AkunNotifikasiRoute
   AkunReferralRoute: typeof AkunReferralRoute
@@ -5960,6 +6115,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunFavoritRoute: AkunFavoritRoute,
   AkunInboxRoute: AkunInboxRoute,
   AkunKursusRoute: AkunKursusRouteWithChildren,
+  AkunLanggananRoute: AkunLanggananRoute,
   AkunLoyaltyRoute: AkunLoyaltyRoute,
   AkunNotifikasiRoute: AkunNotifikasiRoute,
   AkunReferralRoute: AkunReferralRoute,
@@ -6117,6 +6273,7 @@ interface PosAppRouteChildren {
   PosAppFlashSaleRoute: typeof PosAppFlashSaleRoute
   PosAppFlyersRoute: typeof PosAppFlyersRoute
   PosAppFollowupRemindersRoute: typeof PosAppFollowupRemindersRoute
+  PosAppGroupBuyRoute: typeof PosAppGroupBuyRoute
   PosAppHappyHourRoute: typeof PosAppHappyHourRoute
   PosAppIklanRoute: typeof PosAppIklanRoute
   PosAppInboxRoute: typeof PosAppInboxRoute
@@ -6133,6 +6290,7 @@ interface PosAppRouteChildren {
   PosAppLeadsRoute: typeof PosAppLeadsRoute
   PosAppLessonProgressRoute: typeof PosAppLessonProgressRoute
   PosAppLimitedEditionsRoute: typeof PosAppLimitedEditionsRoute
+  PosAppLiveCommerceRoute: typeof PosAppLiveCommerceRoute
   PosAppLookbookRoute: typeof PosAppLookbookRoute
   PosAppLoyaltyRoute: typeof PosAppLoyaltyRouteWithChildren
   PosAppMarketplaceAnalyticsRoute: typeof PosAppMarketplaceAnalyticsRoute
@@ -6157,6 +6315,7 @@ interface PosAppRouteChildren {
   PosAppPrescriptionsRoute: typeof PosAppPrescriptionsRoute
   PosAppPrintersRoute: typeof PosAppPrintersRoute
   PosAppProductReturnsRoute: typeof PosAppProductReturnsRoute
+  PosAppProductSubscriptionsRoute: typeof PosAppProductSubscriptionsRoute
   PosAppPromoCalendarRoute: typeof PosAppPromoCalendarRoute
   PosAppPromosRoute: typeof PosAppPromosRoute
   PosAppPurchaseOrdersRoute: typeof PosAppPurchaseOrdersRouteWithChildren
@@ -6201,6 +6360,7 @@ interface PosAppRouteChildren {
   PosAppTableMapsRoute: typeof PosAppTableMapsRoute
   PosAppTableQrRoute: typeof PosAppTableQrRoute
   PosAppTablesRoute: typeof PosAppTablesRoute
+  PosAppTelemedicineRoute: typeof PosAppTelemedicineRoute
   PosAppTestimonialsRoute: typeof PosAppTestimonialsRoute
   PosAppTravelInstallmentsRoute: typeof PosAppTravelInstallmentsRoute
   PosAppTravelItineraryRoute: typeof PosAppTravelItineraryRoute
@@ -6264,6 +6424,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppFlashSaleRoute: PosAppFlashSaleRoute,
   PosAppFlyersRoute: PosAppFlyersRoute,
   PosAppFollowupRemindersRoute: PosAppFollowupRemindersRoute,
+  PosAppGroupBuyRoute: PosAppGroupBuyRoute,
   PosAppHappyHourRoute: PosAppHappyHourRoute,
   PosAppIklanRoute: PosAppIklanRoute,
   PosAppInboxRoute: PosAppInboxRoute,
@@ -6280,6 +6441,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppLeadsRoute: PosAppLeadsRoute,
   PosAppLessonProgressRoute: PosAppLessonProgressRoute,
   PosAppLimitedEditionsRoute: PosAppLimitedEditionsRoute,
+  PosAppLiveCommerceRoute: PosAppLiveCommerceRoute,
   PosAppLookbookRoute: PosAppLookbookRoute,
   PosAppLoyaltyRoute: PosAppLoyaltyRouteWithChildren,
   PosAppMarketplaceAnalyticsRoute: PosAppMarketplaceAnalyticsRoute,
@@ -6304,6 +6466,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppPrescriptionsRoute: PosAppPrescriptionsRoute,
   PosAppPrintersRoute: PosAppPrintersRoute,
   PosAppProductReturnsRoute: PosAppProductReturnsRoute,
+  PosAppProductSubscriptionsRoute: PosAppProductSubscriptionsRoute,
   PosAppPromoCalendarRoute: PosAppPromoCalendarRoute,
   PosAppPromosRoute: PosAppPromosRoute,
   PosAppPurchaseOrdersRoute: PosAppPurchaseOrdersRouteWithChildren,
@@ -6348,6 +6511,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppTableMapsRoute: PosAppTableMapsRoute,
   PosAppTableQrRoute: PosAppTableQrRoute,
   PosAppTablesRoute: PosAppTablesRoute,
+  PosAppTelemedicineRoute: PosAppTelemedicineRoute,
   PosAppTestimonialsRoute: PosAppTestimonialsRoute,
   PosAppTravelInstallmentsRoute: PosAppTravelInstallmentsRoute,
   PosAppTravelItineraryRoute: PosAppTravelItineraryRoute,
@@ -6453,6 +6617,8 @@ interface TokoSlugRouteChildren {
   TokoSlugBookingRoute: typeof TokoSlugBookingRoute
   TokoSlugChatRoute: typeof TokoSlugChatRoute
   TokoSlugCustomOrderRoute: typeof TokoSlugCustomOrderRouteWithChildren
+  TokoSlugGroupBuyRoute: typeof TokoSlugGroupBuyRoute
+  TokoSlugKonsultasiRoute: typeof TokoSlugKonsultasiRoute
   TokoSlugMapRoute: typeof TokoSlugMapRoute
   TokoSlugMembershipRoute: typeof TokoSlugMembershipRoute
   TokoSlugReservasiRoute: typeof TokoSlugReservasiRoute
@@ -6466,6 +6632,8 @@ const TokoSlugRouteChildren: TokoSlugRouteChildren = {
   TokoSlugBookingRoute: TokoSlugBookingRoute,
   TokoSlugChatRoute: TokoSlugChatRoute,
   TokoSlugCustomOrderRoute: TokoSlugCustomOrderRouteWithChildren,
+  TokoSlugGroupBuyRoute: TokoSlugGroupBuyRoute,
+  TokoSlugKonsultasiRoute: TokoSlugKonsultasiRoute,
   TokoSlugMapRoute: TokoSlugMapRoute,
   TokoSlugMembershipRoute: TokoSlugMembershipRoute,
   TokoSlugReservasiRoute: TokoSlugReservasiRoute,
@@ -6505,6 +6673,7 @@ const rootRouteChildren: RootRouteChildren = {
   KatalogSlugRoute: KatalogSlugRoute,
   KategoriSlugRoute: KategoriSlugRouteWithChildren,
   KontrakTokenRoute: KontrakTokenRoute,
+  LiveShopSlugRoute: LiveShopSlugRoute,
   OrderSlugRoute: OrderSlugRouteWithChildren,
   PesananOrderIdRoute: PesananOrderIdRouteWithChildren,
   QuoteIdRoute: QuoteIdRoute,

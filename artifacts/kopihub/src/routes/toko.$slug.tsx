@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, Star, Sparkles, Crown, Map as MapIcon, ClipboardList } from "lucide-react";
+import { Store, MapPin, Phone, ShieldCheck, Heart, Users, MessageCircle, CalendarCheck, Images, ChevronLeft, ChevronRight, X, Package, Scale, ShoppingCart, Check, Star, Sparkles, Crown, Map as MapIcon, ClipboardList, Share2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addToCart } from "@/lib/marketplace-cart";
 import { useSeo } from "@/lib/use-seo";
@@ -675,6 +675,24 @@ function ShopPage() {
                   </Link>
                 </Button>
                 {shop && <LocationDialogButton shop={shop} slug={slug} />}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const url = `${window.location.origin}/toko/${slug}`;
+                    const text = `Cek toko ${shop?.name ?? slug} di UMKMgo!${shop?.address ? `\n📍 ${shop.address}` : ""}${shop?.latitude && shop?.longitude ? `\n🗺️ https://www.google.com/maps?q=${shop.latitude},${shop.longitude}` : ""}`;
+                    if (navigator.share) {
+                      navigator.share({ title: shop?.name ?? slug, text, url }).catch(() => {});
+                    } else {
+                      navigator.clipboard.writeText(`${text}\n${url}`);
+                      toast.success("Link toko disalin ke clipboard");
+                    }
+                  }}
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  Bagikan
+                </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
                   <Link to="/toko/$slug/ulasan" params={{ slug }}>
                     <Star className="h-3.5 w-3.5" />

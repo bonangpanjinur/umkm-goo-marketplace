@@ -13,6 +13,7 @@ import { initiatePayment, openMidtransSnap, isGatewayPaymentMethod } from "@/lib
 import { Store, CreditCard, Wallet, Banknote, QrCode, Smartphone, UserX, LogIn, Loader2, ShieldCheck, ExternalLink, CheckCircle2, MapPin, Truck, Clock, Gift, Crown, Zap, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { formatIDR } from "@/lib/format";
 import { z } from "zod";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -57,6 +58,7 @@ function CheckoutPage() {
   const [giftMessage, setGiftMessage] = useState("");
 
   const [paymentMethod, setPaymentMethod] = useState("transfer");
+  const [bnplTenure, setBnplTenure] = useState(3);
   const [shopVoucherCodes, setShopVoucherCodes] = useState<Record<string, string>>({});
   const [platformVoucherCode, setPlatformVoucherCode] = useState("");
 
@@ -552,12 +554,40 @@ function CheckoutPage() {
                       </div>
                     ) : (
                       <div className="mt-1 space-y-2">
-                        <Textarea
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          placeholder="Jl. ... No. ..., Kel/Kec, Kota"
-                          rows={3}
-                        />
+                        <div className="relative">
+                          <Textarea
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            placeholder="Jl. ... No. ..., Kel/Kec, Kota"
+                            rows={3}
+                          />
+                          <button
+                            type="button"
+                            title="Isi otomatis dari GPS"
+                            className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-[11px] text-primary hover:bg-primary/20 transition-colors"
+                            onClick={() => {
+                              if (!navigator.geolocation) { toast.error("Browser tidak mendukung GPS"); return; }
+                              toast.info("Mendeteksi lokasi...");
+                              navigator.geolocation.getCurrentPosition(
+                                async (pos) => {
+                                  try {
+                                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&addressdetails=1`, { headers: { "Accept-Language": "id" } });
+                                    const data = await res.json();
+                                    if (data?.display_name) {
+                                      const addr = data.display_name;
+                                      setAddress(addr);
+                                      toast.success("Alamat terdeteksi dari GPS");
+                                    }
+                                  } catch (_) { toast.error("Gagal mendapatkan alamat"); }
+                                },
+                                () => toast.error("Akses lokasi ditolak"),
+                                { timeout: 10000 }
+                              );
+                            }}
+                          >
+                            <MapPin className="h-3 w-3" /> GPS
+                          </button>
+                        </div>
                         {savedAddress && (
                           <button
                             type="button"
@@ -638,7 +668,9 @@ function CheckoutPage() {
                     { id: "ovo",        label: "OVO",            sub: "via aplikasi OVO",          icon: Smartphone },
                     { id: "shopeepay",  label: "ShopeePay",      sub: "via aplikasi Shopee",       icon: CreditCard },
                     { id: "dana",       label: "DANA",           sub: "via aplikasi DANA",         icon: CreditCard },
-                    { id: "cc",         label: "Kartu Kredit",   sub: "Visa / Mastercard",         icon: CreditCard },
+                    { id: "cc",           label: "Kartu Kredit",    sub: "Visa / Mastercard",              icon: CreditCard },
+                    { id: "bnpl_kredivo", label: "Cicilan Kredivo", sub: "0% cicilan 3/6/12 bulan",       icon: CreditCard },
+                    { id: "bnpl_akulaku", label: "Cicilan Akulaku", sub: "Bayar nanti, cicil mudah",      icon: CreditCard },
                   ] as const).map(pm => (
                     <button
                       key={pm.id}
@@ -665,6 +697,34 @@ function CheckoutPage() {
                   <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
                     COD tersedia jika toko mendukung. Konfirmasi akan diberikan setelah pesanan diproses.
                   </p>
+                )}
+                {(paymentMethod === "bnpl_kredivo" || paymentMethod === "bnpl_akulaku") && (
+                  <div className="space-y-3">
+                    <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                      {paymentMethod === "bnpl_kredivo"
+                        ? "Kredivo: Cicilan 0% untuk 3/6/12 bulan. Limit kredit disetujui langsung setelah verifikasi."
+                        : "Akulaku: Bayar nanti dengan cicilan ringan. Persetujuan instan tanpa kartu kredit."}
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium mb-2">Pilih tenor cicilan</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {[3, 6, 12].map(t => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setBnplTenure(t)}
+                            className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${bnplTenure === t ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
+                          >
+                            {t} bulan
+                            {t === 3 && <span className="ml-1 text-[10px] text-green-600 font-semibold">0%</span>}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1.5">
+                        Estimasi cicilan: ~{formatIDR(Math.ceil(grandTotal / bnplTenure))} / bulan
+                      </p>
+                    </div>
+                  </div>
                 )}
               </section>
 

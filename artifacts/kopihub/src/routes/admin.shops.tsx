@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Star, Pencil } from "lucide-react";
+import { Star, Pencil, Map as MapIcon, List } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,13 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "@/components/ui/tabs";
+
+const NearbyShopsMap = lazy(() =>
+  import("@/components/marketplace/NearbyShopsMap").then(m => ({ default: m.NearbyShopsMap }))
+);
 
 export const Route = createFileRoute("/admin/shops")({
   component: AdminShops,
@@ -30,6 +37,11 @@ type Shop = {
   created_at: string;
   suspended_at: string | null;
   is_featured: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  rating_avg?: number | null;
+  logo_url?: string | null;
 };
 
 type PlanOption = { code: string; name: string; duration_days: number };
@@ -56,7 +68,7 @@ function AdminShops() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    supabase.from("shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at, is_featured").order("is_featured", { ascending: false }).order("created_at", { ascending: false })
+    supabase.from("shops").select("id, name, slug, plan, plan_expires_at, custom_domain, custom_domain_verified_at, created_at, suspended_at, is_featured, latitude, longitude, address, rating_avg, logo_url").order("is_featured", { ascending: false }).order("created_at", { ascending: false })
       .then(({ data }) => setShops((data as Shop[]) ?? []));
     supabase.from("plans").select("code, name, duration_days").eq("is_active", true).order("sort_order")
       .then(({ data }) => {
@@ -157,9 +169,48 @@ function AdminShops() {
     { key: "domain_offline", label: "Domain Offline" },
   ];
 
+  const shopsWithCoords = useMemo(() =>
+    shops.filter(s => s.latitude != null && s.longitude != null).map(s => ({
+      id: s.id, slug: s.slug, name: s.name, logo_url: s.logo_url ?? null,
+      latitude: s.latitude!, longitude: s.longitude!,
+      address: s.address ?? null, rating_avg: s.rating_avg ?? null,
+    })),
+    [shops]
+  );
+  const mapCenter = useMemo(() => {
+    if (shopsWithCoords.length === 0) return { lat: -6.2088, lng: 106.8456 };
+    return {
+      lat: shopsWithCoords.reduce((s, i) => s + i.latitude, 0) / shopsWithCoords.length,
+      lng: shopsWithCoords.reduce((s, i) => s + i.longitude, 0) / shopsWithCoords.length,
+    };
+  }, [shopsWithCoords]);
+
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
       <h1 className="text-2xl font-bold mb-4">Daftar Toko</h1>
+
+      <Tabs defaultValue="list">
+        <TabsList className="mb-4">
+          <TabsTrigger value="list"><List className="h-4 w-4 mr-1.5" />Daftar</TabsTrigger>
+          <TabsTrigger value="map"><MapIcon className="h-4 w-4 mr-1.5" />Peta Sebaran ({shopsWithCoords.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="map">
+          {shopsWithCoords.length === 0 ? (
+            <Card className="flex flex-col items-center py-14 text-center gap-3">
+              <MapIcon className="h-10 w-10 text-muted-foreground/40" />
+              <p className="font-semibold">Belum ada toko dengan koordinat</p>
+              <p className="text-sm text-muted-foreground">Tambahkan latitude/longitude ke toko melalui SQL migration F7-1.</p>
+            </Card>
+          ) : (
+            <Suspense fallback={<div className="flex items-center justify-center py-12 text-sm text-muted-foreground">Memuat peta...</div>}>
+              <NearbyShopsMap center={mapCenter} shops={shopsWithCoords} radiusKm={100} height={500} />
+              <p className="text-xs text-muted-foreground mt-2">{shopsWithCoords.length} dari {shops.length} toko memiliki koordinat lokasi.</p>
+            </Suspense>
+          )}
+        </TabsContent>
+
+        <TabsContent value="list">
       <div className="mb-4 flex flex-wrap gap-2 items-center">
         <Input placeholder="Cari nama atau slug…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
         <div className="flex flex-wrap gap-1">
@@ -226,6 +277,8 @@ function AdminShops() {
           );
         })}
       </div>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
         <DialogContent>
