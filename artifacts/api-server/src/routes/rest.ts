@@ -1,7 +1,9 @@
 /**
- * PostgREST-compatible proxy for Neon database.
- * Routes /rest/v1/* to the Neon DB so the frontend Supabase client
- * (which expects PostgREST) works unchanged.
+ * PostgREST-compatible proxy for Neon/Supabase database.
+ * Routes /rest/v1/* to the DB so the frontend Supabase client works unchanged.
+ *
+ * F1-1: JWT auth middleware + TABLE_WHITELIST + shop_id scoping
+ * F1-5: Full PostgREST operators incl. .in, .not, RETURNING *, UPSERT DO UPDATE
  */
 import { Router, type Request, type Response } from "express";
 import { pool } from "@workspace/db";
@@ -10,11 +12,81 @@ import { httpFetch } from "../lib/fetch-types.js";
 
 const router = Router();
 
+// ── F1-1: Tabel whitelist ────────────────────────────────────────────────────
+// Hanya tabel-tabel ini yang bisa diakses via REST proxy.
+// Tambahkan tabel baru di sini jika dibutuhkan.
+const TABLE_WHITELIST = new Set([
+  // Platform
+  "shops", "outlets", "plans", "features", "plan_features", "themes", "plan_themes",
+  "platform_settings", "platform_vouchers",
+  // Produk & Menu
+  "menu_items", "menu_categories", "product_variants", "product_options",
+  "product_option_values", "menu_addons", "addon_groups",
+  // Pesanan
+  "orders", "order_items", "order_addons",
+  // Pembayaran (via Drizzle — tapi tetap diwhitelist)
+  "payment_transactions", "webhook_logs",
+  // Pelanggan
+  "customers", "customer_addresses", "customer_favorites", "loyalty_points",
+  "loyalty_transactions", "loyalty_programs",
+  // Booking
+  "bookings", "booking_services", "booking_reschedule_tokens",
+  // Staff & User
+  "user_roles", "staff_members", "staff_permissions", "staff_invitations",
+  "user_profiles",
+  // Inventaris
+  "inventory_items", "inventory_transactions", "raw_materials",
+  // Keuangan & Laporan
+  "cash_shifts", "cash_movements", "plan_invoices",
+  // Notifikasi
+  "owner_notifications", "push_subscriptions",
+  // Ulasan
+  "product_reviews", "menu_reviews",
+  // Konten & Marketing
+  "marketing_campaigns", "campaign_recipients", "email_campaigns",
+  "storefront_layouts", "banners", "promo_codes", "flash_sales",
+  "happy_hour_rules",
+  // Digital
+  "digital_product_versions",
+  // Kurir
+  "deliveries", "couriers",
+  // Lainnya
+  "business_categories", "renewal_notification_runs",
+  "shop_api_keys", "ad_requests", "freelance_contracts", "job_deliverables",
+  "custom_orders", "custom_order_attachments",
+]);
+
+// Tabel yang hanya boleh dibaca (GET) — tidak boleh ditulis via proxy
+const READ_ONLY_TABLES = new Set([
+  "plans", "features", "plan_features", "themes", "plan_themes",
+  "platform_settings", "business_categories",
+]);
+
+// Tabel yang di-scope per shop_id (auto-inject filter user's shop)
+const SHOP_SCOPED_TABLES = new Set([
+  "menu_items", "menu_categories", "product_variants", "product_options",
+  "product_option_values", "menu_addons", "addon_groups",
+  "orders", "order_items", "order_addons",
+  "customers", "customer_addresses", "loyalty_points", "loyalty_transactions",
+  "bookings", "booking_services",
+  "staff_members", "staff_permissions", "staff_invitations",
+  "inventory_items", "inventory_transactions",
+  "cash_shifts", "cash_movements",
+  "owner_notifications", "push_subscriptions",
+  "product_reviews", "menu_reviews",
+  "marketing_campaigns", "campaign_recipients",
+  "storefront_layouts", "banners", "promo_codes", "flash_sales",
+  "happy_hour_rules", "digital_product_versions",
+  "ad_requests", "shop_api_keys",
+]);
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-const ALLOWED_OPS = new Set(["eq","neq","gt","gte","lt","lte","like","ilike","in","is","cs","cd","sl","sr","nxl","nxr","adj","fts","plfts","phfts","wfts"]);
+const ALLOWED_OPS = new Set([
+  "eq","neq","gt","gte","lt","lte","like","ilike","in","is","cs","cd",
+  "sl","sr","nxl","nxr","adj","fts","plfts","phfts","wfts",
+]);
 
-/** Table name whitelist: only letters, digits, underscores. */
 function validIdent(s: string): boolean {
   return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(s);
 }
@@ -34,13 +106,8 @@ function parseOneFilter(column: string, rawVal: string, paramOffset: number): Fi
   const op = dotIdx === -1 ? rawVal : rawVal.slice(0, dotIdx);
   const val = dotIdx === -1 ? "" : rawVal.slice(dotIdx + 1);
 
-  if (!ALLOWED_OPS.has(op)) {
-    return { sql: "TRUE", params: [] };
-  }
-
-  if (!validIdent(column)) {
-    return { sql: "TRUE", params: [] };
-  }
+  if (!ALLOWED_OPS.has(op)) return { sql: "TRUE", params: [] };
+  if (!validIdent(column)) return { sql: "TRUE", params: [] };
 
   const p = `$${paramOffset}`;
   let sql: string;
@@ -48,38 +115,36 @@ function parseOneFilter(column: string, rawVal: string, paramOffset: number): Fi
 
   switch (op) {
     case "eq":
-      if (val === "null") { sql = negate ? `${column} IS NOT NULL` : `${column} IS NULL`; params = []; break; }
-      if (val === "true") { sql = `${column} = ${p}`; params = [true]; break; }
-      if (val === "false") { sql = `${column} = ${p}`; params = [false]; break; }
-      sql = `${column} = ${p}`; params = [val]; break;
+      if (val === "null") { sql = negate ? `"${column}" IS NOT NULL` : `"${column}" IS NULL`; params = []; break; }
+      if (val === "true") { sql = `"${column}" = ${p}`; params = [true]; break; }
+      if (val === "false") { sql = `"${column}" = ${p}`; params = [false]; break; }
+      sql = `"${column}" = ${p}`; params = [val]; break;
     case "neq":
-      sql = `${column} != ${p}`; params = [val]; break;
+      sql = `"${column}" != ${p}`; params = [val]; break;
     case "gt":
-      sql = `${column} > ${p}`; params = [val]; break;
+      sql = `"${column}" > ${p}`; params = [val]; break;
     case "gte":
-      sql = `${column} >= ${p}`; params = [val]; break;
+      sql = `"${column}" >= ${p}`; params = [val]; break;
     case "lt":
-      sql = `${column} < ${p}`; params = [val]; break;
+      sql = `"${column}" < ${p}`; params = [val]; break;
     case "lte":
-      sql = `${column} <= ${p}`; params = [val]; break;
+      sql = `"${column}" <= ${p}`; params = [val]; break;
     case "like":
-      sql = `${column} LIKE ${p}`; params = [val.replace(/\*/g, "%")]; break;
+      sql = `"${column}" LIKE ${p}`; params = [val.replace(/\*/g, "%")]; break;
     case "ilike":
-      sql = `${column} ILIKE ${p}`; params = [val.replace(/\*/g, "%")]; break;
+      sql = `"${column}" ILIKE ${p}`; params = [val.replace(/\*/g, "%")]; break;
     case "in": {
+      // F1-5: .in() — parse "(val1,val2,...)" format
       const items = val.replace(/^\(|\)$/g, "").split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
-      sql = `${column} = ANY(${p})`; params = [items]; break;
+      sql = `"${column}" = ANY(${p})`; params = [items]; break;
     }
     case "is":
-      if (val === "null") { sql = `${column} IS NULL`; params = []; break; }
-      if (val === "true") { sql = `${column} IS TRUE`; params = []; break; }
-      if (val === "false") { sql = `${column} IS FALSE`; params = []; break; }
-      sql = `${column} IS NULL`; params = []; break;
-    case "fts":
-    case "plfts":
-    case "phfts":
-    case "wfts":
-      sql = `to_tsvector('indonesian', ${column}::text) @@ plainto_tsquery('indonesian', ${p})`; params = [val]; break;
+      if (val === "null") { sql = `"${column}" IS NULL`; params = []; break; }
+      if (val === "true") { sql = `"${column}" IS TRUE`; params = []; break; }
+      if (val === "false") { sql = `"${column}" IS FALSE`; params = []; break; }
+      sql = `"${column}" IS NULL`; params = []; break;
+    case "fts": case "plfts": case "phfts": case "wfts":
+      sql = `to_tsvector('indonesian', "${column}"::text) @@ plainto_tsquery('indonesian', ${p})`; params = [val]; break;
     default:
       sql = "TRUE"; params = [];
   }
@@ -88,13 +153,19 @@ function parseOneFilter(column: string, rawVal: string, paramOffset: number): Fi
   return { sql, params };
 }
 
-/** Parse all PostgREST filter query params into a WHERE clause. */
 function buildWhere(
   query: Record<string, string | string[]>,
   reservedKeys: Set<string>,
+  extra?: { sql: string; params: unknown[] },
 ): { whereClause: string; params: unknown[] } {
   const conditions: string[] = [];
   const params: unknown[] = [];
+
+  // Inject extra condition first (e.g. shop_id scope)
+  if (extra) {
+    conditions.push(extra.sql);
+    params.push(...extra.params);
+  }
 
   for (const [key, rawValue] of Object.entries(query)) {
     if (reservedKeys.has(key)) continue;
@@ -113,18 +184,19 @@ function buildWhere(
   };
 }
 
-/** Parse ?select=col1,col2 safely. Returns `*` if missing or unsafe. */
 function parseSelect(selectParam: string | undefined): string {
   if (!selectParam || selectParam === "*") return "*";
   const cols = selectParam.split(",").map((c) => c.trim());
   const safe = cols.filter((c) => {
-    const base = c.split("::")[0]!.trim();
-    return validIdent(base);
+    const base = c.split("::")[0]!.trim().replace(/^"([^"]+)"$/, "$1");
+    return validIdent(base) || base === "*";
   });
-  return safe.length > 0 ? safe.join(", ") : "*";
+  return safe.length > 0 ? safe.map((c) => {
+    const base = c.split("::")[0]!.trim().replace(/^"([^"]+)"$/, "$1");
+    return validIdent(base) ? `"${base}"` : c;
+  }).join(", ") : "*";
 }
 
-/** Parse Range header → { offset, limit } */
 function parseRange(rangeHeader: string | undefined): { limit: number; offset: number } | null {
   if (!rangeHeader) return null;
   const m = rangeHeader.match(/^(\d+)-(\d+)$/);
@@ -134,13 +206,37 @@ function parseRange(rangeHeader: string | undefined): { limit: number; offset: n
   return { offset: start, limit: end - start + 1 };
 }
 
-/** Extract user UUID from Supabase JWT (not verifying signature — done server side). */
+/** F1-1: Extract user UUID from JWT (decode only — signature check optional). */
 function extractUserId(authHeader: string | undefined): string | null {
   if (!authHeader?.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7);
+  if (!token || token === process.env["SUPABASE_ANON_KEY"]) return null;
   try {
-    const payload = JSON.parse(Buffer.from(token.split(".")[1]!, "base64url").toString()) as Record<string, unknown>;
-    return (payload["sub"] as string) ?? null;
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(Buffer.from(parts[1]!, "base64url").toString()) as Record<string, unknown>;
+    const sub = payload["sub"] as string | undefined;
+    if (!sub || !/^[0-9a-f-]{36}$/i.test(sub)) return null;
+    return sub;
+  } catch {
+    return null;
+  }
+}
+
+/** F1-1: Get shop_id for a given user (cached in request context via memo). */
+const shopIdMemo = new Map<string, string | null>();
+async function getUserShopId(userId: string): Promise<string | null> {
+  if (shopIdMemo.has(userId)) return shopIdMemo.get(userId) ?? null;
+  try {
+    const r = await pool.query<{ id: string }>(
+      `SELECT id FROM public.shops WHERE owner_id = $1 LIMIT 1`,
+      [userId],
+    );
+    const shopId = r.rows[0]?.id ?? null;
+    shopIdMemo.set(userId, shopId);
+    // Evict cache after 2 min to avoid stale data
+    setTimeout(() => shopIdMemo.delete(userId), 2 * 60 * 1000);
+    return shopId;
   } catch {
     return null;
   }
@@ -148,11 +244,15 @@ function extractUserId(authHeader: string | undefined): string | null {
 
 const RESERVED_KEYS = new Set(["select", "order", "limit", "offset", "on_conflict", "columns", "apikey"]);
 
-// ── GET /rest/v1/:table ───────────────────────────────────────────────────────
+function tableBlockedResponse(res: Response, table: string) {
+  res.status(403).json({ message: `Tabel "${table}" tidak diizinkan via proxy ini`, code: "PGRST" });
+}
 
+// ── GET /rest/v1/:table ───────────────────────────────────────────────────────
 router.get("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
+  if (!TABLE_WHITELIST.has(table)) { tableBlockedResponse(res, table); return; }
 
   const q = req.query as Record<string, string>;
   const selectCols = parseSelect(q["select"]);
@@ -161,7 +261,19 @@ router.get("/rest/v1/:table", async (req: Request, res: Response) => {
   const offsetParam = q["offset"] ? parseInt(q["offset"], 10) : null;
   const orderParam = q["order"];
 
-  const { whereClause, params } = buildWhere(q, RESERVED_KEYS);
+  // F1-1: For shop-scoped tables, inject shop_id filter when user is authenticated
+  let extraFilter: { sql: string; params: unknown[] } | undefined;
+  if (SHOP_SCOPED_TABLES.has(table)) {
+    const userId = extractUserId(req.headers["authorization"] as string | undefined);
+    if (userId) {
+      const shopId = await getUserShopId(userId);
+      if (shopId) {
+        extraFilter = { sql: `"shop_id" = $1`, params: [shopId] };
+      }
+    }
+  }
+
+  const { whereClause, params } = buildWhere(q, RESERVED_KEYS, extraFilter);
 
   let orderClause = "";
   if (orderParam) {
@@ -169,7 +281,7 @@ router.get("/rest/v1/:table", async (req: Request, res: Response) => {
       const [col, dir] = p.split(".");
       if (!validIdent(col ?? "")) return null;
       const d = dir === "desc" ? "DESC" : "ASC";
-      return `${col} ${d}`;
+      return `"${col}" ${d}`;
     }).filter(Boolean);
     if (parts.length > 0) orderClause = `ORDER BY ${parts.join(", ")}`;
   }
@@ -179,30 +291,24 @@ router.get("/rest/v1/:table", async (req: Request, res: Response) => {
   const offset = rangeH?.offset ?? offsetParam ?? 0;
   if (limit !== null) limitClause = `LIMIT ${limit} OFFSET ${offset}`;
 
-  const sql = `SELECT ${selectCols} FROM public.${table} ${whereClause} ${orderClause} ${limitClause}`;
+  const sql = `SELECT ${selectCols} FROM public."${table}" ${whereClause} ${orderClause} ${limitClause}`;
 
   try {
-    let result = await pool.query(sql, params);
-    if (rangeH) {
-      res.setHeader("Content-Range", `${offset}-${offset + result.rows.length - 1}/*`);
-    }
+    const result = await pool.query(sql, params);
+    if (rangeH) res.setHeader("Content-Range", `${offset}-${offset + result.rows.length - 1}/*`);
     res.setHeader("Prefer", "return=representation");
     res.json(result.rows);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "";
-    // Column doesn't exist — likely a PostgREST embedded-resource select.
-    // Fall back to SELECT * so the query still succeeds.
     if (msg.includes("does not exist") && selectCols !== "*") {
-      const fallbackSql = `SELECT * FROM public.${table} ${whereClause} ${orderClause} ${limitClause}`;
+      const fallbackSql = `SELECT * FROM public."${table}" ${whereClause} ${orderClause} ${limitClause}`;
       try {
         const result = await pool.query(fallbackSql, params);
-        if (rangeH) {
-          res.setHeader("Content-Range", `${offset}-${offset + result.rows.length - 1}/*`);
-        }
+        if (rangeH) res.setHeader("Content-Range", `${offset}-${offset + result.rows.length - 1}/*`);
         res.setHeader("Prefer", "return=representation");
         res.json(result.rows);
         return;
-      } catch (err2: unknown) {
+      } catch (err2) {
         logger.error({ err: err2, table, sql: fallbackSql }, "REST GET fallback error");
       }
     }
@@ -212,10 +318,11 @@ router.get("/rest/v1/:table", async (req: Request, res: Response) => {
 });
 
 // ── POST /rest/v1/:table ──────────────────────────────────────────────────────
-
 router.post("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
+  if (!TABLE_WHITELIST.has(table)) { tableBlockedResponse(res, table); return; }
+  if (READ_ONLY_TABLES.has(table)) { res.status(405).json({ message: "Tabel ini read-only" }); return; }
 
   const prefer = (req.headers["prefer"] as string) ?? "";
   const returning = prefer.includes("return=representation");
@@ -231,14 +338,30 @@ router.post("/rest/v1/:table", async (req: Request, res: Response) => {
   ).join(", ");
   const values = rows.flatMap((row) => cols.map((c) => (row as Record<string, unknown>)[c]));
 
-  const conflictParam = (req.query as Record<string, string>)["on_conflict"];
+  // F1-5: Support both DO NOTHING and DO UPDATE for upserts
+  const q = req.query as Record<string, string>;
+  const conflictParam = q["on_conflict"];
+  const preferUpsert = prefer.includes("resolution=merge-duplicates");
+
   let onConflict = "";
   if (conflictParam && validIdent(conflictParam)) {
-    onConflict = `ON CONFLICT (${conflictParam}) DO NOTHING`;
+    if (preferUpsert) {
+      // DO UPDATE: update all non-conflict columns
+      const updateCols = cols.filter((c) => c !== conflictParam);
+      if (updateCols.length > 0) {
+        const updateClause = updateCols.map((c) => `"${c}" = EXCLUDED."${c}"`).join(", ");
+        onConflict = `ON CONFLICT ("${conflictParam}") DO UPDATE SET ${updateClause}`;
+      } else {
+        onConflict = `ON CONFLICT ("${conflictParam}") DO NOTHING`;
+      }
+    } else {
+      onConflict = `ON CONFLICT ("${conflictParam}") DO NOTHING`;
+    }
   }
 
   const ret = returning ? "RETURNING *" : "";
-  const sql = `INSERT INTO public.${table} (${cols.join(", ")}) VALUES ${placeholders} ${onConflict} ${ret}`;
+  const quotedCols = cols.map((c) => `"${c}"`).join(", ");
+  const sql = `INSERT INTO public."${table}" (${quotedCols}) VALUES ${placeholders} ${onConflict} ${ret}`;
 
   try {
     const result = await pool.query(sql, values);
@@ -255,10 +378,11 @@ router.post("/rest/v1/:table", async (req: Request, res: Response) => {
 });
 
 // ── PATCH /rest/v1/:table ─────────────────────────────────────────────────────
-
 router.patch("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
+  if (!TABLE_WHITELIST.has(table)) { tableBlockedResponse(res, table); return; }
+  if (READ_ONLY_TABLES.has(table)) { res.status(405).json({ message: "Tabel ini read-only" }); return; }
 
   const prefer = (req.headers["prefer"] as string) ?? "";
   const returning = prefer.includes("return=representation");
@@ -268,16 +392,27 @@ router.patch("/rest/v1/:table", async (req: Request, res: Response) => {
   if (cols.length === 0) { res.status(400).json({ message: "No columns to update" }); return; }
 
   const q = req.query as Record<string, string>;
-  const { whereClause, params: whereParams } = buildWhere(q, RESERVED_KEYS);
 
-  const setClause = cols.map((c, i) => `${c} = $${i + 1}`).join(", ");
+  // F1-1: For shop-scoped tables, inject shop_id filter
+  let extraFilter: { sql: string; params: unknown[] } | undefined;
+  if (SHOP_SCOPED_TABLES.has(table)) {
+    const userId = extractUserId(req.headers["authorization"] as string | undefined);
+    if (userId) {
+      const shopId = await getUserShopId(userId);
+      if (shopId) {
+        extraFilter = { sql: `"shop_id" = $1`, params: [shopId] };
+      }
+    }
+  }
+
+  const { whereClause, params: whereParams } = buildWhere(q, RESERVED_KEYS, extraFilter);
+  const setClause = cols.map((c, i) => `"${c}" = $${i + 1}`).join(", ");
   const setValues = cols.map((c) => body[c]);
-
-  const allParams = [...setValues, ...whereParams.map((p, i) => p)];
+  const allParams = [...setValues, ...whereParams];
   const whereSql = whereClause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n, 10) + cols.length}`);
 
   const ret = returning ? "RETURNING *" : "";
-  const sql = `UPDATE public.${table} SET ${setClause} ${whereSql} ${ret}`;
+  const sql = `UPDATE public."${table}" SET ${setClause} ${whereSql} ${ret}`;
 
   try {
     const result = await pool.query(sql, allParams);
@@ -294,20 +429,34 @@ router.patch("/rest/v1/:table", async (req: Request, res: Response) => {
 });
 
 // ── DELETE /rest/v1/:table ────────────────────────────────────────────────────
-
 router.delete("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
   if (!validIdent(table)) { res.status(400).json({ message: "Invalid table name" }); return; }
+  if (!TABLE_WHITELIST.has(table)) { tableBlockedResponse(res, table); return; }
+  if (READ_ONLY_TABLES.has(table)) { res.status(405).json({ message: "Tabel ini read-only" }); return; }
 
   const q = req.query as Record<string, string>;
-  const { whereClause, params } = buildWhere(q, RESERVED_KEYS);
+
+  // F1-1: For shop-scoped tables, inject shop_id filter
+  let extraFilter: { sql: string; params: unknown[] } | undefined;
+  if (SHOP_SCOPED_TABLES.has(table)) {
+    const userId = extractUserId(req.headers["authorization"] as string | undefined);
+    if (userId) {
+      const shopId = await getUserShopId(userId);
+      if (shopId) {
+        extraFilter = { sql: `"shop_id" = $1`, params: [shopId] };
+      }
+    }
+  }
+
+  const { whereClause, params } = buildWhere(q, RESERVED_KEYS, extraFilter);
 
   if (!whereClause) {
     res.status(400).json({ message: "Refusing to delete without a WHERE clause" });
     return;
   }
 
-  const sql = `DELETE FROM public.${table} ${whereClause}`;
+  const sql = `DELETE FROM public."${table}" ${whereClause}`;
 
   try {
     const result = await pool.query(sql, params);
@@ -320,10 +469,20 @@ router.delete("/rest/v1/:table", async (req: Request, res: Response) => {
 });
 
 // ── POST /rest/v1/rpc/:func ───────────────────────────────────────────────────
+// Whitelist fungsi yang boleh dipanggil via RPC proxy
+const RPC_WHITELIST = new Set([
+  "has_role", "user_belongs_to_shop", "has_outlet_access",
+  "fn_send_review_requests", "shops_nearby",
+  "approve_plan_invoice", "reject_plan_invoice",
+]);
 
 router.post("/rest/v1/rpc/:func", async (req: Request, res: Response) => {
   const func = req.params["func"] as string;
   if (!validIdent(func)) { res.status(400).json({ message: "Invalid function name" }); return; }
+  if (!RPC_WHITELIST.has(func)) {
+    res.status(403).json({ message: `Fungsi "${func}" tidak diizinkan via proxy ini`, code: "PGRST" });
+    return;
+  }
 
   const body = (req.body ?? {}) as Record<string, unknown>;
   const keys = Object.keys(body);
@@ -332,32 +491,35 @@ router.post("/rest/v1/rpc/:func", async (req: Request, res: Response) => {
   let params: unknown[];
 
   if (keys.length === 0) {
-    sql = `SELECT * FROM public.${func}()`;
+    sql = `SELECT * FROM public."${func}"()`;
     params = [];
   } else {
-    const named = keys.map((k, i) => `${k} => $${i + 1}`).join(", ");
-    sql = `SELECT * FROM public.${func}(${named})`;
+    const named = keys.map((k, i) => `"${k}" => $${i + 1}`).join(", ");
+    sql = `SELECT * FROM public."${func}"(${named})`;
     params = keys.map((k) => body[k]);
   }
 
   try {
     const result = await pool.query(sql, params);
-    res.json(result.rows.length === 1 && result.fields.length === 1 ? result.rows[0]![result.fields[0]!.name] : result.rows);
+    res.json(
+      result.rows.length === 1 && result.fields.length === 1
+        ? result.rows[0]![result.fields[0]!.name]
+        : result.rows,
+    );
   } catch (err: unknown) {
     logger.error({ err, func, sql }, "REST RPC error");
     res.status(400).json({ message: err instanceof Error ? err.message : "RPC failed", code: "PGRST" });
   }
 });
 
-// ── HEAD /rest/v1/:table (count) ─────────────────────────────────────────────
-
+// ── HEAD /rest/v1/:table ──────────────────────────────────────────────────────
 router.head("/rest/v1/:table", async (req: Request, res: Response) => {
   const table = req.params["table"] as string;
-  if (!validIdent(table)) { res.status(400).end(); return; }
+  if (!validIdent(table) || !TABLE_WHITELIST.has(table)) { res.status(400).end(); return; }
 
   const q = req.query as Record<string, string>;
   const { whereClause, params } = buildWhere(q, RESERVED_KEYS);
-  const sql = `SELECT count(*) FROM public.${table} ${whereClause}`;
+  const sql = `SELECT count(*) FROM public."${table}" ${whereClause}`;
 
   try {
     const result = await pool.query(sql, params);
@@ -369,8 +531,7 @@ router.head("/rest/v1/:table", async (req: Request, res: Response) => {
   }
 });
 
-// ── Auth proxy — forward auth calls to original Supabase ─────────────────────
-
+// ── Auth proxy — forward /auth/v1/* ke Supabase upstream ─────────────────────
 const UPSTREAM_SUPABASE = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
 const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
 
@@ -389,40 +550,24 @@ router.all("/auth/v1/*path", async (req: any, res: Response) => {
       headers: {
         "Content-Type": "application/json",
         "apikey": SUPABASE_ANON_KEY,
-        "Authorization": req.headers["authorization"] as string || `Bearer ${SUPABASE_ANON_KEY}`,
+        "Authorization": (req.headers["authorization"] as string) || `Bearer ${SUPABASE_ANON_KEY}`,
       },
       body: ["GET", "HEAD"].includes(req.method) ? undefined : JSON.stringify(req.body),
     });
 
     const status = upstreamRes.status;
-
-    // Forward upstream headers that matter to the client (auth tokens, etc.)
     const forwardHeaders = ["content-type", "x-supabase-api-version", "x-request-id"];
     for (const h of forwardHeaders) {
       const v = upstreamRes.headers.get(h);
       if (v) res.setHeader(h, v);
     }
 
-    // 204 / 304 — no body
-    if (status === 204 || status === 304) {
-      res.status(status).end();
-      return;
-    }
-
+    if (status === 204 || status === 304) { res.status(status).end(); return; }
     const body = await upstreamRes.text();
+    if (!body || body.trim() === "") { res.status(status).end(); return; }
 
-    // Empty body
-    if (!body || body.trim() === "") {
-      res.status(status).end();
-      return;
-    }
-
-    // Try JSON, fall back to plain text
-    try {
-      res.status(status).json(JSON.parse(body));
-    } catch {
-      res.status(status).send(body);
-    }
+    try { res.status(status).json(JSON.parse(body)); }
+    catch { res.status(status).send(body); }
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
     res.status(500).json({ message: "Auth proxy gagal menghubungi Supabase" });

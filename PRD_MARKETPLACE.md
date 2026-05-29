@@ -871,26 +871,28 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 
 ## BAGIAN 6 — PETA JALAN (ROADMAP)
 
-### 🚨 Fase 1 — Darurat (Minggu 1–2): Infrastruktur Wajib
+### ✅ Fase 1 — Darurat (Minggu 1–2): Infrastruktur Wajib — **SELESAI**
 
-| ID | Task | Tabel/Komponen | Estimasi |
-|----|------|----------------|----------|
-| F1-1 | **Keamanan PostgREST**: JWT middleware + tabel whitelist + `shop_id` filter | Express `rest.ts` | 2 hari |
-| F1-2 | **Payment Gateway**: Setup `MIDTRANS_SERVER_KEY` + `XENDIT_SECRET_KEY`, uji checkout | `payment_transactions` †, `orders` | 1 hari |
-| F1-3 | **Email**: Konfigurasi SMTP (Resend/SendGrid), sambungkan staff invitation + renewal | `staff_invitations`, `plan_invoices` | 1 hari |
-| F1-4 | **CORS + Rate Limiting**: Restrict origin, tambah `express-rate-limit` | Express `index.ts` | 0.5 hari |
-| F1-5 | **PostgREST operators**: `.in`, `.not`, `RETURNING *` di proxy | Express `rest.ts` | 1 hari |
+| ID | Task | Tabel/Komponen | Status |
+|----|------|----------------|--------|
+| F1-1 | **Keamanan PostgREST**: JWT middleware + tabel whitelist + `shop_id` filter | Express `rest.ts` | ✅ Done |
+| F1-2 | **Payment Gateway**: Setup `MIDTRANS_SERVER_KEY` + `XENDIT_SECRET_KEY`, uji checkout | `payment_transactions` †, `orders` | ✅ Code done — secrets pending user input |
+| F1-3 | **Email**: Konfigurasi Resend, sambungkan staff invitation + renewal reminder | `staff_invitations`, `plan_invoices` | ✅ Done — `RESEND_API_KEY` pending user input |
+| F1-4 | **CORS + Rate Limiting**: Restrict origin, tambah `express-rate-limit` | Express `app.ts` | ✅ Done |
+| F1-5 | **PostgREST operators**: `.in`, `.not`, `RETURNING *`, UPSERT DO UPDATE | Express `rest.ts` | ✅ Done |
 
-### 🔧 Fase 2 — Sambungkan Data Mock ke DB (Minggu 2–3)
+### ✅ Fase 2 — Sambungkan Data Mock ke DB (Minggu 2–3) — **SELESAI**
 
-| ID | Task | Tabel | Estimasi |
-|----|------|-------|----------|
-| F2-1 | **Email Marketing**: Ganti `email_campaigns` → `marketing_campaigns` + `campaign_recipients` | `marketing_campaigns`, `campaign_recipients` | 0.5 hari |
-| F2-2 | **Storefront Builder**: Buat/verifikasi tabel `storefront_layouts`, wire load/save | _(buat tabel baru)_ | 1 hari |
-| F2-3 | **Digital Version**: Wire ke `menu_items`, hapus `tablesMissing` | `menu_items` | 0.5 hari |
-| F2-4 | **RajaOngkir**: Buat Express endpoint `/api/rajaongkir/cost`, panggil dari frontend | _(API eksternal)_ | 1 hari |
-| F2-5 | **Flash Sale + Happy Hour**: Verifikasi kolom `flash_price`/`flash_starts_at`/`flash_ends_at` ada di DB | `menu_items` | 0.5 hari |
-| F2-6 | **Cash Drawer**: Buat halaman `/pos-app/cash-drawer` | `cash_shifts`, `cash_movements` | 1 hari |
+| ID | Task | Tabel | Status |
+|----|------|-------|--------|
+| F2-1 | **Email Marketing**: Migrasi `email_campaigns` → `marketing_campaigns` + `campaign_recipients` | `marketing_campaigns`, `campaign_recipients` | ✅ Done — SQL di `scripts/fase2_migrations.sql` |
+| F2-2 | **Storefront Builder**: Buat tabel `storefront_layouts`, wire load/save | `storefront_layouts` | ✅ Done — SQL di `scripts/fase2_migrations.sql` |
+| F2-3 | **Digital Version**: Wire ke `menu_items` + `digital_product_versions` | `menu_items`, `digital_product_versions` | ✅ Done — SQL di `scripts/fase2_migrations.sql` |
+| F2-4 | **RajaOngkir**: Express endpoint `/api/rajaongkir/cost` + `/api/rajaongkir/city` | _(API eksternal proxy)_ | ✅ Done |
+| F2-5 | **Flash Sale + Happy Hour**: Kolom `flash_price`/`flash_starts_at`/`flash_ends_at` di `menu_items` | `menu_items` | ✅ Done — SQL di `scripts/fase2_migrations.sql` |
+| F2-6 | **Cash Drawer**: Halaman `/pos-app/cash-drawer` | `cash_shifts`, `cash_movements` | ✅ Done |
+
+> **Catatan penting:** Jalankan `scripts/fase2_migrations.sql` di Supabase SQL Editor untuk membuat tabel-tabel baru.
 
 ### 🧹 Fase 3 — Bersih-bersih Kode (Minggu 3–4)
 

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger.js";
+import { sendEmail, renewalReminderHtml } from "../lib/email.js";
 
 const router = Router();
 
@@ -159,6 +160,38 @@ export async function runRenewalNotifications(
       }
       result.total_sent = toInsert.length;
       logger.info({ total_sent: toInsert.length, ran_at }, "[renewal] Notifications sent");
+
+      // F1-3: Send renewal reminder emails (best-effort, non-blocking)
+      const renewUrl = process.env["APP_URL"]
+        ? `${process.env["APP_URL"]}/pos-app/invoice`
+        : "https://umkmgo.id/pos-app/invoice";
+      for (const c of toInsert) {
+        const matchedShop = candidateShops.find(s => s.shop_id === c.shop_id);
+        if (!matchedShop) continue;
+        // Get owner email from DB
+        pool.query<{ email: string }>(
+          `SELECT u.email FROM auth.users u
+           JOIN shops s ON s.owner_id = u.id
+           WHERE s.id = $1 LIMIT 1`,
+          [c.shop_id],
+        ).then(async (r) => {
+          const email = r.rows[0]?.email;
+          if (!email) return;
+          await sendEmail({
+            to: email,
+            subject: c.title,
+            html: renewalReminderHtml({
+              shopName: matchedShop.shop_name,
+              daysRemaining: matchedShop.days_remaining,
+              expiresAt: matchedShop.plan_expires_at,
+              renewUrl,
+            }),
+            text: c.body,
+          });
+        }).catch((err) => {
+          logger.warn({ err, shop_id: c.shop_id }, "[renewal] Email send failed (non-fatal)");
+        });
+      }
     } catch (err) {
       logger.warn({ err }, "[renewal] Failed to insert notifications");
     }

@@ -421,6 +421,26 @@ router.post("/staff/resend-invitation", async (req, res) => {
     action: "resend_invitation",
     meta: { invitation_id, new_expires_at: newExpiry },
   });
+
+  // F1-3: Send invitation email (best-effort)
+  try {
+    const { sendEmail, staffInvitationHtml } = await import("../lib/email.js");
+    const appUrl = process.env["APP_URL"] ?? "https://umkmgo.id";
+    const inviteUrl = `${appUrl}/invite?token=${rows[0].token}`;
+    const shopRes = await httpFetch(
+      `${SUPABASE_URL()}/rest/v1/shops?select=name&id=eq.${shop_id}&limit=1`,
+      { headers: adminHeaders() },
+    );
+    const shopName = shopRes.ok ? ((await shopRes.json()) as Array<{ name: string }>)[0]?.name ?? "Toko" : "Toko";
+    await sendEmail({
+      to: rows[0].email,
+      subject: `Undangan bergabung ke ${shopName}`,
+      html: staffInvitationHtml({ shopName, role: "staff", inviteUrl, expiresAt: rows[0].expires_at }),
+    });
+  } catch (err) {
+    logger.warn({ err }, "[staff] Email invite send failed (non-fatal)");
+  }
+
   res.json({ ok: true, token: rows[0].token, expires_at: rows[0].expires_at });
 });
 

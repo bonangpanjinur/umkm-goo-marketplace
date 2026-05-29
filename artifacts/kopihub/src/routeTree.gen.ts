@@ -162,6 +162,7 @@ import { Route as PosAppContractsRouteImport } from './routes/pos-app.contracts'
 import { Route as PosAppComboBuilderRouteImport } from './routes/pos-app.combo-builder'
 import { Route as PosAppCertificatesRouteImport } from './routes/pos-app.certificates'
 import { Route as PosAppCategoriesRouteImport } from './routes/pos-app.categories'
+import { Route as PosAppCashDrawerRouteImport } from './routes/pos-app.cash-drawer'
 import { Route as PosAppCapabilitiesRouteImport } from './routes/pos-app.capabilities'
 import { Route as PosAppBundlesRouteImport } from './routes/pos-app.bundles'
 import { Route as PosAppBulkPricingRouteImport } from './routes/pos-app.bulk-pricing'
@@ -1078,6 +1079,11 @@ const PosAppCategoriesRoute = PosAppCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => PosAppRoute,
 } as any)
+const PosAppCashDrawerRoute = PosAppCashDrawerRouteImport.update({
+  id: '/cash-drawer',
+  path: '/cash-drawer',
+  getParentRoute: () => PosAppRoute,
+} as any)
 const PosAppCapabilitiesRoute = PosAppCapabilitiesRouteImport.update({
   id: '/capabilities',
   path: '/capabilities',
@@ -1924,6 +1930,7 @@ export interface FileRoutesByFullPath {
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/capabilities': typeof PosAppCapabilitiesRoute
+  '/pos-app/cash-drawer': typeof PosAppCashDrawerRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/certificates': typeof PosAppCertificatesRoute
   '/pos-app/combo-builder': typeof PosAppComboBuilderRoute
@@ -2217,6 +2224,7 @@ export interface FileRoutesByTo {
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/capabilities': typeof PosAppCapabilitiesRoute
+  '/pos-app/cash-drawer': typeof PosAppCashDrawerRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/certificates': typeof PosAppCertificatesRoute
   '/pos-app/combo-builder': typeof PosAppComboBuilderRoute
@@ -2515,6 +2523,7 @@ export interface FileRoutesById {
   '/pos-app/bulk-pricing': typeof PosAppBulkPricingRoute
   '/pos-app/bundles': typeof PosAppBundlesRoute
   '/pos-app/capabilities': typeof PosAppCapabilitiesRoute
+  '/pos-app/cash-drawer': typeof PosAppCashDrawerRoute
   '/pos-app/categories': typeof PosAppCategoriesRoute
   '/pos-app/certificates': typeof PosAppCertificatesRoute
   '/pos-app/combo-builder': typeof PosAppComboBuilderRoute
@@ -2815,6 +2824,7 @@ export interface FileRouteTypes {
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/capabilities'
+    | '/pos-app/cash-drawer'
     | '/pos-app/categories'
     | '/pos-app/certificates'
     | '/pos-app/combo-builder'
@@ -3108,6 +3118,7 @@ export interface FileRouteTypes {
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/capabilities'
+    | '/pos-app/cash-drawer'
     | '/pos-app/categories'
     | '/pos-app/certificates'
     | '/pos-app/combo-builder'
@@ -3405,6 +3416,7 @@ export interface FileRouteTypes {
     | '/pos-app/bulk-pricing'
     | '/pos-app/bundles'
     | '/pos-app/capabilities'
+    | '/pos-app/cash-drawer'
     | '/pos-app/categories'
     | '/pos-app/certificates'
     | '/pos-app/combo-builder'
@@ -4697,6 +4709,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/pos-app/categories'
       preLoaderRoute: typeof PosAppCategoriesRouteImport
+      parentRoute: typeof PosAppRoute
+    }
+    '/pos-app/cash-drawer': {
+      id: '/pos-app/cash-drawer'
+      path: '/cash-drawer'
+      fullPath: '/pos-app/cash-drawer'
+      preLoaderRoute: typeof PosAppCashDrawerRouteImport
       parentRoute: typeof PosAppRoute
     }
     '/pos-app/capabilities': {
@@ -6034,6 +6053,7 @@ interface PosAppRouteChildren {
   PosAppBulkPricingRoute: typeof PosAppBulkPricingRoute
   PosAppBundlesRoute: typeof PosAppBundlesRoute
   PosAppCapabilitiesRoute: typeof PosAppCapabilitiesRoute
+  PosAppCashDrawerRoute: typeof PosAppCashDrawerRoute
   PosAppCategoriesRoute: typeof PosAppCategoriesRoute
   PosAppCertificatesRoute: typeof PosAppCertificatesRoute
   PosAppComboBuilderRoute: typeof PosAppComboBuilderRoute
@@ -6179,6 +6199,7 @@ const PosAppRouteChildren: PosAppRouteChildren = {
   PosAppBulkPricingRoute: PosAppBulkPricingRoute,
   PosAppBundlesRoute: PosAppBundlesRoute,
   PosAppCapabilitiesRoute: PosAppCapabilitiesRoute,
+  PosAppCashDrawerRoute: PosAppCashDrawerRoute,
   PosAppCategoriesRoute: PosAppCategoriesRoute,
   PosAppCertificatesRoute: PosAppCertificatesRoute,
   PosAppComboBuilderRoute: PosAppComboBuilderRoute,

@@ -5,6 +5,7 @@ import notificationsRouter from "./notifications.js";
 import aiDescriptionRouter from "./ai-description.js";
 import staffRouter from "./staff.js";
 import printerRouter from "./printer.js";
+import rajaongkirRouter from "./rajaongkir.js";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(notificationsRouter);
 router.use(aiDescriptionRouter);
 router.use(staffRouter);
 router.use(printerRouter);
+router.use(rajaongkirRouter);
 
 export default router;

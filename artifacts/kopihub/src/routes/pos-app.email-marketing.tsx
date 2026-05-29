@@ -1,3 +1,7 @@
+/**
+ * F2-1: Email Marketing — menggunakan tabel marketing_campaigns + campaign_recipients.
+ * (Sebelumnya pakai email_campaigns — sudah dimigrasikan)
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Mail, Send, Users, BarChart2, Plus, Eye, Calendar, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { Mail, Send, Users, BarChart2, Plus, Calendar, CheckCircle2, Clock, Loader2, Trash2 } from "lucide-react";
 import { useShop } from "@/lib/use-shop";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,17 +51,18 @@ export default function EmailMarketingPage() {
   const [body, setBody] = useState("");
   const [segment, setSegment] = useState("all");
   const [sending, setSending] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   async function load() {
     if (!shop?.id) return;
     const { data, error } = await supabase
-      .from("email_campaigns")
+      .from("marketing_campaigns" as any)
       .select("id, name, subject, status, recipient_count, sent_at, scheduled_at, segment")
       .eq("shop_id", shop.id)
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) { toast.error(error.message); setLoaded(true); return; }
-    setCampaigns((data ?? []) as any);
+    setCampaigns((data ?? []) as Campaign[]);
     setLoaded(true);
   }
 
@@ -72,12 +77,13 @@ export default function EmailMarketingPage() {
     if (!shop?.id) { toast.error("Toko belum siap"); return; }
     if (!subject.trim() || !body.trim()) { toast.error("Subject dan isi email wajib diisi"); return; }
     setSending(true);
-    const html = `<div>${body.replace(/\n/g, "<br/>")}</div>`;
-    const { error } = await supabase.from("email_campaigns").insert({
+    const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto">${body.replace(/\n/g, "<br/>")}</div>`;
+    const { error } = await (supabase as any).from("marketing_campaigns").insert({
       shop_id: shop.id,
       name: previewText.trim() || subject.trim().slice(0, 80),
       subject: subject.trim(),
       body_html: html,
+      body_text: body.trim(),
       segment,
       status: asDraft ? "draft" : "scheduled",
       scheduled_at: asDraft ? null : new Date().toISOString(),
@@ -88,6 +94,19 @@ export default function EmailMarketingPage() {
     setTab("list");
     toast.success(asDraft ? "Draft tersimpan" : "Campaign dijadwalkan untuk dikirim");
     load();
+  }
+
+  async function deleteCampaign(id: string) {
+    setDeleting(id);
+    const { error } = await (supabase as any)
+      .from("marketing_campaigns")
+      .delete()
+      .eq("id", id)
+      .eq("shop_id", shop?.id ?? "");
+    setDeleting(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Campaign dihapus");
+    setCampaigns(c => c.filter(x => x.id !== id));
   }
 
   const sentCampaigns = campaigns.filter(c => c.status === "sent");
@@ -135,16 +154,28 @@ export default function EmailMarketingPage() {
                         {c.status === "failed"    && <Badge variant="destructive" className="text-xs h-5">Gagal</Badge>}
                       </div>
                       <p className="font-medium truncate">{c.subject}</p>
+                      {c.name && <p className="text-xs text-muted-foreground truncate">{c.name}</p>}
                       <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground flex-wrap">
                         {c.recipient_count != null && c.recipient_count > 0 && (
                           <span><Users className="h-3 w-3 inline mr-1" />{c.recipient_count} penerima</span>
                         )}
                         {c.sent_at && <span><Calendar className="h-3 w-3 inline mr-1" />{new Date(c.sent_at).toLocaleDateString("id-ID")}</span>}
                         {c.scheduled_at && !c.sent_at && <span><Calendar className="h-3 w-3 inline mr-1" />Jadwal: {new Date(c.scheduled_at).toLocaleString("id-ID")}</span>}
-                        {c.segment && <span>Segmen: {c.segment}</span>}
+                        {c.segment && <span>Segmen: {SEGMENTS.find(s => s.id === c.segment)?.label ?? c.segment}</span>}
                       </div>
                     </div>
-                    <BarChart2 className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                      {(c.status === "draft" || c.status === "scheduled") && (
+                        <Button
+                          variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => deleteCampaign(c.id)}
+                          disabled={deleting === c.id}
+                        >
+                          {deleting === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -186,7 +217,7 @@ export default function EmailMarketingPage() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Catatan: Campaign akan diproses oleh worker pengiriman email (akan aktif setelah konfigurasi SMTP/Resend).
+              Campaign akan diproses oleh worker pengiriman email (aktif setelah RESEND_API_KEY dikonfigurasi di server).
             </p>
           </div>
           <div className="space-y-3">
