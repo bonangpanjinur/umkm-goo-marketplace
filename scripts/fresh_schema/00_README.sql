@@ -2,12 +2,27 @@
 -- UMKMgo — FRESH BOOTSTRAP SCHEMA
 -- Consolidated from 156 migrations (126 archived + 30 active)
 -- ============================================================================
--- Updated: 2026-05-22
+-- Updated: 2026-05-29
 --
--- ⚠️  UNTUK PROJECT BARU SAJA — jangan apply ke instance yang sudah ada data.
+-- ⚠️  UNTUK PROJECT SUPABASE BARU — file ini memakai auth.uid(), auth.jwt(),
+--     dan storage schema. Jangan dijalankan ke Neon/Postgres biasa.
 --
--- Cara pakai (fresh Supabase project):
---   Jalankan ke-6 file ini secara berurutan di SQL Editor atau psql:
+-- IDEMPOTENCY — semua file aman dijalankan berulang kali (fixed 2026-05-29):
+--   01: CREATE TABLE IF NOT EXISTS, CREATE OR REPLACE FUNCTION
+--   02: CREATE INDEX IF NOT EXISTS, DROP TRIGGER IF EXISTS → CREATE TRIGGER,
+--       DROP CONSTRAINT IF EXISTS → ADD CONSTRAINT (PK)
+--   03: DROP CONSTRAINT IF EXISTS → ADD CONSTRAINT (semua FK)
+--   04: DROP POLICY IF EXISTS → CREATE POLICY (454 public + 69 storage),
+--       Storage bucket pakai ON CONFLICT (id) DO NOTHING
+--   05: INSERT ... ON CONFLICT DO NOTHING (ICD-10 seed)
+--   06: Sudah idempotent sejak awal (IF NOT EXISTS / OR REPLACE / ON CONFLICT)
+--
+-- CARA PAKAI — OPTION A: Pakai runner script (psql)
+--   export SUPABASE_DB_URL="postgresql://postgres:[password]@[host]:5432/postgres"
+--   bash scripts/fresh_schema/run_fresh_schema.sh
+--
+-- CARA PAKAI — OPTION B: Manual via Supabase SQL Editor
+--   Jalankan ke-6 file ini secara berurutan di SQL Editor:
 --
 --   01_core_schema.sql            → ENUMs, tabel utama, fungsi dasar
 --   02_indexes_views_triggers.sql → Index, view, trigger
@@ -19,8 +34,9 @@
 --                                   RLS baru, seed plans/categories/features
 --
 -- Isi total:
---   - Semua tabel, enum, function, trigger dari 156 migration
---   - 29 perubahan pasca-konsolidasi (20260518–20260522) sudah terintegrasi
---   - Seed data: business_categories, plans, features, plan_features, ICD-10
---   - Storage: 27+ bucket + policy
+--   - 159 tabel, 15 ENUM, 115 fungsi, 119 trigger
+--   - 454 RLS policy tabel public + 69 policy storage.objects
+--   - 232 index, 179 FK constraint
+--   - 27 storage bucket
+--   - Seed ICD-10 (46 kode)
 -- ============================================================================

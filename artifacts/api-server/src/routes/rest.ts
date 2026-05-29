@@ -393,11 +393,38 @@ router.all("/auth/v1/*path", async (req: any, res: Response) => {
       body: ["GET", "HEAD"].includes(req.method) ? undefined : JSON.stringify(req.body),
     });
 
-    const data = await (upstreamRes as any).json();
-    (res as any).status((upstreamRes as any).status).json(data);
+    const status = upstreamRes.status;
+
+    // Forward upstream headers that matter to the client (auth tokens, etc.)
+    const forwardHeaders = ["content-type", "x-supabase-api-version", "x-request-id"];
+    for (const h of forwardHeaders) {
+      const v = upstreamRes.headers.get(h);
+      if (v) res.setHeader(h, v);
+    }
+
+    // 204 / 304 — no body
+    if (status === 204 || status === 304) {
+      res.status(status).end();
+      return;
+    }
+
+    const body = await upstreamRes.text();
+
+    // Empty body
+    if (!body || body.trim() === "") {
+      res.status(status).end();
+      return;
+    }
+
+    // Try JSON, fall back to plain text
+    try {
+      res.status(status).json(JSON.parse(body));
+    } catch {
+      res.status(status).send(body);
+    }
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
-    (res as any).status(500).json({ message: "Auth proxy failed" });
+    res.status(500).json({ message: "Auth proxy gagal menghubungi Supabase" });
   }
 });
 

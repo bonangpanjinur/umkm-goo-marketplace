@@ -22,7 +22,7 @@ SET row_security = off;
 --
 
 -- bootstrap placeholder to satisfy early function compilation; dropped before real shops table
-CREATE TABLE public.shops__bootstrap_placeholder (
+CREATE TABLE IF NOT EXISTS public.shops__bootstrap_placeholder (
     id uuid,
     owner_id uuid,
     name text,
@@ -230,7 +230,7 @@ CREATE TYPE public.withdrawal_status AS ENUM (
 -- Name: accept_staff_invitation(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.accept_staff_invitation(_token text) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.accept_staff_invitation(_token text) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -273,7 +273,7 @@ $$;
 -- Name: admin_dashboard_stats(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_dashboard_stats() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.admin_dashboard_stats() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -305,7 +305,7 @@ $$;
 -- Name: admin_remove_plan_feature(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_remove_plan_feature(_plan_id uuid, _feature_key text) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_remove_plan_feature(_plan_id uuid, _feature_key text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -319,7 +319,7 @@ END; $$;
 -- Name: admin_remove_plan_theme(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_remove_plan_theme(_plan_id uuid, _theme_key text) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_remove_plan_theme(_plan_id uuid, _theme_key text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -333,7 +333,7 @@ END; $$;
 -- Name: admin_set_shop_plan(uuid, text, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_set_shop_plan(_shop_id uuid, _plan text, _expires_at timestamp with time zone) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_set_shop_plan(_shop_id uuid, _plan text, _expires_at timestamp with time zone) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -368,7 +368,7 @@ $$;
 -- Name: admin_shop_detail(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_shop_detail(_shop_id uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.admin_shop_detail(_shop_id uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -405,7 +405,7 @@ $$;
 -- Name: admin_suspend_shop(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_suspend_shop(_shop_id uuid, _reason text) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_suspend_shop(_shop_id uuid, _reason text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -435,7 +435,7 @@ $$;
 -- Name: admin_unsuspend_shop(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_unsuspend_shop(_shop_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_unsuspend_shop(_shop_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -458,7 +458,7 @@ $$;
 -- Name: admin_upsert_feature(text, text, text, text, boolean, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_upsert_feature(_key text, _name text, _description text, _category text, _is_active boolean, _sort_order integer) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_upsert_feature(_key text, _name text, _description text, _category text, _is_active boolean, _sort_order integer) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -480,7 +480,7 @@ END; $$;
 -- Name: admin_upsert_plan_feature(uuid, text, integer, integer, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_upsert_plan_feature(_plan_id uuid, _feature_key text, _requires_min_months integer, _limit_value integer, _meta jsonb) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_upsert_plan_feature(_plan_id uuid, _feature_key text, _requires_min_months integer, _limit_value integer, _meta jsonb) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -499,7 +499,7 @@ END; $$;
 -- Name: admin_upsert_plan_theme(uuid, text, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_upsert_plan_theme(_plan_id uuid, _theme_key text, _requires_min_months integer) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_upsert_plan_theme(_plan_id uuid, _theme_key text, _requires_min_months integer) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -516,7 +516,7 @@ END; $$;
 -- Name: admin_upsert_theme(text, text, text, text, text, text, boolean, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.admin_upsert_theme(_key text, _name text, _description text, _component_id text, _preview_image_url text, _tier_hint text, _is_active boolean, _sort_order integer) RETURNS void
+CREATE OR REPLACE FUNCTION public.admin_upsert_theme(_key text, _name text, _description text, _component_id text, _preview_image_url text, _tier_hint text, _is_active boolean, _sort_order integer) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -540,7 +540,7 @@ END; $$;
 -- Name: apply_loyalty_post_order(uuid, uuid, uuid, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.apply_loyalty_post_order(_shop_id uuid, _user_id uuid, _order_id uuid, _earned integer, _redeemed integer) RETURNS void
+CREATE OR REPLACE FUNCTION public.apply_loyalty_post_order(_shop_id uuid, _user_id uuid, _order_id uuid, _earned integer, _redeemed integer) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -593,7 +593,7 @@ $$;
 -- Name: apply_stock_movement(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.apply_stock_movement() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.apply_stock_movement() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -612,7 +612,7 @@ $$;
 -- Name: approve_plan_invoice(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.approve_plan_invoice(_invoice_id uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.approve_plan_invoice(_invoice_id uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -657,7 +657,7 @@ $$;
 -- Name: approve_wallet_topup(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.approve_wallet_topup(_topup_id uuid) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.approve_wallet_topup(_topup_id uuid) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -717,7 +717,7 @@ $$;
 -- Name: approve_withdrawal(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.approve_withdrawal(_id uuid, _proof_url text DEFAULT NULL::text) RETURNS void
+CREATE OR REPLACE FUNCTION public.approve_withdrawal(_id uuid, _proof_url text DEFAULT NULL::text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -747,7 +747,7 @@ END; $$;
 -- Name: assign_courier_atomic(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.assign_courier_atomic(_order_id uuid, _courier_id uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.assign_courier_atomic(_order_id uuid, _courier_id uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -799,7 +799,7 @@ $$;
 -- Name: auto_cancel_pending_deposit_bookings(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.auto_cancel_pending_deposit_bookings() RETURNS TABLE(cancelled_count integer, cutoff_hours integer)
+CREATE OR REPLACE FUNCTION public.auto_cancel_pending_deposit_bookings() RETURNS TABLE(cancelled_count integer, cutoff_hours integer)
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -864,7 +864,7 @@ $$;
 -- Name: auto_release_escrow(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.auto_release_escrow() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.auto_release_escrow() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -895,7 +895,7 @@ $$;
 -- Name: auto_release_escrow_on_complete(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.auto_release_escrow_on_complete() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.auto_release_escrow_on_complete() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -918,7 +918,7 @@ $$;
 -- Name: auto_unverify_domain(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.auto_unverify_domain(_shop_id uuid, _reason text) RETURNS void
+CREATE OR REPLACE FUNCTION public.auto_unverify_domain(_shop_id uuid, _reason text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -938,7 +938,7 @@ $$;
 -- Name: booking_cancel_by_token(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.booking_cancel_by_token(_token uuid, _reason text DEFAULT NULL::text) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.booking_cancel_by_token(_token uuid, _reason text DEFAULT NULL::text) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -975,7 +975,7 @@ END $$;
 -- Name: bookings_fill_shop_id(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.bookings_fill_shop_id() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.bookings_fill_shop_id() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -991,7 +991,7 @@ END $$;
 -- Name: calc_attendance_duration(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.calc_attendance_duration() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.calc_attendance_duration() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1008,7 +1008,7 @@ $$;
 -- Name: check_booking_capacity(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.check_booking_capacity() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.check_booking_capacity() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -1054,7 +1054,7 @@ $$;
 -- Name: close_shift(uuid, numeric, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.close_shift(_shift_id uuid, _closing_cash numeric, _note text DEFAULT NULL::text) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.close_shift(_shift_id uuid, _closing_cash numeric, _note text DEFAULT NULL::text) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1132,7 +1132,7 @@ $$;
 -- Name: compute_upsell_suggestions(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.compute_upsell_suggestions() RETURNS TABLE(processed_products integer, inserted_pairs integer)
+CREATE OR REPLACE FUNCTION public.compute_upsell_suggestions() RETURNS TABLE(processed_products integer, inserted_pairs integer)
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1193,7 +1193,7 @@ $$;
 -- Name: consume_stock_for_order_item(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.consume_stock_for_order_item() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.consume_stock_for_order_item() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1229,7 +1229,7 @@ $$;
 -- Name: courier_mark_delivered(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.courier_mark_delivered(_order_id uuid, _proof_url text) RETURNS void
+CREATE OR REPLACE FUNCTION public.courier_mark_delivered(_order_id uuid, _proof_url text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1256,7 +1256,7 @@ $$;
 -- Name: create_notification(uuid, text, text, text, text, text, uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.create_notification(_recipient uuid, _type text, _title text, _body text DEFAULT NULL::text, _link text DEFAULT NULL::text, _severity text DEFAULT 'info'::text, _shop_id uuid DEFAULT NULL::uuid, _dedupe_key text DEFAULT NULL::text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.create_notification(_recipient uuid, _type text, _title text, _body text DEFAULT NULL::text, _link text DEFAULT NULL::text, _severity text DEFAULT 'info'::text, _shop_id uuid DEFAULT NULL::uuid, _dedupe_key text DEFAULT NULL::text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1278,7 +1278,7 @@ $$;
 -- Name: enforce_qr_table_lock(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.enforce_qr_table_lock() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.enforce_qr_table_lock() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1301,7 +1301,7 @@ $$;
 -- Name: ensure_shop_wallet(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.ensure_shop_wallet(_shop_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.ensure_shop_wallet(_shop_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1316,7 +1316,7 @@ $$;
 -- Name: escrow_hold_order(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.escrow_hold_order(_order_id uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.escrow_hold_order(_order_id uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1369,7 +1369,7 @@ END; $$;
 -- Name: escrow_refund_order(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.escrow_refund_order(_order_id uuid, _reason text DEFAULT NULL::text) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.escrow_refund_order(_order_id uuid, _reason text DEFAULT NULL::text) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1404,7 +1404,7 @@ END; $$;
 -- Name: escrow_release_order(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.escrow_release_order(_order_id uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.escrow_release_order(_order_id uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1453,7 +1453,7 @@ END; $$;
 -- Name: expire_overdue_plans(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.expire_overdue_plans() RETURNS TABLE(shop_id uuid)
+CREATE OR REPLACE FUNCTION public.expire_overdue_plans() RETURNS TABLE(shop_id uuid)
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1478,7 +1478,7 @@ $$;
 -- Name: expire_stale_pending_invoices(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.expire_stale_pending_invoices() RETURNS integer
+CREATE OR REPLACE FUNCTION public.expire_stale_pending_invoices() RETURNS integer
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1503,7 +1503,7 @@ $$;
 -- Name: fn_issue_course_certificate(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.fn_issue_course_certificate() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.fn_issue_course_certificate() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1556,7 +1556,7 @@ $$;
 -- Name: generate_owner_reminders(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.generate_owner_reminders() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.generate_owner_reminders() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1648,7 +1648,7 @@ $$;
 -- Name: get_billing_settings_public(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_billing_settings_public() RETURNS TABLE(bank_name text, account_no text, account_name text, instructions text, qris_image_url text)
+CREATE OR REPLACE FUNCTION public.get_billing_settings_public() RETURNS TABLE(bank_name text, account_no text, account_name text, instructions text, qris_image_url text)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1664,7 +1664,7 @@ $$;
 -- Name: get_customer_custom_orders(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_customer_custom_orders(p_shop_slug text, p_contact text) RETURNS TABLE(id uuid, shop_id uuid, product_id uuid, product_name text, customer_name text, description text, budget_min numeric, budget_max numeric, deadline date, reference_image_url text, status text, owner_note text, created_at timestamp with time zone, updated_at timestamp with time zone, history jsonb)
+CREATE OR REPLACE FUNCTION public.get_customer_custom_orders(p_shop_slug text, p_contact text) RETURNS TABLE(id uuid, shop_id uuid, product_id uuid, product_name text, customer_name text, description text, budget_min numeric, budget_max numeric, deadline date, reference_image_url text, status text, owner_note text, created_at timestamp with time zone, updated_at timestamp with time zone, history jsonb)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1700,7 +1700,7 @@ $$;
 -- Name: get_marketplace_admin_daily(timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_marketplace_admin_daily(_from timestamp with time zone, _to timestamp with time zone) RETURNS TABLE(day date, gmv numeric, commission numeric, orders bigint)
+CREATE OR REPLACE FUNCTION public.get_marketplace_admin_daily(_from timestamp with time zone, _to timestamp with time zone) RETURNS TABLE(day date, gmv numeric, commission numeric, orders bigint)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1730,7 +1730,7 @@ $$;
 -- Name: get_marketplace_admin_stats(timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_marketplace_admin_stats(_from timestamp with time zone, _to timestamp with time zone) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.get_marketplace_admin_stats(_from timestamp with time zone, _to timestamp with time zone) RETURNS jsonb
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1769,7 +1769,7 @@ $$;
 -- Name: get_marketplace_admin_top_shops(timestamp with time zone, timestamp with time zone, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_marketplace_admin_top_shops(_from timestamp with time zone, _to timestamp with time zone, _limit integer DEFAULT 10) RETURNS TABLE(shop_id uuid, shop_name text, gmv numeric, commission numeric, orders bigint)
+CREATE OR REPLACE FUNCTION public.get_marketplace_admin_top_shops(_from timestamp with time zone, _to timestamp with time zone, _limit integer DEFAULT 10) RETURNS TABLE(shop_id uuid, shop_name text, gmv numeric, commission numeric, orders bigint)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1802,7 +1802,7 @@ $$;
 -- Name: get_my_active_memberships(uuid[]); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_my_active_memberships(_shop_ids uuid[]) RETURNS TABLE(shop_id uuid, tier_id uuid, tier_name text, discount_percent numeric, expires_at timestamp with time zone)
+CREATE OR REPLACE FUNCTION public.get_my_active_memberships(_shop_ids uuid[]) RETURNS TABLE(shop_id uuid, tier_id uuid, tier_name text, discount_percent numeric, expires_at timestamp with time zone)
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1823,7 +1823,7 @@ $$;
 -- Name: get_my_entitlements(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_my_entitlements() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.get_my_entitlements() RETURNS jsonb
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1866,7 +1866,7 @@ END $$;
 -- Name: get_or_create_marketplace_cart(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_or_create_marketplace_cart() RETURNS uuid
+CREATE OR REPLACE FUNCTION public.get_or_create_marketplace_cart() RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1890,7 +1890,7 @@ $$;
 -- Name: get_order_tracking(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_order_tracking(_order_id uuid) RETURNS TABLE(id uuid, order_no text, status public.order_status, fulfillment public.fulfillment_type, channel public.order_channel, total numeric, delivery_fee numeric, delivery_address text, customer_name text, created_at timestamp with time zone, updated_at timestamp with time zone, shop_name text, shop_slug text, courier_name text, courier_phone text, courier_plate text, delivery_proof_url text, delivered_at timestamp with time zone)
+CREATE OR REPLACE FUNCTION public.get_order_tracking(_order_id uuid) RETURNS TABLE(id uuid, order_no text, status public.order_status, fulfillment public.fulfillment_type, channel public.order_channel, total numeric, delivery_fee numeric, delivery_address text, customer_name text, created_at timestamp with time zone, updated_at timestamp with time zone, shop_name text, shop_slug text, courier_name text, courier_phone text, courier_plate text, delivery_proof_url text, delivered_at timestamp with time zone)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1915,7 +1915,7 @@ $$;
 -- Name: get_profit_report(uuid, timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_profit_report(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.get_profit_report(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS jsonb
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -1967,7 +1967,7 @@ $$;
 -- Name: get_profit_report_daily(uuid, timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_profit_report_daily(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS TABLE(day date, revenue numeric, cogs numeric, gross_profit numeric, orders integer)
+CREATE OR REPLACE FUNCTION public.get_profit_report_daily(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS TABLE(day date, revenue numeric, cogs numeric, gross_profit numeric, orders integer)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2015,7 +2015,7 @@ $$;
 -- Name: get_shop_entitlements(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_shop_entitlements(_shop_id uuid) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.get_shop_entitlements(_shop_id uuid) RETURNS jsonb
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2097,7 +2097,7 @@ $$;
 -- Name: get_shop_marketplace_daily(uuid, timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_shop_marketplace_daily(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS TABLE(day date, revenue numeric, orders bigint)
+CREATE OR REPLACE FUNCTION public.get_shop_marketplace_daily(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS TABLE(day date, revenue numeric, orders bigint)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2128,7 +2128,7 @@ $$;
 -- Name: get_shop_marketplace_stats(uuid, timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_shop_marketplace_stats(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.get_shop_marketplace_stats(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone) RETURNS jsonb
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2166,7 +2166,7 @@ $$;
 -- Name: get_shop_marketplace_top_products(uuid, timestamp with time zone, timestamp with time zone, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.get_shop_marketplace_top_products(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone, _limit integer DEFAULT 10) RETURNS TABLE(menu_item_id uuid, item_name text, qty bigint, revenue numeric)
+CREATE OR REPLACE FUNCTION public.get_shop_marketplace_top_products(_shop_id uuid, _from timestamp with time zone, _to timestamp with time zone, _limit integer DEFAULT 10) RETURNS TABLE(menu_item_id uuid, item_name text, qty bigint, revenue numeric)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2201,7 +2201,7 @@ $$;
 -- Name: handle_new_customer_signup(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.handle_new_customer_signup() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.handle_new_customer_signup() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2225,7 +2225,7 @@ $$;
 -- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.handle_new_user() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2246,7 +2246,7 @@ $$;
 -- Name: has_outlet_access(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.has_outlet_access(_user_id uuid, _outlet_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.has_outlet_access(_user_id uuid, _outlet_id uuid) RETURNS boolean
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2276,7 +2276,7 @@ $$;
 -- Name: has_role(uuid, public.app_role); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2296,7 +2296,7 @@ $$;
 -- Name: has_shop_role(uuid, public.app_role, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.has_shop_role(_user_id uuid, _role public.app_role, _shop_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.has_shop_role(_user_id uuid, _role public.app_role, _shop_id uuid) RETURNS boolean
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2316,7 +2316,7 @@ $$;
 -- Name: increment_promo_usage(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.increment_promo_usage(_promo_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.increment_promo_usage(_promo_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2330,7 +2330,7 @@ $$;
 -- Name: is_courier_of_shop(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.is_courier_of_shop(_user_id uuid, _shop_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.is_courier_of_shop(_user_id uuid, _shop_id uuid) RETURNS boolean
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2350,7 +2350,7 @@ $$;
 -- Name: is_shop_owner(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.is_shop_owner(_shop_id uuid, _user_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.is_shop_owner(_shop_id uuid, _user_id uuid) RETURNS boolean
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2369,7 +2369,7 @@ $$;
 -- Name: link_courier_account(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.link_courier_account() RETURNS integer
+CREATE OR REPLACE FUNCTION public.link_courier_account() RETURNS integer
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2394,7 +2394,7 @@ $$;
 -- Name: list_available_delivery_orders(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.list_available_delivery_orders(_courier_id uuid) RETURNS TABLE(id uuid, order_no text, status public.order_status, total numeric, delivery_fee numeric, delivery_address text, customer_name text, customer_phone text, note text, created_at timestamp with time zone)
+CREATE OR REPLACE FUNCTION public.list_available_delivery_orders(_courier_id uuid) RETURNS TABLE(id uuid, order_no text, status public.order_status, total numeric, delivery_fee numeric, delivery_address text, customer_name text, customer_phone text, note text, created_at timestamp with time zone)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2421,7 +2421,7 @@ $$;
 -- Name: log_custom_order_status_change(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.log_custom_order_status_change() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.log_custom_order_status_change() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2444,7 +2444,7 @@ $$;
 -- Name: log_shift_change(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.log_shift_change() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.log_shift_change() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2500,7 +2500,7 @@ $$;
 -- Name: log_system_event(text, uuid, jsonb, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.log_system_event(_event_type text, _shop_id uuid, _payload jsonb DEFAULT '{}'::jsonb, _notes text DEFAULT NULL::text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.log_system_event(_event_type text, _shop_id uuid, _payload jsonb DEFAULT '{}'::jsonb, _notes text DEFAULT NULL::text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2519,7 +2519,7 @@ $$;
 -- Name: mark_all_notifications_read(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.mark_all_notifications_read() RETURNS integer
+CREATE OR REPLACE FUNCTION public.mark_all_notifications_read() RETURNS integer
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2540,7 +2540,7 @@ $$;
 -- Name: mark_notification_read(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.mark_notification_read(_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.mark_notification_read(_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2556,7 +2556,7 @@ $$;
 -- Name: marketplace_checkout(text, text, text, text, text, text, jsonb, jsonb, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.marketplace_checkout(_recipient_name text, _phone text, _address text, _fulfillment text DEFAULT 'delivery'::text, _payment_method text DEFAULT 'manual_transfer'::text, _notes text DEFAULT NULL::text, _shipping jsonb DEFAULT '{}'::jsonb, _shop_voucher_codes jsonb DEFAULT '{}'::jsonb, _platform_voucher_code text DEFAULT NULL::text) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.marketplace_checkout(_recipient_name text, _phone text, _address text, _fulfillment text DEFAULT 'delivery'::text, _payment_method text DEFAULT 'manual_transfer'::text, _notes text DEFAULT NULL::text, _shipping jsonb DEFAULT '{}'::jsonb, _shop_voucher_codes jsonb DEFAULT '{}'::jsonb, _platform_voucher_code text DEFAULT NULL::text) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2823,7 +2823,7 @@ $$;
 -- Name: next_order_no(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.next_order_no(_outlet_id uuid) RETURNS text
+CREATE OR REPLACE FUNCTION public.next_order_no(_outlet_id uuid) RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2843,7 +2843,7 @@ $$;
 -- Name: notify_dispute_event(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_dispute_event() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_dispute_event() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2884,7 +2884,7 @@ CREATE FUNCTION public.notify_dispute_event() RETURNS trigger
 -- Name: notify_low_stock(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_low_stock() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_low_stock() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2916,7 +2916,7 @@ $$;
 -- Name: notify_membership_event(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_membership_event() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_membership_event() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2962,7 +2962,7 @@ $$;
 -- Name: notify_new_marketplace_order(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_new_marketplace_order() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_new_marketplace_order() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -2990,7 +2990,7 @@ $$;
 -- Name: notify_order_status_change(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_order_status_change() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_order_status_change() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3032,7 +3032,7 @@ $$;
 -- Name: notify_wallet_topup_event(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_wallet_topup_event() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_wallet_topup_event() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3089,7 +3089,7 @@ $$;
 -- Name: notify_withdrawal_status(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.notify_withdrawal_status() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.notify_withdrawal_status() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3122,7 +3122,7 @@ CREATE FUNCTION public.notify_withdrawal_status() RETURNS trigger
 -- Name: open_dispute(uuid, text, text, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.open_dispute(_order_id uuid, _reason text, _description text DEFAULT NULL::text, _photos jsonb DEFAULT '[]'::jsonb) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.open_dispute(_order_id uuid, _reason text, _description text DEFAULT NULL::text, _photos jsonb DEFAULT '[]'::jsonb) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3158,7 +3158,7 @@ $$;
 -- Name: open_shift(uuid, numeric); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.open_shift(_outlet_id uuid, _opening_cash numeric) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.open_shift(_outlet_id uuid, _opening_cash numeric) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3198,7 +3198,7 @@ $$;
 -- Name: process_booking_reminders(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.process_booking_reminders() RETURNS TABLE(h1_count integer, h1h_count integer, review_count integer)
+CREATE OR REPLACE FUNCTION public.process_booking_reminders() RETURNS TABLE(h1_count integer, h1h_count integer, review_count integer)
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3264,7 +3264,7 @@ $$;
 -- Name: process_subscription_renewals(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.process_subscription_renewals() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.process_subscription_renewals() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3321,7 +3321,7 @@ $$;
 -- Name: receive_purchase_order(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.receive_purchase_order(_po_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION public.receive_purchase_order(_po_id uuid) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3375,7 +3375,7 @@ $$;
 -- Name: refresh_product_rating(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.refresh_product_rating() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.refresh_product_rating() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3400,7 +3400,7 @@ END; $$;
 -- Name: refund_order(uuid, numeric, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.refund_order(_order_id uuid, _amount numeric, _reason text DEFAULT NULL::text, _method text DEFAULT 'cash'::text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.refund_order(_order_id uuid, _amount numeric, _reason text DEFAULT NULL::text, _method text DEFAULT 'cash'::text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3461,7 +3461,7 @@ $$;
 -- Name: reject_plan_invoice(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.reject_plan_invoice(_invoice_id uuid, _reason text DEFAULT NULL::text) RETURNS void
+CREATE OR REPLACE FUNCTION public.reject_plan_invoice(_invoice_id uuid, _reason text DEFAULT NULL::text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3481,7 +3481,7 @@ $$;
 -- Name: reject_wallet_topup(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.reject_wallet_topup(_topup_id uuid, _reason text DEFAULT NULL::text) RETURNS void
+CREATE OR REPLACE FUNCTION public.reject_wallet_topup(_topup_id uuid, _reason text DEFAULT NULL::text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3505,7 +3505,7 @@ $$;
 -- Name: reject_withdrawal(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.reject_withdrawal(_id uuid, _reason text) RETURNS void
+CREATE OR REPLACE FUNCTION public.reject_withdrawal(_id uuid, _reason text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3537,7 +3537,7 @@ END; $$;
 -- Name: reload_postgrest_schema(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.reload_postgrest_schema() RETURNS void
+CREATE OR REPLACE FUNCTION public.reload_postgrest_schema() RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3551,7 +3551,7 @@ $$;
 -- Name: request_withdrawal(uuid, numeric, text, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.request_withdrawal(_shop_id uuid, _amount numeric, _bank_name text, _bank_account_no text, _bank_account_name text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.request_withdrawal(_shop_id uuid, _amount numeric, _bank_name text, _bank_account_no text, _bank_account_name text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3602,7 +3602,7 @@ END; $$;
 -- Name: resolve_dispute(uuid, text, text, numeric); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.resolve_dispute(_dispute_id uuid, _status text, _resolution text DEFAULT NULL::text, _refund_amount numeric DEFAULT NULL::numeric) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.resolve_dispute(_dispute_id uuid, _status text, _resolution text DEFAULT NULL::text, _refund_amount numeric DEFAULT NULL::numeric) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3650,7 +3650,7 @@ $$;
 -- Name: run_expiry_reminders_v2(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.run_expiry_reminders_v2() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.run_expiry_reminders_v2() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3735,7 +3735,7 @@ $$;
 -- Name: run_scheduled_publishes(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.run_scheduled_publishes() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.run_scheduled_publishes() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3770,7 +3770,7 @@ END $$;
 -- Name: send_booking_reminders(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.send_booking_reminders() RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.send_booking_reminders() RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3833,7 +3833,7 @@ END $$;
 -- Name: send_membership_expiry_reminders(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.send_membership_expiry_reminders() RETURNS integer
+CREATE OR REPLACE FUNCTION public.send_membership_expiry_reminders() RETURNS integer
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3881,7 +3881,7 @@ $$;
 -- Name: send_order_message(uuid, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.send_order_message(_order_id uuid, _body text, _attachment_url text DEFAULT NULL::text) RETURNS uuid
+CREATE OR REPLACE FUNCTION public.send_order_message(_order_id uuid, _body text, _attachment_url text DEFAULT NULL::text) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3913,7 +3913,7 @@ $$;
 -- Name: set_booking_type_from_slot(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.set_booking_type_from_slot() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.set_booking_type_from_slot() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3935,7 +3935,7 @@ $$;
 -- Name: set_custom_domain_verified(uuid, boolean); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.set_custom_domain_verified(_shop_id uuid, _verified boolean) RETURNS void
+CREATE OR REPLACE FUNCTION public.set_custom_domain_verified(_shop_id uuid, _verified boolean) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -3958,7 +3958,7 @@ $$;
 -- Name: set_order_no(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.set_order_no() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.set_order_no() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $_$
@@ -3989,7 +3989,7 @@ $_$;
 -- Name: set_shop_theme(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.set_shop_theme(_shop_id uuid, _theme_key text) RETURNS void
+CREATE OR REPLACE FUNCTION public.set_shop_theme(_shop_id uuid, _theme_key text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4026,7 +4026,7 @@ $$;
 -- Name: shop_chat_set_last_message_at(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.shop_chat_set_last_message_at() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.shop_chat_set_last_message_at() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4042,7 +4042,7 @@ $$;
 -- Name: test_qr_table_lock(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.test_qr_table_lock() RETURNS text
+CREATE OR REPLACE FUNCTION public.test_qr_table_lock() RETURNS text
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4086,7 +4086,7 @@ $$;
 -- Name: touch_updated_at(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.touch_updated_at() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.touch_updated_at() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4097,7 +4097,7 @@ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 -- Name: update_shop_chat_last_message(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.update_shop_chat_last_message() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.update_shop_chat_last_message() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4115,7 +4115,7 @@ $$;
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.update_updated_at_column() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4130,7 +4130,7 @@ $$;
 -- Name: upsell_fill_shop_id(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.upsell_fill_shop_id() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.upsell_fill_shop_id() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4147,7 +4147,7 @@ $$;
 -- Name: upsert_shop_customer_on_order(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.upsert_shop_customer_on_order() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.upsert_shop_customer_on_order() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4182,7 +4182,7 @@ $$;
 -- Name: user_belongs_to_shop(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.user_belongs_to_shop(_user_id uuid, _shop_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION public.user_belongs_to_shop(_user_id uuid, _shop_id uuid) RETURNS boolean
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4203,7 +4203,7 @@ $$;
 -- Name: validate_business_category_flow_types(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.validate_business_category_flow_types() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.validate_business_category_flow_types() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4227,7 +4227,7 @@ $$;
 -- Name: validate_plan_feature_min_months(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.validate_plan_feature_min_months() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.validate_plan_feature_min_months() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4249,7 +4249,7 @@ $$;
 -- Name: validate_plan_theme_min_months(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.validate_plan_theme_min_months() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.validate_plan_theme_min_months() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'public'
     AS $$
@@ -4271,7 +4271,7 @@ $$;
 -- Name: validate_promo(uuid, text, numeric, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.validate_promo(_shop_id uuid, _code text, _subtotal numeric, _channel text) RETURNS TABLE(promo_id uuid, code text, discount numeric, error text)
+CREATE OR REPLACE FUNCTION public.validate_promo(_shop_id uuid, _code text, _subtotal numeric, _channel text) RETURNS TABLE(promo_id uuid, code text, discount numeric, error text)
     LANGUAGE plpgsql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4328,7 +4328,7 @@ $$;
 -- Name: validate_shift_no_overlap(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.validate_shift_no_overlap() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.validate_shift_no_overlap() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4365,7 +4365,7 @@ $$;
 -- Name: void_order(uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.void_order(_order_id uuid, _reason text DEFAULT NULL::text) RETURNS void
+CREATE OR REPLACE FUNCTION public.void_order(_order_id uuid, _reason text DEFAULT NULL::text) RETURNS void
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -4433,7 +4433,7 @@ SET default_table_access_method = heap;
 -- Name: ad_requests; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.ad_requests (
+CREATE TABLE IF NOT EXISTS public.ad_requests (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid,
     ad_type text DEFAULT 'product'::text,
@@ -4463,7 +4463,7 @@ CREATE TABLE public.ad_requests (
 -- Name: attendances; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.attendances (
+CREATE TABLE IF NOT EXISTS public.attendances (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -4482,7 +4482,7 @@ CREATE TABLE public.attendances (
 -- Name: backup_schedules; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.backup_schedules (
+CREATE TABLE IF NOT EXISTS public.backup_schedules (
     shop_id uuid NOT NULL,
     frequency text DEFAULT 'weekly'::text NOT NULL,
     retention_days integer DEFAULT 30 NOT NULL,
@@ -4497,7 +4497,7 @@ CREATE TABLE public.backup_schedules (
 -- Name: banners; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.banners (
+CREATE TABLE IF NOT EXISTS public.banners (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     title text NOT NULL,
     subtitle text,
@@ -4516,7 +4516,7 @@ CREATE TABLE public.banners (
 -- Name: billing_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.billing_settings (
+CREATE TABLE IF NOT EXISTS public.billing_settings (
     id integer DEFAULT 1 NOT NULL,
     bank_name text,
     account_no text,
@@ -4533,7 +4533,7 @@ CREATE TABLE public.billing_settings (
 -- Name: booking_reschedule_tokens; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.booking_reschedule_tokens (
+CREATE TABLE IF NOT EXISTS public.booking_reschedule_tokens (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     booking_id uuid NOT NULL,
     token text NOT NULL,
@@ -4547,7 +4547,7 @@ CREATE TABLE public.booking_reschedule_tokens (
 -- Name: booking_review_requests; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.booking_review_requests (
+CREATE TABLE IF NOT EXISTS public.booking_review_requests (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     booking_id uuid NOT NULL,
     customer_phone text,
@@ -4561,7 +4561,7 @@ CREATE TABLE public.booking_review_requests (
 -- Name: booking_reviews; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.booking_reviews (
+CREATE TABLE IF NOT EXISTS public.booking_reviews (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     booking_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -4579,7 +4579,7 @@ CREATE TABLE public.booking_reviews (
 -- Name: booking_slots; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.booking_slots (
+CREATE TABLE IF NOT EXISTS public.booking_slots (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     service_name text NOT NULL,
@@ -4604,7 +4604,7 @@ CREATE TABLE public.booking_slots (
 -- Name: booking_waitlist; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.booking_waitlist (
+CREATE TABLE IF NOT EXISTS public.booking_waitlist (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     slot_id uuid,
@@ -4628,7 +4628,7 @@ CREATE TABLE public.booking_waitlist (
 -- Name: bookings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.bookings (
+CREATE TABLE IF NOT EXISTS public.bookings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     slot_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -4671,7 +4671,7 @@ CREATE TABLE public.bookings (
 -- Name: branding_audit; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.branding_audit (
+CREATE TABLE IF NOT EXISTS public.branding_audit (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     changed_by uuid NOT NULL,
@@ -4686,7 +4686,7 @@ CREATE TABLE public.branding_audit (
 -- Name: bulk_pricing_rules; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.bulk_pricing_rules (
+CREATE TABLE IF NOT EXISTS public.bulk_pricing_rules (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
@@ -4704,7 +4704,7 @@ CREATE TABLE public.bulk_pricing_rules (
 -- Name: bundle_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.bundle_items (
+CREATE TABLE IF NOT EXISTS public.bundle_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     bundle_id uuid NOT NULL,
     component_id uuid NOT NULL,
@@ -4718,7 +4718,7 @@ CREATE TABLE public.bundle_items (
 -- Name: business_categories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.business_categories (
+CREATE TABLE IF NOT EXISTS public.business_categories (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     slug text NOT NULL,
     name text NOT NULL,
@@ -4746,7 +4746,7 @@ CREATE TABLE public.business_categories (
 -- Name: campaign_recipients; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.campaign_recipients (
+CREATE TABLE IF NOT EXISTS public.campaign_recipients (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     campaign_id uuid NOT NULL,
     customer_id uuid NOT NULL,
@@ -4761,7 +4761,7 @@ CREATE TABLE public.campaign_recipients (
 -- Name: cash_movements; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cash_movements (
+CREATE TABLE IF NOT EXISTS public.cash_movements (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shift_id uuid NOT NULL,
     type public.cash_movement_type NOT NULL,
@@ -4777,7 +4777,7 @@ CREATE TABLE public.cash_movements (
 -- Name: cash_shifts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cash_shifts (
+CREATE TABLE IF NOT EXISTS public.cash_shifts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -4800,7 +4800,7 @@ CREATE TABLE public.cash_shifts (
 -- Name: categories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.categories (
+CREATE TABLE IF NOT EXISTS public.categories (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -4817,7 +4817,7 @@ CREATE TABLE public.categories (
 -- Name: couriers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.couriers (
+CREATE TABLE IF NOT EXISTS public.couriers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     user_id uuid,
@@ -4836,7 +4836,7 @@ CREATE TABLE public.couriers (
 -- Name: orders; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -4936,7 +4936,7 @@ CREATE VIEW public.courier_earnings WITH (security_invoker='true') AS
 -- Name: course_certificates; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.course_certificates (
+CREATE TABLE IF NOT EXISTS public.course_certificates (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     course_id uuid NOT NULL,
@@ -4952,7 +4952,7 @@ CREATE TABLE public.course_certificates (
 -- Name: course_enrollments; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.course_enrollments (
+CREATE TABLE IF NOT EXISTS public.course_enrollments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
@@ -4964,7 +4964,7 @@ CREATE TABLE public.course_enrollments (
 -- Name: course_lessons; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.course_lessons (
+CREATE TABLE IF NOT EXISTS public.course_lessons (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     module_id uuid NOT NULL,
     title text NOT NULL,
@@ -4984,7 +4984,7 @@ CREATE TABLE public.course_lessons (
 -- Name: course_modules; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.course_modules (
+CREATE TABLE IF NOT EXISTS public.course_modules (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     menu_item_id uuid NOT NULL,
     title text NOT NULL,
@@ -5001,7 +5001,7 @@ CREATE TABLE public.course_modules (
 -- Name: cron_runs; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cron_runs (
+CREATE TABLE IF NOT EXISTS public.cron_runs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     job_name text NOT NULL,
     started_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -5017,7 +5017,7 @@ CREATE TABLE public.cron_runs (
 -- Name: custom_order_quotes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.custom_order_quotes (
+CREATE TABLE IF NOT EXISTS public.custom_order_quotes (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     request_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5038,7 +5038,7 @@ CREATE TABLE public.custom_order_quotes (
 -- Name: custom_order_requests; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.custom_order_requests (
+CREATE TABLE IF NOT EXISTS public.custom_order_requests (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     product_id uuid,
@@ -5065,7 +5065,7 @@ ALTER TABLE ONLY public.custom_order_requests REPLICA IDENTITY FULL;
 -- Name: custom_order_status_history; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.custom_order_status_history (
+CREATE TABLE IF NOT EXISTS public.custom_order_status_history (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     request_id uuid NOT NULL,
     from_status text,
@@ -5082,7 +5082,7 @@ ALTER TABLE ONLY public.custom_order_status_history REPLICA IDENTITY FULL;
 -- Name: customer_addresses; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_addresses (
+CREATE TABLE IF NOT EXISTS public.customer_addresses (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     label text DEFAULT 'Rumah'::text NOT NULL,
@@ -5102,7 +5102,7 @@ CREATE TABLE public.customer_addresses (
 -- Name: customer_favorites; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_favorites (
+CREATE TABLE IF NOT EXISTS public.customer_favorites (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5115,7 +5115,7 @@ CREATE TABLE public.customer_favorites (
 -- Name: customer_memberships; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_memberships (
+CREATE TABLE IF NOT EXISTS public.customer_memberships (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     customer_user_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5138,7 +5138,7 @@ CREATE TABLE public.customer_memberships (
 -- Name: customer_profiles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_profiles (
+CREATE TABLE IF NOT EXISTS public.customer_profiles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     display_name text,
@@ -5156,7 +5156,7 @@ CREATE TABLE public.customer_profiles (
 -- Name: customer_segments; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_segments (
+CREATE TABLE IF NOT EXISTS public.customer_segments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -5173,7 +5173,7 @@ CREATE TABLE public.customer_segments (
 -- Name: customer_treatments; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_treatments (
+CREATE TABLE IF NOT EXISTS public.customer_treatments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     customer_user_id uuid,
@@ -5195,7 +5195,7 @@ CREATE TABLE public.customer_treatments (
 -- Name: customer_wallet_transactions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_wallet_transactions (
+CREATE TABLE IF NOT EXISTS public.customer_wallet_transactions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     wallet_id uuid NOT NULL,
     customer_user_id uuid NOT NULL,
@@ -5215,7 +5215,7 @@ CREATE TABLE public.customer_wallet_transactions (
 -- Name: customer_wallets; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.customer_wallets (
+CREATE TABLE IF NOT EXISTS public.customer_wallets (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     customer_user_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5232,7 +5232,7 @@ CREATE TABLE public.customer_wallets (
 -- Name: delivery_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.delivery_settings (
+CREATE TABLE IF NOT EXISTS public.delivery_settings (
     shop_id uuid NOT NULL,
     mode public.delivery_mode DEFAULT 'flat'::public.delivery_mode NOT NULL,
     base_fee numeric DEFAULT 0 NOT NULL,
@@ -5254,7 +5254,7 @@ CREATE TABLE public.delivery_settings (
 -- Name: delivery_zones; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.delivery_zones (
+CREATE TABLE IF NOT EXISTS public.delivery_zones (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -5273,7 +5273,7 @@ CREATE TABLE public.delivery_zones (
 -- Name: domain_audit; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.domain_audit (
+CREATE TABLE IF NOT EXISTS public.domain_audit (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     old_domain text,
@@ -5289,7 +5289,7 @@ CREATE TABLE public.domain_audit (
 -- Name: domain_blacklist; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.domain_blacklist (
+CREATE TABLE IF NOT EXISTS public.domain_blacklist (
     domain text NOT NULL,
     reason text,
     created_at timestamp with time zone DEFAULT now() NOT NULL
@@ -5300,7 +5300,7 @@ CREATE TABLE public.domain_blacklist (
 -- Name: domain_verify_attempts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.domain_verify_attempts (
+CREATE TABLE IF NOT EXISTS public.domain_verify_attempts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     actor_id uuid,
@@ -5314,7 +5314,7 @@ CREATE TABLE public.domain_verify_attempts (
 -- Name: expiry_reminder_rules; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.expiry_reminder_rules (
+CREATE TABLE IF NOT EXISTS public.expiry_reminder_rules (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     audience text NOT NULL,
     days_before integer NOT NULL,
@@ -5334,7 +5334,7 @@ CREATE TABLE public.expiry_reminder_rules (
 -- Name: expiry_reminder_shop_rules; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.expiry_reminder_shop_rules (
+CREATE TABLE IF NOT EXISTS public.expiry_reminder_shop_rules (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     audience text NOT NULL,
@@ -5355,7 +5355,7 @@ CREATE TABLE public.expiry_reminder_shop_rules (
 -- Name: expiry_reminder_shop_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.expiry_reminder_shop_settings (
+CREATE TABLE IF NOT EXISTS public.expiry_reminder_shop_settings (
     shop_id uuid NOT NULL,
     override_schedule boolean DEFAULT false NOT NULL,
     override_rules boolean DEFAULT false NOT NULL,
@@ -5378,7 +5378,7 @@ CREATE TABLE public.expiry_reminder_shop_settings (
 -- Name: features; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.features (
+CREATE TABLE IF NOT EXISTS public.features (
     key text NOT NULL,
     name text NOT NULL,
     description text,
@@ -5394,7 +5394,7 @@ CREATE TABLE public.features (
 -- Name: flash_sales; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.flash_sales (
+CREATE TABLE IF NOT EXISTS public.flash_sales (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
@@ -5414,7 +5414,7 @@ CREATE TABLE public.flash_sales (
 -- Name: flyers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.flyers (
+CREATE TABLE IF NOT EXISTS public.flyers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     title text NOT NULL,
@@ -5434,7 +5434,7 @@ CREATE TABLE public.flyers (
 -- Name: fnb_combos; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.fnb_combos (
+CREATE TABLE IF NOT EXISTS public.fnb_combos (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -5455,7 +5455,7 @@ CREATE TABLE public.fnb_combos (
 -- Name: freelance_contracts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.freelance_contracts (
+CREATE TABLE IF NOT EXISTS public.freelance_contracts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     client_name text NOT NULL,
@@ -5483,7 +5483,7 @@ CREATE TABLE public.freelance_contracts (
 -- Name: icd10_codes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.icd10_codes (
+CREATE TABLE IF NOT EXISTS public.icd10_codes (
     code text NOT NULL,
     label_id text NOT NULL,
     category text
@@ -5494,7 +5494,7 @@ CREATE TABLE public.icd10_codes (
 -- Name: ingredients; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.ingredients (
+CREATE TABLE IF NOT EXISTS public.ingredients (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -5514,7 +5514,7 @@ CREATE TABLE public.ingredients (
 -- Name: job_deliverables; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.job_deliverables (
+CREATE TABLE IF NOT EXISTS public.job_deliverables (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     custom_order_id uuid,
@@ -5540,7 +5540,7 @@ CREATE TABLE public.job_deliverables (
 -- Name: leads; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.leads (
+CREATE TABLE IF NOT EXISTS public.leads (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     source text DEFAULT 'sales_inquiry'::text NOT NULL,
@@ -5561,7 +5561,7 @@ CREATE TABLE public.leads (
 -- Name: lesson_progress; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.lesson_progress (
+CREATE TABLE IF NOT EXISTS public.lesson_progress (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     lesson_id uuid NOT NULL,
@@ -5576,7 +5576,7 @@ CREATE TABLE public.lesson_progress (
 -- Name: loyalty_ledger; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.loyalty_ledger (
+CREATE TABLE IF NOT EXISTS public.loyalty_ledger (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -5591,7 +5591,7 @@ CREATE TABLE public.loyalty_ledger (
 -- Name: loyalty_points; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.loyalty_points (
+CREATE TABLE IF NOT EXISTS public.loyalty_points (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -5606,7 +5606,7 @@ CREATE TABLE public.loyalty_points (
 -- Name: loyalty_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.loyalty_settings (
+CREATE TABLE IF NOT EXISTS public.loyalty_settings (
     shop_id uuid NOT NULL,
     is_active boolean DEFAULT false NOT NULL,
     rupiah_per_point numeric DEFAULT 10000 NOT NULL,
@@ -5622,7 +5622,7 @@ CREATE TABLE public.loyalty_settings (
 -- Name: marketing_campaigns; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.marketing_campaigns (
+CREATE TABLE IF NOT EXISTS public.marketing_campaigns (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -5643,7 +5643,7 @@ CREATE TABLE public.marketing_campaigns (
 -- Name: marketplace_cart_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.marketplace_cart_items (
+CREATE TABLE IF NOT EXISTS public.marketplace_cart_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     cart_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5663,7 +5663,7 @@ CREATE TABLE public.marketplace_cart_items (
 -- Name: marketplace_carts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.marketplace_carts (
+CREATE TABLE IF NOT EXISTS public.marketplace_carts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -5675,7 +5675,7 @@ CREATE TABLE public.marketplace_carts (
 -- Name: medications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.medications (
+CREATE TABLE IF NOT EXISTS public.medications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -5716,7 +5716,7 @@ SELECT
 -- Name: menu_item_option_groups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.menu_item_option_groups (
+CREATE TABLE IF NOT EXISTS public.menu_item_option_groups (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     menu_item_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5733,7 +5733,7 @@ CREATE TABLE public.menu_item_option_groups (
 -- Name: menu_item_options; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.menu_item_options (
+CREATE TABLE IF NOT EXISTS public.menu_item_options (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     group_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5750,7 +5750,7 @@ CREATE TABLE public.menu_item_options (
 -- Name: menu_item_variants; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.menu_item_variants (
+CREATE TABLE IF NOT EXISTS public.menu_item_variants (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
@@ -5771,7 +5771,7 @@ CREATE TABLE public.menu_item_variants (
 -- Name: menu_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.menu_items (
+CREATE TABLE IF NOT EXISTS public.menu_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     category_id uuid,
@@ -5840,7 +5840,7 @@ CREATE TABLE public.menu_items (
 -- Name: menu_reviews; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.menu_reviews (
+CREATE TABLE IF NOT EXISTS public.menu_reviews (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
@@ -5859,7 +5859,7 @@ CREATE TABLE public.menu_reviews (
 -- Name: notifications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     recipient_user_id uuid NOT NULL,
     shop_id uuid,
@@ -5878,7 +5878,7 @@ CREATE TABLE public.notifications (
 -- Name: open_bills; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.open_bills (
+CREATE TABLE IF NOT EXISTS public.open_bills (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     outlet_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5896,7 +5896,7 @@ CREATE TABLE public.open_bills (
 -- Name: order_audit_log; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.order_audit_log (
+CREATE TABLE IF NOT EXISTS public.order_audit_log (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid,
@@ -5919,7 +5919,7 @@ CREATE TABLE public.order_audit_log (
 -- Name: order_disputes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.order_disputes (
+CREATE TABLE IF NOT EXISTS public.order_disputes (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5941,7 +5941,7 @@ CREATE TABLE public.order_disputes (
 -- Name: order_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.order_items (
+CREATE TABLE IF NOT EXISTS public.order_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
     menu_item_id uuid,
@@ -5961,7 +5961,7 @@ ALTER TABLE ONLY public.order_items REPLICA IDENTITY FULL;
 -- Name: order_messages; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.order_messages (
+CREATE TABLE IF NOT EXISTS public.order_messages (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -5978,7 +5978,7 @@ CREATE TABLE public.order_messages (
 -- Name: outlet_couriers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.outlet_couriers (
+CREATE TABLE IF NOT EXISTS public.outlet_couriers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -6004,7 +6004,7 @@ CREATE TABLE public.outlet_couriers (
 -- Name: outlets; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.outlets (
+CREATE TABLE IF NOT EXISTS public.outlets (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -6021,7 +6021,7 @@ CREATE TABLE public.outlets (
 -- Name: owner_notifications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.owner_notifications (
+CREATE TABLE IF NOT EXISTS public.owner_notifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     type text NOT NULL,
@@ -6042,7 +6042,7 @@ ALTER TABLE ONLY public.owner_notifications REPLICA IDENTITY FULL;
 -- Name: page_layout_versions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.page_layout_versions (
+CREATE TABLE IF NOT EXISTS public.page_layout_versions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     layout_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -6059,7 +6059,7 @@ CREATE TABLE public.page_layout_versions (
 -- Name: page_layouts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.page_layouts (
+CREATE TABLE IF NOT EXISTS public.page_layouts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     page_type text NOT NULL,
@@ -6079,7 +6079,7 @@ CREATE TABLE public.page_layouts (
 -- Name: parked_carts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.parked_carts (
+CREATE TABLE IF NOT EXISTS public.parked_carts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -6096,7 +6096,7 @@ CREATE TABLE public.parked_carts (
 -- Name: patient_records; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.patient_records (
+CREATE TABLE IF NOT EXISTS public.patient_records (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     patient_name text NOT NULL,
@@ -6121,7 +6121,7 @@ CREATE TABLE public.patient_records (
 -- Name: patient_visits; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.patient_visits (
+CREATE TABLE IF NOT EXISTS public.patient_visits (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     patient_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -6142,7 +6142,7 @@ CREATE TABLE public.patient_visits (
 -- Name: plan_features; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.plan_features (
+CREATE TABLE IF NOT EXISTS public.plan_features (
     plan_id uuid NOT NULL,
     feature_key text NOT NULL,
     requires_min_months integer DEFAULT 0 NOT NULL,
@@ -6156,7 +6156,7 @@ CREATE TABLE public.plan_features (
 -- Name: plan_invoices; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.plan_invoices (
+CREATE TABLE IF NOT EXISTS public.plan_invoices (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     plan_id uuid NOT NULL,
@@ -6181,7 +6181,7 @@ CREATE TABLE public.plan_invoices (
 -- Name: plan_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.plan_subscriptions (
+CREATE TABLE IF NOT EXISTS public.plan_subscriptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     plan_id uuid,
@@ -6206,7 +6206,7 @@ CREATE TABLE public.plan_subscriptions (
 -- Name: plan_themes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.plan_themes (
+CREATE TABLE IF NOT EXISTS public.plan_themes (
     plan_id uuid NOT NULL,
     theme_key text NOT NULL,
     requires_min_months integer DEFAULT 0 NOT NULL,
@@ -6218,7 +6218,7 @@ CREATE TABLE public.plan_themes (
 -- Name: plans; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.plans (
+CREATE TABLE IF NOT EXISTS public.plans (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     code text NOT NULL,
     name text NOT NULL,
@@ -6236,7 +6236,7 @@ CREATE TABLE public.plans (
 -- Name: platform_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.platform_settings (
+CREATE TABLE IF NOT EXISTS public.platform_settings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     key text NOT NULL,
     value text,
@@ -6253,7 +6253,7 @@ CREATE TABLE public.platform_settings (
 -- Name: platform_voucher_redemptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.platform_voucher_redemptions (
+CREATE TABLE IF NOT EXISTS public.platform_voucher_redemptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     voucher_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -6267,7 +6267,7 @@ CREATE TABLE public.platform_voucher_redemptions (
 -- Name: platform_vouchers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.platform_vouchers (
+CREATE TABLE IF NOT EXISTS public.platform_vouchers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     code text NOT NULL,
     description text,
@@ -6291,7 +6291,7 @@ CREATE TABLE public.platform_vouchers (
 -- Name: po_audit_log; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.po_audit_log (
+CREATE TABLE IF NOT EXISTS public.po_audit_log (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     po_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -6310,7 +6310,7 @@ CREATE TABLE public.po_audit_log (
 -- Name: pos_audit_log; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.pos_audit_log (
+CREATE TABLE IF NOT EXISTS public.pos_audit_log (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid,
@@ -6330,7 +6330,7 @@ CREATE TABLE public.pos_audit_log (
 -- Name: prescription_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.prescription_items (
+CREATE TABLE IF NOT EXISTS public.prescription_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     prescription_id uuid NOT NULL,
     medication_id uuid,
@@ -6348,7 +6348,7 @@ CREATE TABLE public.prescription_items (
 -- Name: prescriptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.prescriptions (
+CREATE TABLE IF NOT EXISTS public.prescriptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     patient_id uuid,
@@ -6368,7 +6368,7 @@ CREATE TABLE public.prescriptions (
 -- Name: printers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.printers (
+CREATE TABLE IF NOT EXISTS public.printers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -6388,7 +6388,7 @@ CREATE TABLE public.printers (
 -- Name: product_attribute_defs; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.product_attribute_defs (
+CREATE TABLE IF NOT EXISTS public.product_attribute_defs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     category_id uuid,
@@ -6409,7 +6409,7 @@ CREATE TABLE public.product_attribute_defs (
 -- Name: product_qa; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.product_qa (
+CREATE TABLE IF NOT EXISTS public.product_qa (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -6429,7 +6429,7 @@ CREATE TABLE public.product_qa (
 -- Name: product_returns; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.product_returns (
+CREATE TABLE IF NOT EXISTS public.product_returns (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     order_id uuid,
@@ -6453,7 +6453,7 @@ CREATE TABLE public.product_returns (
 -- Name: product_reviews; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.product_reviews (
+CREATE TABLE IF NOT EXISTS public.product_reviews (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -6476,7 +6476,7 @@ CREATE TABLE public.product_reviews (
 -- Name: product_upsell_suggestions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.product_upsell_suggestions (
+CREATE TABLE IF NOT EXISTS public.product_upsell_suggestions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -6541,7 +6541,7 @@ CREATE VIEW public.products WITH (security_invoker='on') AS
 -- Name: profiles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
     id uuid NOT NULL,
     display_name text,
     phone text,
@@ -6555,7 +6555,7 @@ CREATE TABLE public.profiles (
 -- Name: promo_redemptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.promo_redemptions (
+CREATE TABLE IF NOT EXISTS public.promo_redemptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     promo_id uuid NOT NULL,
     order_id uuid NOT NULL,
@@ -6570,7 +6570,7 @@ CREATE TABLE public.promo_redemptions (
 -- Name: promos; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.promos (
+CREATE TABLE IF NOT EXISTS public.promos (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     code text NOT NULL,
@@ -6594,7 +6594,7 @@ CREATE TABLE public.promos (
 -- Name: purchase_order_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.purchase_order_items (
+CREATE TABLE IF NOT EXISTS public.purchase_order_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     po_id uuid NOT NULL,
     ingredient_id uuid NOT NULL,
@@ -6611,7 +6611,7 @@ CREATE TABLE public.purchase_order_items (
 -- Name: purchase_orders; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.purchase_orders (
+CREATE TABLE IF NOT EXISTS public.purchase_orders (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     supplier_id uuid,
@@ -6634,7 +6634,7 @@ CREATE TABLE public.purchase_orders (
 -- Name: push_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.push_subscriptions (
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     endpoint text NOT NULL,
@@ -6650,7 +6650,7 @@ CREATE TABLE public.push_subscriptions (
 -- Name: recipes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.recipes (
+CREATE TABLE IF NOT EXISTS public.recipes (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     menu_item_id uuid NOT NULL,
     ingredient_id uuid NOT NULL,
@@ -6663,7 +6663,7 @@ CREATE TABLE public.recipes (
 -- Name: refunds; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.refunds (
+CREATE TABLE IF NOT EXISTS public.refunds (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -6680,7 +6680,7 @@ CREATE TABLE public.refunds (
 -- Name: rental_bookings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.rental_bookings (
+CREATE TABLE IF NOT EXISTS public.rental_bookings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     unit_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -6710,7 +6710,7 @@ CREATE TABLE public.rental_bookings (
 -- Name: rental_inspections; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.rental_inspections (
+CREATE TABLE IF NOT EXISTS public.rental_inspections (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     booking_id uuid NOT NULL,
@@ -6730,7 +6730,7 @@ CREATE TABLE public.rental_inspections (
 -- Name: rental_units; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.rental_units (
+CREATE TABLE IF NOT EXISTS public.rental_units (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -6761,7 +6761,7 @@ CREATE TABLE public.rental_units (
 -- Name: restock_subscribers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.restock_subscribers (
+CREATE TABLE IF NOT EXISTS public.restock_subscribers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -6777,7 +6777,7 @@ CREATE TABLE public.restock_subscribers (
 -- Name: sales_offerings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.sales_offerings (
+CREATE TABLE IF NOT EXISTS public.sales_offerings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     title text NOT NULL,
@@ -6797,7 +6797,7 @@ CREATE TABLE public.sales_offerings (
 -- Name: service_bundle_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.service_bundle_items (
+CREATE TABLE IF NOT EXISTS public.service_bundle_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     bundle_id uuid NOT NULL,
     service_name text NOT NULL,
@@ -6811,7 +6811,7 @@ CREATE TABLE public.service_bundle_items (
 -- Name: service_bundles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.service_bundles (
+CREATE TABLE IF NOT EXISTS public.service_bundles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -6833,7 +6833,7 @@ CREATE TABLE public.service_bundles (
 -- Name: shifts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shifts (
+CREATE TABLE IF NOT EXISTS public.shifts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid NOT NULL,
@@ -6854,7 +6854,7 @@ ALTER TABLE ONLY public.shifts REPLICA IDENTITY FULL;
 -- Name: shop_about; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_about (
+CREATE TABLE IF NOT EXISTS public.shop_about (
     shop_id uuid NOT NULL,
     story text,
     vision text,
@@ -6870,7 +6870,7 @@ CREATE TABLE public.shop_about (
 -- Name: shop_backups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_backups (
+CREATE TABLE IF NOT EXISTS public.shop_backups (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     requested_by uuid NOT NULL,
@@ -6888,7 +6888,7 @@ CREATE TABLE public.shop_backups (
 -- Name: shop_chat_messages; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_chat_messages (
+CREATE TABLE IF NOT EXISTS public.shop_chat_messages (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     chat_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -6908,7 +6908,7 @@ CREATE TABLE public.shop_chat_messages (
 -- Name: shop_chats; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_chats (
+CREATE TABLE IF NOT EXISTS public.shop_chats (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     buyer_user_id uuid NOT NULL,
@@ -6924,7 +6924,7 @@ CREATE TABLE public.shop_chats (
 -- Name: shop_customers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_customers (
+CREATE TABLE IF NOT EXISTS public.shop_customers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -6953,7 +6953,7 @@ DROP TABLE public.shops__bootstrap_placeholder;
 -- Name: shops; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shops (
+CREATE TABLE IF NOT EXISTS public.shops (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     owner_id uuid NOT NULL,
     name text NOT NULL,
@@ -7086,7 +7086,7 @@ CREATE VIEW public.shop_health_score WITH (security_invoker='true') AS
 -- Name: shop_membership_tiers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_membership_tiers (
+CREATE TABLE IF NOT EXISTS public.shop_membership_tiers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7109,7 +7109,7 @@ CREATE TABLE public.shop_membership_tiers (
 -- Name: shop_portfolio; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_portfolio (
+CREATE TABLE IF NOT EXISTS public.shop_portfolio (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     image_url text NOT NULL,
@@ -7127,7 +7127,7 @@ CREATE TABLE public.shop_portfolio (
 -- Name: shop_size_charts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_size_charts (
+CREATE TABLE IF NOT EXISTS public.shop_size_charts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7143,7 +7143,7 @@ CREATE TABLE public.shop_size_charts (
 -- Name: shop_verifications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_verifications (
+CREATE TABLE IF NOT EXISTS public.shop_verifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     ktp_url text NOT NULL,
@@ -7168,7 +7168,7 @@ CREATE TABLE public.shop_verifications (
 -- Name: shop_vouchers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_vouchers (
+CREATE TABLE IF NOT EXISTS public.shop_vouchers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     code text NOT NULL,
@@ -7193,7 +7193,7 @@ CREATE TABLE public.shop_vouchers (
 -- Name: shop_wallets; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.shop_wallets (
+CREATE TABLE IF NOT EXISTS public.shop_wallets (
     shop_id uuid NOT NULL,
     available_balance numeric(14,2) DEFAULT 0 NOT NULL,
     pending_balance numeric(14,2) DEFAULT 0 NOT NULL,
@@ -7209,7 +7209,7 @@ CREATE TABLE public.shop_wallets (
 -- Name: staff_audit_logs; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.staff_audit_logs (
+CREATE TABLE IF NOT EXISTS public.staff_audit_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     actor_id uuid,
@@ -7226,7 +7226,7 @@ CREATE TABLE public.staff_audit_logs (
 -- Name: staff_invitations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.staff_invitations (
+CREATE TABLE IF NOT EXISTS public.staff_invitations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid,
@@ -7246,7 +7246,7 @@ CREATE TABLE public.staff_invitations (
 -- Name: staff_members; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.staff_members (
+CREATE TABLE IF NOT EXISTS public.staff_members (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     outlet_id uuid,
@@ -7270,7 +7270,7 @@ ALTER TABLE ONLY public.staff_members REPLICA IDENTITY FULL;
 -- Name: staff_permissions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.staff_permissions (
+CREATE TABLE IF NOT EXISTS public.staff_permissions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -7285,7 +7285,7 @@ CREATE TABLE public.staff_permissions (
 -- Name: stock_movements; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.stock_movements (
+CREATE TABLE IF NOT EXISTS public.stock_movements (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     ingredient_id uuid NOT NULL,
@@ -7303,7 +7303,7 @@ CREATE TABLE public.stock_movements (
 -- Name: stock_opname_items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.stock_opname_items (
+CREATE TABLE IF NOT EXISTS public.stock_opname_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     stock_opname_id uuid NOT NULL,
     ingredient_id uuid NOT NULL,
@@ -7319,7 +7319,7 @@ CREATE TABLE public.stock_opname_items (
 -- Name: stock_opnames; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.stock_opnames (
+CREATE TABLE IF NOT EXISTS public.stock_opnames (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     notes text,
@@ -7334,7 +7334,7 @@ CREATE TABLE public.stock_opnames (
 -- Name: studio_galleries; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.studio_galleries (
+CREATE TABLE IF NOT EXISTS public.studio_galleries (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     title text NOT NULL,
@@ -7356,7 +7356,7 @@ CREATE TABLE public.studio_galleries (
 -- Name: studio_gallery_photos; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.studio_gallery_photos (
+CREATE TABLE IF NOT EXISTS public.studio_gallery_photos (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     gallery_id uuid NOT NULL,
     photo_url text NOT NULL,
@@ -7372,7 +7372,7 @@ CREATE TABLE public.studio_gallery_photos (
 -- Name: studio_locations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.studio_locations (
+CREATE TABLE IF NOT EXISTS public.studio_locations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7393,7 +7393,7 @@ CREATE TABLE public.studio_locations (
 -- Name: studio_packages; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.studio_packages (
+CREATE TABLE IF NOT EXISTS public.studio_packages (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7412,7 +7412,7 @@ CREATE TABLE public.studio_packages (
 -- Name: studio_photographers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.studio_photographers (
+CREATE TABLE IF NOT EXISTS public.studio_photographers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7431,7 +7431,7 @@ CREATE TABLE public.studio_photographers (
 -- Name: suppliers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.suppliers (
+CREATE TABLE IF NOT EXISTS public.suppliers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7452,7 +7452,7 @@ CREATE TABLE public.suppliers (
 -- Name: system_audit; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.system_audit (
+CREATE TABLE IF NOT EXISTS public.system_audit (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     event_type text NOT NULL,
@@ -7467,7 +7467,7 @@ CREATE TABLE public.system_audit (
 -- Name: testimonials; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.testimonials (
+CREATE TABLE IF NOT EXISTS public.testimonials (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7486,7 +7486,7 @@ CREATE TABLE public.testimonials (
 -- Name: themes; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.themes (
+CREATE TABLE IF NOT EXISTS public.themes (
     key text NOT NULL,
     name text NOT NULL,
     description text,
@@ -7504,7 +7504,7 @@ CREATE TABLE public.themes (
 -- Name: travel_installments; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.travel_installments (
+CREATE TABLE IF NOT EXISTS public.travel_installments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     package_id uuid,
@@ -7527,7 +7527,7 @@ CREATE TABLE public.travel_installments (
 -- Name: travel_itineraries; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.travel_itineraries (
+CREATE TABLE IF NOT EXISTS public.travel_itineraries (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     package_id uuid NOT NULL,
@@ -7548,7 +7548,7 @@ CREATE TABLE public.travel_itineraries (
 -- Name: travel_jamaah_documents; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.travel_jamaah_documents (
+CREATE TABLE IF NOT EXISTS public.travel_jamaah_documents (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     jamaah_id uuid NOT NULL,
@@ -7570,7 +7570,7 @@ CREATE TABLE public.travel_jamaah_documents (
 -- Name: travel_jamaah_manifest; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.travel_jamaah_manifest (
+CREATE TABLE IF NOT EXISTS public.travel_jamaah_manifest (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     package_id uuid,
@@ -7600,7 +7600,7 @@ CREATE TABLE public.travel_jamaah_manifest (
 -- Name: umroh_facilities; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.umroh_facilities (
+CREATE TABLE IF NOT EXISTS public.umroh_facilities (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     icon text DEFAULT 'Star'::text NOT NULL,
@@ -7616,7 +7616,7 @@ CREATE TABLE public.umroh_facilities (
 -- Name: umroh_faqs; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.umroh_faqs (
+CREATE TABLE IF NOT EXISTS public.umroh_faqs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     category text DEFAULT 'general'::text NOT NULL,
@@ -7632,7 +7632,7 @@ CREATE TABLE public.umroh_faqs (
 -- Name: umroh_packages; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.umroh_packages (
+CREATE TABLE IF NOT EXISTS public.umroh_packages (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     name text NOT NULL,
@@ -7669,7 +7669,7 @@ CREATE TABLE public.umroh_packages (
 -- Name: user_preferences; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_preferences (
+CREATE TABLE IF NOT EXISTS public.user_preferences (
     user_id uuid NOT NULL,
     default_outlet_id uuid,
     active_carts jsonb DEFAULT '[]'::jsonb NOT NULL,
@@ -7681,7 +7681,7 @@ CREATE TABLE public.user_preferences (
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_roles (
+CREATE TABLE IF NOT EXISTS public.user_roles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     role public.app_role NOT NULL,
@@ -7720,7 +7720,7 @@ CREATE VIEW public.v_shop_capabilities WITH (security_invoker='true') AS
 -- Name: wallet_topup_presets; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.wallet_topup_presets (
+CREATE TABLE IF NOT EXISTS public.wallet_topup_presets (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     amount numeric(14,2) NOT NULL,
@@ -7739,7 +7739,7 @@ CREATE TABLE public.wallet_topup_presets (
 -- Name: wallet_topups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.wallet_topups (
+CREATE TABLE IF NOT EXISTS public.wallet_topups (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     customer_user_id uuid NOT NULL,
     shop_id uuid NOT NULL,
@@ -7763,7 +7763,7 @@ CREATE TABLE public.wallet_topups (
 -- Name: wallet_transactions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.wallet_transactions (
+CREATE TABLE IF NOT EXISTS public.wallet_transactions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     type public.wallet_txn_type NOT NULL,
@@ -7782,7 +7782,7 @@ CREATE TABLE public.wallet_transactions (
 -- Name: webhook_events; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.webhook_events (
+CREATE TABLE IF NOT EXISTS public.webhook_events (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     provider text NOT NULL,
     event_id text NOT NULL,
@@ -7796,7 +7796,7 @@ CREATE TABLE public.webhook_events (
 -- Name: wishlists; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.wishlists (
+CREATE TABLE IF NOT EXISTS public.wishlists (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
@@ -7808,7 +7808,7 @@ CREATE TABLE public.wishlists (
 -- Name: withdrawal_requests; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.withdrawal_requests (
+CREATE TABLE IF NOT EXISTS public.withdrawal_requests (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     shop_id uuid NOT NULL,
     amount numeric(14,2) NOT NULL,

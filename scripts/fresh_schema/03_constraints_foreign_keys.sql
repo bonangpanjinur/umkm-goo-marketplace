@@ -14,6 +14,7 @@ SET row_security = off;
 -- Name: ad_requests ad_requests_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.ad_requests DROP CONSTRAINT IF EXISTS ad_requests_shop_id_fkey;
 ALTER TABLE ONLY public.ad_requests
     ADD CONSTRAINT ad_requests_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -22,6 +23,7 @@ ALTER TABLE ONLY public.ad_requests
 -- Name: booking_review_requests booking_review_requests_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.booking_review_requests DROP CONSTRAINT IF EXISTS booking_review_requests_booking_id_fkey;
 ALTER TABLE ONLY public.booking_review_requests
     ADD CONSTRAINT booking_review_requests_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON DELETE CASCADE;
 
@@ -30,6 +32,7 @@ ALTER TABLE ONLY public.booking_review_requests
 -- Name: booking_reviews booking_reviews_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.booking_reviews DROP CONSTRAINT IF EXISTS booking_reviews_booking_id_fkey;
 ALTER TABLE ONLY public.booking_reviews
     ADD CONSTRAINT booking_reviews_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON DELETE CASCADE;
 
@@ -38,6 +41,7 @@ ALTER TABLE ONLY public.booking_reviews
 -- Name: booking_reviews booking_reviews_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.booking_reviews DROP CONSTRAINT IF EXISTS booking_reviews_shop_id_fkey;
 ALTER TABLE ONLY public.booking_reviews
     ADD CONSTRAINT booking_reviews_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -46,6 +50,7 @@ ALTER TABLE ONLY public.booking_reviews
 -- Name: booking_slots booking_slots_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.booking_slots DROP CONSTRAINT IF EXISTS booking_slots_shop_id_fkey;
 ALTER TABLE ONLY public.booking_slots
     ADD CONSTRAINT booking_slots_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -54,6 +59,7 @@ ALTER TABLE ONLY public.booking_slots
 -- Name: booking_waitlist booking_waitlist_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.booking_waitlist DROP CONSTRAINT IF EXISTS booking_waitlist_shop_id_fkey;
 ALTER TABLE ONLY public.booking_waitlist
     ADD CONSTRAINT booking_waitlist_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -62,6 +68,7 @@ ALTER TABLE ONLY public.booking_waitlist
 -- Name: booking_waitlist booking_waitlist_slot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.booking_waitlist DROP CONSTRAINT IF EXISTS booking_waitlist_slot_id_fkey;
 ALTER TABLE ONLY public.booking_waitlist
     ADD CONSTRAINT booking_waitlist_slot_id_fkey FOREIGN KEY (slot_id) REFERENCES public.booking_slots(id) ON DELETE CASCADE;
 
@@ -70,6 +77,7 @@ ALTER TABLE ONLY public.booking_waitlist
 -- Name: bookings bookings_location_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_location_id_fkey;
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.studio_locations(id) ON DELETE SET NULL;
 
@@ -78,6 +86,7 @@ ALTER TABLE ONLY public.bookings
 -- Name: bookings bookings_photographer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_photographer_id_fkey;
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_photographer_id_fkey FOREIGN KEY (photographer_id) REFERENCES public.studio_photographers(id) ON DELETE SET NULL;
 
@@ -86,6 +95,7 @@ ALTER TABLE ONLY public.bookings
 -- Name: bookings bookings_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_shop_id_fkey;
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -94,6 +104,7 @@ ALTER TABLE ONLY public.bookings
 -- Name: bookings bookings_slot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_slot_id_fkey;
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_slot_id_fkey FOREIGN KEY (slot_id) REFERENCES public.booking_slots(id) ON DELETE RESTRICT;
 
@@ -102,6 +113,7 @@ ALTER TABLE ONLY public.bookings
 -- Name: bulk_pricing_rules bulk_pricing_rules_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bulk_pricing_rules DROP CONSTRAINT IF EXISTS bulk_pricing_rules_menu_item_id_fkey;
 ALTER TABLE ONLY public.bulk_pricing_rules
     ADD CONSTRAINT bulk_pricing_rules_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -110,6 +122,7 @@ ALTER TABLE ONLY public.bulk_pricing_rules
 -- Name: bulk_pricing_rules bulk_pricing_rules_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bulk_pricing_rules DROP CONSTRAINT IF EXISTS bulk_pricing_rules_shop_id_fkey;
 ALTER TABLE ONLY public.bulk_pricing_rules
     ADD CONSTRAINT bulk_pricing_rules_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -118,6 +131,7 @@ ALTER TABLE ONLY public.bulk_pricing_rules
 -- Name: bundle_items bundle_items_bundle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bundle_items DROP CONSTRAINT IF EXISTS bundle_items_bundle_id_fkey;
 ALTER TABLE ONLY public.bundle_items
     ADD CONSTRAINT bundle_items_bundle_id_fkey FOREIGN KEY (bundle_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -126,6 +140,7 @@ ALTER TABLE ONLY public.bundle_items
 -- Name: bundle_items bundle_items_component_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.bundle_items DROP CONSTRAINT IF EXISTS bundle_items_component_id_fkey;
 ALTER TABLE ONLY public.bundle_items
     ADD CONSTRAINT bundle_items_component_id_fkey FOREIGN KEY (component_id) REFERENCES public.menu_items(id) ON DELETE RESTRICT;
 
@@ -134,6 +149,7 @@ ALTER TABLE ONLY public.bundle_items
 -- Name: campaign_recipients campaign_recipients_campaign_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.campaign_recipients DROP CONSTRAINT IF EXISTS campaign_recipients_campaign_id_fkey;
 ALTER TABLE ONLY public.campaign_recipients
     ADD CONSTRAINT campaign_recipients_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.marketing_campaigns(id) ON DELETE CASCADE;
 
@@ -142,6 +158,7 @@ ALTER TABLE ONLY public.campaign_recipients
 -- Name: cash_movements cash_movements_shift_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.cash_movements DROP CONSTRAINT IF EXISTS cash_movements_shift_id_fkey;
 ALTER TABLE ONLY public.cash_movements
     ADD CONSTRAINT cash_movements_shift_id_fkey FOREIGN KEY (shift_id) REFERENCES public.cash_shifts(id) ON DELETE CASCADE;
 
@@ -150,6 +167,7 @@ ALTER TABLE ONLY public.cash_movements
 -- Name: categories categories_printer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.categories DROP CONSTRAINT IF EXISTS categories_printer_id_fkey;
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT categories_printer_id_fkey FOREIGN KEY (printer_id) REFERENCES public.printers(id) ON DELETE SET NULL;
 
@@ -158,6 +176,7 @@ ALTER TABLE ONLY public.categories
 -- Name: categories categories_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.categories DROP CONSTRAINT IF EXISTS categories_shop_id_fkey;
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT categories_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -166,6 +185,7 @@ ALTER TABLE ONLY public.categories
 -- Name: shops coffee_shops_business_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shops DROP CONSTRAINT IF EXISTS coffee_shops_business_category_id_fkey;
 ALTER TABLE ONLY public.shops
     ADD CONSTRAINT coffee_shops_business_category_id_fkey FOREIGN KEY (business_category_id) REFERENCES public.business_categories(id);
 
@@ -174,6 +194,7 @@ ALTER TABLE ONLY public.shops
 -- Name: shops coffee_shops_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shops DROP CONSTRAINT IF EXISTS coffee_shops_owner_id_fkey;
 ALTER TABLE ONLY public.shops
     ADD CONSTRAINT coffee_shops_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -182,6 +203,7 @@ ALTER TABLE ONLY public.shops
 -- Name: course_certificates course_certificates_course_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.course_certificates DROP CONSTRAINT IF EXISTS course_certificates_course_id_fkey;
 ALTER TABLE ONLY public.course_certificates
     ADD CONSTRAINT course_certificates_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -190,6 +212,7 @@ ALTER TABLE ONLY public.course_certificates
 -- Name: course_certificates course_certificates_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.course_certificates DROP CONSTRAINT IF EXISTS course_certificates_shop_id_fkey;
 ALTER TABLE ONLY public.course_certificates
     ADD CONSTRAINT course_certificates_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -198,6 +221,7 @@ ALTER TABLE ONLY public.course_certificates
 -- Name: course_enrollments course_enrollments_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.course_enrollments DROP CONSTRAINT IF EXISTS course_enrollments_menu_item_id_fkey;
 ALTER TABLE ONLY public.course_enrollments
     ADD CONSTRAINT course_enrollments_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -206,6 +230,7 @@ ALTER TABLE ONLY public.course_enrollments
 -- Name: course_lessons course_lessons_module_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.course_lessons DROP CONSTRAINT IF EXISTS course_lessons_module_id_fkey;
 ALTER TABLE ONLY public.course_lessons
     ADD CONSTRAINT course_lessons_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.course_modules(id) ON DELETE CASCADE;
 
@@ -214,6 +239,7 @@ ALTER TABLE ONLY public.course_lessons
 -- Name: course_modules course_modules_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.course_modules DROP CONSTRAINT IF EXISTS course_modules_menu_item_id_fkey;
 ALTER TABLE ONLY public.course_modules
     ADD CONSTRAINT course_modules_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -222,6 +248,7 @@ ALTER TABLE ONLY public.course_modules
 -- Name: custom_order_quotes custom_order_quotes_request_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.custom_order_quotes DROP CONSTRAINT IF EXISTS custom_order_quotes_request_id_fkey;
 ALTER TABLE ONLY public.custom_order_quotes
     ADD CONSTRAINT custom_order_quotes_request_id_fkey FOREIGN KEY (request_id) REFERENCES public.custom_order_requests(id) ON DELETE CASCADE;
 
@@ -230,6 +257,7 @@ ALTER TABLE ONLY public.custom_order_quotes
 -- Name: custom_order_quotes custom_order_quotes_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.custom_order_quotes DROP CONSTRAINT IF EXISTS custom_order_quotes_shop_id_fkey;
 ALTER TABLE ONLY public.custom_order_quotes
     ADD CONSTRAINT custom_order_quotes_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -238,6 +266,7 @@ ALTER TABLE ONLY public.custom_order_quotes
 -- Name: custom_order_requests custom_order_requests_contract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.custom_order_requests DROP CONSTRAINT IF EXISTS custom_order_requests_contract_id_fkey;
 ALTER TABLE ONLY public.custom_order_requests
     ADD CONSTRAINT custom_order_requests_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES public.freelance_contracts(id) ON DELETE SET NULL;
 
@@ -246,6 +275,7 @@ ALTER TABLE ONLY public.custom_order_requests
 -- Name: custom_order_requests custom_order_requests_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.custom_order_requests DROP CONSTRAINT IF EXISTS custom_order_requests_product_id_fkey;
 ALTER TABLE ONLY public.custom_order_requests
     ADD CONSTRAINT custom_order_requests_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.menu_items(id) ON DELETE SET NULL;
 
@@ -254,6 +284,7 @@ ALTER TABLE ONLY public.custom_order_requests
 -- Name: custom_order_requests custom_order_requests_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.custom_order_requests DROP CONSTRAINT IF EXISTS custom_order_requests_shop_id_fkey;
 ALTER TABLE ONLY public.custom_order_requests
     ADD CONSTRAINT custom_order_requests_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -262,6 +293,7 @@ ALTER TABLE ONLY public.custom_order_requests
 -- Name: custom_order_status_history custom_order_status_history_request_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.custom_order_status_history DROP CONSTRAINT IF EXISTS custom_order_status_history_request_id_fkey;
 ALTER TABLE ONLY public.custom_order_status_history
     ADD CONSTRAINT custom_order_status_history_request_id_fkey FOREIGN KEY (request_id) REFERENCES public.custom_order_requests(id) ON DELETE CASCADE;
 
@@ -270,6 +302,7 @@ ALTER TABLE ONLY public.custom_order_status_history
 -- Name: customer_memberships customer_memberships_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.customer_memberships DROP CONSTRAINT IF EXISTS customer_memberships_shop_id_fkey;
 ALTER TABLE ONLY public.customer_memberships
     ADD CONSTRAINT customer_memberships_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -278,6 +311,7 @@ ALTER TABLE ONLY public.customer_memberships
 -- Name: customer_memberships customer_memberships_tier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.customer_memberships DROP CONSTRAINT IF EXISTS customer_memberships_tier_id_fkey;
 ALTER TABLE ONLY public.customer_memberships
     ADD CONSTRAINT customer_memberships_tier_id_fkey FOREIGN KEY (tier_id) REFERENCES public.shop_membership_tiers(id) ON DELETE RESTRICT;
 
@@ -286,6 +320,7 @@ ALTER TABLE ONLY public.customer_memberships
 -- Name: customer_treatments customer_treatments_customer_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.customer_treatments DROP CONSTRAINT IF EXISTS customer_treatments_customer_user_id_fkey;
 ALTER TABLE ONLY public.customer_treatments
     ADD CONSTRAINT customer_treatments_customer_user_id_fkey FOREIGN KEY (customer_user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -294,6 +329,7 @@ ALTER TABLE ONLY public.customer_treatments
 -- Name: customer_treatments customer_treatments_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.customer_treatments DROP CONSTRAINT IF EXISTS customer_treatments_shop_id_fkey;
 ALTER TABLE ONLY public.customer_treatments
     ADD CONSTRAINT customer_treatments_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -302,6 +338,7 @@ ALTER TABLE ONLY public.customer_treatments
 -- Name: customer_wallet_transactions customer_wallet_transactions_wallet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.customer_wallet_transactions DROP CONSTRAINT IF EXISTS customer_wallet_transactions_wallet_id_fkey;
 ALTER TABLE ONLY public.customer_wallet_transactions
     ADD CONSTRAINT customer_wallet_transactions_wallet_id_fkey FOREIGN KEY (wallet_id) REFERENCES public.customer_wallets(id) ON DELETE CASCADE;
 
@@ -310,6 +347,7 @@ ALTER TABLE ONLY public.customer_wallet_transactions
 -- Name: customer_wallets customer_wallets_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.customer_wallets DROP CONSTRAINT IF EXISTS customer_wallets_shop_id_fkey;
 ALTER TABLE ONLY public.customer_wallets
     ADD CONSTRAINT customer_wallets_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -318,6 +356,7 @@ ALTER TABLE ONLY public.customer_wallets
 -- Name: domain_audit domain_audit_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.domain_audit DROP CONSTRAINT IF EXISTS domain_audit_shop_id_fkey;
 ALTER TABLE ONLY public.domain_audit
     ADD CONSTRAINT domain_audit_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -326,6 +365,7 @@ ALTER TABLE ONLY public.domain_audit
 -- Name: expiry_reminder_shop_rules expiry_reminder_shop_rules_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.expiry_reminder_shop_rules DROP CONSTRAINT IF EXISTS expiry_reminder_shop_rules_shop_id_fkey;
 ALTER TABLE ONLY public.expiry_reminder_shop_rules
     ADD CONSTRAINT expiry_reminder_shop_rules_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -334,6 +374,7 @@ ALTER TABLE ONLY public.expiry_reminder_shop_rules
 -- Name: expiry_reminder_shop_settings expiry_reminder_shop_settings_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.expiry_reminder_shop_settings DROP CONSTRAINT IF EXISTS expiry_reminder_shop_settings_shop_id_fkey;
 ALTER TABLE ONLY public.expiry_reminder_shop_settings
     ADD CONSTRAINT expiry_reminder_shop_settings_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -342,6 +383,7 @@ ALTER TABLE ONLY public.expiry_reminder_shop_settings
 -- Name: flash_sales flash_sales_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.flash_sales DROP CONSTRAINT IF EXISTS flash_sales_menu_item_id_fkey;
 ALTER TABLE ONLY public.flash_sales
     ADD CONSTRAINT flash_sales_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -350,6 +392,7 @@ ALTER TABLE ONLY public.flash_sales
 -- Name: flash_sales flash_sales_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.flash_sales DROP CONSTRAINT IF EXISTS flash_sales_shop_id_fkey;
 ALTER TABLE ONLY public.flash_sales
     ADD CONSTRAINT flash_sales_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -358,6 +401,7 @@ ALTER TABLE ONLY public.flash_sales
 -- Name: flyers flyers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.flyers DROP CONSTRAINT IF EXISTS flyers_shop_id_fkey;
 ALTER TABLE ONLY public.flyers
     ADD CONSTRAINT flyers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -366,6 +410,7 @@ ALTER TABLE ONLY public.flyers
 -- Name: fnb_combos fnb_combos_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.fnb_combos DROP CONSTRAINT IF EXISTS fnb_combos_shop_id_fkey;
 ALTER TABLE ONLY public.fnb_combos
     ADD CONSTRAINT fnb_combos_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -374,6 +419,7 @@ ALTER TABLE ONLY public.fnb_combos
 -- Name: freelance_contracts freelance_contracts_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.freelance_contracts DROP CONSTRAINT IF EXISTS freelance_contracts_shop_id_fkey;
 ALTER TABLE ONLY public.freelance_contracts
     ADD CONSTRAINT freelance_contracts_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -382,6 +428,7 @@ ALTER TABLE ONLY public.freelance_contracts
 -- Name: ingredients ingredients_default_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.ingredients DROP CONSTRAINT IF EXISTS ingredients_default_supplier_id_fkey;
 ALTER TABLE ONLY public.ingredients
     ADD CONSTRAINT ingredients_default_supplier_id_fkey FOREIGN KEY (default_supplier_id) REFERENCES public.suppliers(id) ON DELETE SET NULL;
 
@@ -390,6 +437,7 @@ ALTER TABLE ONLY public.ingredients
 -- Name: job_deliverables job_deliverables_custom_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.job_deliverables DROP CONSTRAINT IF EXISTS job_deliverables_custom_order_id_fkey;
 ALTER TABLE ONLY public.job_deliverables
     ADD CONSTRAINT job_deliverables_custom_order_id_fkey FOREIGN KEY (custom_order_id) REFERENCES public.custom_order_requests(id) ON DELETE SET NULL;
 
@@ -398,6 +446,7 @@ ALTER TABLE ONLY public.job_deliverables
 -- Name: job_deliverables job_deliverables_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.job_deliverables DROP CONSTRAINT IF EXISTS job_deliverables_shop_id_fkey;
 ALTER TABLE ONLY public.job_deliverables
     ADD CONSTRAINT job_deliverables_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -406,6 +455,7 @@ ALTER TABLE ONLY public.job_deliverables
 -- Name: leads leads_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.leads DROP CONSTRAINT IF EXISTS leads_shop_id_fkey;
 ALTER TABLE ONLY public.leads
     ADD CONSTRAINT leads_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -414,6 +464,7 @@ ALTER TABLE ONLY public.leads
 -- Name: lesson_progress lesson_progress_lesson_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.lesson_progress DROP CONSTRAINT IF EXISTS lesson_progress_lesson_id_fkey;
 ALTER TABLE ONLY public.lesson_progress
     ADD CONSTRAINT lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.course_lessons(id) ON DELETE CASCADE;
 
@@ -422,6 +473,7 @@ ALTER TABLE ONLY public.lesson_progress
 -- Name: marketplace_cart_items marketplace_cart_items_cart_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.marketplace_cart_items DROP CONSTRAINT IF EXISTS marketplace_cart_items_cart_id_fkey;
 ALTER TABLE ONLY public.marketplace_cart_items
     ADD CONSTRAINT marketplace_cart_items_cart_id_fkey FOREIGN KEY (cart_id) REFERENCES public.marketplace_carts(id) ON DELETE CASCADE;
 
@@ -430,6 +482,7 @@ ALTER TABLE ONLY public.marketplace_cart_items
 -- Name: marketplace_cart_items marketplace_cart_items_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.marketplace_cart_items DROP CONSTRAINT IF EXISTS marketplace_cart_items_product_id_fkey;
 ALTER TABLE ONLY public.marketplace_cart_items
     ADD CONSTRAINT marketplace_cart_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -438,6 +491,7 @@ ALTER TABLE ONLY public.marketplace_cart_items
 -- Name: marketplace_cart_items marketplace_cart_items_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.marketplace_cart_items DROP CONSTRAINT IF EXISTS marketplace_cart_items_shop_id_fkey;
 ALTER TABLE ONLY public.marketplace_cart_items
     ADD CONSTRAINT marketplace_cart_items_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -446,6 +500,7 @@ ALTER TABLE ONLY public.marketplace_cart_items
 -- Name: marketplace_carts marketplace_carts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.marketplace_carts DROP CONSTRAINT IF EXISTS marketplace_carts_user_id_fkey;
 ALTER TABLE ONLY public.marketplace_carts
     ADD CONSTRAINT marketplace_carts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -454,6 +509,7 @@ ALTER TABLE ONLY public.marketplace_carts
 -- Name: medications medications_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.medications DROP CONSTRAINT IF EXISTS medications_shop_id_fkey;
 ALTER TABLE ONLY public.medications
     ADD CONSTRAINT medications_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -462,6 +518,7 @@ ALTER TABLE ONLY public.medications
 -- Name: menu_item_options menu_item_options_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.menu_item_options DROP CONSTRAINT IF EXISTS menu_item_options_group_id_fkey;
 ALTER TABLE ONLY public.menu_item_options
     ADD CONSTRAINT menu_item_options_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.menu_item_option_groups(id) ON DELETE CASCADE;
 
@@ -470,6 +527,7 @@ ALTER TABLE ONLY public.menu_item_options
 -- Name: menu_item_variants menu_item_variants_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.menu_item_variants DROP CONSTRAINT IF EXISTS menu_item_variants_menu_item_id_fkey;
 ALTER TABLE ONLY public.menu_item_variants
     ADD CONSTRAINT menu_item_variants_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -478,6 +536,7 @@ ALTER TABLE ONLY public.menu_item_variants
 -- Name: menu_item_variants menu_item_variants_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.menu_item_variants DROP CONSTRAINT IF EXISTS menu_item_variants_shop_id_fkey;
 ALTER TABLE ONLY public.menu_item_variants
     ADD CONSTRAINT menu_item_variants_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -486,6 +545,7 @@ ALTER TABLE ONLY public.menu_item_variants
 -- Name: menu_items menu_items_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.menu_items DROP CONSTRAINT IF EXISTS menu_items_category_id_fkey;
 ALTER TABLE ONLY public.menu_items
     ADD CONSTRAINT menu_items_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
 
@@ -494,6 +554,7 @@ ALTER TABLE ONLY public.menu_items
 -- Name: menu_items menu_items_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.menu_items DROP CONSTRAINT IF EXISTS menu_items_shop_id_fkey;
 ALTER TABLE ONLY public.menu_items
     ADD CONSTRAINT menu_items_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -502,6 +563,7 @@ ALTER TABLE ONLY public.menu_items
 -- Name: open_bills open_bills_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.open_bills DROP CONSTRAINT IF EXISTS open_bills_outlet_id_fkey;
 ALTER TABLE ONLY public.open_bills
     ADD CONSTRAINT open_bills_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE CASCADE;
 
@@ -510,6 +572,7 @@ ALTER TABLE ONLY public.open_bills
 -- Name: open_bills open_bills_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.open_bills DROP CONSTRAINT IF EXISTS open_bills_shop_id_fkey;
 ALTER TABLE ONLY public.open_bills
     ADD CONSTRAINT open_bills_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -518,6 +581,7 @@ ALTER TABLE ONLY public.open_bills
 -- Name: order_audit_log order_audit_log_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.order_audit_log DROP CONSTRAINT IF EXISTS order_audit_log_order_id_fkey;
 ALTER TABLE ONLY public.order_audit_log
     ADD CONSTRAINT order_audit_log_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
 
@@ -526,6 +590,7 @@ ALTER TABLE ONLY public.order_audit_log
 -- Name: order_audit_log order_audit_log_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.order_audit_log DROP CONSTRAINT IF EXISTS order_audit_log_outlet_id_fkey;
 ALTER TABLE ONLY public.order_audit_log
     ADD CONSTRAINT order_audit_log_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE SET NULL;
 
@@ -534,6 +599,7 @@ ALTER TABLE ONLY public.order_audit_log
 -- Name: order_audit_log order_audit_log_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.order_audit_log DROP CONSTRAINT IF EXISTS order_audit_log_shop_id_fkey;
 ALTER TABLE ONLY public.order_audit_log
     ADD CONSTRAINT order_audit_log_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -542,6 +608,7 @@ ALTER TABLE ONLY public.order_audit_log
 -- Name: order_items order_items_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.order_items DROP CONSTRAINT IF EXISTS order_items_menu_item_id_fkey;
 ALTER TABLE ONLY public.order_items
     ADD CONSTRAINT order_items_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE SET NULL;
 
@@ -550,6 +617,7 @@ ALTER TABLE ONLY public.order_items
 -- Name: order_items order_items_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.order_items DROP CONSTRAINT IF EXISTS order_items_order_id_fkey;
 ALTER TABLE ONLY public.order_items
     ADD CONSTRAINT order_items_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
 
@@ -558,6 +626,7 @@ ALTER TABLE ONLY public.order_items
 -- Name: orders orders_membership_tier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.orders DROP CONSTRAINT IF EXISTS orders_membership_tier_id_fkey;
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_membership_tier_id_fkey FOREIGN KEY (membership_tier_id) REFERENCES public.shop_membership_tiers(id) ON DELETE SET NULL;
 
@@ -566,6 +635,7 @@ ALTER TABLE ONLY public.orders
 -- Name: orders orders_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.orders DROP CONSTRAINT IF EXISTS orders_outlet_id_fkey;
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE CASCADE;
 
@@ -574,6 +644,7 @@ ALTER TABLE ONLY public.orders
 -- Name: orders orders_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.orders DROP CONSTRAINT IF EXISTS orders_shop_id_fkey;
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -582,6 +653,7 @@ ALTER TABLE ONLY public.orders
 -- Name: outlet_couriers outlet_couriers_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.outlet_couriers DROP CONSTRAINT IF EXISTS outlet_couriers_outlet_id_fkey;
 ALTER TABLE ONLY public.outlet_couriers
     ADD CONSTRAINT outlet_couriers_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE CASCADE;
 
@@ -590,6 +662,7 @@ ALTER TABLE ONLY public.outlet_couriers
 -- Name: outlet_couriers outlet_couriers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.outlet_couriers DROP CONSTRAINT IF EXISTS outlet_couriers_shop_id_fkey;
 ALTER TABLE ONLY public.outlet_couriers
     ADD CONSTRAINT outlet_couriers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -598,6 +671,7 @@ ALTER TABLE ONLY public.outlet_couriers
 -- Name: outlets outlets_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.outlets DROP CONSTRAINT IF EXISTS outlets_shop_id_fkey;
 ALTER TABLE ONLY public.outlets
     ADD CONSTRAINT outlets_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -606,6 +680,7 @@ ALTER TABLE ONLY public.outlets
 -- Name: page_layout_versions page_layout_versions_layout_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.page_layout_versions DROP CONSTRAINT IF EXISTS page_layout_versions_layout_id_fkey;
 ALTER TABLE ONLY public.page_layout_versions
     ADD CONSTRAINT page_layout_versions_layout_id_fkey FOREIGN KEY (layout_id) REFERENCES public.page_layouts(id) ON DELETE CASCADE;
 
@@ -614,6 +689,7 @@ ALTER TABLE ONLY public.page_layout_versions
 -- Name: page_layouts page_layouts_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.page_layouts DROP CONSTRAINT IF EXISTS page_layouts_shop_id_fkey;
 ALTER TABLE ONLY public.page_layouts
     ADD CONSTRAINT page_layouts_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -622,6 +698,7 @@ ALTER TABLE ONLY public.page_layouts
 -- Name: parked_carts parked_carts_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.parked_carts DROP CONSTRAINT IF EXISTS parked_carts_outlet_id_fkey;
 ALTER TABLE ONLY public.parked_carts
     ADD CONSTRAINT parked_carts_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE CASCADE;
 
@@ -630,6 +707,7 @@ ALTER TABLE ONLY public.parked_carts
 -- Name: parked_carts parked_carts_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.parked_carts DROP CONSTRAINT IF EXISTS parked_carts_shop_id_fkey;
 ALTER TABLE ONLY public.parked_carts
     ADD CONSTRAINT parked_carts_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -638,6 +716,7 @@ ALTER TABLE ONLY public.parked_carts
 -- Name: patient_records patient_records_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.patient_records DROP CONSTRAINT IF EXISTS patient_records_shop_id_fkey;
 ALTER TABLE ONLY public.patient_records
     ADD CONSTRAINT patient_records_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -646,6 +725,7 @@ ALTER TABLE ONLY public.patient_records
 -- Name: patient_visits patient_visits_patient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.patient_visits DROP CONSTRAINT IF EXISTS patient_visits_patient_id_fkey;
 ALTER TABLE ONLY public.patient_visits
     ADD CONSTRAINT patient_visits_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patient_records(id) ON DELETE CASCADE;
 
@@ -654,6 +734,7 @@ ALTER TABLE ONLY public.patient_visits
 -- Name: patient_visits patient_visits_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.patient_visits DROP CONSTRAINT IF EXISTS patient_visits_shop_id_fkey;
 ALTER TABLE ONLY public.patient_visits
     ADD CONSTRAINT patient_visits_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -662,6 +743,7 @@ ALTER TABLE ONLY public.patient_visits
 -- Name: plan_features plan_features_feature_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_features DROP CONSTRAINT IF EXISTS plan_features_feature_key_fkey;
 ALTER TABLE ONLY public.plan_features
     ADD CONSTRAINT plan_features_feature_key_fkey FOREIGN KEY (feature_key) REFERENCES public.features(key) ON DELETE CASCADE;
 
@@ -670,6 +752,7 @@ ALTER TABLE ONLY public.plan_features
 -- Name: plan_features plan_features_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_features DROP CONSTRAINT IF EXISTS plan_features_plan_id_fkey;
 ALTER TABLE ONLY public.plan_features
     ADD CONSTRAINT plan_features_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id) ON DELETE CASCADE;
 
@@ -678,6 +761,7 @@ ALTER TABLE ONLY public.plan_features
 -- Name: plan_invoices plan_invoices_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_invoices DROP CONSTRAINT IF EXISTS plan_invoices_plan_id_fkey;
 ALTER TABLE ONLY public.plan_invoices
     ADD CONSTRAINT plan_invoices_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id);
 
@@ -686,6 +770,7 @@ ALTER TABLE ONLY public.plan_invoices
 -- Name: plan_invoices plan_invoices_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_invoices DROP CONSTRAINT IF EXISTS plan_invoices_shop_id_fkey;
 ALTER TABLE ONLY public.plan_invoices
     ADD CONSTRAINT plan_invoices_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -694,6 +779,7 @@ ALTER TABLE ONLY public.plan_invoices
 -- Name: plan_subscriptions plan_subscriptions_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_subscriptions DROP CONSTRAINT IF EXISTS plan_subscriptions_plan_id_fkey;
 ALTER TABLE ONLY public.plan_subscriptions
     ADD CONSTRAINT plan_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id);
 
@@ -702,6 +788,7 @@ ALTER TABLE ONLY public.plan_subscriptions
 -- Name: plan_subscriptions plan_subscriptions_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_subscriptions DROP CONSTRAINT IF EXISTS plan_subscriptions_shop_id_fkey;
 ALTER TABLE ONLY public.plan_subscriptions
     ADD CONSTRAINT plan_subscriptions_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -710,6 +797,7 @@ ALTER TABLE ONLY public.plan_subscriptions
 -- Name: plan_themes plan_themes_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_themes DROP CONSTRAINT IF EXISTS plan_themes_plan_id_fkey;
 ALTER TABLE ONLY public.plan_themes
     ADD CONSTRAINT plan_themes_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id) ON DELETE CASCADE;
 
@@ -718,6 +806,7 @@ ALTER TABLE ONLY public.plan_themes
 -- Name: plan_themes plan_themes_theme_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.plan_themes DROP CONSTRAINT IF EXISTS plan_themes_theme_key_fkey;
 ALTER TABLE ONLY public.plan_themes
     ADD CONSTRAINT plan_themes_theme_key_fkey FOREIGN KEY (theme_key) REFERENCES public.themes(key) ON DELETE CASCADE;
 
@@ -726,6 +815,7 @@ ALTER TABLE ONLY public.plan_themes
 -- Name: platform_voucher_redemptions platform_voucher_redemptions_voucher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.platform_voucher_redemptions DROP CONSTRAINT IF EXISTS platform_voucher_redemptions_voucher_id_fkey;
 ALTER TABLE ONLY public.platform_voucher_redemptions
     ADD CONSTRAINT platform_voucher_redemptions_voucher_id_fkey FOREIGN KEY (voucher_id) REFERENCES public.platform_vouchers(id) ON DELETE CASCADE;
 
@@ -734,6 +824,7 @@ ALTER TABLE ONLY public.platform_voucher_redemptions
 -- Name: po_audit_log po_audit_log_po_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.po_audit_log DROP CONSTRAINT IF EXISTS po_audit_log_po_id_fkey;
 ALTER TABLE ONLY public.po_audit_log
     ADD CONSTRAINT po_audit_log_po_id_fkey FOREIGN KEY (po_id) REFERENCES public.purchase_orders(id) ON DELETE CASCADE;
 
@@ -742,6 +833,7 @@ ALTER TABLE ONLY public.po_audit_log
 -- Name: pos_audit_log pos_audit_log_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.pos_audit_log DROP CONSTRAINT IF EXISTS pos_audit_log_shop_id_fkey;
 ALTER TABLE ONLY public.pos_audit_log
     ADD CONSTRAINT pos_audit_log_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -750,6 +842,7 @@ ALTER TABLE ONLY public.pos_audit_log
 -- Name: prescription_items prescription_items_medication_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.prescription_items DROP CONSTRAINT IF EXISTS prescription_items_medication_id_fkey;
 ALTER TABLE ONLY public.prescription_items
     ADD CONSTRAINT prescription_items_medication_id_fkey FOREIGN KEY (medication_id) REFERENCES public.medications(id) ON DELETE SET NULL;
 
@@ -758,6 +851,7 @@ ALTER TABLE ONLY public.prescription_items
 -- Name: prescription_items prescription_items_prescription_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.prescription_items DROP CONSTRAINT IF EXISTS prescription_items_prescription_id_fkey;
 ALTER TABLE ONLY public.prescription_items
     ADD CONSTRAINT prescription_items_prescription_id_fkey FOREIGN KEY (prescription_id) REFERENCES public.prescriptions(id) ON DELETE CASCADE;
 
@@ -766,6 +860,7 @@ ALTER TABLE ONLY public.prescription_items
 -- Name: prescriptions prescriptions_patient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.prescriptions DROP CONSTRAINT IF EXISTS prescriptions_patient_id_fkey;
 ALTER TABLE ONLY public.prescriptions
     ADD CONSTRAINT prescriptions_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patient_records(id) ON DELETE SET NULL;
 
@@ -774,6 +869,7 @@ ALTER TABLE ONLY public.prescriptions
 -- Name: prescriptions prescriptions_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.prescriptions DROP CONSTRAINT IF EXISTS prescriptions_shop_id_fkey;
 ALTER TABLE ONLY public.prescriptions
     ADD CONSTRAINT prescriptions_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -782,6 +878,7 @@ ALTER TABLE ONLY public.prescriptions
 -- Name: prescriptions prescriptions_visit_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.prescriptions DROP CONSTRAINT IF EXISTS prescriptions_visit_id_fkey;
 ALTER TABLE ONLY public.prescriptions
     ADD CONSTRAINT prescriptions_visit_id_fkey FOREIGN KEY (visit_id) REFERENCES public.patient_visits(id) ON DELETE SET NULL;
 
@@ -790,6 +887,7 @@ ALTER TABLE ONLY public.prescriptions
 -- Name: printers printers_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.printers DROP CONSTRAINT IF EXISTS printers_outlet_id_fkey;
 ALTER TABLE ONLY public.printers
     ADD CONSTRAINT printers_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE CASCADE;
 
@@ -798,6 +896,7 @@ ALTER TABLE ONLY public.printers
 -- Name: printers printers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.printers DROP CONSTRAINT IF EXISTS printers_shop_id_fkey;
 ALTER TABLE ONLY public.printers
     ADD CONSTRAINT printers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -806,6 +905,7 @@ ALTER TABLE ONLY public.printers
 -- Name: product_attribute_defs product_attribute_defs_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_attribute_defs DROP CONSTRAINT IF EXISTS product_attribute_defs_category_id_fkey;
 ALTER TABLE ONLY public.product_attribute_defs
     ADD CONSTRAINT product_attribute_defs_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE CASCADE;
 
@@ -814,6 +914,7 @@ ALTER TABLE ONLY public.product_attribute_defs
 -- Name: product_attribute_defs product_attribute_defs_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_attribute_defs DROP CONSTRAINT IF EXISTS product_attribute_defs_shop_id_fkey;
 ALTER TABLE ONLY public.product_attribute_defs
     ADD CONSTRAINT product_attribute_defs_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -822,6 +923,7 @@ ALTER TABLE ONLY public.product_attribute_defs
 -- Name: product_qa product_qa_answered_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_qa DROP CONSTRAINT IF EXISTS product_qa_answered_by_fkey;
 ALTER TABLE ONLY public.product_qa
     ADD CONSTRAINT product_qa_answered_by_fkey FOREIGN KEY (answered_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -830,6 +932,7 @@ ALTER TABLE ONLY public.product_qa
 -- Name: product_qa product_qa_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_qa DROP CONSTRAINT IF EXISTS product_qa_product_id_fkey;
 ALTER TABLE ONLY public.product_qa
     ADD CONSTRAINT product_qa_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -838,6 +941,7 @@ ALTER TABLE ONLY public.product_qa
 -- Name: product_qa product_qa_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_qa DROP CONSTRAINT IF EXISTS product_qa_shop_id_fkey;
 ALTER TABLE ONLY public.product_qa
     ADD CONSTRAINT product_qa_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -846,6 +950,7 @@ ALTER TABLE ONLY public.product_qa
 -- Name: product_qa product_qa_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_qa DROP CONSTRAINT IF EXISTS product_qa_user_id_fkey;
 ALTER TABLE ONLY public.product_qa
     ADD CONSTRAINT product_qa_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -854,6 +959,7 @@ ALTER TABLE ONLY public.product_qa
 -- Name: product_returns product_returns_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_returns DROP CONSTRAINT IF EXISTS product_returns_order_id_fkey;
 ALTER TABLE ONLY public.product_returns
     ADD CONSTRAINT product_returns_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
 
@@ -862,6 +968,7 @@ ALTER TABLE ONLY public.product_returns
 -- Name: product_returns product_returns_processed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_returns DROP CONSTRAINT IF EXISTS product_returns_processed_by_fkey;
 ALTER TABLE ONLY public.product_returns
     ADD CONSTRAINT product_returns_processed_by_fkey FOREIGN KEY (processed_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -870,6 +977,7 @@ ALTER TABLE ONLY public.product_returns
 -- Name: product_returns product_returns_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_returns DROP CONSTRAINT IF EXISTS product_returns_shop_id_fkey;
 ALTER TABLE ONLY public.product_returns
     ADD CONSTRAINT product_returns_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -878,6 +986,7 @@ ALTER TABLE ONLY public.product_returns
 -- Name: product_reviews product_reviews_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_reviews DROP CONSTRAINT IF EXISTS product_reviews_order_id_fkey;
 ALTER TABLE ONLY public.product_reviews
     ADD CONSTRAINT product_reviews_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
 
@@ -886,6 +995,7 @@ ALTER TABLE ONLY public.product_reviews
 -- Name: product_reviews product_reviews_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_reviews DROP CONSTRAINT IF EXISTS product_reviews_product_id_fkey;
 ALTER TABLE ONLY public.product_reviews
     ADD CONSTRAINT product_reviews_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -894,6 +1004,7 @@ ALTER TABLE ONLY public.product_reviews
 -- Name: product_reviews product_reviews_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_reviews DROP CONSTRAINT IF EXISTS product_reviews_shop_id_fkey;
 ALTER TABLE ONLY public.product_reviews
     ADD CONSTRAINT product_reviews_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -902,6 +1013,7 @@ ALTER TABLE ONLY public.product_reviews
 -- Name: product_reviews product_reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_reviews DROP CONSTRAINT IF EXISTS product_reviews_user_id_fkey;
 ALTER TABLE ONLY public.product_reviews
     ADD CONSTRAINT product_reviews_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -910,6 +1022,7 @@ ALTER TABLE ONLY public.product_reviews
 -- Name: product_upsell_suggestions product_upsell_suggestions_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_upsell_suggestions DROP CONSTRAINT IF EXISTS product_upsell_suggestions_product_id_fkey;
 ALTER TABLE ONLY public.product_upsell_suggestions
     ADD CONSTRAINT product_upsell_suggestions_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -918,6 +1031,7 @@ ALTER TABLE ONLY public.product_upsell_suggestions
 -- Name: product_upsell_suggestions product_upsell_suggestions_suggested_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.product_upsell_suggestions DROP CONSTRAINT IF EXISTS product_upsell_suggestions_suggested_id_fkey;
 ALTER TABLE ONLY public.product_upsell_suggestions
     ADD CONSTRAINT product_upsell_suggestions_suggested_id_fkey FOREIGN KEY (suggested_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -926,6 +1040,7 @@ ALTER TABLE ONLY public.product_upsell_suggestions
 -- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
 ALTER TABLE ONLY public.profiles
     ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -934,6 +1049,7 @@ ALTER TABLE ONLY public.profiles
 -- Name: purchase_order_items purchase_order_items_po_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.purchase_order_items DROP CONSTRAINT IF EXISTS purchase_order_items_po_id_fkey;
 ALTER TABLE ONLY public.purchase_order_items
     ADD CONSTRAINT purchase_order_items_po_id_fkey FOREIGN KEY (po_id) REFERENCES public.purchase_orders(id) ON DELETE CASCADE;
 
@@ -942,6 +1058,7 @@ ALTER TABLE ONLY public.purchase_order_items
 -- Name: purchase_orders purchase_orders_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.purchase_orders DROP CONSTRAINT IF EXISTS purchase_orders_supplier_id_fkey;
 ALTER TABLE ONLY public.purchase_orders
     ADD CONSTRAINT purchase_orders_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id) ON DELETE SET NULL;
 
@@ -950,6 +1067,7 @@ ALTER TABLE ONLY public.purchase_orders
 -- Name: push_subscriptions push_subscriptions_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.push_subscriptions DROP CONSTRAINT IF EXISTS push_subscriptions_shop_id_fkey;
 ALTER TABLE ONLY public.push_subscriptions
     ADD CONSTRAINT push_subscriptions_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -958,6 +1076,7 @@ ALTER TABLE ONLY public.push_subscriptions
 -- Name: push_subscriptions push_subscriptions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.push_subscriptions DROP CONSTRAINT IF EXISTS push_subscriptions_user_id_fkey;
 ALTER TABLE ONLY public.push_subscriptions
     ADD CONSTRAINT push_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -966,6 +1085,7 @@ ALTER TABLE ONLY public.push_subscriptions
 -- Name: rental_bookings rental_bookings_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.rental_bookings DROP CONSTRAINT IF EXISTS rental_bookings_shop_id_fkey;
 ALTER TABLE ONLY public.rental_bookings
     ADD CONSTRAINT rental_bookings_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -974,6 +1094,7 @@ ALTER TABLE ONLY public.rental_bookings
 -- Name: rental_bookings rental_bookings_unit_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.rental_bookings DROP CONSTRAINT IF EXISTS rental_bookings_unit_id_fkey;
 ALTER TABLE ONLY public.rental_bookings
     ADD CONSTRAINT rental_bookings_unit_id_fkey FOREIGN KEY (unit_id) REFERENCES public.rental_units(id) ON DELETE CASCADE;
 
@@ -982,6 +1103,7 @@ ALTER TABLE ONLY public.rental_bookings
 -- Name: rental_inspections rental_inspections_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.rental_inspections DROP CONSTRAINT IF EXISTS rental_inspections_booking_id_fkey;
 ALTER TABLE ONLY public.rental_inspections
     ADD CONSTRAINT rental_inspections_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.rental_bookings(id) ON DELETE CASCADE;
 
@@ -990,6 +1112,7 @@ ALTER TABLE ONLY public.rental_inspections
 -- Name: rental_inspections rental_inspections_recorded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.rental_inspections DROP CONSTRAINT IF EXISTS rental_inspections_recorded_by_fkey;
 ALTER TABLE ONLY public.rental_inspections
     ADD CONSTRAINT rental_inspections_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -998,6 +1121,7 @@ ALTER TABLE ONLY public.rental_inspections
 -- Name: rental_inspections rental_inspections_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.rental_inspections DROP CONSTRAINT IF EXISTS rental_inspections_shop_id_fkey;
 ALTER TABLE ONLY public.rental_inspections
     ADD CONSTRAINT rental_inspections_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1006,6 +1130,7 @@ ALTER TABLE ONLY public.rental_inspections
 -- Name: rental_units rental_units_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.rental_units DROP CONSTRAINT IF EXISTS rental_units_shop_id_fkey;
 ALTER TABLE ONLY public.rental_units
     ADD CONSTRAINT rental_units_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1014,6 +1139,7 @@ ALTER TABLE ONLY public.rental_units
 -- Name: restock_subscribers restock_subscribers_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.restock_subscribers DROP CONSTRAINT IF EXISTS restock_subscribers_product_id_fkey;
 ALTER TABLE ONLY public.restock_subscribers
     ADD CONSTRAINT restock_subscribers_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -1022,6 +1148,7 @@ ALTER TABLE ONLY public.restock_subscribers
 -- Name: restock_subscribers restock_subscribers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.restock_subscribers DROP CONSTRAINT IF EXISTS restock_subscribers_shop_id_fkey;
 ALTER TABLE ONLY public.restock_subscribers
     ADD CONSTRAINT restock_subscribers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1030,6 +1157,7 @@ ALTER TABLE ONLY public.restock_subscribers
 -- Name: sales_offerings sales_offerings_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.sales_offerings DROP CONSTRAINT IF EXISTS sales_offerings_shop_id_fkey;
 ALTER TABLE ONLY public.sales_offerings
     ADD CONSTRAINT sales_offerings_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1038,6 +1166,7 @@ ALTER TABLE ONLY public.sales_offerings
 -- Name: service_bundle_items service_bundle_items_bundle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.service_bundle_items DROP CONSTRAINT IF EXISTS service_bundle_items_bundle_id_fkey;
 ALTER TABLE ONLY public.service_bundle_items
     ADD CONSTRAINT service_bundle_items_bundle_id_fkey FOREIGN KEY (bundle_id) REFERENCES public.service_bundles(id) ON DELETE CASCADE;
 
@@ -1046,6 +1175,7 @@ ALTER TABLE ONLY public.service_bundle_items
 -- Name: service_bundles service_bundles_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.service_bundles DROP CONSTRAINT IF EXISTS service_bundles_shop_id_fkey;
 ALTER TABLE ONLY public.service_bundles
     ADD CONSTRAINT service_bundles_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1054,6 +1184,7 @@ ALTER TABLE ONLY public.service_bundles
 -- Name: shop_about shop_about_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_about DROP CONSTRAINT IF EXISTS shop_about_shop_id_fkey;
 ALTER TABLE ONLY public.shop_about
     ADD CONSTRAINT shop_about_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1062,6 +1193,7 @@ ALTER TABLE ONLY public.shop_about
 -- Name: shop_chat_messages shop_chat_messages_chat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_chat_messages DROP CONSTRAINT IF EXISTS shop_chat_messages_chat_id_fkey;
 ALTER TABLE ONLY public.shop_chat_messages
     ADD CONSTRAINT shop_chat_messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.shop_chats(id) ON DELETE CASCADE;
 
@@ -1070,6 +1202,7 @@ ALTER TABLE ONLY public.shop_chat_messages
 -- Name: shop_chat_messages shop_chat_messages_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_chat_messages DROP CONSTRAINT IF EXISTS shop_chat_messages_shop_id_fkey;
 ALTER TABLE ONLY public.shop_chat_messages
     ADD CONSTRAINT shop_chat_messages_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1078,6 +1211,7 @@ ALTER TABLE ONLY public.shop_chat_messages
 -- Name: shop_chats shop_chats_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_chats DROP CONSTRAINT IF EXISTS shop_chats_shop_id_fkey;
 ALTER TABLE ONLY public.shop_chats
     ADD CONSTRAINT shop_chats_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1086,6 +1220,7 @@ ALTER TABLE ONLY public.shop_chats
 -- Name: shop_membership_tiers shop_membership_tiers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_membership_tiers DROP CONSTRAINT IF EXISTS shop_membership_tiers_shop_id_fkey;
 ALTER TABLE ONLY public.shop_membership_tiers
     ADD CONSTRAINT shop_membership_tiers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1094,6 +1229,7 @@ ALTER TABLE ONLY public.shop_membership_tiers
 -- Name: shop_portfolio shop_portfolio_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_portfolio DROP CONSTRAINT IF EXISTS shop_portfolio_shop_id_fkey;
 ALTER TABLE ONLY public.shop_portfolio
     ADD CONSTRAINT shop_portfolio_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1102,6 +1238,7 @@ ALTER TABLE ONLY public.shop_portfolio
 -- Name: shop_size_charts shop_size_charts_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_size_charts DROP CONSTRAINT IF EXISTS shop_size_charts_shop_id_fkey;
 ALTER TABLE ONLY public.shop_size_charts
     ADD CONSTRAINT shop_size_charts_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1110,6 +1247,7 @@ ALTER TABLE ONLY public.shop_size_charts
 -- Name: shop_verifications shop_verifications_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_verifications DROP CONSTRAINT IF EXISTS shop_verifications_shop_id_fkey;
 ALTER TABLE ONLY public.shop_verifications
     ADD CONSTRAINT shop_verifications_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1118,6 +1256,7 @@ ALTER TABLE ONLY public.shop_verifications
 -- Name: shop_vouchers shop_vouchers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_vouchers DROP CONSTRAINT IF EXISTS shop_vouchers_shop_id_fkey;
 ALTER TABLE ONLY public.shop_vouchers
     ADD CONSTRAINT shop_vouchers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1126,6 +1265,7 @@ ALTER TABLE ONLY public.shop_vouchers
 -- Name: shop_wallets shop_wallets_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.shop_wallets DROP CONSTRAINT IF EXISTS shop_wallets_shop_id_fkey;
 ALTER TABLE ONLY public.shop_wallets
     ADD CONSTRAINT shop_wallets_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1134,6 +1274,7 @@ ALTER TABLE ONLY public.shop_wallets
 -- Name: staff_audit_logs staff_audit_logs_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.staff_audit_logs DROP CONSTRAINT IF EXISTS staff_audit_logs_shop_id_fkey;
 ALTER TABLE ONLY public.staff_audit_logs
     ADD CONSTRAINT staff_audit_logs_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1142,6 +1283,7 @@ ALTER TABLE ONLY public.staff_audit_logs
 -- Name: staff_members staff_members_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.staff_members DROP CONSTRAINT IF EXISTS staff_members_outlet_id_fkey;
 ALTER TABLE ONLY public.staff_members
     ADD CONSTRAINT staff_members_outlet_id_fkey FOREIGN KEY (outlet_id) REFERENCES public.outlets(id) ON DELETE SET NULL;
 
@@ -1150,6 +1292,7 @@ ALTER TABLE ONLY public.staff_members
 -- Name: staff_members staff_members_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.staff_members DROP CONSTRAINT IF EXISTS staff_members_shop_id_fkey;
 ALTER TABLE ONLY public.staff_members
     ADD CONSTRAINT staff_members_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1158,6 +1301,7 @@ ALTER TABLE ONLY public.staff_members
 -- Name: staff_permissions staff_permissions_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.staff_permissions DROP CONSTRAINT IF EXISTS staff_permissions_shop_id_fkey;
 ALTER TABLE ONLY public.staff_permissions
     ADD CONSTRAINT staff_permissions_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1166,6 +1310,7 @@ ALTER TABLE ONLY public.staff_permissions
 -- Name: stock_opname_items stock_opname_items_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.stock_opname_items DROP CONSTRAINT IF EXISTS stock_opname_items_ingredient_id_fkey;
 ALTER TABLE ONLY public.stock_opname_items
     ADD CONSTRAINT stock_opname_items_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id) ON DELETE CASCADE;
 
@@ -1174,6 +1319,7 @@ ALTER TABLE ONLY public.stock_opname_items
 -- Name: stock_opname_items stock_opname_items_stock_opname_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.stock_opname_items DROP CONSTRAINT IF EXISTS stock_opname_items_stock_opname_id_fkey;
 ALTER TABLE ONLY public.stock_opname_items
     ADD CONSTRAINT stock_opname_items_stock_opname_id_fkey FOREIGN KEY (stock_opname_id) REFERENCES public.stock_opnames(id) ON DELETE CASCADE;
 
@@ -1182,6 +1328,7 @@ ALTER TABLE ONLY public.stock_opname_items
 -- Name: studio_galleries studio_galleries_photographer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.studio_galleries DROP CONSTRAINT IF EXISTS studio_galleries_photographer_id_fkey;
 ALTER TABLE ONLY public.studio_galleries
     ADD CONSTRAINT studio_galleries_photographer_id_fkey FOREIGN KEY (photographer_id) REFERENCES public.studio_photographers(id) ON DELETE SET NULL;
 
@@ -1190,6 +1337,7 @@ ALTER TABLE ONLY public.studio_galleries
 -- Name: studio_galleries studio_galleries_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.studio_galleries DROP CONSTRAINT IF EXISTS studio_galleries_shop_id_fkey;
 ALTER TABLE ONLY public.studio_galleries
     ADD CONSTRAINT studio_galleries_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1198,6 +1346,7 @@ ALTER TABLE ONLY public.studio_galleries
 -- Name: studio_gallery_photos studio_gallery_photos_gallery_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.studio_gallery_photos DROP CONSTRAINT IF EXISTS studio_gallery_photos_gallery_id_fkey;
 ALTER TABLE ONLY public.studio_gallery_photos
     ADD CONSTRAINT studio_gallery_photos_gallery_id_fkey FOREIGN KEY (gallery_id) REFERENCES public.studio_galleries(id) ON DELETE CASCADE;
 
@@ -1206,6 +1355,7 @@ ALTER TABLE ONLY public.studio_gallery_photos
 -- Name: studio_locations studio_locations_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.studio_locations DROP CONSTRAINT IF EXISTS studio_locations_shop_id_fkey;
 ALTER TABLE ONLY public.studio_locations
     ADD CONSTRAINT studio_locations_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1214,6 +1364,7 @@ ALTER TABLE ONLY public.studio_locations
 -- Name: studio_packages studio_packages_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.studio_packages DROP CONSTRAINT IF EXISTS studio_packages_shop_id_fkey;
 ALTER TABLE ONLY public.studio_packages
     ADD CONSTRAINT studio_packages_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1222,6 +1373,7 @@ ALTER TABLE ONLY public.studio_packages
 -- Name: studio_photographers studio_photographers_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.studio_photographers DROP CONSTRAINT IF EXISTS studio_photographers_shop_id_fkey;
 ALTER TABLE ONLY public.studio_photographers
     ADD CONSTRAINT studio_photographers_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1230,6 +1382,7 @@ ALTER TABLE ONLY public.studio_photographers
 -- Name: testimonials testimonials_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.testimonials DROP CONSTRAINT IF EXISTS testimonials_shop_id_fkey;
 ALTER TABLE ONLY public.testimonials
     ADD CONSTRAINT testimonials_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1238,6 +1391,7 @@ ALTER TABLE ONLY public.testimonials
 -- Name: travel_installments travel_installments_jamaah_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_installments DROP CONSTRAINT IF EXISTS travel_installments_jamaah_id_fkey;
 ALTER TABLE ONLY public.travel_installments
     ADD CONSTRAINT travel_installments_jamaah_id_fkey FOREIGN KEY (jamaah_id) REFERENCES public.travel_jamaah_manifest(id) ON DELETE SET NULL;
 
@@ -1246,6 +1400,7 @@ ALTER TABLE ONLY public.travel_installments
 -- Name: travel_installments travel_installments_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_installments DROP CONSTRAINT IF EXISTS travel_installments_package_id_fkey;
 ALTER TABLE ONLY public.travel_installments
     ADD CONSTRAINT travel_installments_package_id_fkey FOREIGN KEY (package_id) REFERENCES public.umroh_packages(id) ON DELETE SET NULL;
 
@@ -1254,6 +1409,7 @@ ALTER TABLE ONLY public.travel_installments
 -- Name: travel_installments travel_installments_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_installments DROP CONSTRAINT IF EXISTS travel_installments_shop_id_fkey;
 ALTER TABLE ONLY public.travel_installments
     ADD CONSTRAINT travel_installments_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1262,6 +1418,7 @@ ALTER TABLE ONLY public.travel_installments
 -- Name: travel_itineraries travel_itineraries_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_itineraries DROP CONSTRAINT IF EXISTS travel_itineraries_package_id_fkey;
 ALTER TABLE ONLY public.travel_itineraries
     ADD CONSTRAINT travel_itineraries_package_id_fkey FOREIGN KEY (package_id) REFERENCES public.umroh_packages(id) ON DELETE CASCADE;
 
@@ -1270,6 +1427,7 @@ ALTER TABLE ONLY public.travel_itineraries
 -- Name: travel_itineraries travel_itineraries_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_itineraries DROP CONSTRAINT IF EXISTS travel_itineraries_shop_id_fkey;
 ALTER TABLE ONLY public.travel_itineraries
     ADD CONSTRAINT travel_itineraries_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1278,6 +1436,7 @@ ALTER TABLE ONLY public.travel_itineraries
 -- Name: travel_jamaah_documents travel_jamaah_documents_jamaah_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_jamaah_documents DROP CONSTRAINT IF EXISTS travel_jamaah_documents_jamaah_id_fkey;
 ALTER TABLE ONLY public.travel_jamaah_documents
     ADD CONSTRAINT travel_jamaah_documents_jamaah_id_fkey FOREIGN KEY (jamaah_id) REFERENCES public.travel_jamaah_manifest(id) ON DELETE CASCADE;
 
@@ -1286,6 +1445,7 @@ ALTER TABLE ONLY public.travel_jamaah_documents
 -- Name: travel_jamaah_documents travel_jamaah_documents_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_jamaah_documents DROP CONSTRAINT IF EXISTS travel_jamaah_documents_shop_id_fkey;
 ALTER TABLE ONLY public.travel_jamaah_documents
     ADD CONSTRAINT travel_jamaah_documents_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1294,6 +1454,7 @@ ALTER TABLE ONLY public.travel_jamaah_documents
 -- Name: travel_jamaah_manifest travel_jamaah_manifest_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_jamaah_manifest DROP CONSTRAINT IF EXISTS travel_jamaah_manifest_package_id_fkey;
 ALTER TABLE ONLY public.travel_jamaah_manifest
     ADD CONSTRAINT travel_jamaah_manifest_package_id_fkey FOREIGN KEY (package_id) REFERENCES public.umroh_packages(id) ON DELETE SET NULL;
 
@@ -1302,6 +1463,7 @@ ALTER TABLE ONLY public.travel_jamaah_manifest
 -- Name: travel_jamaah_manifest travel_jamaah_manifest_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.travel_jamaah_manifest DROP CONSTRAINT IF EXISTS travel_jamaah_manifest_shop_id_fkey;
 ALTER TABLE ONLY public.travel_jamaah_manifest
     ADD CONSTRAINT travel_jamaah_manifest_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1310,6 +1472,7 @@ ALTER TABLE ONLY public.travel_jamaah_manifest
 -- Name: umroh_facilities umroh_facilities_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.umroh_facilities DROP CONSTRAINT IF EXISTS umroh_facilities_shop_id_fkey;
 ALTER TABLE ONLY public.umroh_facilities
     ADD CONSTRAINT umroh_facilities_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1318,6 +1481,7 @@ ALTER TABLE ONLY public.umroh_facilities
 -- Name: umroh_faqs umroh_faqs_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.umroh_faqs DROP CONSTRAINT IF EXISTS umroh_faqs_shop_id_fkey;
 ALTER TABLE ONLY public.umroh_faqs
     ADD CONSTRAINT umroh_faqs_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1326,6 +1490,7 @@ ALTER TABLE ONLY public.umroh_faqs
 -- Name: umroh_packages umroh_packages_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.umroh_packages DROP CONSTRAINT IF EXISTS umroh_packages_shop_id_fkey;
 ALTER TABLE ONLY public.umroh_packages
     ADD CONSTRAINT umroh_packages_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1334,6 +1499,7 @@ ALTER TABLE ONLY public.umroh_packages
 -- Name: user_preferences user_preferences_default_outlet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.user_preferences DROP CONSTRAINT IF EXISTS user_preferences_default_outlet_id_fkey;
 ALTER TABLE ONLY public.user_preferences
     ADD CONSTRAINT user_preferences_default_outlet_id_fkey FOREIGN KEY (default_outlet_id) REFERENCES public.outlets(id) ON DELETE SET NULL;
 
@@ -1342,6 +1508,7 @@ ALTER TABLE ONLY public.user_preferences
 -- Name: user_preferences user_preferences_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.user_preferences DROP CONSTRAINT IF EXISTS user_preferences_user_id_fkey;
 ALTER TABLE ONLY public.user_preferences
     ADD CONSTRAINT user_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -1350,6 +1517,7 @@ ALTER TABLE ONLY public.user_preferences
 -- Name: user_roles user_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.user_roles DROP CONSTRAINT IF EXISTS user_roles_user_id_fkey;
 ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -1358,6 +1526,7 @@ ALTER TABLE ONLY public.user_roles
 -- Name: wallet_topup_presets wallet_topup_presets_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wallet_topup_presets DROP CONSTRAINT IF EXISTS wallet_topup_presets_shop_id_fkey;
 ALTER TABLE ONLY public.wallet_topup_presets
     ADD CONSTRAINT wallet_topup_presets_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1366,6 +1535,7 @@ ALTER TABLE ONLY public.wallet_topup_presets
 -- Name: wallet_topups wallet_topups_preset_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wallet_topups DROP CONSTRAINT IF EXISTS wallet_topups_preset_id_fkey;
 ALTER TABLE ONLY public.wallet_topups
     ADD CONSTRAINT wallet_topups_preset_id_fkey FOREIGN KEY (preset_id) REFERENCES public.wallet_topup_presets(id) ON DELETE SET NULL;
 
@@ -1374,6 +1544,7 @@ ALTER TABLE ONLY public.wallet_topups
 -- Name: wallet_topups wallet_topups_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wallet_topups DROP CONSTRAINT IF EXISTS wallet_topups_shop_id_fkey;
 ALTER TABLE ONLY public.wallet_topups
     ADD CONSTRAINT wallet_topups_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1382,6 +1553,7 @@ ALTER TABLE ONLY public.wallet_topups
 -- Name: wallet_transactions wallet_transactions_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_created_by_fkey;
 ALTER TABLE ONLY public.wallet_transactions
     ADD CONSTRAINT wallet_transactions_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -1390,6 +1562,7 @@ ALTER TABLE ONLY public.wallet_transactions
 -- Name: wallet_transactions wallet_transactions_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_order_id_fkey;
 ALTER TABLE ONLY public.wallet_transactions
     ADD CONSTRAINT wallet_transactions_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
 
@@ -1398,6 +1571,7 @@ ALTER TABLE ONLY public.wallet_transactions
 -- Name: wallet_transactions wallet_transactions_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_shop_id_fkey;
 ALTER TABLE ONLY public.wallet_transactions
     ADD CONSTRAINT wallet_transactions_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
@@ -1406,6 +1580,7 @@ ALTER TABLE ONLY public.wallet_transactions
 -- Name: wishlists wishlists_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wishlists DROP CONSTRAINT IF EXISTS wishlists_menu_item_id_fkey;
 ALTER TABLE ONLY public.wishlists
     ADD CONSTRAINT wishlists_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id) ON DELETE CASCADE;
 
@@ -1414,6 +1589,7 @@ ALTER TABLE ONLY public.wishlists
 -- Name: wishlists wishlists_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.wishlists DROP CONSTRAINT IF EXISTS wishlists_user_id_fkey;
 ALTER TABLE ONLY public.wishlists
     ADD CONSTRAINT wishlists_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -1422,6 +1598,7 @@ ALTER TABLE ONLY public.wishlists
 -- Name: withdrawal_requests withdrawal_requests_requested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.withdrawal_requests DROP CONSTRAINT IF EXISTS withdrawal_requests_requested_by_fkey;
 ALTER TABLE ONLY public.withdrawal_requests
     ADD CONSTRAINT withdrawal_requests_requested_by_fkey FOREIGN KEY (requested_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -1430,6 +1607,7 @@ ALTER TABLE ONLY public.withdrawal_requests
 -- Name: withdrawal_requests withdrawal_requests_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.withdrawal_requests DROP CONSTRAINT IF EXISTS withdrawal_requests_reviewed_by_fkey;
 ALTER TABLE ONLY public.withdrawal_requests
     ADD CONSTRAINT withdrawal_requests_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -1438,5 +1616,6 @@ ALTER TABLE ONLY public.withdrawal_requests
 -- Name: withdrawal_requests withdrawal_requests_shop_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY public.withdrawal_requests DROP CONSTRAINT IF EXISTS withdrawal_requests_shop_id_fkey;
 ALTER TABLE ONLY public.withdrawal_requests
     ADD CONSTRAINT withdrawal_requests_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
