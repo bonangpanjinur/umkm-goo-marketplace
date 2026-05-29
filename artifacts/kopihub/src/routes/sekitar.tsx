@@ -8,11 +8,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, RefreshCw, List, Map as MapIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Navigation, MapPin, Loader2, Star, ExternalLink, Search as SearchIcon, RefreshCw, List, Map as MapIcon, Clock, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { NearbyShopsMap } from "@/components/marketplace/NearbyShopsMap";
 
 export const Route = createFileRoute("/sekitar")({ component: NearbyPage });
+
+const LOCATION_KEY = "umkmgo.userLocation";
 
 type NearbyShop = {
   id: string;
@@ -27,23 +36,56 @@ type NearbyShop = {
   rating_avg: number | null;
   review_count: number | null;
   distance_km: number;
+  business_category_id?: string | null;
+  open_hours?: Record<string, { open: string; close: string; closed?: boolean }> | null;
 };
 
 type Coords = { lat: number; lng: number };
+type Category = { id: string; name: string };
 
 function formatDistance(km: number) {
   if (km < 1) return `${Math.round(km * 1000)} m`;
   return `${km.toFixed(km < 10 ? 1 : 0)} km`;
 }
 
+function isShopOpenNow(open_hours: NearbyShop["open_hours"]): boolean {
+  if (!open_hours) return true;
+  const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const day = dayNames[new Date().getDay()];
+  const todayHours = day ? open_hours[day] : null;
+  if (!todayHours || todayHours.closed) return false;
+  const [oh = 0, om = 0] = (todayHours.open ?? "00:00").split(":").map(Number);
+  const [ch = 23, cm = 59] = (todayHours.close ?? "23:59").split(":").map(Number);
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  return nowMin >= oh * 60 + om && nowMin < ch * 60 + cm;
+}
+
 export default function NearbyPage() {
-  const [coords, setCoords] = useState<Coords | null>(null);
+  const [coords, setCoords] = useState<Coords | null>(() => {
+    try {
+      const saved = localStorage.getItem(LOCATION_KEY);
+      if (saved) return JSON.parse(saved) as Coords;
+    } catch {}
+    return null;
+  });
   const [locating, setLocating] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [radius, setRadius] = useState<number>(5);
   const [shops, setShops] = useState<NearbyShop[]>([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
+  const [minRating, setMinRating] = useState<number>(0);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [openNow, setOpenNow] = useState<boolean>(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("business_categories")
+      .select("id, name")
+      .order("name")
+      .then(({ data }) => setCategories((data ?? []) as Category[]));
+  }, []);
 
   function locate(silent = false) {
     if (!navigator.geolocation) {
@@ -53,7 +95,9 @@ export default function NearbyPage() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const c: Coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCoords(c);
+        try { localStorage.setItem(LOCATION_KEY, JSON.stringify(c)); } catch {}
         setPermissionDenied(false);
         setLocating(false);
       },
@@ -66,7 +110,7 @@ export default function NearbyPage() {
     );
   }
 
-  useEffect(() => { locate(true); }, []);
+  useEffect(() => { if (!coords) locate(true); }, []);
 
   useEffect(() => {
     if (!coords) return;
@@ -83,24 +127,59 @@ export default function NearbyPage() {
       if (error) {
         toast.error(error.message);
         setShops([]);
-      } else {
-        setShops(((data as any[]) ?? []).map(r => ({
-          ...r,
-          latitude: Number(r.latitude),
-          longitude: Number(r.longitude),
-          rating_avg: r.rating_avg != null ? Number(r.rating_avg) : null,
-          distance_km: Number(r.distance_km),
-        })));
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+      const baseShops: NearbyShop[] = ((data as any[]) ?? []).map(r => ({
+        ...r,
+        latitude: Number(r.latitude),
+        longitude: Number(r.longitude),
+        rating_avg: r.rating_avg != null ? Number(r.rating_avg) : null,
+        distance_km: Number(r.distance_km),
+      }));
+
+      if (baseShops.length > 0) {
+        const ids = baseShops.map(s => s.id);
+        const { data: extras } = await (supabase as any)
+          .from("shops")
+          .select("id, business_category_id, open_hours")
+          .in("id", ids);
+        if (!cancelled && extras) {
+          const extMap = new Map<string, { business_category_id: string | null; open_hours: any }>(
+            (extras as any[]).map((e: any) => [e.id, e])
+          );
+          baseShops.forEach(s => {
+            const ex = extMap.get(s.id);
+            if (ex) {
+              s.business_category_id = ex.business_category_id;
+              s.open_hours = ex.open_hours;
+            }
+          });
+        }
+      }
+
+      if (!cancelled) setShops(baseShops);
+      if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [coords, radius]);
 
+  const filteredShops = useMemo(() => {
+    return shops.filter(s => {
+      if (minRating > 0 && (s.rating_avg == null || s.rating_avg < minRating)) return false;
+      if (categoryFilter !== "all" && s.business_category_id !== categoryFilter) return false;
+      if (openNow && !isShopOpenNow(s.open_hours)) return false;
+      return true;
+    });
+  }, [shops, minRating, categoryFilter, openNow]);
+
+  const hasActiveFilter = minRating > 0 || categoryFilter !== "all" || openNow;
+
   const subtitle = useMemo(() => {
     if (!coords) return "Aktifkan GPS untuk melihat toko terdekat dari posisi Anda";
-    return `Menampilkan toko dalam radius ${radius} km dari lokasi Anda`;
-  }, [coords, radius]);
+    if (loading) return "Mencari toko terdekat…";
+    return `${filteredShops.length} toko dalam radius ${radius} km${hasActiveFilter ? " (difilter)" : ""}`;
+  }, [coords, loading, filteredShops.length, radius, hasActiveFilter]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -139,6 +218,52 @@ export default function NearbyPage() {
             )}
           </div>
 
+          {coords && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-8 w-auto min-w-[150px] text-xs">
+                  <SelectValue placeholder="Semua kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua kategori</SelectItem>
+                  {categories.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={String(minRating)} onValueChange={(v) => setMinRating(Number(v))}>
+                <SelectTrigger className="h-8 w-auto min-w-[130px] text-xs">
+                  <SelectValue placeholder="Min. rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Semua rating</SelectItem>
+                  <SelectItem value="3">★ ≥ 3.0</SelectItem>
+                  <SelectItem value="4">★ ≥ 4.0</SelectItem>
+                  <SelectItem value="4.5">★ ≥ 4.5</SelectItem>
+                </SelectContent>
+              </Select>
+              <button
+                onClick={() => setOpenNow(o => !o)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 h-8 text-xs font-medium transition-colors ${
+                  openNow
+                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                    : "border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Clock className="h-3 w-3" /> Buka Sekarang
+              </button>
+              {hasActiveFilter && (
+                <button
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                  onClick={() => { setMinRating(0); setCategoryFilter("all"); setOpenNow(false); }}
+                >
+                  Reset filter
+                </button>
+              )}
+            </div>
+          )}
+
           {permissionDenied && (
             <p className="mt-3 text-xs text-destructive">
               Izin lokasi ditolak. Aktifkan dari pengaturan browser, lalu klik "Aktifkan GPS" lagi.
@@ -148,7 +273,7 @@ export default function NearbyPage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-4 py-6">
-        {coords && shops.length > 0 && (
+        {coords && filteredShops.length > 0 && (
           <div className="mb-4 flex justify-end">
             <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-xs">
               <button
@@ -166,38 +291,55 @@ export default function NearbyPage() {
             </div>
           </div>
         )}
+
         {!coords ? (
           <Card className="p-8 text-center">
             <Navigation className="mx-auto h-10 w-10 text-muted-foreground/60" />
             <p className="mt-3 font-semibold">Aktifkan GPS untuk mulai mencari</p>
             <p className="mt-1 text-sm text-muted-foreground">Kami hanya memakai lokasi Anda untuk mencari toko terdekat.</p>
           </Card>
-        ) : view === "map" && shops.length > 0 ? (
-          <NearbyShopsMap center={coords} shops={shops} radiusKm={radius} height={520} />
+        ) : view === "map" && filteredShops.length > 0 ? (
+          <NearbyShopsMap center={coords} shops={filteredShops} radiusKm={radius} height={520} />
         ) : loading ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="p-4"><Skeleton className="h-20 w-full" /></Card>
             ))}
           </div>
-        ) : shops.length === 0 ? (
+        ) : filteredShops.length === 0 ? (
           <Card className="p-8 text-center">
             <SearchIcon className="mx-auto h-10 w-10 text-muted-foreground/60" />
-            <p className="mt-3 font-semibold">Tidak ada toko dalam radius {radius} km</p>
-            <p className="mt-1 text-sm text-muted-foreground">Coba perbesar radius atau perbarui lokasi.</p>
-            <Button variant="outline" size="sm" className="mt-4" onClick={() => setRadius(Math.min(50, radius + 5))}>
-              <RefreshCw className="h-4 w-4 mr-1.5" /> Perbesar radius +5 km
-            </Button>
+            <p className="mt-3 font-semibold">
+              {shops.length > 0
+                ? "Tidak ada toko yang cocok dengan filter"
+                : `Tidak ada toko dalam radius ${radius} km`}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {shops.length > 0
+                ? "Coba ubah atau reset filter di atas."
+                : "Coba perbesar radius atau perbarui lokasi."}
+            </p>
+            {shops.length > 0 ? (
+              <Button variant="outline" size="sm" className="mt-4"
+                onClick={() => { setMinRating(0); setCategoryFilter("all"); setOpenNow(false); }}>
+                Reset filter
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="mt-4"
+                onClick={() => setRadius(Math.min(50, radius + 5))}>
+                <RefreshCw className="h-4 w-4 mr-1.5" /> Perbesar radius +5 km
+              </Button>
+            )}
           </Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {shops.map((s) => (
+            {filteredShops.map((s) => (
               <Card key={s.id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
                   {s.logo_url ? (
                     <img src={s.logo_url} alt={s.name} className="h-14 w-14 rounded-xl object-cover border border-border" loading="lazy" />
                   ) : (
-                    <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary">
+                    <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-lg">
                       {s.name.charAt(0)}
                     </div>
                   )}
@@ -212,6 +354,12 @@ export default function NearbyPage() {
                         <span className="inline-flex items-center gap-0.5 text-muted-foreground">
                           <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {s.rating_avg.toFixed(1)}
                           {s.review_count ? <span className="text-muted-foreground/70"> ({s.review_count})</span> : null}
+                        </span>
+                      )}
+                      {s.open_hours && (
+                        <span className={`inline-flex items-center gap-0.5 font-medium ${isShopOpenNow(s.open_hours) ? "text-emerald-600" : "text-rose-500"}`}>
+                          <Clock className="h-3 w-3" />
+                          {isShopOpenNow(s.open_hours) ? "Buka" : "Tutup"}
                         </span>
                       )}
                     </div>

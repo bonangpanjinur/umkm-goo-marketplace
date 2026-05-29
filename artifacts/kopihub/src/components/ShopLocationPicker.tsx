@@ -29,6 +29,7 @@ export type ShopLocationPickerProps = {
   longitude: number | null;
   address?: string | null;
   onChange: (loc: { latitude: number | null; longitude: number | null }) => void;
+  onLocationResolved?: (data: { city?: string; province?: string; postal_code?: string }) => void;
   height?: number;
 };
 
@@ -45,7 +46,7 @@ function Recenter({ center }: { center: [number, number] | null }) {
   return null;
 }
 
-export function ShopLocationPicker({ latitude, longitude, address, onChange, height = 280 }: ShopLocationPickerProps) {
+export function ShopLocationPicker({ latitude, longitude, address, onChange, onLocationResolved, height = 280 }: ShopLocationPickerProps) {
   const hasPin = latitude != null && longitude != null;
   const center: [number, number] = hasPin ? [Number(latitude), Number(longitude)] : DEFAULT_CENTER;
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
@@ -69,11 +70,30 @@ export function ShopLocationPicker({ latitude, longitude, address, onChange, hei
     }
   }, [address]);
 
+  async function reverseGeocode(lat: number, lng: number) {
+    if (!onLocationResolved) return;
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=id`;
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.address) {
+        const addr = data.address;
+        onLocationResolved({
+          city: addr.city ?? addr.city_district ?? addr.town ?? addr.county ?? undefined,
+          province: addr.state ?? undefined,
+          postal_code: addr.postcode ?? undefined,
+        });
+      }
+    } catch { /* silent — map still works */ }
+  }
+
   function setPin(ll: LatLng) {
     const lat = Number(ll.lat.toFixed(6));
     const lng = Number(ll.lng.toFixed(6));
     onChange({ latitude: lat, longitude: lng });
     setFlyTo([lat, lng]);
+    reverseGeocode(lat, lng);
   }
 
   function clearPin() {

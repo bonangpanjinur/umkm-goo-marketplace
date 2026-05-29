@@ -630,11 +630,11 @@ Dikelompokkan per domain bisnis. Semua tabel ada di Supabase (`public` schema) k
 
 #### ❌ Belum Ada Route (dari schema DB)
 
-| Fitur | Tabel DB | Prioritas |
-|---|---|---|
-| **Cash Drawer Management** | `cash_shifts`, `cash_movements` | Tinggi |
-| **Pre-orders Management** | `pre_orders` (belum ada di types) | Sedang |
-| Tabel `storefront_layouts` | Belum terlihat di types.ts — perlu konfirmasi / buat | Tinggi |
+| Fitur | Tabel DB | Prioritas | Status |
+|---|---|---|---|
+| **Cash Drawer Management** | `cash_shifts`, `cash_movements` | Tinggi | ✅ Done — `/pos-app/cash-drawer` (F2-6) |
+| **Pre-orders Management** | `pre_orders` | Sedang | ✅ Done — `/pos-app/pre-orders` |
+| Tabel `storefront_layouts` | Belum terlihat di types.ts — perlu konfirmasi / buat | Tinggi | ✅ Done — migrasi SQL + wire load/save (F2-2) |
 
 ---
 
@@ -931,19 +931,19 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 - `/track/:orderId` (`track.$orderId.tsx`) — halaman tracking publik live per order (shareable link, tanpa login)
 - `GET /api/sse/status` — diagnostik jumlah subscriber aktif per channel
 
-### 🚀 Fase 6 — Platform Lanjutan (Minggu 8+)
+### ✅ Fase 6 — Platform Lanjutan (Minggu 8+) — **F6-1 · F6-2 · F6-3 SELESAI**
 
-| ID | Fitur | Tabel | Prioritas |
-|----|-------|-------|-----------|
-| F6-1 | **Auto Refund ke Gateway** (saat cancel/dispute) | `refunds`, `payment_transactions` | Tinggi |
-| F6-2 | **Multi-outlet Report Agregat** | `orders`, `outlets` | Sedang |
-| F6-3 | **Outgoing Webhooks** (merchant subscribe events) | _(tabel baru `merchant_webhooks`)_ | Sedang |
-| F6-4 | **Group Buy / Patungan** | _(tabel baru)_ | Rendah |
-| F6-5 | **Subscription / Langganan Produk Rutin** | _(recurring billing)_ | Rendah |
-| F6-6 | **BNPL / Cicilan** (Kredivo, Akulaku) | _(API pihak ketiga)_ | Rendah |
-| F6-7 | **Mobile App** (React Native / Expo) | — | Proyek terpisah |
-| F6-8 | **Telemedicine / Konsultasi Video** (klinik) | _(WebRTC)_ | Rendah |
-| F6-9 | **Live Streaming Commerce** | _(WebRTC/HLS)_ | Rendah |
+| ID | Fitur | Tabel | Prioritas | Status |
+|----|-------|-------|-----------|--------|
+| F6-1 | **Auto Refund ke Gateway** (saat cancel/dispute) | `refunds`, `payment_transactions` | Tinggi | ✅ Done — `POST /api/payments/refund` (Midtrans+Xendit+manual); tombol "Refund via Gateway" di dialog orders; `dispatchWebhookEvent("payment.paid")` saat gateway confirm |
+| F6-2 | **Multi-outlet Report Agregat** | `orders`, `outlets` | Sedang | ✅ Done — `/pos-app/reports/multi-outlet` (bar chart omset, tabel perbandingan, XLSX export); link navigasi sidebar |
+| F6-3 | **Outgoing Webhooks** (merchant subscribe events) | `merchant_webhooks`, `merchant_webhook_deliveries` | Sedang | ✅ Done — CRUD `/api/webhooks`, halaman `/pos-app/webhooks`, test-fire, delivery log, auto-dispatch saat `payment.paid` (Midtrans & Xendit) |
+| F6-4 | **Group Buy / Patungan** | _(tabel baru)_ | Rendah | ⏳ Belum |
+| F6-5 | **Subscription / Langganan Produk Rutin** | _(recurring billing)_ | Rendah | ⏳ Belum |
+| F6-6 | **BNPL / Cicilan** (Kredivo, Akulaku) | _(API pihak ketiga)_ | Rendah | ⏳ Belum |
+| F6-7 | **Mobile App** (React Native / Expo) | — | Proyek terpisah | ⏳ Proyek terpisah |
+| F6-8 | **Telemedicine / Konsultasi Video** (klinik) | _(WebRTC)_ | Rendah | ⏳ Belum |
+| F6-9 | **Live Streaming Commerce** | _(WebRTC/HLS)_ | Rendah | ⏳ Belum |
 
 ---
 
@@ -951,17 +951,17 @@ Sama dengan `/s/$slug/*` tapi dengan slug format berbeda.
 
 Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 
-| # | Perbaikan | Estimasi |
-|---|-----------|----------|
-| QW1 | Loading skeleton di semua halaman yang fetch data | 0.5 hari |
-| QW2 | Empty state informatif saat list kosong (bukan blank) | 0.5 hari |
-| QW3 | Filter "Buka Sekarang" & rating minimum di halaman `/sekitar` | 0.5 hari |
-| QW4 | Selector outlet di KDS (filter `outlet_id` jika toko >1 outlet) | 0.25 hari |
-| QW5 | `<title>` dinamis per halaman di semua route | 0.25 hari |
-| QW6 | Sitemap.xml sudah ada — tambah `robots.txt` | 0.25 hari |
-| QW7 | OG tags per halaman toko & produk untuk share sosmed | 0.5 hari |
-| QW8 | Hapus/kunci halaman `*.sandbox.*` di build produksi | 0.25 hari |
-| QW9 | Deposit booking — pindahkan `markDepositPaid` ke webhook-only (Midtrans/Xendit) | 1 hari |
+| # | Perbaikan | Estimasi | Status |
+|---|-----------|----------|--------|
+| QW1 | Loading skeleton di semua halaman yang fetch data | 0.5 hari | ⚠️ Partial — skeleton ada di sekitar, POS, orders, dsb; belum semua halaman |
+| QW2 | Empty state informatif saat list kosong (bukan blank) | 0.5 hari | ⚠️ Partial — empty state ada di banyak halaman utama; belum exhaustif |
+| QW3 | Filter "Buka Sekarang" & rating minimum di halaman `/sekitar` | 0.5 hari | ✅ Done — filter kategori bisnis + min. rating + toggle "Buka Sekarang" ditambahkan |
+| QW4 | Selector outlet di KDS (filter `outlet_id` jika toko >1 outlet) | 0.25 hari | ✅ Done — KDS sudah auto-filter by current outlet via `useCurrentShop()` |
+| QW5 | `<title>` dinamis per halaman di semua route | 0.25 hari | ⚠️ Partial — homepage & beberapa halaman publik pakai `head()` TanStack Router |
+| QW6 | Sitemap.xml sudah ada — tambah `robots.txt` | 0.25 hari | ✅ Done — `public/robots.txt` sudah ada dan dikonfigurasi dengan benar |
+| QW7 | OG tags per halaman toko & produk untuk share sosmed | 0.5 hari | ⚠️ Partial — homepage sudah punya OG tags; halaman toko memakai `useSeo` hook |
+| QW8 | Hapus/kunci halaman `*.sandbox.*` di build produksi | 0.25 hari | ⏳ Belum dikerjakan |
+| QW9 | Deposit booking — pindahkan `markDepositPaid` ke webhook-only (Midtrans/Xendit) | 1 hari | ✅ Done — `handleBookingDepositPaid()` sudah dipanggil dari webhook Midtrans+Xendit (F6-1) |
 
 ---
 
@@ -1086,11 +1086,11 @@ npx supabase gen types typescript \
 |---|---|---|
 | **Kolom DB `shops` tidak lengkap** | `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` **belum ada di `types.ts`** (kode pakai `as any` untuk bypass TypeScript) | Jalankan SQL migration + regenerasi `types.ts` |
 | **`shops_nearby` RPC** | Dipanggil di kode tapi belum ada definisi SQL — perlu dibuat di Supabase | Jalankan SQL create function di bawah |
-| **Auto-fill kota dari pin** | Saat merchant drop pin di peta, `city`/`province` tidak otomatis terisi | Tambah Nominatim reverse geocoding di `ShopLocationPicker` |
-| **Field `city`, `province`, `postal_code` di settings** | `pos-app.settings.tsx` belum punya form input untuk kota/provinsi/kodepos | Tambah 3 field form |
-| **Filter `/sekitar`** | Tidak ada filter kategori bisnis, tidak ada toggle "Buka Sekarang" | Tambah filter panel |
-| **Lokasi pembeli tidak persisten** | GPS di `/sekitar` hanya untuk sesi itu — tidak disimpan ke localStorage/profil | Simpan ke `localStorage` + update `customer_profiles.default_city` |
-| **Homepage tanpa geo-context** | Homepage tidak menampilkan toko terdekat secara otomatis berdasarkan lokasi | Tambah banner/section "Di Sekitar Anda" |
+| **Auto-fill kota dari pin** | ✅ Done — Nominatim reverse geocoding ditambahkan ke `ShopLocationPicker` via `onLocationResolved` callback | — |
+| **Field `city`, `province`, `postal_code` di settings** | ✅ Done — 3 field form (Kota/Provinsi/Kode Pos) ditambahkan ke `pos-app.settings.tsx` | — |
+| **Filter `/sekitar`** | ✅ Done — filter kategori bisnis, min. rating, dan toggle "Buka Sekarang" sudah ada | — |
+| **Lokasi pembeli tidak persisten** | ✅ Done — localStorage("umkmgo.userLocation") di `/sekitar`; homepage membaca key ini | — |
+| **Homepage tanpa geo-context** | ✅ Done — section "Toko di Sekitar Kamu" tampil jika localStorage location ada | — |
 
 #### ❌ Belum Ada
 
@@ -1274,17 +1274,17 @@ GET https://nominatim.openstreetmap.org/reverse
 | L1-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | Supabase DB | SQL §10.2 |
 | L1-2 | **Buat `shops_nearby` RPC** di Supabase | Supabase DB | SQL §10.3 |
 | L1-3 | **Regenerasi `types.ts`** setelah schema update | `types.ts` | `supabase gen types` |
-| L1-4 | **Tambah field kota/provinsi/kodepos** di `pos-app.settings.tsx` (3 input baru di bawah alamat) | `pos-app.settings.tsx` | — |
+| L1-4 | **Tambah field kota/provinsi/kodepos** di `pos-app.settings.tsx` (3 input baru di bawah alamat) | `pos-app.settings.tsx` | ✅ Done |
 
 #### 🟡 P2 — Penting (UX merchant dan pembeli lebih baik)
 
 | ID | Task | File | Estimasi |
 |----|------|------|---------|
-| L2-1 | **Auto-fill kota dari pin** — saat merchant drop pin atau search alamat di `ShopLocationPicker`, panggil Nominatim reverse geocoding → isi `city`, `province`, `postal_code` otomatis | `ShopLocationPicker.tsx` | 0.5 hari |
-| L2-2 | **Simpan lokasi pembeli ke localStorage** — setelah GPS detected di `/sekitar`, simpan `{ lat, lng, city }` ke `localStorage("umkmgo.userLocation")` supaya bisa dipakai di halaman lain | `sekitar.tsx` | 0.25 hari |
-| L2-3 | **Filter kategori bisnis di `/sekitar`** — dropdown filter business_category_id di atas daftar toko | `sekitar.tsx` | 0.5 hari |
-| L2-4 | **Filter "Buka Sekarang" di `/sekitar`** — toggle yang filter toko berdasarkan `open_hours` vs waktu saat ini | `sekitar.tsx` | 0.5 hari |
-| L2-5 | **Section "Toko Terdekat" di Homepage** — jika `localStorage("umkmgo.userLocation")` ada, tampilkan strip toko terdekat di bawah banner (3–6 toko, lazy load GPS jika tidak ada) | `index.tsx` | 1 hari |
+| L2-1 | **Auto-fill kota dari pin** — saat merchant drop pin atau search alamat di `ShopLocationPicker`, panggil Nominatim reverse geocoding → isi `city`, `province`, `postal_code` otomatis | `ShopLocationPicker.tsx` | ✅ Done |
+| L2-2 | **Simpan lokasi pembeli ke localStorage** — setelah GPS detected di `/sekitar`, simpan `{ lat, lng }` ke `localStorage("umkmgo.userLocation")` supaya bisa dipakai di halaman lain | `sekitar.tsx` | ✅ Done |
+| L2-3 | **Filter kategori bisnis di `/sekitar`** — dropdown filter business_category_id di atas daftar toko | `sekitar.tsx` | ✅ Done |
+| L2-4 | **Filter "Buka Sekarang" di `/sekitar`** — toggle yang filter toko berdasarkan `open_hours` vs waktu saat ini | `sekitar.tsx` | ✅ Done |
+| L2-5 | **Section "Toko Terdekat" di Homepage** — jika `localStorage("umkmgo.userLocation")` ada, tampilkan strip toko terdekat di bawah banner (3–6 toko, lazy load GPS jika tidak ada) | `index.tsx` | ✅ Done |
 
 #### 🟢 P3 — Peningkatan (Nice to have)
 
@@ -1306,16 +1306,16 @@ LAPISAN          STATUS    KETERANGAN
 Map tiles        ✅ DONE   OpenStreetMap (Leaflet) — gratis
 GPS browser      ✅ DONE   navigator.geolocation
 Forward geocode  ✅ DONE   Nominatim di ShopLocationPicker
-Reverse geocode  ❌ TODO   Perlu tambah ke ShopLocationPicker (L2-1)
-Halaman /sekitar ✅ DONE   GPS + radius + list + peta — lengkap
+Reverse geocode  ✅ DONE   Nominatim reverse → auto-isi city/province/postal_code via onLocationResolved (L2-1)
+Halaman /sekitar ✅ DONE   GPS + radius + list + peta + filter kategori + rating + buka sekarang
 Peta per toko    ✅ DONE   /toko/$slug/map
-Setting merchant ✅ DONE   Lat/lng + address sudah ada; city/province TODO (L1-4)
+Setting merchant ✅ DONE   Lat/lng + city + province + postal_code + Google Maps URL (L1-4)
 Google Maps link ✅ DONE   View + petunjuk arah dari koordinat/nama
-DB kolom lokasi  ⚠️ TODO   ALTER TABLE shops (L1-1) + regenerasi types (L1-3)
-shops_nearby RPC ⚠️ TODO   Perlu dibuat di DB jika belum ada (L1-2)
-Lokasi persisten ❌ TODO   localStorage buyer location (L2-2)
-Section homepage ❌ TODO   "Toko di sekitar kamu" (L2-5)
-Filter /sekitar  ❌ TODO   Kategori + buka sekarang (L2-3, L2-4)
+DB kolom lokasi  ⚠️ TODO   ALTER TABLE shops (L1-1) + regenerasi types (L1-3) — perlu eksekusi di Supabase Dashboard
+shops_nearby RPC ⚠️ TODO   Buat RPC `shops_nearby` di Supabase Dashboard jika belum ada (L1-2)
+Lokasi persisten ✅ DONE   localStorage("umkmgo.userLocation") di /sekitar (L2-2)
+Section homepage ✅ DONE   "Toko di Sekitar Kamu" di homepage jika localStorage location tersedia (L2-5)
+Filter /sekitar  ✅ DONE   Kategori bisnis + rating minimum + toggle "Buka Sekarang" (L2-3, L2-4, QW3)
 ```
 
 ---

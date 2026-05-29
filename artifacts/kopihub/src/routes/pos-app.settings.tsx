@@ -82,6 +82,9 @@ type ShopRow = {
   deposit_min_total: number;
   latitude: number | null;
   longitude: number | null;
+  city: string | null;
+  province: string | null;
+  postal_code: string | null;
   google_maps_url: string | null;
 };
 
@@ -106,7 +109,7 @@ function SettingsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("shops")
-        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percentage, deposit_min_total, latitude, longitude, google_maps_url")
+        .select("id, name, slug, description, tagline, logo_url, phone, email, address, instagram, whatsapp, open_hours, qris_image_url, qris_merchant_name, payment_methods_enabled, tax_percent, service_charge_percent, tax_inclusive, receipt_header, receipt_footer, auto_reply_enabled, auto_reply_message, deposit_enabled, deposit_percentage, deposit_min_total, latitude, longitude, city, province, postal_code, google_maps_url")
         .eq("id", shop.id)
         .maybeSingle();
       if (data) {
@@ -126,6 +129,9 @@ function SettingsPage() {
           deposit_min_total: Number((data as any).deposit_min_total ?? 0),
           latitude: (data as any).latitude != null ? Number((data as any).latitude) : null,
           longitude: (data as any).longitude != null ? Number((data as any).longitude) : null,
+          city: (data as any).city ?? null,
+          province: (data as any).province ?? null,
+          postal_code: (data as any).postal_code ?? null,
           google_maps_url: (data as any).google_maps_url ?? null,
         } as ShopRow);
       }
@@ -244,6 +250,9 @@ function SettingsPage() {
         deposit_min_total: form.deposit_min_total,
         latitude: form.latitude,
         longitude: form.longitude,
+        city: form.city,
+        province: form.province,
+        postal_code: form.postal_code,
         google_maps_url: form.google_maps_url,
       } as never)
       .eq("id", shop.id);
@@ -353,7 +362,45 @@ function SettingsPage() {
             onChange={({ latitude, longitude }) => {
               setForm((f) => f ? { ...f, latitude, longitude } : f);
             }}
+            onLocationResolved={({ city, province, postal_code }) => {
+              setForm((f) => f ? {
+                ...f,
+                city: city ?? f.city,
+                province: province ?? f.province,
+                postal_code: postal_code ?? f.postal_code,
+              } : f);
+            }}
           />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <Label className="text-xs">Kota / Kabupaten</Label>
+              <input
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={form.city ?? ""}
+                onChange={(e) => setForm((f) => f ? { ...f, city: e.target.value || null } : f)}
+                placeholder="Jakarta Selatan"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Provinsi</Label>
+              <input
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={form.province ?? ""}
+                onChange={(e) => setForm((f) => f ? { ...f, province: e.target.value || null } : f)}
+                placeholder="DKI Jakarta"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Kode Pos</Label>
+              <input
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={form.postal_code ?? ""}
+                onChange={(e) => setForm((f) => f ? { ...f, postal_code: e.target.value || null } : f)}
+                placeholder="12930"
+                inputMode="numeric"
+              />
+            </div>
+          </div>
           <div>
             <Label className="text-xs">Link Google Maps (opsional)</Label>
             <Input

@@ -295,6 +295,14 @@ function computeShopTier(shop: { kyc_status?: string | null; rating_avg?: number
 }
 
 export const Route = createFileRoute("/toko/$slug")({
+  head: ({ params }) => ({
+    meta: [
+      { title: `${params.slug.replace(/-/g, " ")} — UMKMgo` },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "UMKMgo" },
+      { property: "og:url", content: `https://umkmgo.replit.app/toko/${params.slug}` },
+    ],
+  }),
   component: ShopPage,
 });
 

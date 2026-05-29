@@ -266,6 +266,13 @@ function ShopCard({ shop }: { shop: Shop }) {
 }
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
+type NearbyShopStrip = { id: string; slug: string; name: string; logo_url: string | null; rating_avg: number | null; distance_km: number };
+
+function fmtDist(km: number) {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toFixed(km < 10 ? 1 : 0)} km`;
+}
+
 function MarketplaceHome() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [sponsoredAds, setSponsoredAds] = useState<AdSpot[]>([]);
@@ -279,6 +286,7 @@ function MarketplaceHome() {
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [stats, setStats] = useState({ shops: 0, products: 0 });
   const [loading, setLoading] = useState(true);
+  const [nearbyShops, setNearbyShops] = useState<NearbyShopStrip[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -362,6 +370,28 @@ function MarketplaceHome() {
     })();
   }, []);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("umkmgo.userLocation");
+      if (!saved) return;
+      const { lat, lng } = JSON.parse(saved) as { lat: number; lng: number };
+      (supabase as any).rpc("shops_nearby", { _lat: lat, _lng: lng, _radius_km: 10, _limit: 6 }).then(
+        ({ data }: { data: any[] | null }) => {
+          if (data && data.length > 0) {
+            setNearbyShops(data.map((r: any) => ({
+              id: r.id,
+              slug: r.slug,
+              name: r.name,
+              logo_url: r.logo_url ?? null,
+              rating_avg: r.rating_avg != null ? Number(r.rating_avg) : null,
+              distance_km: Number(r.distance_km),
+            })));
+          }
+        }
+      );
+    } catch {}
+  }, []);
+
   const earliestFlashEnd = flashProds[0]?.flash_ends_at;
 
   return (
@@ -399,21 +429,60 @@ function MarketplaceHome() {
         </div>
       )}
 
-      {/* ── Nearby CTA ── */}
-      <div className="mx-auto max-w-7xl px-4 pt-6">
-        <Link to="/sekitar" className="group block rounded-2xl border border-border bg-gradient-to-r from-primary/10 via-emerald-50 to-background p-4 sm:p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="rounded-2xl bg-primary/15 p-3 shrink-0">
-              <Navigation className="h-5 w-5 text-primary" />
+      {/* ── Nearby CTA / Toko Terdekat ── */}
+      {nearbyShops.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 py-8">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-primary/10 p-2">
+                <Navigation className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-base sm:text-lg">Toko di Sekitar Kamu</h2>
+                <p className="text-xs text-muted-foreground">Berdasarkan lokasi terakhir Anda</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm sm:text-base">Cari toko di sekitar saya</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Aktifkan GPS untuk menemukan toko & UMKM terdekat dari lokasimu</p>
-            </div>
-            <span className="hidden sm:inline-flex items-center text-sm font-medium text-primary group-hover:translate-x-0.5 transition-transform">Buka →</span>
+            <Link to="/sekitar" className="text-xs sm:text-sm text-primary hover:underline font-medium">Lihat semua →</Link>
           </div>
-        </Link>
-      </div>
+          <div className="grid gap-3 grid-cols-3 sm:grid-cols-6">
+            {nearbyShops.map(s => (
+              <Link
+                key={s.id}
+                to="/toko/$slug"
+                params={{ slug: s.slug }}
+                className="group flex flex-col items-center rounded-2xl border border-border/60 bg-card p-3 hover:shadow-md hover:border-primary/30 transition-all text-center"
+              >
+                {s.logo_url
+                  ? <img src={s.logo_url} alt={s.name} className="h-12 w-12 rounded-xl object-cover mb-2 ring-1 ring-border" loading="lazy" />
+                  : <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary mb-2 text-lg">{s.name.charAt(0)}</div>
+                }
+                <p className="font-semibold text-xs line-clamp-1 group-hover:text-primary w-full">{s.name}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{fmtDist(s.distance_km)}</p>
+                {s.rating_avg != null && s.rating_avg > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-600 mt-0.5">
+                    <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" /> {s.rating_avg.toFixed(1)}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <div className="mx-auto max-w-7xl px-4 pt-6">
+          <Link to="/sekitar" className="group block rounded-2xl border border-border bg-gradient-to-r from-primary/10 via-emerald-50 to-background p-4 sm:p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4">
+              <div className="rounded-2xl bg-primary/15 p-3 shrink-0">
+                <Navigation className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm sm:text-base">Cari toko di sekitar saya</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Aktifkan GPS untuk menemukan toko & UMKM terdekat dari lokasimu</p>
+              </div>
+              <span className="hidden sm:inline-flex items-center text-sm font-medium text-primary group-hover:translate-x-0.5 transition-transform">Buka →</span>
+            </div>
+          </Link>
+        </div>
+      )}
 
       {/* ── Flash Sale ── */}
       {(loading || flashProds.length > 0) && (
