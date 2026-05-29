@@ -249,7 +249,7 @@ export default function AdminAdsPage() {
                 >
                   {/* Shop avatar */}
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    {ad.shop_logo ? <img src={ad.shop_logo} alt="" className="h-full w-full rounded-full object-cover" /> : <Store className="h-5 w-5" />}
+                    {ad.shop_logo ? <img src={ad.shop_logo} alt="" className="h-full w-full rounded-full object-cover" loading="lazy" decoding="async" /> : <Store className="h-5 w-5" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">

@@ -73,7 +73,7 @@ function ImageUploader({ label, value, onUpload, bucket, path }: {
       <Label>{label}</Label>
       <div className="mt-1.5 flex items-center gap-3">
         {value ? (
-          <img src={value} alt={label} className="h-12 w-12 rounded-lg border border-border object-contain bg-muted/30" />
+          <img src={value} alt={label} className="h-12 w-12 rounded-lg border border-border object-contain bg-muted/30" loading="lazy" decoding="async" />
         ) : (
           <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30">
             <ImageIcon className="h-5 w-5 text-muted-foreground" />

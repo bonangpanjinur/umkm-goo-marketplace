@@ -184,7 +184,16 @@ export default defineConfig({
             "@radix-ui/react-slot",
           ],
           "icons-vendor": ["lucide-react"],
+          "dnd-vendor": ["@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
+          "ui-vendor": ["date-fns", "clsx", "tailwind-merge"],
         },
+      },
+    },
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
       },
     },
   },
