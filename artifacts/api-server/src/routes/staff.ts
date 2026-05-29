@@ -35,7 +35,7 @@ async function getCallerUserId(authHeader: string | undefined): Promise<string |
 }
 
 async function assertOwnsShop(userId: string, shopId: string): Promise<boolean> {
-  const url = `${SUPABASE_URL()}/rest/v1/coffee_shops?select=id&id=eq.${encodeURIComponent(shopId)}&owner_id=eq.${encodeURIComponent(userId)}&limit=1`;
+  const url = `${SUPABASE_URL()}/rest/v1/shops?select=id&id=eq.${encodeURIComponent(shopId)}&owner_id=eq.${encodeURIComponent(userId)}&limit=1`;
   const res = await httpFetch(url, { headers: adminHeaders() });
   if (!res.ok) return false;
   const rows = (await res.json()) as Array<{ id: string }>;
