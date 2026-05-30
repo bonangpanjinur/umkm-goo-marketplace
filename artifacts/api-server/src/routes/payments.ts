@@ -1,7 +1,19 @@
 import { Router, type Request, type Response } from "express";
-import { db } from "@workspace/db";
+import { db, pool } from "@workspace/db";
 import { paymentTransactions, webhookLogs } from "@workspace/db";
 import { eq } from "drizzle-orm";
+
+async function getShopIdForOrder(orderId: string): Promise<string | null> {
+  try {
+    const { rows } = await pool.query<{ shop_id: string | null }>(
+      `SELECT shop_id FROM orders WHERE id::text = $1 LIMIT 1`,
+      [orderId],
+    );
+    return rows[0]?.shop_id ?? null;
+  } catch {
+    return null;
+  }
+}
 import { logger } from "../lib/logger.js";
 import {
   createSnapTransaction,
