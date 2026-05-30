@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MessageSquare, Users, Send, Copy, Check, Loader2, ChevronRight, ChevronLeft, Download, History, Phone, X, ExternalLink, Zap, RefreshCw } from "lucide-react";
+import { MessageSquare, Users, Send, Copy, Check, Loader2, ChevronRight, ChevronLeft, Download, History, Phone, X, ExternalLink, Zap, RefreshCw, CheckCircle2, XCircle, Clock, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pos-app/broadcast-wa")({
@@ -100,6 +100,22 @@ function BroadcastWAPage() {
   const [batchDone, setBatchDone]     = useState(false);
 
   const [copied, setCopied]           = useState(false);
+
+  const [fonnteEnabled, setFonnteEnabled]   = useState<boolean | null>(null);
+  const [showFonnteModal, setShowFonnteModal] = useState(false);
+  const [sendingFonnte, setSendingFonnte]     = useState(false);
+  const [fonnteProgress, setFonnteProgress]   = useState<{
+    total: number; sent: number; failed: number; done: boolean;
+    results: { phone: string; name: string; status: "ok" | "error" | "pending"; reason?: string }[];
+  } | null>(null);
+
+  useEffect(() => {
+    const apiBase = (import.meta as any).env?.VITE_API_URL ?? "/api";
+    fetch(`${apiBase}/wa/config`)
+      .then(r => r.json())
+      .then((j: any) => setFonnteEnabled(j.enabled === true))
+      .catch(() => setFonnteEnabled(false));
+  }, []);
 
   useEffect(() => {
     if (!shop?.id) return;
@@ -240,6 +256,80 @@ function BroadcastWAPage() {
       saveBroadcastHistory(sentCount);
     } else {
       setBatchIdx(next);
+    }
+  }
+
+  async function sendViaFonnte() {
+    if (!shop) return;
+    if (contacts.length === 0) { toast.error("Tidak ada kontak di segmen ini."); return; }
+    if (!messageText.trim()) { toast.error("Tulis pesan terlebih dahulu."); return; }
+
+    const messages = contacts.map(c => ({
+      phone:   c.phone,
+      message: renderMsg(messageText, c, shop.name ?? "Toko", shop.slug ?? ""),
+    }));
+    const initialResults = contacts.map(c => ({
+      phone: c.phone, name: c.name, status: "pending" as const,
+    }));
+
+    setFonnteProgress({ total: messages.length, sent: 0, failed: 0, done: false, results: initialResults });
+    setShowFonnteModal(true);
+    setSendingFonnte(true);
+
+    try {
+      const apiBase = (import.meta as any).env?.VITE_API_URL ?? "/api";
+      const response = await fetch(`${apiBase}/wa/send-bulk-stream`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ messages }),
+      });
+
+      if (!response.ok) {
+        const j = await response.json() as any;
+        toast.error(j.error ?? "Gagal memulai pengiriman");
+        setShowFonnteModal(false);
+        return;
+      }
+      if (!response.body) throw new Error("Tidak ada stream dari server");
+
+      const reader  = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const ev = JSON.parse(line.slice(6)) as any;
+            if (ev.type === "progress") {
+              setFonnteProgress(prev => {
+                if (!prev) return prev;
+                const results = prev.results.map(r =>
+                  r.phone === ev.phone
+                    ? { ...r, status: ev.status as "ok" | "error", reason: ev.reason }
+                    : r,
+                );
+                return { ...prev, sent: ev.sent, failed: ev.failed, results };
+              });
+            } else if (ev.type === "done") {
+              setFonnteProgress(prev =>
+                prev ? { ...prev, done: true, sent: ev.sent, failed: ev.failed } : prev,
+              );
+              saveBroadcastHistory(ev.sent);
+            }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      toast.error("Koneksi terputus: " + (e instanceof Error ? e.message : String(e)));
+      setShowFonnteModal(false);
+    } finally {
+      setSendingFonnte(false);
     }
   }
 
@@ -450,7 +540,37 @@ function BroadcastWAPage() {
             </p>
           </div>
 
-          {/* Send options */}
+              {/* Fonnte auto-send — primary option when enabled */}
+          {fonnteEnabled === true && (
+            <div className="rounded-xl border-2 border-green-400 bg-green-50 dark:bg-green-950/20 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500">
+                  <Zap className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-green-800 dark:text-green-300">Kirim Otomatis via Fonnte ⚡</p>
+                  <p className="text-xs text-green-700 dark:text-green-400 mt-0.5">
+                    Semua {contacts.length} pesan dikirim otomatis — tidak perlu buka WA manual
+                  </p>
+                </div>
+                <Badge className="bg-green-500 text-white text-[10px] shrink-0">
+                  <Wifi className="h-2.5 w-2.5 mr-1" /> Aktif
+                </Badge>
+              </div>
+              <Button
+                className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold"
+                onClick={sendViaFonnte}
+                disabled={contacts.length === 0 || sendingFonnte}
+              >
+                {sendingFonnte
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Mengirim…</>
+                  : <><Send className="h-4 w-4" /> Kirim {contacts.length} Pesan Sekarang</>
+                }
+              </Button>
+            </div>
+          )}
+
+          {/* Manual options grid */}
           <div className="grid gap-3 sm:grid-cols-3">
             {/* Option 1: Batch send */}
             <div className="rounded-xl border border-border bg-card p-4 space-y-3">
@@ -501,20 +621,20 @@ function BroadcastWAPage() {
             </div>
           </div>
 
-          {/* WA Business API promo */}
-          <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-4 flex items-start gap-3">
-            <Zap className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Integrasi WhatsApp Business API</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Kirim semua pesan otomatis sekaligus (tanpa buka WA manual) menggunakan layanan seperti{" "}
-                <a href="https://fonnte.com" target="_blank" rel="noopener noreferrer" className="text-amber-700 underline font-medium">Fonnte</a>,{" "}
-                <a href="https://whatsapp.com/business/api" target="_blank" rel="noopener noreferrer" className="text-amber-700 underline font-medium">Meta Business API</a>, atau{" "}
-                <a href="https://wablas.com" target="_blank" rel="noopener noreferrer" className="text-amber-700 underline font-medium">Wablas</a>.
-                Hubungi tim UMKMgo untuk aktivasi.
-              </p>
+          {/* Fonnte status / promo */}
+          {fonnteEnabled === false && (
+            <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-4 flex items-start gap-3">
+              <WifiOff className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Aktifkan Kirim Otomatis (Fonnte)</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Set <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">FONNTE_API_KEY</code> di Replit Secrets untuk kirim semua pesan sekaligus tanpa buka WA manual.
+                  Daftar gratis di{" "}
+                  <a href="https://fonnte.com" target="_blank" rel="noopener noreferrer" className="text-amber-700 dark:text-amber-400 underline font-medium">fonnte.com</a>.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           <Button variant="outline" className="gap-1.5" onClick={() => setTab("compose")}>
             <ChevronLeft className="h-4 w-4" /> Kembali Edit Pesan
@@ -560,6 +680,114 @@ function BroadcastWAPage() {
           }
         </div>
       )}
+
+      {/* ─── FONNTE AUTO-SEND PROGRESS MODAL ─── */}
+      <Dialog open={showFonnteModal} onOpenChange={o => { if (!o && !sendingFonnte) setShowFonnteModal(false); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-green-600" />
+              {fonnteProgress?.done ? "Broadcast Selesai!" : "Mengirim via Fonnte…"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {fonnteProgress && (
+            <div className="space-y-4 py-1">
+              {/* Progress bar */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {fonnteProgress.done
+                      ? "Pengiriman selesai"
+                      : `Mengirim ${fonnteProgress.sent + fonnteProgress.failed} dari ${fonnteProgress.total}…`}
+                  </span>
+                  <span className="font-medium">
+                    <span className="text-green-600">{fonnteProgress.sent} ✓</span>
+                    {fonnteProgress.failed > 0 && <span className="text-red-500 ml-2">{fonnteProgress.failed} ✗</span>}
+                  </span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 transition-all duration-500"
+                    style={{ width: `${(((fonnteProgress.sent + fonnteProgress.failed) / fonnteProgress.total) * 100).toFixed(1)}%` }}
+                  />
+                </div>
+                {!fonnteProgress.done && (
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    Menunggu ~{Math.ceil((fonnteProgress.total - fonnteProgress.sent - fonnteProgress.failed) * 1.2)} detik lagi…
+                  </p>
+                )}
+              </div>
+
+              {/* Done summary */}
+              {fonnteProgress.done && (
+                <div className={`rounded-xl p-3 flex items-center gap-3 ${fonnteProgress.failed === 0 ? "bg-green-50 dark:bg-green-950/20 border border-green-200" : "bg-amber-50 dark:bg-amber-950/20 border border-amber-200"}`}>
+                  <CheckCircle2 className={`h-8 w-8 shrink-0 ${fonnteProgress.failed === 0 ? "text-green-500" : "text-amber-500"}`} />
+                  <div>
+                    <p className="font-semibold text-sm">
+                      {fonnteProgress.sent} dari {fonnteProgress.total} pesan terkirim
+                    </p>
+                    {fonnteProgress.failed > 0 && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{fonnteProgress.failed} gagal — cek nomor tidak aktif</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Per-contact results list */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="bg-muted/30 border-b border-border px-3 py-1.5 flex items-center gap-2">
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-semibold">Status per Kontak</span>
+                </div>
+                <div className="max-h-56 overflow-y-auto divide-y divide-border">
+                  {fonnteProgress.results.map((r, i) => (
+                    <div key={i} className="flex items-center gap-2.5 px-3 py-2">
+                      <div className="shrink-0">
+                        {r.status === "ok"      && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                        {r.status === "error"   && <XCircle className="h-4 w-4 text-red-500" />}
+                        {r.status === "pending" && (
+                          sendingFonnte && fonnteProgress.results.findIndex(x => x.status === "pending") === i
+                            ? <Loader2 className="h-4 w-4 text-amber-500 animate-spin" />
+                            : <Clock className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{r.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{r.phone}</p>
+                      </div>
+                      {r.status === "error" && r.reason && (
+                        <span className="text-[10px] text-red-500 shrink-0 max-w-[80px] truncate">{r.reason}</span>
+                      )}
+                      {r.status === "ok" && (
+                        <span className="text-[10px] text-green-500 shrink-0">Terkirim</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            {fonnteProgress?.done ? (
+              <div className="flex gap-2 w-full">
+                <Button variant="outline" className="flex-1" onClick={() => { setShowFonnteModal(false); setTab("history"); setHistoryLoaded(false); }}>
+                  <History className="h-4 w-4 mr-1.5" /> Lihat Riwayat
+                </Button>
+                <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => setShowFonnteModal(false)}>
+                  Tutup
+                </Button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground w-full text-center">
+                <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
+                Jangan tutup tab ini — pengiriman sedang berlangsung
+              </p>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── BATCH SEND MODAL ─── */}
       <Dialog open={showBatchModal} onOpenChange={o => { if (!o) setShowBatchModal(false); }}>

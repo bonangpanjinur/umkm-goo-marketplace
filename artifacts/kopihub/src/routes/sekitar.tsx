@@ -49,6 +49,15 @@ function formatDistance(km: number) {
   return `${km.toFixed(km < 10 ? 1 : 0)} km`;
 }
 
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function isShopOpenNow(open_hours: NearbyShop["open_hours"]): boolean {
   if (!open_hours) return true;
   const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -125,17 +134,46 @@ export default function NearbyPage() {
         _limit: 60,
       });
       if (cancelled) return;
+
+      let resolvedData: any[] = [];
+
       if (error) {
-        toast.error(error.message);
-        setShops([]);
-        setLoading(false);
-        return;
+        // RPC belum ada di DB — fallback Haversine client-side
+        const { data: fbData, error: fbErr } = await (supabase as any)
+          .from("shops")
+          .select("id, slug, name, tagline, logo_url, address, city, latitude, longitude, rating_avg, rating_count")
+          .eq("is_active", true)
+          .not("latitude", "is", null)
+          .not("longitude", "is", null)
+          .limit(300);
+        if (cancelled) return;
+        if (fbErr) {
+          toast.error(fbErr.message);
+          setShops([]);
+          setLoading(false);
+          return;
+        }
+        resolvedData = ((fbData ?? []) as any[])
+          .map((s: any) => ({
+            ...s,
+            latitude:    Number(s.latitude),
+            longitude:   Number(s.longitude),
+            rating_avg:  s.rating_avg != null ? Number(s.rating_avg) : null,
+            review_count: Number(s.rating_count ?? 0),
+            distance_km:  haversineKm(coords.lat, coords.lng, Number(s.latitude), Number(s.longitude)),
+          }))
+          .filter((s: any) => s.distance_km <= radius)
+          .sort((a: any, b: any) => a.distance_km - b.distance_km)
+          .slice(0, 60);
+      } else {
+        resolvedData = (data as any[]) ?? [];
       }
-      const baseShops: NearbyShop[] = ((data as any[]) ?? []).map(r => ({
+
+      const baseShops: NearbyShop[] = resolvedData.map(r => ({
         ...r,
-        latitude: Number(r.latitude),
-        longitude: Number(r.longitude),
-        rating_avg: r.rating_avg != null ? Number(r.rating_avg) : null,
+        latitude:    Number(r.latitude),
+        longitude:   Number(r.longitude),
+        rating_avg:  r.rating_avg != null ? Number(r.rating_avg) : null,
         distance_km: Number(r.distance_km),
       }));
 

@@ -1,3 +1,2 @@
-- [Fase 11-17 status](fase-11-17-status.md) — Fase 11-16 SELESAI; Fase 17 partial (Fonnte API key needed); grep `supabase\.` memberi false-negative untuk query multi-line, gunakan `.from(` sebagai indikator.
-- [Push notification F13](push-notification-f13.md) — web-push installed, /api/push/send + /api/push/send-to-all endpoints, push_subscriptions migration, PushNotificationManager aktif; butuh VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY di Secrets.
-- [WhatsApp broadcast F17](whatsapp-f17.md) — /api/wa/send-bulk via Fonnte aktif dengan graceful fallback ke window.open(); butuh FONNTE_API_KEY di Secrets untuk auto-send tanpa buka browser.
+- [SSE over POST streaming](sse-post-streaming.md) — `/api/wa/send-bulk-stream` uses POST+chunked SSE; frontend reads with fetch ReadableStream + TextDecoder line-by-line
+- [shops_nearby Haversine fallback](haversine-fallback.md) — RPC doesn't exist in DB; sekitar.tsx queries shops table directly and calculates distance client-side
