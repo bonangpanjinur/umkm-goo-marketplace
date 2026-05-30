@@ -597,7 +597,7 @@ router.head("/rest/v1/:table", async (req: Request, res: Response) => {
 
 // ── Auth proxy — forward /auth/v1/* ke Supabase upstream ─────────────────────
 const UPSTREAM_SUPABASE = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
-const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
+const SUPABASE_ANON_KEY = process.env["VITE_SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
 
 router.all("/auth/v1/*path", async (req: any, res: Response) => {
   if (!UPSTREAM_SUPABASE) {
@@ -626,12 +626,28 @@ router.all("/auth/v1/*path", async (req: any, res: Response) => {
       if (v) res.setHeader(h, v);
     }
 
-    if (status === 204 || status === 304) { res.status(status).end(); return; }
-    const body = await upstreamRes.text();
-    if (!body || body.trim() === "") { res.status(status).end(); return; }
+    if (status === 204 || status === 304) {
+      res.status(status).end();
+      return;
+    }
 
-    try { res.status(status).json(JSON.parse(body)); }
-    catch { res.status(status).send(body); }
+    const body = await upstreamRes.text();
+    if (!body || body.trim() === "") {
+      // Jika body kosong tetapi Content-Type adalah JSON, kirim {} untuk menghindari error parsing di frontend
+      const contentType = upstreamRes.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        res.status(status).json({});
+      } else {
+        res.status(status).end();
+      }
+      return;
+    }
+
+    try {
+      res.status(status).json(JSON.parse(body));
+    } catch {
+      res.status(status).send(body);
+    }
   } catch (err: unknown) {
     logger.error({ err, url }, "Auth proxy error");
     res.status(500).json({ message: "Auth proxy gagal menghubungi Supabase" });
