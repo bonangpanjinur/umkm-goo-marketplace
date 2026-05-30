@@ -117,7 +117,9 @@ function BookingsPage() {
       .select("phone")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }: any) => {
+      .then(({ data, error }: any) => {
+        // 42P01 = table not yet created, just show manual phone input
+        if (error?.code === "42P01") return;
         if (data?.phone) {
           setPhone(data.phone);
           loadBookings(data.phone);
@@ -181,6 +183,11 @@ function BookingsPage() {
         .eq("customer_phone", ph.trim())
         .order("created_at", { ascending: false })
         .limit(50) as any;
+      if (error?.code === "42P01") {
+        // Booking table not yet created
+        setBookings([]);
+        return;
+      }
       if (error) throw error;
       const bList = (data ?? []) as Booking[];
       setBookings(bList);

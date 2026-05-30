@@ -57,13 +57,13 @@ function RateKurir() {
           courier_id: o.courier_id,
           courier_name: courier?.name ?? null,
         });
-        const { data: existing } = await (supabase as any)
+        const { data: existing, error: rErr } = await (supabase as any)
           .from("courier_ratings")
           .select("id")
           .eq("order_id", order_id)
           .eq("user_id", user.id)
           .maybeSingle();
-        if (existing) setExisting(true);
+        if (rErr?.code !== "42P01" && existing) setExisting(true);
       }
       setLoading(false);
     })();

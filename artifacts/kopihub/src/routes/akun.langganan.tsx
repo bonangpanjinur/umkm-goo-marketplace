@@ -49,15 +49,22 @@ function MySubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [tableReady, setTableReady] = useState<boolean | null>(null);
 
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await (supabase as any)
+    const { data, error } = await (supabase as any)
       .from("product_subscriptions")
       .select("*, plan:product_subscription_plans(name, interval, price, menu_item:menu_items(name, image_url)), shop:shops(name, slug, logo_url)")
       .eq("user_id", user.id)
       .order("started_at", { ascending: false });
+    if (error?.code === "42P01" || error?.message?.toLowerCase().includes("does not exist")) {
+      setTableReady(false);
+      setLoading(false);
+      return;
+    }
+    setTableReady(true);
     setSubs((data ?? []) as Subscription[]);
     setLoading(false);
   };
@@ -105,6 +112,12 @@ function MySubscriptionsPage() {
             </div>
           ))}
         </div>
+      ) : tableReady === false ? (
+        <Card className="flex flex-col items-center py-14 text-center gap-3">
+          <RefreshCcw className="h-10 w-10 text-muted-foreground/40" />
+          <p className="font-semibold">Fitur langganan belum aktif</p>
+          <p className="text-sm text-muted-foreground">Fitur berlangganan produk rutin belum tersedia. Cek kembali nanti.</p>
+        </Card>
       ) : subs.length === 0 ? (
         <Card className="flex flex-col items-center py-14 text-center gap-3">
           <RefreshCcw className="h-10 w-10 text-muted-foreground/40" />

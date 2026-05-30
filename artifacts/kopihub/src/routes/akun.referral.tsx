@@ -62,21 +62,10 @@ export default function ReferralPage() {
 
         if (!error && data) {
           setReferrals(data as unknown as Referral[]);
-        } else {
-          // Demo fallback
-          setReferrals([
-            { id: "1", referred_name: "Budi Santoso", status: "first_purchase", reward_amount: 25000, created_at: "2026-05-01" },
-            { id: "2", referred_name: "Sari Dewi",    status: "qualified",      reward_amount: 25000, created_at: "2026-04-20" },
-            { id: "3", referred_name: "Ahmad Fajar",  status: "registered",     reward_amount: 0,     created_at: "2026-05-08" },
-          ]);
         }
+        // If table doesn't exist yet, referrals stays empty — UI shows empty state
       } catch {
-        // Demo fallback on any error
-        setReferrals([
-          { id: "1", referred_name: "Budi Santoso", status: "first_purchase", reward_amount: 25000, created_at: "2026-05-01" },
-          { id: "2", referred_name: "Sari Dewi",    status: "qualified",      reward_amount: 25000, created_at: "2026-04-20" },
-          { id: "3", referred_name: "Ahmad Fajar",  status: "registered",     reward_amount: 0,     created_at: "2026-05-08" },
-        ]);
+        // Silent — show empty state
       }
       setLoading(false);
     })();

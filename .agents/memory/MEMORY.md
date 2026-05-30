@@ -1,3 +1,1 @@
-- [Dev DB Architecture](dev-db-arch.md) — API server proxies REST to Neon DB (not real Supabase); real Supabase only for Auth
-- [Fresh Schema Migration](fresh-schema-migration.md) — 209 marketplace tables live in Neon DB via scripts/fresh_schema/; run against DATABASE_URL
-- [shops table rename](shops-rename.md) — Real Supabase has `coffee_shops`; Neon DB + code use `shops`; types.ts manually maintained
+- [Akun buyer pages Supabase status](akun-buyer-supabase.md) — semua 14 halaman sudah wired ke Supabase; grep `supabase\.` memberi false-negative karena query multi-line.

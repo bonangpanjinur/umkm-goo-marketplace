@@ -69,19 +69,42 @@ function DigitalProductsPage() {
       setLoading(true);
       setError(null);
       try {
+        // Step 1: get paid order IDs for this user
+        const { data: orders, error: oErr } = await supabase
+          .from("orders" as any)
+          .select("id")
+          .eq("customer_user_id", user.id)
+          .eq("payment_status", "paid");
+        if (oErr) throw oErr;
+
+        const orderIds: string[] = (orders ?? []).map((o: any) => o.id);
+        if (orderIds.length === 0) {
+          setItems([]);
+          setLoading(false);
+          return;
+        }
+
+        // Step 2: get digital order_items for those orders
         const { data, error: err } = await (supabase as any)
           .from("order_items")
           .select(`
-            id, quantity, unit_price, created_at,
+            id, quantity, unit_price, created_at, order_id,
             menu_item:menu_items!inner(name, is_digital, digital_file_url, digital_file_name, image_url),
-            order:orders!inner(id, status, payment_status, created_at, customer_user_id, shop:shops(name, slug))
+            order:orders!inner(id, status, payment_status, created_at, shop:shops(name, slug))
           `)
-          .eq("order.customer_user_id", user.id)
+          .in("order_id", orderIds)
           .eq("menu_item.is_digital", true)
-          .eq("order.payment_status", "paid")
           .order("created_at", { ascending: false })
           .limit(100);
-        if (err) throw err;
+        if (err) {
+          const msg: string = err.message ?? "";
+          if (msg.includes("is_digital") || msg.includes("42703") || msg.includes("does not exist")) {
+            // Column not yet added to menu_items — treat as no digital products
+            setItems([]);
+            return;
+          }
+          throw err;
+        }
         setItems((data ?? []) as DigitalItem[]);
       } catch (e: any) {
         setError(e.message);

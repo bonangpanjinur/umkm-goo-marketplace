@@ -89,6 +89,12 @@ function LoyaltyPage() {
           .select("shop_id, balance, total_earned, total_redeemed")
           .eq("user_id", user.id);
 
+        if (pErr?.code === "42P01" || pErr?.message?.toLowerCase().includes("does not exist")) {
+          // Table not yet created — silently show empty state
+          setLoading(false);
+          return;
+        }
+
         if (!pErr && pts && pts.length > 0) {
           // Enrich with shop names
           const shopIds = pts.map((p: any) => p.shop_id);
@@ -106,15 +112,6 @@ function LoyaltyPage() {
             .eq("shop_id", pts[0].shop_id)
             .maybeSingle();
           if (ls && (ls as any).points_expire_days) setExpiryDays((ls as any).points_expire_days);
-        } else {
-          // Fallback demo data if no real data
-          setPoints([{
-            shop_id: "demo",
-            balance: 250,
-            total_earned: 750,
-            total_redeemed: 500,
-            shop_name: "UMKMgo Platform",
-          }]);
         }
 
         // Load transaction history
@@ -127,18 +124,9 @@ function LoyaltyPage() {
 
         if (!txErr && txData) {
           setTxns(txData as unknown as LoyaltyTx[]);
-        } else {
-          // Fallback demo transactions
-          setTxns([
-            { id: "1", description: "Pembelian di UMKMgo Pusat",    points: 150,  type: "earn",   created_at: "2026-05-10" },
-            { id: "2", description: "Tukar poin — Diskon Rp15.000", points: -500, type: "redeem", created_at: "2026-05-05" },
-            { id: "3", description: "Pembelian di UMKMgo Selatan",  points: 200,  type: "earn",   created_at: "2026-05-01" },
-            { id: "4", description: "Bonus ulang tahun 🎂",          points: 300,  type: "earn",   created_at: "2026-04-15" },
-            { id: "5", description: "Pembelian di UMKMgo Pusat",    points: 100,  type: "earn",   created_at: "2026-04-10" },
-          ]);
         }
       } catch {
-        // Silent fallback
+        // Silent — show empty state
       }
       setLoading(false);
     })();

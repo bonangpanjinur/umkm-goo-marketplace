@@ -145,7 +145,12 @@ function KursusSayaPage() {
           }))
         );
       } catch (e: any) {
-        setError(e.message);
+        const msg: string = e?.message ?? "";
+        if (msg.includes("42P01") || msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("relation")) {
+          setError("fitur_belum_aktif");
+        } else {
+          setError(msg);
+        }
       } finally {
         setLoading(false);
       }
@@ -185,7 +190,16 @@ function KursusSayaPage() {
         </p>
       </div>
 
-      {error && (
+      {error === "fitur_belum_aktif" && (
+        <div className="rounded-xl border border-dashed border-border p-14 text-center">
+          <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-3 text-base font-medium">Fitur kursus belum aktif</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Fitur kursus & e-learning belum tersedia di platform ini. Cek kembali nanti.
+          </p>
+        </div>
+      )}
+      {error && error !== "fitur_belum_aktif" && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Gagal memuat: {error}
         </div>

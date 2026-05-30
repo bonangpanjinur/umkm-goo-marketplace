@@ -82,7 +82,7 @@ const [ordRes, retRes] = await Promise.all([
         supabase
           .from("orders" as any)
           .select("id, order_no, created_at, total")
-          .eq("customer_id", user.id)
+          .eq("customer_user_id", user.id)
           .like("order_no", "MKT-%")
           .eq("status", "completed")
           .order("created_at", { ascending: false })
