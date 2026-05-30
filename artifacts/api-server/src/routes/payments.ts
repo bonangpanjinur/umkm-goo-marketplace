@@ -505,8 +505,9 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
         await handleBookingDepositPaid(tx.orderId, payload.payment_id ?? payload.id);
-        if (tx.shopId) {
-          dispatchWebhookEvent(tx.shopId, "payment.paid", {
+        const shopId = await getShopIdForOrder(tx.orderId);
+        if (shopId) {
+          dispatchWebhookEvent(shopId, "payment.paid", {
             order_id: tx.orderId,
             transaction_id: tx.id,
             gateway: "xendit",
