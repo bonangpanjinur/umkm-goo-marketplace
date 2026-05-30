@@ -646,7 +646,7 @@ MINGGU INI (Fitur inti yang terasa langsung):
   ✅ Fase 13: Push notification backend — SELESAI (web-push installed, endpoint /api/push/send + /api/push/send-to-all aktif, PushNotificationManager diaktifkan, migration push_subscriptions dibuat, admin.push-config bisa generate VAPID keys, admin.broadcast-buyers kirim push + in-app notification)
 
 MINGGU DEPAN:
-  ✅ Fase 14: Admin tools real data — SELESAI (admin.kyc, disputes, moderation sudah real; analytics pakai RPC; activity pakai observability functions)
+  ✅ Fase 14: Admin tools real data — SELESAI (F14-1 /admin/users real Supabase — profiles + user_roles join, filter role [super_admin/owner/cashier/barista/customer/manager/courier], ban/unban dialog, export CSV, detail dialog + order history, nav link di admin dashboard; admin.kyc, disputes, moderation sudah real; analytics pakai RPC; activity pakai observability functions)
   ✅ Fase 15: Merchant mock batch 1 — SELESAI (pos-app.loyalty, flash-sale, cash-drawer, bulk-pricing sudah real Supabase)
   ☐ Verifikasi BL-6 (rename coffee_shops) dan BL-7 (shops_nearby RPC)
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Store, Crown, FileText, Coins, ArrowRight, AlertTriangle, Globe,
   BadgeCheck, Banknote, ShoppingCart, TrendingUp, UserX, Clock,
-  RefreshCw, Activity, KeyRound, Database,
+  RefreshCw, Activity, KeyRound, Database, Users,
 } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import {
@@ -273,6 +273,7 @@ function AdminDashboard() {
             { to: "/admin/shops",       label: "Kelola Toko",            icon: Store,       badge: stats.suspended, badgeTone: "bad" as const },
             { to: "/admin/audit",        label: "Audit Log",              icon: Clock,       badge: 0 },
             { to: "/admin/settings",    label: "Pengaturan Platform",    icon: Globe,       badge: 0 },
+            { to: "/admin/users",       label: "Manajemen Pengguna",     icon: Users,       badge: 0 },
             { to: "/admin/credentials", label: "Kredensial & API Keys",  icon: KeyRound,    badge: 0 },
             { to: "/admin/migrations",  label: "Database Migrations",    icon: Database,    badge: 0 },
           ].map(item => (
