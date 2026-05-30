@@ -21,7 +21,8 @@ function getVapid() {
 router.get("/push/vapid-public", (_req, res) => {
   const { pub, ready } = getVapid();
   if (!ready) {
-    return res.json({ enabled: false, publicKey: null });
+    res.json({ enabled: false, publicKey: null });
+    return;
   }
   res.json({ enabled: true, publicKey: pub });
 });
@@ -50,9 +51,10 @@ router.post("/push/vapid-keys", (_req, res) => {
 router.post("/push/send", async (req, res) => {
   const { pub, priv, subj, ready } = getVapid();
   if (!ready) {
-    return res.status(503).json({
+    res.status(503).json({
       error: "Push notification belum dikonfigurasi. Set VAPID_PUBLIC_KEY dan VAPID_PRIVATE_KEY di Secrets.",
     });
+    return;
   }
 
   const { subscriptions, title, body, icon, url, tag } = req.body as {
@@ -65,10 +67,12 @@ router.post("/push/send", async (req, res) => {
   };
 
   if (!Array.isArray(subscriptions) || subscriptions.length === 0) {
-    return res.status(400).json({ error: "subscriptions harus berupa array non-kosong" });
+    res.status(400).json({ error: "subscriptions harus berupa array non-kosong" });
+    return;
   }
   if (!title || !body) {
-    return res.status(400).json({ error: "title dan body wajib diisi" });
+    res.status(400).json({ error: "title dan body wajib diisi" });
+    return;
   }
 
   webpush.setVapidDetails(subj, pub, priv);
@@ -100,22 +104,25 @@ router.post("/push/send", async (req, res) => {
 router.post("/push/send-to-all", async (req, res) => {
   const { pub, priv, subj, ready } = getVapid();
   if (!ready) {
-    return res.status(503).json({
+    res.status(503).json({
       error: "Push notification belum dikonfigurasi. Set VAPID_PUBLIC_KEY dan VAPID_PRIVATE_KEY.",
     });
+    return;
   }
 
   const supabaseUrl = process.env["SUPABASE_URL"];
   const serviceKey  = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   if (!supabaseUrl || !serviceKey) {
-    return res.status(503).json({ error: "SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi" });
+    res.status(503).json({ error: "SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi" });
+    return;
   }
 
   const { title, body, icon, url, tag, shopId } = req.body as {
     title: string; body: string; icon?: string; url?: string; tag?: string; shopId?: string;
   };
   if (!title || !body) {
-    return res.status(400).json({ error: "title dan body wajib diisi" });
+    res.status(400).json({ error: "title dan body wajib diisi" });
+    return;
   }
 
   // Ambil subscriptions dari Supabase
@@ -130,7 +137,8 @@ router.post("/push/send-to-all", async (req, res) => {
   });
   const rows = (await resp.json()) as { subscription: webpush.PushSubscription }[];
   if (!Array.isArray(rows) || rows.length === 0) {
-    return res.json({ sent: 0, failed: 0, total: 0, message: "Tidak ada subscriber" });
+    res.json({ sent: 0, failed: 0, total: 0, message: "Tidak ada subscriber" });
+    return;
   }
 
   webpush.setVapidDetails(subj, pub, priv);

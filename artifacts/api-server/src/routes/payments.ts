@@ -1,7 +1,19 @@
 import { Router, type Request, type Response } from "express";
-import { db } from "@workspace/db";
+import { db, pool } from "@workspace/db";
 import { paymentTransactions, webhookLogs } from "@workspace/db";
 import { eq } from "drizzle-orm";
+
+async function getShopIdForOrder(orderId: string): Promise<string | null> {
+  try {
+    const { rows } = await pool.query<{ shop_id: string | null }>(
+      `SELECT shop_id FROM orders WHERE id::text = $1 LIMIT 1`,
+      [orderId],
+    );
+    return rows[0]?.shop_id ?? null;
+  } catch {
+    return null;
+  }
+}
 import { logger } from "../lib/logger.js";
 import {
   createSnapTransaction,
@@ -391,8 +403,9 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
         await handleBookingDepositPaid(tx.orderId, notification.transaction_id);
-        if (tx.shopId) {
-          dispatchWebhookEvent(tx.shopId, "payment.paid", {
+        const shopId = await getShopIdForOrder(tx.orderId);
+        if (shopId) {
+          dispatchWebhookEvent(shopId, "payment.paid", {
             order_id: tx.orderId,
             transaction_id: tx.id,
             gateway: "midtrans",
@@ -492,8 +505,9 @@ router.post("/payments/webhook/xendit", async (req: Request, res: Response) => {
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
         await handleBookingDepositPaid(tx.orderId, payload.payment_id ?? payload.id);
-        if (tx.shopId) {
-          dispatchWebhookEvent(tx.shopId, "payment.paid", {
+        const shopId = await getShopIdForOrder(tx.orderId);
+        if (shopId) {
+          dispatchWebhookEvent(shopId, "payment.paid", {
             order_id: tx.orderId,
             transaction_id: tx.id,
             gateway: "xendit",
