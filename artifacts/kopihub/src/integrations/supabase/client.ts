@@ -16,10 +16,10 @@ function createSupabaseClient() {
     );
   }
 
-  // Use the current origin so /rest/v1/* and /auth/v1/* go through
-  // the Vite dev proxy → API server → Neon database.
-  // Auth is proxied upstream to the original Supabase project.
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : (ORIGINAL_SUPABASE_URL ?? 'http://localhost:3001');
+  // Connect directly to Supabase so /rest/v1/* and /auth/v1/* go straight
+  // to the Supabase project. This requires VITE_SUPABASE_URL to be set.
+  // The /api/* routes still go through the Vite proxy → API server.
+  const baseUrl = ORIGINAL_SUPABASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
   return createClient<Database>(baseUrl, anonKey, {
     auth: {
