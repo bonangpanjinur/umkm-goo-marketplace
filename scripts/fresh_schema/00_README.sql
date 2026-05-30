@@ -1,42 +1,47 @@
 -- ============================================================================
 -- UMKMgo — FRESH BOOTSTRAP SCHEMA
--- Consolidated from 156 migrations (126 archived + 30 active)
+-- Sumber tunggal (single source of truth) untuk skema database Supabase.
+-- Semua file aman dijalankan berulang kali (idempotent).
 -- ============================================================================
--- Updated: 2026-05-29
+-- Updated: 2026-05-30
 --
 -- ⚠️  UNTUK PROJECT SUPABASE BARU — file ini memakai auth.uid(), auth.jwt(),
---     dan storage schema. Jangan dijalankan ke Neon/Postgres biasa.
+--     dan storage schema. Jangan dijalankan ke Neon/Postgres biasa tanpa
+--     menginstal ekstensi yang dibutuhkan (uuid-ossp, pgcrypto, pg_trgm).
 --
--- IDEMPOTENCY — semua file aman dijalankan berulang kali (fixed 2026-05-29):
---   01: CREATE TABLE IF NOT EXISTS, CREATE OR REPLACE FUNCTION
---   02: CREATE INDEX IF NOT EXISTS, DROP TRIGGER IF EXISTS → CREATE TRIGGER,
---       DROP CONSTRAINT IF EXISTS → ADD CONSTRAINT (PK)
---   03: DROP CONSTRAINT IF EXISTS → ADD CONSTRAINT (semua FK)
---   04: DROP POLICY IF EXISTS → CREATE POLICY (454 public + 69 storage),
---       Storage bucket pakai ON CONFLICT (id) DO NOTHING
---   05: INSERT ... ON CONFLICT DO NOTHING (ICD-10 seed)
---   06: Sudah idempotent sejak awal (IF NOT EXISTS / OR REPLACE / ON CONFLICT)
+-- STRUKTUR FILE (jalankan berurutan):
+--
+--   01_core_schema.sql              → ENUMs, 274 tabel utama, fungsi dasar
+--   02_indexes_views_triggers.sql   → Index, view, trigger
+--   03_constraints_foreign_keys.sql → Foreign key constraints
+--   04_policies_and_storage.sql     → RLS policy (600+), storage buckets & policy
+--   05_seed_reference_data.sql      → ICD-10, data referensi medis, plans, categories
+--   06_post_consolidation.sql       → Tabel baru pasca-konsolidasi, kolom tambahan,
+--                                     fungsi shops_nearby, RLS tambahan, seed plans
+--   07_functions_and_late_migrations.sql
+--                                   → Business logic functions, GIN/FTS indexes,
+--                                     RLS tabel-tabel dari 06, platform_settings seed
+--                                     (gateway Midtrans/Xendit, email Resend)
 --
 -- CARA PAKAI — OPTION A: Pakai runner script (psql)
 --   export SUPABASE_DB_URL="postgresql://postgres:[password]@[host]:5432/postgres"
 --   bash scripts/fresh_schema/run_fresh_schema.sh
 --
 -- CARA PAKAI — OPTION B: Manual via Supabase SQL Editor
---   Jalankan ke-6 file ini secara berurutan di SQL Editor:
+--   Jalankan ke-7 file di atas secara berurutan (copy-paste atau file upload).
+--   Setiap file sudah idempotent — aman dijalankan ulang jika terjadi error.
 --
---   01_core_schema.sql            → ENUMs, tabel utama, fungsi dasar
---   02_indexes_views_triggers.sql → Index, view, trigger
---   03_constraints_foreign_keys.sql → Foreign key constraints
---   04_policies_and_storage.sql   → RLS policy, storage buckets & policy
---   05_seed_reference_data.sql    → ICD-10 codes, data referensi medis
---   06_post_consolidation.sql     → Semua perubahan pasca-konsolidasi:
---                                   tabel baru, kolom tambahan, fungsi baru,
---                                   RLS baru, seed plans/categories/features
---
--- Isi total:
---   - 159 tabel, 15 ENUM, 115 fungsi, 119 trigger
---   - 454 RLS policy tabel public + 69 policy storage.objects
---   - 232 index, 179 FK constraint
+-- RINGKASAN ISI:
+--   - 274+ tabel, 15+ ENUM, 120+ fungsi (termasuk fn_apply_commission,
+--     fn_gdpr_erase_user, fn_auto_cancel_expired, fn_generate_api_key, dll.)
+--   - 600+ RLS policy (tabel public + storage.objects)
+--   - 230+ index (termasuk GIN/FTS untuk pencarian Bahasa Indonesia)
+--   - 180+ FK constraint
 --   - 27 storage bucket
---   - Seed ICD-10 (46 kode)
+--   - Seed: ICD-10 (46 kode), plans, business categories, features,
+--     platform_settings (gateway & email config defaults)
+--
+-- TIDAK ADA LAGI:
+--   - scripts/split_migration/  → dihapus (lama, tidak idempotent)
+--   - scripts/fase*.sql         → dikonsolidasi ke dalam fresh_schema/
 -- ============================================================================

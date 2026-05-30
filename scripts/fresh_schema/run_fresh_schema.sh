@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # UMKMgo — Fresh Schema Runner
-# Jalankan ke-6 SQL file secara berurutan ke Supabase (via psql).
+# Jalankan ke-7 SQL file secara berurutan ke Supabase (via psql).
 #
 # Prasyarat:
 #   - psql terinstall (brew install postgresql atau apt install postgresql-client)
@@ -12,7 +12,7 @@
 #   bash scripts/fresh_schema/run_fresh_schema.sh
 #
 # Atau satu file saja:
-#   psql "$SUPABASE_DB_URL" -f scripts/fresh_schema/04_policies_and_storage.sql
+#   psql "$SUPABASE_DB_URL" -f scripts/fresh_schema/07_functions_and_late_migrations.sql
 # =============================================================================
 
 set -euo pipefail
@@ -32,6 +32,7 @@ FILES=(
   "04_policies_and_storage.sql"
   "05_seed_reference_data.sql"
   "06_post_consolidation.sql"
+  "07_functions_and_late_migrations.sql"
 )
 
 echo "🚀  Memulai fresh schema UMKMgo..."
@@ -44,7 +45,7 @@ for f in "${FILES[@]}"; do
     --single-transaction \
     --set ON_ERROR_STOP=1 \
     -f "$DIR/$f" \
-    2>&1 | grep -v "^SET$\|^ALTER TABLE$\|^CREATE$\|^INSERT 0\|^NOTICE:" || true
+    2>&1 | grep -v "^SET$\|^ALTER TABLE$\|^CREATE$\|^INSERT 0\|^NOTICE:\|^DROP$\|^GRANT$" || true
   echo "   ✓ Selesai"
   echo ""
 done
