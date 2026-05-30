@@ -403,8 +403,9 @@ router.post("/payments/webhook/midtrans", async (req: Request, res: Response) =>
         const adId = extractAdRequestId(tx.orderId);
         if (adId) await activateAdRequest(adId);
         await handleBookingDepositPaid(tx.orderId, notification.transaction_id);
-        if (tx.shopId) {
-          dispatchWebhookEvent(tx.shopId, "payment.paid", {
+        const shopId = await getShopIdForOrder(tx.orderId);
+        if (shopId) {
+          dispatchWebhookEvent(shopId, "payment.paid", {
             order_id: tx.orderId,
             transaction_id: tx.id,
             gateway: "midtrans",
