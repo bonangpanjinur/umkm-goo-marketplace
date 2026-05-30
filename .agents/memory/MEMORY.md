@@ -1,2 +1,3 @@
 - [SSE over POST streaming](sse-post-streaming.md) — `/api/wa/send-bulk-stream` uses POST+chunked SSE; frontend reads with fetch ReadableStream + TextDecoder line-by-line
 - [shops_nearby Haversine fallback](haversine-fallback.md) — RPC doesn't exist in DB; sekitar.tsx queries shops table directly and calculates distance client-side
+- [Admin tools auth & credentials management](admin-tools-auth.md) — requireSuperAdmin has 3 auth paths (env secret, DB secret, Supabase JWT); all API secrets configurable via /admin/credentials UI; SUPABASE_SERVICE_ROLE_KEY still requires Replit Secret as bootstrap

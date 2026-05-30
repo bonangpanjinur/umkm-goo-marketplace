@@ -27,6 +27,9 @@ export type PlatformCredentials = {
   wa_api_key?: string;
   wa_api_provider?: string;
   wa_phone?: string;
+  admin_secret?: string;
+  rajaongkir_api_key?: string;
+  supabase_service_key?: string;
 };
 
 const CRED_SETTING_KEYS = [
@@ -34,6 +37,7 @@ const CRED_SETTING_KEYS = [
   "email_credentials",
   "push_credentials",
   "wa_credentials",
+  "system_credentials",
 ];
 
 let _cache: PlatformCredentials | null = null;

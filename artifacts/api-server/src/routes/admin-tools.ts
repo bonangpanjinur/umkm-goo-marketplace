@@ -18,18 +18,66 @@ import {
   runMigration,
   runAllMigrations,
 } from "../lib/supabase-migration.js";
-import { invalidateCredentialsCache } from "../lib/platform-credentials.js";
+import { invalidateCredentialsCache, getCredential } from "../lib/platform-credentials.js";
 
 const router = Router();
 
-async function requireSuperAdmin(req: Request, res: Response): Promise<boolean> {
-  const secret = req.headers["x-admin-secret"] ?? "";
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected || secret !== expected) {
-    res.status(401).json({ error: "Unauthorized" });
+const SUPABASE_URL = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
+
+/** Verify a Supabase JWT belongs to a super_admin user */
+async function verifySuperAdminJWT(token: string): Promise<boolean> {
+  if (!SUPABASE_URL || !token) return false;
+  try {
+    const serviceKey =
+      (await getCredential("supabase_service_key")) ??
+      process.env["SUPABASE_SERVICE_KEY"] ??
+      process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
+      "";
+    if (!serviceKey) return false;
+    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!userRes.ok) return false;
+    const user = await userRes.json() as { id?: string };
+    if (!user?.id) return false;
+    const roleRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${user.id}&role=eq.super_admin&select=id&limit=1`,
+      {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        signal: AbortSignal.timeout(5000),
+      },
+    );
+    if (!roleRes.ok) return false;
+    const roles = await roleRes.json() as unknown[];
+    return Array.isArray(roles) && roles.length > 0;
+  } catch {
     return false;
   }
-  return true;
+}
+
+async function requireSuperAdmin(req: Request, res: Response): Promise<boolean> {
+  const headerSecret = (req.headers["x-admin-secret"] ?? "") as string;
+
+  // 1. Check env ADMIN_SECRET
+  const envSecret = process.env["ADMIN_SECRET"];
+  if (envSecret && headerSecret === envSecret) return true;
+
+  // 2. Check platform_settings admin_secret (DB-stored secret)
+  if (headerSecret) {
+    const dbSecret = await getCredential("admin_secret").catch(() => undefined);
+    if (dbSecret && headerSecret === dbSecret) return true;
+  }
+
+  // 3. Accept Supabase JWT with super_admin role
+  const authHeader = (req.headers["authorization"] ?? "") as string;
+  if (authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    if (await verifySuperAdminJWT(token)) return true;
+  }
+
+  res.status(401).json({ error: "Unauthorized" });
+  return false;
 }
 
 // ── POST /admin/auto-cancel ────────────────────────────────────────────────
