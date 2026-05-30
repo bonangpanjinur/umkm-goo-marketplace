@@ -1,43 +1,21 @@
--- ============================================================================
--- UMKMgo — FULL MIGRATION (Single File — Fresh Supabase Setup)
--- ============================================================================
--- File ini adalah GABUNGAN dari semua file di scripts/fresh_schema/ (01–07).
--- Gunakan file ini untuk setup Supabase BARU dari nol.
---
--- ⚠️  PRASYARAT SUPABASE:
---   1. Buat project Supabase baru
---   2. Aktifkan extensions: pg_trgm, pgcrypto, uuid-ossp (biasanya sudah aktif)
---   3. Untuk pg_cron (auto-cancel + churn): aktifkan di Dashboard → Extensions
---
--- CARA PAKAI — OPTION A: Upload via Supabase SQL Editor
---   Copy-paste file ini (atau upload) ke Supabase SQL Editor lalu klik Run.
---   File sudah idempotent — aman dijalankan ulang jika ada error.
---
--- CARA PAKAI — OPTION B: psql (untuk environment lokal)
---   export SUPABASE_DB_URL="postgresql://postgres:[password]@[host]:5432/postgres"
---   psql "$SUPABASE_DB_URL" -f scripts/FULL_MIGRATION.sql
---
--- SETELAH MIGRATION SELESAI:
---   1. Regenerasi types.ts:
---      npx supabase gen types typescript --project-id <PROJECT_ID> \
---        --schema public > artifacts/kopihub/src/integrations/supabase/types.ts
---   2. Set Replit Secrets: MIDTRANS_SERVER_KEY, XENDIT_SECRET_KEY, RESEND_API_KEY
---   3. Jalankan pg_cron schedules (lihat Section 12 di bagian akhir file ini)
---
--- RINGKASAN ISI:
---   275+ tabel, 15+ ENUM, 125+ fungsi (fn_apply_commission, fn_gdpr_erase_user,
---   fn_auto_cancel_expired, fn_generate_api_key, get_marketplace_admin_*,
---   get_shop_marketplace_*, dll.)
---   600+ RLS policy, 230+ index, 180+ FK constraint, 27 storage bucket
---   Seed: ICD-10, plans, business categories, features, platform_settings
---
--- Generated: 2026-06-01 | UMKMgo PRD v12.0
--- ============================================================================
+-- =============================================================================
+-- FULL_MIGRATION.sql — UMKMgo Master Migration
+-- Dibuat otomatis dengan menggabungkan semua fresh_schema files (01→07).
+-- Jalankan sekali di Supabase SQL Editor (atau via psql) pada database baru.
+-- 
+-- URUTAN:
+--   01_core_schema.sql                    — tabel inti
+--   02_indexes_views_triggers.sql         — indexes, views, triggers
+--   03_constraints_foreign_keys.sql       — constraints & FK
+--   04_policies_and_storage.sql           — RLS policies & storage
+--   05_seed_reference_data.sql            — seed data referensi
+--   06_post_consolidation.sql             — tabel post-konsolidasi
+--   07_functions_and_late_migrations.sql  — fungsi, RLS, views, RPCs
+-- =============================================================================
 
-
--- ============================================================================
--- MULAI: 01_core_schema.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 01_core_schema.sql
+-- =============================================================================
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -9498,13 +9476,9 @@ ALTER TABLE ONLY public.wishlists
 --
 -- Name: withdrawal_requests withdrawal_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 
--- ============================================================================
--- SELESAI: 01_core_schema.sql
--- ============================================================================
-
--- ============================================================================
--- MULAI: 02_indexes_views_triggers.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 02_indexes_views_triggers.sql
+-- =============================================================================
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -12123,13 +12097,9 @@ CREATE TRIGGER update_staff_members_updated_at BEFORE UPDATE ON public.staff_mem
 DROP TRIGGER IF EXISTS update_stock_opnames_updated_at ON public.stock_opnames;
 CREATE TRIGGER update_stock_opnames_updated_at BEFORE UPDATE ON public.stock_opnames FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
--- ============================================================================
--- SELESAI: 02_indexes_views_triggers.sql
--- ============================================================================
-
--- ============================================================================
--- MULAI: 03_constraints_foreign_keys.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 03_constraints_foreign_keys.sql
+-- =============================================================================
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -13752,13 +13722,9 @@ ALTER TABLE ONLY public.withdrawal_requests DROP CONSTRAINT IF EXISTS withdrawal
 ALTER TABLE ONLY public.withdrawal_requests
     ADD CONSTRAINT withdrawal_requests_shop_id_fkey FOREIGN KEY (shop_id) REFERENCES public.shops(id) ON DELETE CASCADE;
 
--- ============================================================================
--- SELESAI: 03_constraints_foreign_keys.sql
--- ============================================================================
-
--- ============================================================================
--- MULAI: 04_policies_and_storage.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 04_policies_and_storage.sql
+-- =============================================================================
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -18974,13 +18940,9 @@ CREATE POLICY "watermarks_public_read" ON storage.objects
 -- SECTION 3 — SEED DATA (reference tables)
 -- ============================================================
 
--- ============================================================================
--- SELESAI: 04_policies_and_storage.sql
--- ============================================================================
-
--- ============================================================================
--- MULAI: 05_seed_reference_data.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 05_seed_reference_data.sql
+-- =============================================================================
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -19079,13 +19041,9 @@ INSERT INTO public.icd10_codes VALUES ('F32.9', 'Episode depresi, tidak spesifik
 -- PostgreSQL database dump complete
 --
 
--- ============================================================================
--- SELESAI: 05_seed_reference_data.sql
--- ============================================================================
-
--- ============================================================================
--- MULAI: 06_post_consolidation.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 06_post_consolidation.sql
+-- =============================================================================
 -- =============================================================================
 -- FRESH SCHEMA — PART 6: Post-Consolidation Updates
 -- Covers all changes added AFTER the base consolidation (00000000000000_init_schema.sql)
@@ -20709,13 +20667,9 @@ REVOKE SELECT (custom_domain_verify_token) ON public.shops FROM anon;
 -- Notify PostgREST to reload schema cache
 NOTIFY pgrst, 'reload schema';
 
--- ============================================================================
--- SELESAI: 06_post_consolidation.sql
--- ============================================================================
-
--- ============================================================================
--- MULAI: 07_functions_and_late_migrations.sql
--- ============================================================================
+-- =============================================================================
+-- BEGIN: 07_functions_and_late_migrations.sql
+-- =============================================================================
 -- =============================================================================
 -- FRESH SCHEMA — PART 7: Business Logic Functions & Late Migrations
 -- Konsolidasi dari: fase2, fase3_fase4, fase6_fase7, fase8_fase9, fase10
@@ -21331,7 +21285,23 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- =============================================================================
--- SECTION 11 — MERCHANT ANALYTICS RPCs (Fase 11)
+-- SECTION 11 — RLS TAMBAHAN (tabel dari 06 yang belum punya RLS di 07)
+-- =============================================================================
+
+-- ── wa_broadcasts ─────────────────────────────────────────────────────────────
+ALTER TABLE public.wa_broadcasts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS wab_shop_owner ON public.wa_broadcasts;
+DROP POLICY IF EXISTS wab_insert     ON public.wa_broadcasts;
+CREATE POLICY wab_shop_owner ON public.wa_broadcasts
+  USING (shop_id IN (SELECT id FROM public.shops WHERE owner_id = auth.uid())
+    OR public.has_role(auth.uid(), 'super_admin'::public.app_role));
+CREATE POLICY wab_insert ON public.wa_broadcasts
+  FOR INSERT WITH CHECK (
+    shop_id IN (SELECT id FROM public.shops WHERE owner_id = auth.uid())
+  );
+
+-- =============================================================================
+-- SECTION 12 — MERCHANT ANALYTICS RPCs (Fase 11)
 -- Dibutuhkan oleh /pos-app/marketplace-analytics
 -- =============================================================================
 
@@ -21419,7 +21389,7 @@ GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_daily TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_top_products TO authenticated;
 
 -- =============================================================================
--- SECTION 12 — pg_cron SCHEDULE SETUP (BL-12)
+-- SECTION 13 — pg_cron SCHEDULE SETUP (BL-12)
 -- ⚠️  PRASYARAT: Enable pg_cron di Supabase Dashboard terlebih dahulu:
 --     Dashboard → Database → Extensions → cari "pg_cron" → Enable
 --
@@ -21452,6 +21422,6 @@ SELECT cron.schedule(
 -- SELESAI — 07_functions_and_late_migrations.sql
 -- =============================================================================
 
--- ============================================================================
--- SELESAI: 07_functions_and_late_migrations.sql
--- ============================================================================
+-- =============================================================================
+-- END OF FULL_MIGRATION.sql
+-- =============================================================================

@@ -18,7 +18,7 @@ function getVapid() {
 }
 
 // ── GET /api/push/vapid-public ─────────────────────────────────────────────────
-router.get("/api/push/vapid-public", (_req, res) => {
+router.get("/push/vapid-public", (_req, res) => {
   const { pub, ready } = getVapid();
   if (!ready) {
     return res.json({ enabled: false, publicKey: null });
@@ -28,7 +28,7 @@ router.get("/api/push/vapid-public", (_req, res) => {
 
 // ── POST /api/push/vapid-keys ─────────────────────────────────────────────────
 // Hanya dipakai saat setup awal. Kembalikan key pair baru.
-router.post("/api/push/vapid-keys", (_req, res) => {
+router.post("/push/vapid-keys", (_req, res) => {
   const keys = webpush.generateVAPIDKeys();
   res.json({
     publicKey:  keys.publicKey,
@@ -47,7 +47,7 @@ router.post("/api/push/vapid-keys", (_req, res) => {
 //   url?: string
 //   tag?: string
 // }
-router.post("/api/push/send", async (req, res) => {
+router.post("/push/send", async (req, res) => {
   const { pub, priv, subj, ready } = getVapid();
   if (!ready) {
     return res.status(503).json({
@@ -97,7 +97,7 @@ router.post("/api/push/send", async (req, res) => {
 // ── POST /api/push/send-to-all ─────────────────────────────────────────────────
 // Ambil semua subscriptions dari Supabase dan kirim broadcast.
 // Body: { title, body, icon?, url?, tag?, audience?: "all"|"shop" shopId?: string }
-router.post("/api/push/send-to-all", async (req, res) => {
+router.post("/push/send-to-all", async (req, res) => {
   const { pub, priv, subj, ready } = getVapid();
   if (!ready) {
     return res.status(503).json({

@@ -471,14 +471,25 @@ Storefront adalah mini-app untuk order dine-in/QR langsung dari meja:
 
 ---
 
-### 🟢 Fase 17 — WhatsApp Broadcast via Server API (Nice to Have)
+### ✅ Fase 17 — WhatsApp Broadcast via Server API — **SELESAI**
 
-| ID | Task | Estimasi |
-|----|------|----------|
-| F17-1 | Integrasi Fonnte (WA unofficial) atau Meta Business API | 2 hari |
-| F17-2 | Endpoint `POST /api/wa/send-bulk` di Express | 1 hari |
-| F17-3 | Ganti `window.open()` di `broadcast-wa.tsx` ke API call | 0.5 hari |
-| F17-4 | Export kontak ke CSV (alternatif jangka pendek) | 0.25 hari |
+| ID | Task | Estimasi | Status |
+|----|------|----------|--------|
+| F17-1 | Integrasi Fonnte API — `FONNTE_API_KEY` di Replit Secrets | 2 hari | ✅ Kode siap — user perlu set `FONNTE_API_KEY` di Secrets |
+| F17-2 | Endpoint `POST /api/wa/send-bulk` + `POST /api/wa/send-bulk-stream` (SSE) di Express | 1 hari | ✅ Done — `artifacts/api-server/src/routes/whatsapp.ts` |
+| F17-3 | UI `/pos-app/broadcast-wa` dengan auto-detect Fonnte, SSE progress per kontak, fallback `wa.me` | 0.5 hari | ✅ Done — `broadcast-wa.tsx` dengan modal progress realtime |
+| F17-4 | Export kontak ke CSV dengan pesan personal ter-render | 0.25 hari | ✅ Done — tombol "Unduh CSV" di tab Preview & Kirim |
+
+**Fitur Broadcast WA yang sudah selesai:**
+- **Auto-detect Fonnte**: `GET /api/wa/config` — UI otomatis tampilkan tombol "Kirim Otomatis ⚡" jika API key terkonfigurasi
+- **SSE Streaming**: `POST /api/wa/send-bulk-stream` — progress per-kontak realtime (✓/✗ per nomor) via Server-Sent Events
+- **Batch manual**: Fallback buka `wa.me/` satu per satu jika Fonnte belum aktif
+- **Segmentasi**: All / Churn Risk (30+ hari) / VIP (5+ order) / New (7 hari) / One-time
+- **Template pesan**: 4 template siap pakai (promo, win-back, menu baru, terima kasih VIP)
+- **Variabel dinamis**: `{{nama}}`, `{{toko}}`, `{{link_toko}}` — dirender per kontak
+- **Export CSV**: Nama, nomor, order count, pesan personal — langsung download
+- **Riwayat broadcast**: Tersimpan di tabel `wa_broadcasts` + tab history di UI
+- **API Server**: `pg` + `web-push` sudah diinstall, server RUNNING di port 3001
 
 ---
 
@@ -691,8 +702,9 @@ Loading skeleton, empty state, filter sekitar, KDS outlet selector, dynamic `<ti
   OPSIONAL / IN PROGRESS
 ════════════════════════════════════════════════════════
 
-  🔄 Fase 17 WA Broadcast: F17-4 CSV ✅, F17-2 backend Fonnte ✅, F17-3 UI ✅
-     ☐ F17-1: Set FONNTE_API_KEY di Replit Secrets (untuk kirim WA aktual)
+  ✅ Fase 17 WA Broadcast SELESAI: F17-1 kode ✅, F17-2 backend ✅, F17-3 UI SSE ✅, F17-4 CSV ✅
+     → SSE streaming per-kontak, modal progress realtime, fallback wa.me, history tabel wa_broadcasts
+     ☐ F17-1 (eksekusi): Set FONNTE_API_KEY di Replit Secrets untuk aktifkan kirim otomatis
 
   ☐ BL-6: Verifikasi rename coffee_shops → shops di DB
      → ALTER TABLE IF EXISTS public.coffee_shops RENAME TO shops;

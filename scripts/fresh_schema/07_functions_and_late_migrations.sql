@@ -613,7 +613,23 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- =============================================================================
--- SECTION 11 — MERCHANT ANALYTICS RPCs (Fase 11)
+-- SECTION 11 — RLS TAMBAHAN (tabel dari 06 yang belum punya RLS di 07)
+-- =============================================================================
+
+-- ── wa_broadcasts ─────────────────────────────────────────────────────────────
+ALTER TABLE public.wa_broadcasts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS wab_shop_owner ON public.wa_broadcasts;
+DROP POLICY IF EXISTS wab_insert     ON public.wa_broadcasts;
+CREATE POLICY wab_shop_owner ON public.wa_broadcasts
+  USING (shop_id IN (SELECT id FROM public.shops WHERE owner_id = auth.uid())
+    OR public.has_role(auth.uid(), 'super_admin'::public.app_role));
+CREATE POLICY wab_insert ON public.wa_broadcasts
+  FOR INSERT WITH CHECK (
+    shop_id IN (SELECT id FROM public.shops WHERE owner_id = auth.uid())
+  );
+
+-- =============================================================================
+-- SECTION 12 — MERCHANT ANALYTICS RPCs (Fase 11)
 -- Dibutuhkan oleh /pos-app/marketplace-analytics
 -- =============================================================================
 
@@ -701,7 +717,7 @@ GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_daily TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_top_products TO authenticated;
 
 -- =============================================================================
--- SECTION 12 — pg_cron SCHEDULE SETUP (BL-12)
+-- SECTION 13 — pg_cron SCHEDULE SETUP (BL-12)
 -- ⚠️  PRASYARAT: Enable pg_cron di Supabase Dashboard terlebih dahulu:
 --     Dashboard → Database → Extensions → cari "pg_cron" → Enable
 --

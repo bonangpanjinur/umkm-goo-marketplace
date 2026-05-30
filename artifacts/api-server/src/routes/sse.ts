@@ -59,7 +59,7 @@ function broadcastToKey(key: string, event: string, data: unknown) {
  *   courier       → order-ready / new-available events (F5-2)
  *   notifications → merchant notification events (F5-3)
  */
-router.get("/api/sse/stream", (req: Request, res: Response) => {
+router.get("/sse/stream", (req: Request, res: Response) => {
   const shopId = (req.query["shop_id"] as string | undefined)?.trim();
   const channel = ((req.query["channel"] as string | undefined) ?? "pos").trim();
 
@@ -117,7 +117,7 @@ router.get("/api/sse/stream", (req: Request, res: Response) => {
  * Dipanggil oleh frontend (POS terminal utama) yang sudah subscribe ke Supabase
  * Realtime, agar event tersebut diteruskan ke semua SSE subscriber.
  */
-router.post("/api/sse/publish", (req: Request, res: Response) => {
+router.post("/sse/publish", (req: Request, res: Response) => {
   const auth = req.headers["authorization"];
   if (!auth?.startsWith("Bearer ")) {
     res.status(401).json({ error: "Authorization header dengan Bearer token diperlukan" });
@@ -152,7 +152,7 @@ router.post("/api/sse/publish", (req: Request, res: Response) => {
 });
 
 // ── Diagnostics — jumlah subscriber aktif ────────────────────────────────────
-router.get("/api/sse/status", (_req: Request, res: Response) => {
+router.get("/sse/status", (_req: Request, res: Response) => {
   const status: Record<string, number> = {};
   clients.forEach((set, key) => {
     status[key] = set.size;

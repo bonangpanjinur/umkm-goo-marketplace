@@ -8,7 +8,7 @@ import { logger } from "../lib/logger.js";
 const router = Router();
 
 // ── GET /api/wa/config ────────────────────────────────────────────────────────
-router.get("/api/wa/config", (_req, res) => {
+router.get("/wa/config", (_req, res) => {
   const token = process.env["FONNTE_API_KEY"] ?? "";
   res.json({ enabled: !!token });
 });
@@ -24,7 +24,7 @@ router.get("/api/wa/config", (_req, res) => {
 // {
 //   messages: { phone: string; message: string }[]
 // }
-router.post("/api/wa/send-bulk", async (req, res) => {
+router.post("/wa/send-bulk", async (req, res) => {
   const token = process.env["FONNTE_API_KEY"] ?? "";
   if (!token) {
     return res.status(503).json({
@@ -110,7 +110,7 @@ router.post("/api/wa/send-bulk", async (req, res) => {
 // Response: text/event-stream; setiap baris: data: {...}\n\n
 // Event types: progress { phone, status:"ok"|"error", reason?, sent, failed, total }
 //              done     { sent, failed, total }
-router.post("/api/wa/send-bulk-stream", async (req, res) => {
+router.post("/wa/send-bulk-stream", async (req, res) => {
   const token = process.env["FONNTE_API_KEY"] ?? "";
   if (!token) {
     res.status(503).json({
