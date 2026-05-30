@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, Megaphone, Package, Trophy, Medal,
   Plus, Flame, BadgeCheck, Heart, Loader2, Navigation,
 } from "lucide-react";
+import { getCategoryStyle } from "@/lib/category-colors";
 
 function computeShopTier(shop: { kyc_status?: string; rating_avg?: number | null; rating_count?: number | null }) {
   const r = Number(shop.rating_avg ?? 0);
@@ -517,27 +518,43 @@ function MarketplaceHome() {
             <h2 className="text-xl font-bold tracking-tight">Kategori</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">Pilih sesuai minatmu.</p>
           </div>
-          <Link to="/kategori" className="text-sm text-primary hover:underline">Semua →</Link>
+          <Link to="/kategori" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+            Semua <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
         {loading ? (
-          <div className="grid gap-3 grid-cols-3 sm:grid-cols-6 lg:grid-cols-8">
-            {Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-square rounded-xl bg-muted/40 animate-pulse" />)}
+          <div className="grid gap-3 grid-cols-3 sm:grid-cols-5 lg:grid-cols-8">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-muted/40 animate-pulse">
+                <div className="h-12 w-12 rounded-[16px] bg-muted" />
+                <div className="h-2.5 w-14 rounded bg-muted" />
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="grid gap-3 grid-cols-3 sm:grid-cols-6 lg:grid-cols-8">
-            {categories.slice(0, 16).map((c) => (
-              <Link
-                key={c.id}
-                to="/kategori/$slug"
-                params={{ slug: c.slug }}
-                className="group flex flex-col items-center justify-center rounded-xl border border-border bg-card p-3 text-center transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
-              >
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  {c.icon_url ? <img src={c.icon_url} alt={c.name} className="h-6 w-6" /> : <Store className="h-4 w-4" />}
-                </div>
-                <span className="text-[11px] font-medium text-foreground line-clamp-2 leading-snug">{c.name}</span>
-              </Link>
-            ))}
+          <div className="grid gap-3 grid-cols-3 sm:grid-cols-5 lg:grid-cols-8">
+            {categories.slice(0, 16).map((c) => {
+              const style = getCategoryStyle(c.slug);
+              return (
+                <Link
+                  key={c.id}
+                  to="/kategori/$slug"
+                  params={{ slug: c.slug }}
+                  className="group flex flex-col items-center rounded-2xl bg-card border border-border/50 p-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-transparent"
+                >
+                  <div className={`relative mb-2 flex h-12 w-12 items-center justify-center rounded-[16px] bg-gradient-to-br ${style.gradient} shadow-sm transition-transform duration-200 group-hover:scale-110`}>
+                    {c.icon_url
+                      ? <img src={c.icon_url} alt={c.name} className="h-7 w-7 object-contain" />
+                      : <span className="text-[22px] leading-none select-none">{style.emoji}</span>
+                    }
+                    <div className="pointer-events-none absolute inset-0 rounded-[16px] bg-gradient-to-b from-white/25 to-transparent" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    {c.name}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
