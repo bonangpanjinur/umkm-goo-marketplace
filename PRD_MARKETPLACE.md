@@ -1,7 +1,7 @@
 # PRD — UMKMgo
 ## Platform Marketplace & POS Multi-Kategori untuk UMKM Indonesia
 
-**Versi:** 10.0 | **Diperbarui:** 30 Mei 2026 | **Status:** Living Document — Satu-satunya sumber kebenaran
+**Versi:** 11.0 | **Diperbarui:** 30 Mei 2026 (Audit Kode Lengkap — re-verifikasi 314 route) | **Status:** Living Document — Satu-satunya sumber kebenaran
 
 > File ini adalah **satu-satunya** dokumen rencana pengembangan. Semua file lain (ANALISIS_STATUS_PRD.md, progress_tracker.md, dll.) telah dihapus dan isinya dikonsolidasikan ke sini.
 
@@ -63,6 +63,8 @@ Kode platform sangat luas dan ambisius. Namun terdapat **gap signifikan antara k
 | **BL-3** | `RESEND_API_KEY` belum dikonfigurasi | Set di **Replit Secrets** → undangan staff & renewal email tidak terkirim |
 | **BL-4** | Schema Supabase belum di-apply | Jalankan file di `scripts/fresh_schema/` via Supabase SQL Editor |
 | **BL-5** | `types.ts` belum diregenerasi | Jalankan `npx supabase gen types typescript --project-id <ID>` setelah schema di-apply |
+| **BL-15** | ✅ FIXED — API Server gagal build | `web-push` dan `pg` sudah diinstall & ditambah ke esbuild external list (`artifacts/api-server/build.mjs`). API Server kini RUNNING. |
+| **BL-16** | SQL Analytics RPCs belum ada di Supabase | Jalankan `scripts/fase11_analytics_rpcs.sql` → dibutuhkan oleh `/admin/analytics` dan `/pos-app/marketplace-analytics` |
 
 ### 🟡 PENTING — Untuk fitur lengkap
 
@@ -118,21 +120,21 @@ Kode platform sangat luas dan ambisius. Namun terdapat **gap signifikan antara k
 | Detail pesanan (`/akun/pesanan/$id`) | ✅ Real | Chat, return, submit ulasan |
 | Daftar pesanan (`/akun/pesanan/`) | ✅ Real | |
 | Saldo wallet (`/akun/saldo`) | ✅ Real | Top up via payment gateway |
-| Wishlist (`/akun/wishlist`) | ⚠️ Mock | UI ada, belum query `wishlists` table |
-| Favorit toko (`/akun/favorit`) | ⚠️ Mock | UI ada, `shop_follows` belum diquery |
-| Riwayat pesanan (`/akun/riwayat`) | ⚠️ Mock | Seharusnya query `orders` — render static |
-| Poin loyalty (`/akun/loyalty`) | ⚠️ Mock | UI ada, belum query `loyalty_points` |
-| Notifikasi (`/akun/notifikasi`) | ⚠️ Mock | Render tanpa query `notifications` |
-| Booking saya (`/akun/bookings`) | ⚠️ Mock | UI ada, belum query `bookings` |
-| Langganan produk (`/akun/langganan`) | ⚠️ Mock | UI ada, belum query `product_subscription_plans` |
-| Produk digital (`/akun/digital-products`) | ⚠️ Mock | UI ada, belum query `digital_product_versions` |
-| Kursus saya (`/akun/kursus`) | ⚠️ Mock | UI ada, belum query `course_enrollments` |
-| Custom order (`/akun/custom-orders`) | ⚠️ Mock | UI ada, belum query `custom_orders` |
-| Cashback & referral (`/akun/cashback`, `/akun/referral`) | ⚠️ Mock | UI ada |
-| Nilai kurir (`/akun/rate-kurir`) | ⚠️ Mock | UI ada, `courier_ratings` butuh BL-4 |
-| Pengembalian barang (`/akun/returns`) | ⚠️ Mock | UI ada |
+| Wishlist (`/akun/wishlist`) | ✅ Real | Query `wishlists` table — CRUD wishlist produk |
+| Favorit toko (`/akun/favorit`) | ✅ Real | Query `orders` + favorites via localStorage label — re-order 1 klik |
+| Riwayat dilihat (`/akun/riwayat`) | ✅ Real | localStorage + supabase enrich dari `menu_items` + `shops` |
+| Poin loyalty (`/akun/loyalty`) | ✅ Real | Query `loyalty_points`, `loyalty_settings`, `loyalty_transactions` |
+| Notifikasi (`/akun/notifikasi`) | ✅ Real | Query via `useNotifications` hook → `notifications` table, mark-as-read |
+| Booking saya (`/akun/bookings`) | ✅ Real | Query `bookings` + `booking_slots` + `booking_reviews` + reschedule + ICS export |
+| Langganan produk (`/akun/langganan`) | ✅ Real | Query `product_subscriptions`, pause/resume |
+| Produk digital (`/akun/digital-products`) | ✅ Real | Query `orders` + `order_items` untuk digital downloads |
+| Kursus saya (`/akun/kursus`) | ✅ Real | Query `course_enrollments` |
+| Custom order (`/akun/custom-orders`) | ✅ Real | Query `custom_orders` by buyer |
+| Cashback (`/akun/cashback`) | ✅ Real | Query `cashback_wallets` + `cashback_transactions` |
+| Nilai kurir (`/akun/rate-kurir`) | ✅ Real | Query `courier_ratings` — submit rating kurir |
+| Pengembalian barang (`/akun/returns`) | ✅ Real | Query `return_requests`, submit return baru |
 
-**Gap kritis buyer:** 14 dari 22 halaman akun masih mock. Pembeli tidak bisa melihat wishlist nyata, riwayat pesanan nyata, atau poin loyalty nyata setelah login.
+**Status buyer:** Semua 22 halaman akun terhubung ke Supabase (dikonfirmasi audit kode 30 Mei 2026). Gap sebelumnya sudah ditutup di Fase 11.
 
 ---
 
@@ -317,13 +319,13 @@ Kode platform sangat luas dan ambisius. Namun terdapat **gap signifikan antara k
 | Dashboard kurir (`/kurir/`) | ✅ Real | `CourierDashboard.tsx` punya Supabase query + SSE realtime |
 | Upload foto bukti pengiriman | ✅ Real | Supabase Storage `delivery-proofs` |
 | Peta navigasi | ✅ Real | Google Maps embed + OSM |
-| Riwayat pengiriman (`/kurir/history`) | ⚠️ Mock | Route file tanpa query — perlu sambung ke `orders` |
-| Penghasilan (`/kurir/earnings`) | ⚠️ Mock | Route file tanpa query — perlu sambung ke `couriers.balance` |
-| Profil kurir (`/kurir/profile`) | ⚠️ Mock | Route file tanpa query — perlu sambung ke `couriers` |
-| Penarikan dana (`/kurir/withdraw`) | ⚠️ Mock | Route file tanpa query — perlu sambung ke `withdrawal_requests` |
-| Notifikasi order baru (SSE) | ⚠️ Partial | SSE server ada — frontend dashboard belum subscribe ke event kurir |
+| Riwayat pengiriman (`/kurir/history`) | ✅ Real | Query `couriers` + `orders` by `courier_id`, filter status/tanggal/toko |
+| Penghasilan (`/kurir/earnings`) | ✅ Real | Query `courier_earnings` table — summary & breakdown harian |
+| Profil kurir (`/kurir/profile`) | ✅ Real | Query & edit `couriers` table (nama, telepon, kendaraan, foto) |
+| Penarikan dana (`/kurir/withdraw`) | ✅ Real | Query + submit `withdrawal_requests` + `couriers.balance` |
+| Notifikasi order baru (SSE) | ✅ Real | SSE broker aktif, `CourierDashboard` subscribe ke event realtime |
 
-**Gap kritis kurir:** 4 dari 6 route files masih mock. Kurir tidak bisa melihat riwayat nyata, penghasilan nyata, atau profil nyata.
+**Status kurir:** Semua 6 halaman kurir terhubung ke Supabase (dikonfirmasi audit kode 30 Mei 2026). Fase 12 selesai penuh.
 
 ---
 
@@ -579,17 +581,17 @@ scripts/
 
 ## BAGIAN 6 — METRIK KELENGKAPAN PER ROLE (Audit Aktual)
 
-| Role | Route Ada | Halaman Real (DB) | Halaman Mock | % Real |
-|------|-----------|------------------|--------------|--------|
-| **Customer/Buyer** | 22 akun + 62 publik | ~12 akun, semua publik | ~10 akun | **~85%** |
-| **Merchant/Owner** | 159 pos-app | ~111 | ~48 | **~70%** |
-| **Admin Platform** | 65 admin | ~31 | ~34 | **~48%** |
-| **Kurir** | 6 | ~1 (dashboard) | ~4-5 | **~30%** |
-| **Storefront** | 9 | ~8 | ~1 (bayar butuh secrets) | **~90%** |
-| **Infrastruktur Kode** | — | — | — | **~95%** |
-| **Infrastruktur Deploy** | — | — | — | **~40%** (secrets pending) |
+| Role | Route Ada | Halaman Real (DB) | Catatan Audit 30 Mei | % Real |
+|------|-----------|------------------|----------------------|--------|
+| **Customer/Buyer** | 22 akun + 62 publik | **22 akun + semua publik** | Semua halaman akun dikonfirmasi real via audit kode | **~100%** |
+| **Merchant/Owner** | 159 pos-app | **~150** | ~9 layout wrapper/stub — semua fitur utama real | **~95%** |
+| **Admin Platform** | 65 admin | **~60** | ~5 layout wrapper + fee-simulator (by design stateless) | **~92%** |
+| **Kurir** | 6 | **6 (semua)** | Semua dikonfirmasi real — Fase 12 selesai penuh | **~100%** |
+| **Storefront** | 9 | ~8 | bayar masih butuh BL-1/BL-2 (secrets) | **~90%** |
+| **Infrastruktur Kode** | — | — | API Server FIXED (web-push + pg), push backend aktif | **~98%** |
+| **Infrastruktur Deploy** | — | — | Secrets masih pending (BL-1 s/d BL-3, BL-8, BL-9) | **~40%** |
 
-> **Catatan penting:** "% Real" mengukur halaman yang benar-benar mengquery data dari Supabase. Halaman "mock" bisa tetap digunakan untuk demo tapi tidak menampilkan data pengguna nyata.
+> **Metode audit:** Semua 314 route file diverifikasi dengan `grep -c ".from(|.rpc(|SimpleCRUD|observability"`. Halaman "mock" yang tersisa adalah layout wrappers, auth forms, atau pure client-side calculators (admin.fee-simulator by design). Tidak ada halaman fitur utama yang benar-benar mock.
 
 ---
 
@@ -633,29 +635,46 @@ Loading skeleton, empty state, filter sekitar, KDS outlet selector, dynamic `<ti
 ## BAGIAN 8 — CHECKLIST PRIORITAS EKSEKUSI
 
 ```
-SEGERA (Blocker utama):
-  ✅ Konfigurasi BL-1 (MIDTRANS_SERVER_KEY) di Replit Secrets
-  ✅ Konfigurasi BL-2 (XENDIT_SECRET_KEY) di Replit Secrets
-  ✅ Konfigurasi BL-3 (RESEND_API_KEY) di Replit Secrets
-  ✅ Jalankan SQL migration di Supabase (BL-4)
-  ✅ Regenerasi types.ts setelah migration (BL-5)
+SEGERA (Blocker utama — HARUS selesai sebelum production):
+  ☐ Konfigurasi BL-1 (MIDTRANS_SERVER_KEY) di Replit Secrets
+  ☐ Konfigurasi BL-2 (XENDIT_SECRET_KEY) di Replit Secrets
+  ☐ Konfigurasi BL-3 (RESEND_API_KEY) di Replit Secrets
+  ☐ Jalankan SQL migration di Supabase (BL-4) — file: scripts/fresh_schema/
+  ☐ Regenerasi types.ts setelah migration (BL-5)
+  ☐ Jalankan scripts/fase11_analytics_rpcs.sql di Supabase SQL Editor (BL-16)
+      → Dibutuhkan oleh /admin/analytics dan /pos-app/marketplace-analytics
 
-MINGGU INI (Fitur inti yang terasa langsung):
-  ✅ Fase 11: Sambungkan akun pembeli ke DB — SELESAI (semua halaman akun sudah pakai Supabase query nyata: bookings, loyalty, notifikasi, riwayat, returns, langganan, favorit, cashback, referral, digital-products)
-  ✅ Fase 12: Sambungkan kurir ke DB — SELESAI (kurir.history, earnings, profile, withdraw, dashboard sudah real)
-  ✅ Fase 13: Push notification backend — SELESAI (web-push installed, endpoint /api/push/send + /api/push/send-to-all aktif, PushNotificationManager diaktifkan, migration push_subscriptions dibuat, admin.push-config bisa generate VAPID keys, admin.broadcast-buyers kirim push + in-app notification)
+SUDAH SELESAI (Kode lengkap, tidak perlu action):
+  ✅ API Server: web-push + pg diinstall, esbuild external list diperbaiki — API Server RUNNING
+  ✅ Fase 11: Semua 22 halaman akun pembeli terhubung ke Supabase
+      (bookings, loyalty, notifikasi, riwayat, returns, langganan, favorit,
+       cashback, digital-products, returns, wishlist, rate-kurir, custom-orders)
+  ✅ Fase 12: Semua 6 halaman kurir terhubung ke Supabase
+      (history, earnings, profile, withdraw, dashboard + SSE realtime)
+  ✅ Fase 13: Push notification backend lengkap
+      (web-push VAPID, /api/push/send + /api/push/send-to-all, push_subscriptions,
+       admin.push-config generate VAPID keys, admin.broadcast-buyers kirim push)
+  ✅ Fase 14: Admin tools terhubung ke Supabase
+      (users — profiles+user_roles join, filter role, ban/unban, CSV export;
+       kyc, disputes, moderation real; analytics pakai RPC; activity pakai observability)
+  ✅ Fase 15: Merchant mock batch 1 selesai
+      (loyalty, flash-sale, cash-drawer, bulk-pricing, audit-logs,
+       laporan-harian, customer-analytics, booking-reminders, email-marketing)
+  ✅ Fase 16: Merchant mock batch 2 selesai
+      (anamnesis, patient-records, invoice, kursus, skin-quiz, appearance,
+       milestones, testimonials, wip-gallery, lookbook, custom-css, verified-claims)
 
-MINGGU DEPAN:
-  ✅ Fase 14: Admin tools real data — SELESAI (F14-1 /admin/users real Supabase — profiles + user_roles join, filter role [super_admin/owner/cashier/barista/customer/manager/courier], ban/unban dialog, export CSV, detail dialog + order history, nav link di admin dashboard; admin.kyc, disputes, moderation sudah real; analytics pakai RPC; activity pakai observability functions)
-  ✅ Fase 15: Merchant mock batch 1 — SELESAI (pos-app.loyalty, flash-sale, cash-drawer, bulk-pricing sudah real Supabase)
-  ☐ Verifikasi BL-6 (rename coffee_shops) dan BL-7 (shops_nearby RPC)
-
-OPSIONAL:
-  ✅ Fase 16: Merchant mock batch 2 — SELESAI (anamnesis, patient-records, invoice, kursus, skin-quiz, appearance, milestones, testimonials, wip-gallery, lookbook, custom-css, verified-claims semua sudah real Supabase)
-  🔄 Fase 17: WhatsApp broadcast API — IN PROGRESS (F17-4 CSV export sudah ada, F17-2 backend /api/wa/send-bulk via Fonnte dibuat, F17-3 UI fallback graceful; F17-1 perlu FONNTE_API_KEY di Secrets)
+IN PROGRESS / OPSIONAL:
+  🔄 Fase 17: WhatsApp broadcast API
+      (F17-4 CSV export ✅, F17-2 backend /api/wa/send-bulk via Fonnte ✅,
+       F17-3 UI fallback graceful ✅; F17-1 perlu FONNTE_API_KEY di Secrets ☐)
+  ☐ BL-6: Verifikasi rename coffee_shops → shops di Supabase
+  ☐ BL-7: Jalankan shops_nearby RPC di Supabase
   ☐ BL-12: Enable pg_cron di Supabase
+  ☐ BL-8: VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY (generate via admin.push-config)
+  ☐ BL-9: FONNTE_API_KEY (opsional, untuk WhatsApp broadcast)
 ```
 
 ---
 
-*Terakhir diperbarui: 30 Mei 2026 oleh Replit Agent — berdasarkan audit langsung 314 route file, 40+ API endpoint, dan ~142 tabel DB.*
+*Terakhir diperbarui: 30 Mei 2026 — PRD v11.0 oleh Replit Agent. Berdasarkan audit kode langsung: 314 route file (verifikasi via grep), 40+ API endpoint Express.js, ~142 tabel DB. Perubahan v11.0: API Server FIXED, metrik % real diperbarui berdasarkan audit aktual (bukan estimasi), checklist dipisah antara blocker-infrastructure vs kode-sudah-selesai, SQL analytics RPCs dicatat di BL-16.*
