@@ -1,0 +1,38 @@
+SEGERA (Blocker utama — HARUS selesai sebelum production):
+  ☐ Konfigurasi BL-1 (MIDTRANS_SERVER_KEY) di Replit Secrets
+  ☐ Konfigurasi BL-2 (XENDIT_SECRET_KEY) di Replit Secrets
+  ☐ Konfigurasi BL-3 (RESEND_API_KEY) di Replit Secrets
+  ☐ Jalankan SQL migration di Supabase (BL-4) — file: scripts/fresh_schema/
+  ☐ Regenerasi types.ts setelah migration (BL-5)
+  ☐ Jalankan scripts/fase11_analytics_rpcs.sql di Supabase SQL Editor (BL-16)
+      → Dibutuhkan oleh /admin/analytics dan /pos-app/marketplace-analytics
+
+SUDAH SELESAI (Kode lengkap, tidak perlu action):
+  ✅ API Server: web-push + pg diinstall, esbuild external list diperbaiki — API Server RUNNING
+  ✅ Fase 11: Semua 22 halaman akun pembeli terhubung ke Supabase
+      (bookings, loyalty, notifikasi, riwayat, returns, langganan, favorit,
+       cashback, digital-products, returns, wishlist, rate-kurir, custom-orders)
+  ✅ Fase 12: Semua 6 halaman kurir terhubung ke Supabase
+      (history, earnings, profile, withdraw, dashboard + SSE realtime)
+  ✅ Fase 13: Push notification backend lengkap
+      (web-push VAPID, /api/push/send + /api/push/send-to-all, push_subscriptions,
+       admin.push-config generate VAPID keys, admin.broadcast-buyers kirim push)
+  ✅ Fase 14: Admin tools terhubung ke Supabase
+      (users — profiles+user_roles join, filter role, ban/unban, CSV export;
+       kyc, disputes, moderation real; analytics pakai RPC; activity pakai observability)
+  ✅ Fase 15: Merchant mock batch 1 selesai
+      (loyalty, flash-sale, cash-drawer, bulk-pricing, audit-logs,
+       laporan-harian, customer-analytics, booking-reminders, email-marketing)
+  ✅ Fase 16: Merchant mock batch 2 selesai
+      (anamnesis, patient-records, invoice, kursus, skin-quiz, appearance,
+       milestones, testimonials, wip-gallery, lookbook, custom-css, verified-claims)
+
+IN PROGRESS / OPSIONAL:
+  🔄 Fase 17: WhatsApp broadcast API
+      (F17-4 CSV export ✅, F17-2 backend /api/wa/send-bulk via Fonnte ✅,
+       F17-3 UI fallback graceful ✅; F17-1 perlu FONNTE_API_KEY di Secrets ☐)
+  ☐ BL-6: Verifikasi rename coffee_shops → shops di Supabase
+  ☐ BL-7: Jalankan shops_nearby RPC di Supabase
+  ☐ BL-12: Enable pg_cron di Supabase
+  ☐ BL-8: VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY (generate via admin.push-config)
+  ☐ BL-9: FONNTE_API_KEY (opsional, untuk WhatsApp broadcast)

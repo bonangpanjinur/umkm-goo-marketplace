@@ -635,46 +635,85 @@ Loading skeleton, empty state, filter sekitar, KDS outlet selector, dynamic `<ti
 ## BAGIAN 8 — CHECKLIST PRIORITAS EKSEKUSI
 
 ```
-SEGERA (Blocker utama — HARUS selesai sebelum production):
-  ☐ Konfigurasi BL-1 (MIDTRANS_SERVER_KEY) di Replit Secrets
-  ☐ Konfigurasi BL-2 (XENDIT_SECRET_KEY) di Replit Secrets
-  ☐ Konfigurasi BL-3 (RESEND_API_KEY) di Replit Secrets
-  ☐ Jalankan SQL migration di Supabase (BL-4) — file: scripts/fresh_schema/
-  ☐ Regenerasi types.ts setelah migration (BL-5)
-  ☐ Jalankan scripts/fase11_analytics_rpcs.sql di Supabase SQL Editor (BL-16)
-      → Dibutuhkan oleh /admin/analytics dan /pos-app/marketplace-analytics
+════════════════════════════════════════════════════════
+  SEGERA — Blocker utama (HARUS selesai sebelum go-live)
+════════════════════════════════════════════════════════
 
-SUDAH SELESAI (Kode lengkap, tidak perlu action):
-  ✅ API Server: web-push + pg diinstall, esbuild external list diperbaiki — API Server RUNNING
+  ☐ BL-1: Set MIDTRANS_SERVER_KEY di Replit Secrets
+           → Checkout Midtrans Snap gagal tanpa ini
+
+  ☐ BL-2: Set XENDIT_SECRET_KEY di Replit Secrets
+           → Checkout Xendit gagal tanpa ini
+
+  ☐ BL-3: Set RESEND_API_KEY di Replit Secrets
+           → Email undangan staff & renewal tidak terkirim
+
+  ☐ BL-4: Jalankan SQL migration di Supabase
+           → FILE MASTER: scripts/FULL_MIGRATION.sql  ← SATU FILE, upload ke SQL Editor
+           → Alternatif per-file: scripts/fresh_schema/ (01 → 07 berurutan)
+           → Isi: 275+ tabel, 125+ fungsi, 600+ RLS, 27 storage bucket,
+             termasuk semua tabel F6/F7 (group_buys, consultation_slots,
+             live_sessions, bnpl_applications, dll.) + analytics RPCs
+
+  ☐ BL-5: Regenerasi types.ts setelah migration
+           → npx supabase gen types typescript --project-id <PROJECT_ID> \
+               --schema public > artifacts/kopihub/src/integrations/supabase/types.ts
+
+════════════════════════════════════════════════════════
+  KODE SELESAI — Tidak perlu action lagi
+════════════════════════════════════════════════════════
+
+  ✅ API Server: web-push + pg diinstall, esbuild external list diperbaiki
   ✅ Fase 11: Semua 22 halaman akun pembeli terhubung ke Supabase
       (bookings, loyalty, notifikasi, riwayat, returns, langganan, favorit,
-       cashback, digital-products, returns, wishlist, rate-kurir, custom-orders)
+       cashback, digital-products, wishlist, rate-kurir, custom-orders)
   ✅ Fase 12: Semua 6 halaman kurir terhubung ke Supabase
       (history, earnings, profile, withdraw, dashboard + SSE realtime)
   ✅ Fase 13: Push notification backend lengkap
-      (web-push VAPID, /api/push/send + /api/push/send-to-all, push_subscriptions,
-       admin.push-config generate VAPID keys, admin.broadcast-buyers kirim push)
+      (web-push VAPID, /api/push/send + /api/push/send-to-all, push_subscriptions)
   ✅ Fase 14: Admin tools terhubung ke Supabase
-      (users — profiles+user_roles join, filter role, ban/unban, CSV export;
-       kyc, disputes, moderation real; analytics pakai RPC; activity pakai observability)
+      (users, kyc, disputes, moderation, analytics RPC, activity observability)
   ✅ Fase 15: Merchant mock batch 1 selesai
       (loyalty, flash-sale, cash-drawer, bulk-pricing, audit-logs,
        laporan-harian, customer-analytics, booking-reminders, email-marketing)
   ✅ Fase 16: Merchant mock batch 2 selesai
       (anamnesis, patient-records, invoice, kursus, skin-quiz, appearance,
        milestones, testimonials, wip-gallery, lookbook, custom-css, verified-claims)
+  ✅ BL-16: Analytics RPCs merchant & admin sudah masuk ke FULL_MIGRATION.sql
+      (get_marketplace_admin_stats/daily/top_shops, get_shop_marketplace_stats/daily/top_products
+       — semua di 06_post_consolidation.sql §4 + 07_functions_and_late_migrations.sql §11)
+  ✅ BL-12 (kode): fn_auto_cancel_expired + fn_churn_metrics_snapshot sudah ada di SQL
+      → SQL cron.schedule sudah siap di 07 §12 (commented) — lihat bagian OPSIONAL
+  ✅ SQL konsolidasi: scripts/FULL_MIGRATION.sql (21.457 baris, 7 file digabung)
+  ✅ Fase 6 & 7: Group Buy, Langganan, BNPL, Telemedicine, Live Commerce, lokasi — SELESAI
 
-IN PROGRESS / OPSIONAL:
-  🔄 Fase 17: WhatsApp broadcast API
-      (F17-4 CSV export ✅, F17-2 backend /api/wa/send-bulk via Fonnte ✅,
-       F17-3 UI fallback graceful ✅; F17-1 perlu FONNTE_API_KEY di Secrets ☐)
-  ☐ BL-6: Verifikasi rename coffee_shops → shops di Supabase
-  ☐ BL-7: Jalankan shops_nearby RPC di Supabase
-  ☐ BL-12: Enable pg_cron di Supabase
-  ☐ BL-8: VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY (generate via admin.push-config)
-  ☐ BL-9: FONNTE_API_KEY (opsional, untuk WhatsApp broadcast)
+════════════════════════════════════════════════════════
+  OPSIONAL / IN PROGRESS
+════════════════════════════════════════════════════════
+
+  🔄 Fase 17 WA Broadcast: F17-4 CSV ✅, F17-2 backend Fonnte ✅, F17-3 UI ✅
+     ☐ F17-1: Set FONNTE_API_KEY di Replit Secrets (untuk kirim WA aktual)
+
+  ☐ BL-6: Verifikasi rename coffee_shops → shops di DB
+     → ALTER TABLE IF EXISTS public.coffee_shops RENAME TO shops;
+
+  ☐ BL-7: Aktifkan shops_nearby RPC
+     → SQL sudah ada di 06_post_consolidation.sql — dijalankan otomatis via FULL_MIGRATION.sql
+
+  ☐ BL-8: Set VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY di Replit Secrets
+     → Generate via /admin/push-config (sudah ada di dashboard admin)
+
+  ☐ BL-9: Set RAJAONGKIR_API_KEY di Replit Secrets (untuk kalkulasi ongkir)
+
+  ☐ BL-10: Set SUPABASE_JWT_SECRET di Replit Secrets (full JWT verification)
+
+  ☐ BL-12 (eksekusi): Aktifkan pg_cron di Supabase Dashboard
+     → Dashboard → Database → Extensions → pg_cron → Enable
+     → Lalu jalankan blok cron.schedule di 07_functions_and_late_migrations.sql §12:
+       cron: 'auto-cancel-expired-orders' setiap jam
+       cron: 'churn-metrics-snapshot' setiap hari jam 01:00 WIB
 ```
 
 ---
 
-*Terakhir diperbarui: 30 Mei 2026 — PRD v11.0 oleh Replit Agent. Berdasarkan audit kode langsung: 314 route file (verifikasi via grep), 40+ API endpoint Express.js, ~142 tabel DB. Perubahan v11.0: API Server FIXED, metrik % real diperbarui berdasarkan audit aktual (bukan estimasi), checklist dipisah antara blocker-infrastructure vs kode-sudah-selesai, SQL analytics RPCs dicatat di BL-16.*
+*Terakhir diperbarui: 01 Juni 2026 — PRD v12.0 oleh Replit Agent. Audit kode: 314+ route file, 40+ API endpoint, 275+ tabel DB. Perubahan v12.0: Konsolidasi SQL ke FULL_MIGRATION.sql (21.457 baris, 1 file master); merchant analytics RPCs ditambah ke 07; pg_cron SQL siap (commented); checklist dirapikan dengan status akurat.*

@@ -613,5 +613,123 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- =============================================================================
+-- SECTION 11 — MERCHANT ANALYTICS RPCs (Fase 11)
+-- Dibutuhkan oleh /pos-app/marketplace-analytics
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.get_shop_marketplace_stats(
+  _shop_id uuid,
+  _from    timestamptz,
+  _to      timestamptz
+)
+RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT jsonb_build_object(
+    'gross_sales',      COALESCE(SUM(total), 0),
+    'commission_paid',  COALESCE(SUM(commission_amount), 0),
+    'net_revenue',      COALESCE(SUM(total) - SUM(commission_amount), 0),
+    'orders',           COUNT(*),
+    'aov',              CASE WHEN COUNT(*) > 0
+                             THEN ROUND(SUM(total) / COUNT(*), 0)
+                             ELSE 0 END,
+    'unique_customers', (SELECT COUNT(DISTINCT customer_user_id)
+                         FROM public.orders
+                         WHERE shop_id = _shop_id
+                           AND customer_user_id IS NOT NULL
+                           AND status IN ('completed','delivering')
+                           AND created_at BETWEEN _from AND _to),
+    'completed',        COUNT(*) FILTER (WHERE status = 'completed'),
+    'in_progress',      COUNT(*) FILTER (WHERE status NOT IN ('completed','cancelled'))
+  )
+  FROM public.orders
+  WHERE shop_id = _shop_id
+    AND status IN ('completed', 'delivering', 'paid', 'processing', 'ready')
+    AND created_at BETWEEN _from AND _to;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_shop_marketplace_daily(
+  _shop_id uuid,
+  _from    timestamptz,
+  _to      timestamptz
+)
+RETURNS TABLE(day date, revenue numeric, orders bigint)
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT
+    created_at::date                                      AS day,
+    COALESCE(SUM(total) - SUM(commission_amount), 0)     AS revenue,
+    COUNT(*)                                              AS orders
+  FROM public.orders
+  WHERE shop_id = _shop_id
+    AND status IN ('completed', 'delivering', 'paid', 'processing', 'ready')
+    AND created_at BETWEEN _from AND _to
+  GROUP BY created_at::date
+  ORDER BY day;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_shop_marketplace_top_products(
+  _shop_id uuid,
+  _from    timestamptz,
+  _to      timestamptz,
+  _limit   int DEFAULT 10
+)
+RETURNS TABLE(menu_item_id uuid, item_name text, qty bigint, revenue numeric)
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT
+    oi.menu_item_id,
+    oi.name                                               AS item_name,
+    SUM(oi.quantity)                                      AS qty,
+    SUM(oi.quantity * oi.unit_price)                      AS revenue
+  FROM public.order_items oi
+  JOIN public.orders o ON o.id = oi.order_id
+  WHERE o.shop_id = _shop_id
+    AND o.status IN ('completed', 'delivering', 'paid', 'processing', 'ready')
+    AND o.created_at BETWEEN _from AND _to
+    AND oi.menu_item_id IS NOT NULL
+  GROUP BY oi.menu_item_id, oi.name
+  ORDER BY revenue DESC
+  LIMIT _limit;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_stats TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_daily TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_shop_marketplace_top_products TO authenticated;
+
+-- =============================================================================
+-- SECTION 12 — pg_cron SCHEDULE SETUP (BL-12)
+-- ⚠️  PRASYARAT: Enable pg_cron di Supabase Dashboard terlebih dahulu:
+--     Dashboard → Database → Extensions → cari "pg_cron" → Enable
+--
+-- Setelah pg_cron aktif, jalankan blok SQL di bawah ini di SQL Editor:
+-- =============================================================================
+
+-- Auto-cancel pesanan expired — setiap jam (menit 0)
+/*
+SELECT cron.schedule(
+  'auto-cancel-expired-orders',
+  '0 * * * *',
+  $$ SELECT public.fn_auto_cancel_expired(); $$
+);
+*/
+
+-- Snapshot metrik churn — setiap hari jam 01:00 WIB (18:00 UTC)
+/*
+SELECT cron.schedule(
+  'churn-metrics-snapshot',
+  '0 18 * * *',
+  $$ SELECT public.fn_churn_metrics_snapshot(); $$
+);
+*/
+
+-- Cek status cron jobs yang sudah dijadwalkan:
+-- SELECT * FROM cron.job;
+-- Hapus job: SELECT cron.unschedule('auto-cancel-expired-orders');
+
+-- =============================================================================
 -- SELESAI — 07_functions_and_late_migrations.sql
 -- =============================================================================

@@ -3,37 +3,62 @@
 -- Sumber tunggal (single source of truth) untuk skema database Supabase.
 -- Semua file aman dijalankan berulang kali (idempotent).
 -- ============================================================================
--- Updated: 2026-05-30
+-- Updated: 2026-06-01 | PRD v12.0
 --
 -- ⚠️  UNTUK PROJECT SUPABASE BARU — file ini memakai auth.uid(), auth.jwt(),
 --     dan storage schema. Jangan dijalankan ke Neon/Postgres biasa tanpa
 --     menginstal ekstensi yang dibutuhkan (uuid-ossp, pgcrypto, pg_trgm).
 --
--- STRUKTUR FILE (jalankan berurutan):
+-- ════════════════════════════════════════════════════════════════════════════
+-- CARA PAKAI TERCEPAT — Satu File Master:
 --
---   01_core_schema.sql              → ENUMs, 274 tabel utama, fungsi dasar
+--   → scripts/FULL_MIGRATION.sql
+--
+--   Ini adalah gabungan dari semua file 01–07 di bawah, dengan header section.
+--   Upload ke Supabase SQL Editor atau jalankan via psql:
+--
+--   psql "$SUPABASE_DB_URL" -f scripts/FULL_MIGRATION.sql
+--
+-- ════════════════════════════════════════════════════════════════════════════
+--
+-- ALTERNATIF: Jalankan per-file secara berurutan (untuk debugging):
+--
+--   01_core_schema.sql              → ENUMs, 275+ tabel utama, fungsi dasar
 --   02_indexes_views_triggers.sql   → Index, view, trigger
 --   03_constraints_foreign_keys.sql → Foreign key constraints
 --   04_policies_and_storage.sql     → RLS policy (600+), storage buckets & policy
 --   05_seed_reference_data.sql      → ICD-10, data referensi medis, plans, categories
 --   06_post_consolidation.sql       → Tabel baru pasca-konsolidasi, kolom tambahan,
---                                     fungsi shops_nearby, RLS tambahan, seed plans
+--                                     fungsi shops_nearby, marketplace admin RPCs,
+--                                     RLS tambahan, seed plans & features
 --   07_functions_and_late_migrations.sql
 --                                   → Business logic functions, GIN/FTS indexes,
---                                     RLS tabel-tabel dari 06, platform_settings seed
---                                     (gateway Midtrans/Xendit, email Resend)
+--                                     RLS tabel-tabel dari 06, merchant analytics RPCs,
+--                                     pg_cron schedule SQL (commented), platform_settings seed
 --
--- CARA PAKAI — OPTION A: Pakai runner script (psql)
+-- CARA PAKAI — OPTION A: Satu file master
+--   Lihat scripts/FULL_MIGRATION.sql — upload ke Supabase SQL Editor.
+--
+-- CARA PAKAI — OPTION B: Pakai runner script (psql)
 --   export SUPABASE_DB_URL="postgresql://postgres:[password]@[host]:5432/postgres"
 --   bash scripts/fresh_schema/run_fresh_schema.sh
 --
--- CARA PAKAI — OPTION B: Manual via Supabase SQL Editor
+-- CARA PAKAI — OPTION C: Manual via Supabase SQL Editor
 --   Jalankan ke-7 file di atas secara berurutan (copy-paste atau file upload).
 --   Setiap file sudah idempotent — aman dijalankan ulang jika terjadi error.
 --
+-- SETELAH MIGRATION SELESAI:
+--   1. Regenerasi types.ts:
+--      npx supabase gen types typescript --project-id <PROJECT_ID> \
+--        --schema public > artifacts/kopihub/src/integrations/supabase/types.ts
+--   2. Set secrets di Replit: MIDTRANS_SERVER_KEY, XENDIT_SECRET_KEY, RESEND_API_KEY
+--   3. Aktifkan pg_cron (Dashboard → Extensions → pg_cron), lalu jalankan
+--      blok cron.schedule di Section 12 dari 07_functions_and_late_migrations.sql
+--
 -- RINGKASAN ISI:
---   - 274+ tabel, 15+ ENUM, 120+ fungsi (termasuk fn_apply_commission,
---     fn_gdpr_erase_user, fn_auto_cancel_expired, fn_generate_api_key, dll.)
+--   - 275+ tabel, 15+ ENUM, 125+ fungsi (termasuk fn_apply_commission,
+--     fn_gdpr_erase_user, fn_auto_cancel_expired, fn_generate_api_key,
+--     get_marketplace_admin_*, get_shop_marketplace_*, dll.)
 --   - 600+ RLS policy (tabel public + storage.objects)
 --   - 230+ index (termasuk GIN/FTS untuk pencarian Bahasa Indonesia)
 --   - 180+ FK constraint
@@ -42,6 +67,7 @@
 --     platform_settings (gateway & email config defaults)
 --
 -- TIDAK ADA LAGI:
---   - scripts/split_migration/  → dihapus (lama, tidak idempotent)
---   - scripts/fase*.sql         → dikonsolidasi ke dalam fresh_schema/
+--   - scripts/split_migration/        → dihapus (lama, tidak idempotent)
+--   - scripts/fase6_fase7_migrations.sql → dikonsolidasi ke 06 + 07
+--   - scripts/fase11_analytics_rpcs.sql  → dikonsolidasi ke 07 (Section 11)
 -- ============================================================================
