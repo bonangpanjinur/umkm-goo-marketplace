@@ -599,12 +599,13 @@ export type Database = {
           },
         ]
       }
-      coffee_shops: {
+      shops: {
         Row: {
           active_theme_key: string
           address: string | null
           average_rating: number | null
           business_category_id: string | null
+          city: string | null
           commission_rate_override: number | null
           created_at: string
           currency: string
@@ -613,6 +614,7 @@ export type Database = {
           custom_domain_verify_token: string | null
           description: string | null
           email: string | null
+          google_maps_url: string | null
           id: string
           instagram: string | null
           is_active: boolean
@@ -624,7 +626,9 @@ export type Database = {
           kyc_status: string | null
           kyc_submitted_at: string | null
           last_dns_check_at: string | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           marketplace_visible: boolean
           name: string
           open_hours: Json
@@ -634,7 +638,9 @@ export type Database = {
           plan: string
           plan_expires_at: string | null
           plan_started_at: string | null
+          postal_code: string | null
           prep_minutes: number
+          province: string | null
           qris_image_url: string | null
           qris_merchant_name: string | null
           rating_avg: number | null
@@ -661,6 +667,7 @@ export type Database = {
           address?: string | null
           average_rating?: number | null
           business_category_id?: string | null
+          city?: string | null
           commission_rate_override?: number | null
           created_at?: string
           currency?: string
@@ -669,6 +676,7 @@ export type Database = {
           custom_domain_verify_token?: string | null
           description?: string | null
           email?: string | null
+          google_maps_url?: string | null
           id?: string
           instagram?: string | null
           is_active?: boolean
@@ -680,7 +688,9 @@ export type Database = {
           kyc_status?: string | null
           kyc_submitted_at?: string | null
           last_dns_check_at?: string | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           marketplace_visible?: boolean
           name: string
           open_hours?: Json
@@ -690,7 +700,9 @@ export type Database = {
           plan?: string
           plan_expires_at?: string | null
           plan_started_at?: string | null
+          postal_code?: string | null
           prep_minutes?: number
+          province?: string | null
           qris_image_url?: string | null
           qris_merchant_name?: string | null
           rating_avg?: number | null
@@ -717,6 +729,7 @@ export type Database = {
           address?: string | null
           average_rating?: number | null
           business_category_id?: string | null
+          city?: string | null
           commission_rate_override?: number | null
           created_at?: string
           currency?: string
@@ -725,6 +738,7 @@ export type Database = {
           custom_domain_verify_token?: string | null
           description?: string | null
           email?: string | null
+          google_maps_url?: string | null
           id?: string
           instagram?: string | null
           is_active?: boolean
@@ -736,7 +750,9 @@ export type Database = {
           kyc_status?: string | null
           kyc_submitted_at?: string | null
           last_dns_check_at?: string | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           marketplace_visible?: boolean
           name?: string
           open_hours?: Json
@@ -746,7 +762,9 @@ export type Database = {
           plan?: string
           plan_expires_at?: string | null
           plan_started_at?: string | null
+          postal_code?: string | null
           prep_minutes?: number
+          province?: string | null
           qris_image_url?: string | null
           qris_merchant_name?: string | null
           rating_avg?: number | null
@@ -4715,6 +4733,30 @@ export type Database = {
       }
     }
     Functions: {
+      shops_nearby: {
+        Args: {
+          _lat: number
+          _lng: number
+          _radius_km?: number
+          _limit?: number
+          _category_id?: string
+        }
+        Returns: {
+          id: string
+          slug: string
+          name: string
+          tagline: string | null
+          logo_url: string | null
+          address: string | null
+          city: string | null
+          latitude: number | null
+          longitude: number | null
+          business_category_id: string | null
+          rating_avg: number | null
+          review_count: number
+          distance_km: number
+        }[]
+      }
       accept_staff_invitation: { Args: { _token: string }; Returns: Json }
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_remove_plan_feature: {

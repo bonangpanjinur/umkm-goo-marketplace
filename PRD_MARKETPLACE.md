@@ -1087,8 +1087,8 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 | Fase 4 | Customer Experience | ✅ **100% Selesai** |
 | Fase 5 | Realtime SSE | ✅ **100% Selesai** |
 | Fase 6 | Platform Lanjutan | ✅ **100% Selesai** (F6-1 s/d F6-9 ✅; F6-7 di-skip sesuai requirement) |
-| Quick Wins | QW1–QW9 | 🔶 **8/9 Selesai** (QW3/QW4/QW5/QW6/QW7/QW8/QW9 ✅, QW2 partial) |
-| Lokasi P1+P2 | L1-1 s/d L2-5 | 🔶 **6/9 Selesai** (L2-1 s/d L2-5 + L1-4 ✅; L1-1/L1-2/L1-3 ⏳ DB) |
+| Quick Wins | QW1–QW9 | ✅ **9/9 Selesai** (semua QW1–QW9 ✅) |
+| Lokasi P1+P2 | L1-1 s/d L2-5 | ✅ **9/9 Selesai** (semua L1-1 s/d L2-5 ✅) |
 | Fase 7 | DB Migration + Lokasi P3 | ✅ **100% Selesai** (SQL migration siap; L3-1 s/d L3-5 ✅) |
 | Fase 8 | Merchant Mock Lanjutan | ✅ **6/6 Selesai** |
 | Fase 9 | Admin Platform Tools | ✅ **8/8 Selesai** |
@@ -1389,9 +1389,9 @@ GET https://nominatim.openstreetmap.org/reverse
 
 | ID | Task | File | SQL/API |
 |----|------|------|---------|
-| L1-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | Supabase DB | SQL §10.2 |
-| L1-2 | **Buat `shops_nearby` RPC** di Supabase | Supabase DB | SQL §10.3 |
-| L1-3 | **Regenerasi `types.ts`** setelah schema update | `types.ts` | `supabase gen types` |
+| L1-1 | **ALTER TABLE shops** — tambah kolom `latitude`, `longitude`, `city`, `province`, `postal_code`, `google_maps_url` | Neon DB | ✅ Done — kolom ditambahkan via psql migration ke Neon DB dev |
+| L1-2 | **Buat `shops_nearby` RPC** di Neon DB | Neon DB | ✅ Done — fungsi dibuat via `06_post_consolidation.sql` + whitelist di API server |
+| L1-3 | **Regenerasi `types.ts`** setelah schema update | `types.ts` | ✅ Done — `shops` Row/Insert/Update diupdate manual dengan 6 kolom lokasi + `shops_nearby` ditambahkan ke Functions |
 | L1-4 | **Tambah field kota/provinsi/kodepos** di `pos-app.settings.tsx` (3 input baru di bawah alamat) | `pos-app.settings.tsx` | ✅ Done |
 
 #### 🟡 P2 — Penting (UX merchant dan pembeli lebih baik)
@@ -1429,8 +1429,8 @@ Halaman /sekitar       ✅ DONE   GPS + radius + list + peta + filter kategori +
 Peta per toko          ✅ DONE   /toko/$slug/map
 Setting merchant       ✅ DONE   Lat/lng + city + province + postal_code + Google Maps URL (L1-4)
 Google Maps link       ✅ DONE   View + petunjuk arah dari koordinat/nama
-DB kolom lokasi        ⚠️ TODO   ALTER TABLE shops (L1-1) + regenerasi types (L1-3) — SQL sudah siap di fase6_fase7_migrations.sql
-shops_nearby RPC       ⚠️ TODO   SQL RPC sudah tersedia di PRD §10.3 — jalankan di Supabase Dashboard (L1-2)
+DB kolom lokasi        ✅ DONE   ALTER TABLE shops + 209 tabel marketplace via fresh schema migration ke Neon DB (L1-1, L1-3)
+shops_nearby RPC       ✅ DONE   Fungsi shops_nearby dibuat di Neon DB + whitelist API server (L1-2)
 Lokasi persisten       ✅ DONE   localStorage("umkmgo.userLocation") di /sekitar (L2-2)
 Section homepage       ✅ DONE   "Toko di Sekitar Kamu" di homepage jika localStorage location tersedia (L2-5)
 Filter /sekitar        ✅ DONE   Kategori bisnis + rating minimum + toggle "Buka Sekarang" (L2-3, L2-4, QW3)

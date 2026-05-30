@@ -18,42 +18,106 @@ const router = Router();
 const TABLE_WHITELIST = new Set([
   // Platform
   "shops", "outlets", "plans", "features", "plan_features", "themes", "plan_themes",
-  "platform_settings", "platform_vouchers",
+  "platform_settings", "platform_vouchers", "platform_voucher_redemptions",
   // Produk & Menu
   "menu_items", "menu_categories", "product_variants", "product_options",
   "product_option_values", "menu_addons", "addon_groups",
+  "product_combos", "fnb_combos", "bundle_items", "service_bundles", "service_bundle_items",
+  "product_attribute_defs", "product_qa", "product_reviews", "menu_reviews",
+  "limited_editions", "bulk_pricing_rules",
   // Pesanan
-  "orders", "order_items", "order_addons",
-  // Pembayaran (via Drizzle — tapi tetap diwhitelist)
-  "payment_transactions", "webhook_logs",
+  "orders", "order_items", "order_addons", "order_audit_log", "order_disputes",
+  "order_messages", "order_status_logs",
+  // Pembayaran
+  "payment_transactions", "webhook_logs", "refunds", "return_requests",
+  "withdrawal_requests", "wallet_transactions", "wallet_topups", "wallet_topup_presets",
   // Pelanggan
-  "customers", "customer_addresses", "customer_favorites", "loyalty_points",
-  "loyalty_transactions", "loyalty_programs",
-  // Booking
+  "customers", "customer_addresses", "customer_favorites",
+  "customer_profiles", "customer_wallets", "customer_wallet_transactions",
+  "customer_memberships", "customer_segments", "customer_treatments",
+  "loyalty_points", "loyalty_transactions", "loyalty_programs",
+  "loyalty_settings", "loyalty_tiers", "loyalty_ledger", "loyalty_analytics",
+  "cashback_wallets", "cashback_transactions",
+  // Booking & Reservasi
   "bookings", "booking_services", "booking_reschedule_tokens",
+  "booking_addons", "booking_slots", "booking_reviews", "booking_review_requests",
+  "booking_service_packages", "booking_vouchers", "booking_waitlist",
+  "reservation_settings", "reservation_slots", "reservations",
   // Staff & User
   "user_roles", "staff_members", "staff_permissions", "staff_invitations",
-  "user_profiles",
-  // Inventaris
-  "inventory_items", "inventory_transactions", "raw_materials",
+  "user_profiles", "user_preferences", "profiles",
+  "staff_audit_logs", "attendances", "shifts",
+  // Inventaris & Produksi
+  "inventory_items", "inventory_transactions",
+  "purchase_orders", "purchase_order_items", "po_audit_log",
+  "suppliers", "ingredients", "recipes",
+  "stock_movements", "stock_opnames", "stock_opname_items",
+  "restock_subscribers",
   // Keuangan & Laporan
-  "cash_shifts", "cash_movements", "plan_invoices",
+  "cash_shifts", "cash_movements", "plan_invoices", "plan_subscriptions",
+  "open_bills", "billing_settings",
   // Notifikasi
-  "owner_notifications", "push_subscriptions",
-  // Ulasan
-  "product_reviews", "menu_reviews",
+  "owner_notifications", "push_subscriptions", "notifications",
+  "wa_broadcasts",
   // Konten & Marketing
   "marketing_campaigns", "campaign_recipients", "email_campaigns",
-  "storefront_layouts", "banners", "promo_codes", "flash_sales",
-  "happy_hour_rules",
-  // Digital
-  "digital_product_versions",
-  // Kurir
-  "deliveries", "couriers",
+  "email_campaign_recipients", "storefront_layouts", "banners",
+  "promo_codes", "flash_sales", "promos", "promo_redemptions",
+  "happy_hour_rules", "flyers",
+  // Digital & Kursus
+  "digital_product_versions", "digital_download_logs", "digital_licenses",
+  "course_enrollments", "course_lessons", "course_modules",
+  "lesson_progress", "course_certificates",
+  // Kurir & Pengiriman
+  "deliveries", "couriers", "outlet_couriers",
+  "delivery_settings", "delivery_zones",
+  // Custom Order & Freelance
+  "custom_order_requests", "custom_order_quotes", "custom_order_status_history",
+  "job_deliverables", "freelance_contracts", "project_milestones",
+  // Grup Beli
+  "group_buys", "group_buy_participants",
+  // Wishlists & Keranjang
+  "wishlists", "marketplace_carts", "marketplace_cart_items", "parked_carts",
+  // Toko & Lokasi
+  "business_categories", "shop_api_keys", "ad_requests",
+  "shop_about", "shop_portfolio", "shop_lookbook",
+  "shop_vouchers", "shop_wallets", "shop_bank_accounts",
+  "shop_customers", "shop_membership_tiers",
+  "shop_verifications", "shop_backups",
+  "shop_product_claims", "shop_size_charts",
+  "storefront_layouts",
+  // Meja & QR
+  "tables", "table_maps",
+  // Affiliate & Leads
+  "affiliates", "leads", "sales_offerings",
+  // Ulasan & Sertifikat
+  "testimonials", "authenticity_certificates",
+  "booking_reviews",
+  // Rental
+  "rental_units", "rental_bookings", "rental_checklists", "rental_inspections",
+  // Studio & Foto
+  "studio_packages", "studio_photographers", "studio_locations",
+  "studio_gallery_photos", "studio_briefs", "studio_deliveries", "studio_photo_reviews",
+  "wip_gallery",
+  // Travel
+  "umroh_packages", "umroh_facilities", "umroh_faqs",
+  "travel_jamaah_manifest", "travel_jamaah_documents",
+  "travel_itineraries", "travel_installments",
+  // Medis
+  "patient_records", "patient_visits", "prescriptions", "prescription_items",
+  "medications", "medical_invoices", "icd10_codes",
+  "anamnesis_forms", "customer_treatments",
+  // Antrian
+  "queue_sessions", "queue_entries",
   // Lainnya
-  "business_categories", "renewal_notification_runs",
-  "shop_api_keys", "ad_requests", "freelance_contracts", "job_deliverables",
-  "custom_orders", "custom_order_attachments",
+  "renewal_notification_runs",
+  "disputes", "buyer_ratings",
+  "third_party_integrations", "integration_webhooks", "integration_mappings",
+  "webhook_events",
+  "api_keys", "api_usage",
+  "data_requests",
+  "expiry_reminder_rules", "expiry_reminder_shop_rules", "expiry_reminder_shop_settings",
+  "printers",
 ]);
 
 // Tabel yang hanya boleh dibaca (GET) — tidak boleh ditulis via proxy

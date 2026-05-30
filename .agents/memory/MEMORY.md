@@ -1,2 +1,3 @@
-- [TanStack Router auto-regen](tanstack-router-regen.md) — routeTree.gen.ts auto-regenerates when Vite dev server detects new route files; avoid manual edits while dev server is running.
-- [Admin tools auth pattern](admin-tools-auth.md) — api-server cannot import @supabase/supabase-js; admin endpoints use x-admin-secret header + pool.query().
+- [Dev DB Architecture](dev-db-arch.md) — API server proxies REST to Neon DB (not real Supabase); real Supabase only for Auth
+- [Fresh Schema Migration](fresh-schema-migration.md) — 209 marketplace tables live in Neon DB via scripts/fresh_schema/; run against DATABASE_URL
+- [shops table rename](shops-rename.md) — Real Supabase has `coffee_shops`; Neon DB + code use `shops`; types.ts manually maintained
