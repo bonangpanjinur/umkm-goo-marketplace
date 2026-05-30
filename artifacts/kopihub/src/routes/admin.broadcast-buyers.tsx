@@ -140,7 +140,31 @@ function AdminBroadcastBuyers() {
         sent += Math.min(BATCH, notifications.length - i);
       }
 
-      toast.success(`Broadcast terkirim ke ${sent.toLocaleString("id-ID")} pembeli`);
+      toast.success(`Notifikasi in-app terkirim ke ${sent.toLocaleString("id-ID")} pembeli`);
+
+      // Kirim web push notification via API server (best-effort)
+      try {
+        const apiBase = import.meta.env.VITE_API_URL ?? "/api";
+        const pushRes = await fetch(`${apiBase}/push/send-to-all`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            body: body.trim(),
+            url: link.trim() || "/",
+            tag: "broadcast",
+          }),
+        });
+        if (pushRes.ok) {
+          const pushData = await pushRes.json();
+          if (pushData.total > 0) {
+            toast.success(`Push dikirim ke ${pushData.sent} subscriber (${pushData.failed} gagal)`);
+          }
+        }
+      } catch {
+        // Push notification gagal tidak block broadcast in-app
+      }
+
       setTitle(""); setBody(""); setLink("");
       loadHistory();
     } catch (e: any) {

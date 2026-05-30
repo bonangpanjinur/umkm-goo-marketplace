@@ -35,6 +35,7 @@ function AdminPushConfig() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPriv, setShowPriv] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     supabase
@@ -123,26 +124,45 @@ function AdminPushConfig() {
 
       {/* How to generate */}
       <Card className="p-5 space-y-3 bg-muted/30">
-        <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-primary" />
-          <p className="font-semibold text-sm">Cara generate VAPID Keys</p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" />
+            <p className="font-semibold text-sm">Generate VAPID Keys</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={generating}
+            onClick={async () => {
+              setGenerating(true);
+              try {
+                const apiBase = import.meta.env.VITE_API_URL ?? "/api";
+                const res = await fetch(`${apiBase}/push/vapid-keys`, { method: "POST" });
+                if (!res.ok) throw new Error("Gagal generate keys");
+                const data = await res.json();
+                set({ vapid_public_key: data.publicKey, vapid_private_key: data.privateKey });
+                toast.success("VAPID keys berhasil digenerate — simpan sekarang!");
+              } catch (e: any) {
+                toast.error(e.message ?? "Gagal generate keys");
+              } finally {
+                setGenerating(false);
+              }
+            }}
+          >
+            {generating ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : null}
+            Generate dari Server
+          </Button>
         </div>
-        <ol className="list-decimal pl-5 space-y-1.5 text-sm text-muted-foreground">
-          <li>Install web-push CLI: <code className="rounded bg-background px-1.5 py-0.5 text-xs font-mono">npm i -g web-push</code></li>
-          <li>Generate keys: <code className="rounded bg-background px-1.5 py-0.5 text-xs font-mono">web-push generate-vapid-keys</code></li>
-          <li>Atau pakai generator online:{" "}
-            <a
-              href="https://vapidkeys.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-primary hover:underline"
-            >
-              vapidkeys.com <ExternalLink className="h-3 w-3" />
-            </a>
-          </li>
-          <li>Paste Public & Private Key ke form di bawah</li>
-          <li>Subject: email admin yang akan dihubungi push provider jika ada masalah</li>
-        </ol>
+        <p className="text-xs text-muted-foreground">
+          Klik tombol di atas untuk generate key pair baru langsung dari API server,
+          atau paste manual dari{" "}
+          <a href="https://vapidkeys.com/" target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-1 text-primary hover:underline">
+            vapidkeys.com <ExternalLink className="h-3 w-3" />
+          </a>.
+          Setelah generate, klik <strong>Simpan</strong> untuk menyimpan ke database.
+        </p>
       </Card>
 
       {/* Config form */}
@@ -219,15 +239,17 @@ function AdminPushConfig() {
         </div>
       </Card>
 
-      <Card className="p-4 bg-amber-50 border-amber-200">
+      <Card className="p-4 bg-blue-50 border-blue-200">
         <div className="flex gap-3">
-          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 space-y-1">
-            <p className="font-semibold">Catatan implementasi:</p>
-            <p>
-              Setelah key disimpan, developer perlu deploy service worker (<code className="font-mono">/sw.js</code>)
-              dan endpoint pengirim push. UI ini hanya menyimpan konfigurasi.
-            </p>
+          <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+          <div className="text-xs text-blue-900 space-y-1">
+            <p className="font-semibold">Status Implementasi Push Notification (F13)</p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              <li>✅ Service worker (<code className="font-mono">/sw.js</code>) sudah handle push events</li>
+              <li>✅ Endpoint <code className="font-mono">POST /api/push/send</code> dan <code className="font-mono">/api/push/send-to-all</code> aktif</li>
+              <li>✅ Tabel <code className="font-mono">push_subscriptions</code> sudah ada (jalankan migration)</li>
+              <li>⚡ Set <strong>VAPID_PUBLIC_KEY</strong> dan <strong>VAPID_PRIVATE_KEY</strong> di Replit Secrets agar push aktif permanen</li>
+            </ul>
           </div>
         </div>
       </Card>

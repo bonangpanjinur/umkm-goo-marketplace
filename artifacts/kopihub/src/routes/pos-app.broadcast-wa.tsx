@@ -198,11 +198,31 @@ function BroadcastWAPage() {
     setShowBatchModal(true);
   }
 
-  function sendCurrent() {
+  async function sendCurrent() {
     const c = contacts[batchIdx];
     const msg = renderMsg(messageText, c, shop?.name ?? "Toko Kami", shop?.slug ?? "");
-    const url = `https://wa.me/${c.phone}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank", "noopener");
+
+    // F17-3: Coba kirim via Fonnte API dulu, fallback ke window.open
+    try {
+      const apiBase = import.meta.env.VITE_API_URL ?? "/api";
+      const cfgRes = await fetch(`${apiBase}/wa/config`);
+      const cfgJson = await cfgRes.json();
+      if (cfgJson.enabled) {
+        await fetch(`${apiBase}/wa/send-bulk`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [{ phone: c.phone, message: msg }] }),
+        });
+      } else {
+        // Fonnte belum dikonfigurasi — buka wa.me seperti biasa
+        const url = `https://wa.me/${c.phone}?text=${encodeURIComponent(msg)}`;
+        window.open(url, "_blank", "noopener");
+      }
+    } catch {
+      const url = `https://wa.me/${c.phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank", "noopener");
+    }
+
     const next = batchIdx + 1;
     setSentCount(s => s + 1);
     if (next >= contacts.length) {

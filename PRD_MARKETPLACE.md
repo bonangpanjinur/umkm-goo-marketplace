@@ -641,18 +641,18 @@ SEGERA (Blocker utama):
   ✅ Regenerasi types.ts setelah migration (BL-5)
 
 MINGGU INI (Fitur inti yang terasa langsung):
-  ☐ Fase 11: Sambungkan akun pembeli ke DB (riwayat, wishlist, loyalty)
-  ☐ Fase 12: Sambungkan kurir ke DB (riwayat, penghasilan, profil)
-  ☐ Fase 13: Push notification backend (VAPID worker)
+  ✅ Fase 11: Sambungkan akun pembeli ke DB — SELESAI (semua halaman akun sudah pakai Supabase query nyata: bookings, loyalty, notifikasi, riwayat, returns, langganan, favorit, cashback, referral, digital-products)
+  ✅ Fase 12: Sambungkan kurir ke DB — SELESAI (kurir.history, earnings, profile, withdraw, dashboard sudah real)
+  ✅ Fase 13: Push notification backend — SELESAI (web-push installed, endpoint /api/push/send + /api/push/send-to-all aktif, PushNotificationManager diaktifkan, migration push_subscriptions dibuat, admin.push-config bisa generate VAPID keys, admin.broadcast-buyers kirim push + in-app notification)
 
 MINGGU DEPAN:
-  ☐ Fase 14: Admin tools real data (users, disputes, payout)
-  ☐ Fase 15: Merchant mock batch 1 (loyalty, flash sale, cash drawer)
+  ✅ Fase 14: Admin tools real data — SELESAI (admin.kyc, disputes, moderation sudah real; analytics pakai RPC; activity pakai observability functions)
+  ✅ Fase 15: Merchant mock batch 1 — SELESAI (pos-app.loyalty, flash-sale, cash-drawer, bulk-pricing sudah real Supabase)
   ☐ Verifikasi BL-6 (rename coffee_shops) dan BL-7 (shops_nearby RPC)
 
 OPSIONAL:
-  ☐ Fase 16: Merchant mock batch 2 (niche verticals)
-  ☐ Fase 17: WhatsApp broadcast API
+  ✅ Fase 16: Merchant mock batch 2 — SELESAI (anamnesis, patient-records, invoice, kursus, skin-quiz, appearance, milestones, testimonials, wip-gallery, lookbook, custom-css, verified-claims semua sudah real Supabase)
+  🔄 Fase 17: WhatsApp broadcast API — IN PROGRESS (F17-4 CSV export sudah ada, F17-2 backend /api/wa/send-bulk via Fonnte dibuat, F17-3 UI fallback graceful; F17-1 perlu FONNTE_API_KEY di Secrets)
   ☐ BL-12: Enable pg_cron di Supabase
 ```
 

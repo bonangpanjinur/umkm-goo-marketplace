@@ -6,11 +6,31 @@ import { ensureNotificationPermission, notifyOrder } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64  = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+async function fetchVapidPublicKey(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/push/vapid-public`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.enabled ? json.publicKey : null;
+  } catch {
+    return null;
+  }
+}
+
 export function NotificationSettings({ shopId }: { shopId?: string | null }) {
   const { user } = useAuth();
-  const [perm, setPerm] = useState<NotificationPermission>("default");
+  const [perm, setPerm]           = useState<NotificationPermission>("default");
   const [supported, setSupported] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy]           = useState(false);
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
@@ -35,31 +55,39 @@ export function NotificationSettings({ shopId }: { shopId?: string | null }) {
         return;
       }
 
-      // Try to subscribe via Push API (best-effort, requires SW + VAPID at server)
+      // Subscribe via Push API jika VAPID key tersedia
       if ("serviceWorker" in navigator && "PushManager" in window && user) {
         try {
+          const vapidKey = await fetchVapidPublicKey();
           const reg = await navigator.serviceWorker.ready;
-          let sub = await reg.pushManager.getSubscription();
-          if (!sub) {
+          let sub   = await reg.pushManager.getSubscription();
+
+          if (!sub && vapidKey) {
+            sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(vapidKey),
+            });
+          } else if (!sub) {
+            // VAPID belum dikonfigurasi — fallback tanpa server key
             sub = await reg.pushManager.subscribe({ userVisibleOnly: true });
           }
+
           if (sub) {
             const json = sub.toJSON();
-            await supabase.from("push_subscriptions").upsert(
+            await supabase.from("push_subscriptions" as never).upsert(
               {
-                user_id: user.id,
-                endpoint: sub.endpoint,
-                subscription: json as never,
-                user_agent: navigator.userAgent,
-                shop_id: shopId ?? null,
+                user_id:      user.id,
+                endpoint:     sub.endpoint,
+                subscription: json,
+                user_agent:   navigator.userAgent,
+                shop_id:      shopId ?? null,
               },
               { onConflict: "user_id,endpoint" },
             );
             setSubscribed(true);
           }
         } catch (e) {
-          // VAPID not configured / unsupported — fallback to local only
-          console.warn("Push subscribe skipped:", e);
+          console.warn("Push subscribe:", e);
         }
       }
 
@@ -80,7 +108,7 @@ export function NotificationSettings({ shopId }: { shopId?: string | null }) {
           await sub.unsubscribe();
           if (user) {
             await supabase
-              .from("push_subscriptions")
+              .from("push_subscriptions" as never)
               .delete()
               .eq("user_id", user.id)
               .eq("endpoint", sub.endpoint);
@@ -106,7 +134,11 @@ export function NotificationSettings({ shopId }: { shopId?: string | null }) {
     <div className="flex flex-col gap-3">
       <div className="text-xs text-muted-foreground">
         Status izin: <span className="font-medium text-foreground">{perm}</span>
-        {subscribed && <span className="ml-2 rounded bg-emerald-100 px-2 py-0.5 text-emerald-700">Berlangganan</span>}
+        {subscribed && (
+          <span className="ml-2 rounded bg-emerald-100 px-2 py-0.5 text-emerald-700">
+            Push aktif
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
         {perm !== "granted" || !subscribed ? (
@@ -119,12 +151,17 @@ export function NotificationSettings({ shopId }: { shopId?: string | null }) {
             <BellOff className="mr-2 h-4 w-4" /> Matikan
           </Button>
         )}
-        <Button size="sm" variant="ghost" onClick={() => notifyOrder("Tes", "Ini contoh notifikasi pesanan masuk")}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => notifyOrder("Tes", "Ini contoh notifikasi pesanan masuk")}
+        >
           Tes bunyi & notif
         </Button>
       </div>
       <p className="text-[11px] text-muted-foreground">
-        Notifikasi muncul saat tab aplikasi terbuka. Push notification background memerlukan konfigurasi VAPID di server.
+        Push notification latar belakang aktif saat VAPID dikonfigurasi di{" "}
+        <a href="/admin/push-config" className="underline">Admin → Push Config</a>.
       </p>
     </div>
   );
