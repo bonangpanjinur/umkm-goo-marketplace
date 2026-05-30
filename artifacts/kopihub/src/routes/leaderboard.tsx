@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Star, ShoppingBag, Users, BadgeCheck, Store, Trophy } from "lucide-react";
 import { TrustCertBadge, computeTrustCert } from "@/components/TrustCertBadge";
 
@@ -206,8 +207,30 @@ function LeaderboardPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-border bg-card p-5 space-y-3 flex flex-col items-center">
+                  <Skeleton className="h-16 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                  <Skeleton className="h-7 w-7 rounded-full shrink-0" />
+                  <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
+                  <Skeleton className="h-4 w-14 shrink-0" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : sorted.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">

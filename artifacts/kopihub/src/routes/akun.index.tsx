@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, ShoppingBag, Heart, Bell, MapPin, Star, User, Cake, Award } from "lucide-react";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
@@ -72,7 +73,38 @@ function ProfilePage() {
     else toast.success("Profil tersimpan");
   };
 
-  if (loading) return <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+  if (loading) return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-5">
+        <Skeleton className="h-16 w-16 rounded-full shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-56" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-2">
+            <Skeleton className="h-7 w-10" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex gap-3 rounded-xl border border-border bg-card p-4">
+            <Skeleton className="h-14 w-14 rounded-lg shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const initials = form.display_name
     ? form.display_name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)

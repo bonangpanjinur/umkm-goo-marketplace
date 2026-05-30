@@ -1054,8 +1054,8 @@ Perbaikan kecil berdampak besar, bisa dikerjakan kapan saja:
 
 | # | Perbaikan | Estimasi | Status |
 |---|-----------|----------|--------|
-| QW1 | Loading skeleton di semua halaman yang fetch data | 0.5 hari | ⚠️ Partial — skeleton ada di sekitar, POS, orders, dsb; belum semua halaman |
-| QW2 | Empty state informatif saat list kosong (bukan blank) | 0.5 hari | ⚠️ Partial — empty state ada di banyak halaman utama; belum exhaustif |
+| QW1 | Loading skeleton di semua halaman yang fetch data | 0.5 hari | ✅ Done — Skeleton ditambahkan ke 13 halaman: `akun.pesanan.index`, `akun.index`, `akun.loyalty`, `akun.wishlist`, `akun.notifikasi`, `akun.langganan`, `akun.digital-products`, `akun.kursus`, `akun.custom-orders`, `akun.cashback`, `akun.riwayat`, `kategori.index`, `leaderboard`, `promo` |
+| QW2 | Empty state informatif saat list kosong (bukan blank) | 0.5 hari | ✅ Done — Empty state dengan ikon + pesan informatif + tombol aksi ditambahkan ke semua halaman yang diperbarui di QW1; promo flash sale & voucher juga diupgrade dengan icon |
 | QW3 | Filter "Buka Sekarang" & rating minimum di halaman `/sekitar` | 0.5 hari | ✅ Done — filter kategori bisnis + min. rating + toggle "Buka Sekarang" ditambahkan |
 | QW4 | Selector outlet di KDS (filter `outlet_id` jika toko >1 outlet) | 0.25 hari | ✅ Done — KDS sudah auto-filter by current outlet via `useCurrentShop()` |
 | QW5 | `<title>` dinamis per halaman di semua route | 0.25 hari | ✅ Done — `head()` ditambahkan ke 169 route file (165 via Python script + 4 index route manual); semua halaman publik, kurir, merchant, dan admin kini punya `<title>` unik |

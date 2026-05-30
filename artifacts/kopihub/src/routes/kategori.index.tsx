@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Store } from "lucide-react";
 
 export const Route = createFileRoute("/kategori/")({
@@ -63,7 +64,14 @@ function CategoriesIndex() {
         {loading ? (
           <div className="mt-8 grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-40 rounded-xl bg-muted/40 animate-pulse" />
+              <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
+                <Skeleton className="aspect-video w-full" />
+                <div className="p-4 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
             ))}
           </div>
         ) : (

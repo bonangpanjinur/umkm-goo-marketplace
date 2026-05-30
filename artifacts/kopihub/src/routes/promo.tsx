@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketplaceHeader, MarketplaceFooter } from "@/components/marketplace/MarketplaceHeader";
 import { ProductCard } from "./index";
-import { Sparkles, Ticket, Copy, Check } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Sparkles, Ticket, Copy, Check, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { useSeo } from "@/lib/use-seo";
 
@@ -108,7 +109,11 @@ function PromoPage() {
           <h2 className="text-xl font-bold tracking-tight">Voucher UMKMgo</h2>
         </div>
         {vouchers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Belum ada voucher aktif.</p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-10 text-center">
+            <Tag className="h-9 w-9 text-muted-foreground opacity-30" />
+            <p className="text-sm font-medium">Belum ada voucher aktif saat ini</p>
+            <p className="text-xs text-muted-foreground">Pantau terus untuk promo menarik berikutnya</p>
+          </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {vouchers.map((v) => {
@@ -154,11 +159,22 @@ function PromoPage() {
         {loading ? (
           <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] rounded-xl bg-muted/40 animate-pulse" />
+              <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
+                <Skeleton className="aspect-square w-full" />
+                <div className="p-2.5 space-y-1.5">
+                  <Skeleton className="h-3.5 w-full" />
+                  <Skeleton className="h-3 w-2/3" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
         ) : flash.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Belum ada flash sale yang berjalan.</p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-12 text-center">
+            <Sparkles className="h-10 w-10 text-muted-foreground opacity-30" />
+            <p className="font-medium text-sm">Belum ada flash sale aktif saat ini</p>
+            <p className="text-xs text-muted-foreground">Cek lagi nanti untuk penawaran terbatas</p>
+          </div>
         ) : (
           <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
             {flash.map((p) => <ProductCard key={p.id} product={p as any} />)}

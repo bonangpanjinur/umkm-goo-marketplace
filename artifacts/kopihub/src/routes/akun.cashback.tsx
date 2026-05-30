@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Wallet, TrendingUp, Clock, CheckCircle2, XCircle, Copy, Check, Info, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +74,36 @@ function CashbackPage() {
     })();
   }, [user]);
 
-  if (loading) return <div className="text-sm text-muted-foreground py-10 text-center">Memuat…</div>;
+  if (loading) return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-10 w-36" />
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+            <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+            <Skeleton className="h-5 w-16 shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const balance = wallet?.balance ?? 0;
   const earned = wallet?.total_earned ?? 0;
