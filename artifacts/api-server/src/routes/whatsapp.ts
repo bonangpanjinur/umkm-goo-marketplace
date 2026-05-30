@@ -27,11 +27,12 @@ router.get("/wa/config", (_req, res) => {
 router.post("/wa/send-bulk", async (req, res) => {
   const token = process.env["FONNTE_API_KEY"] ?? "";
   if (!token) {
-    return res.status(503).json({
+    res.status(503).json({
       error:   "Fonnte API key belum dikonfigurasi",
       hint:    "Set FONNTE_API_KEY di Replit Secrets. Daftar di https://fonnte.com",
       enabled: false,
     });
+    return;
   }
 
   const { contacts, messages, message } = req.body as {
@@ -51,7 +52,8 @@ router.post("/wa/send-bulk", async (req, res) => {
       message: message.replace(/{{nama}}/g, c.name || "Kak"),
     }));
   } else {
-    return res.status(400).json({ error: "Sediakan contacts+message atau messages[]" });
+    res.status(400).json({ error: "Sediakan contacts+message atau messages[]" });
+    return;
   }
 
   // Kirim ke Fonnte satu per satu (rate limit aman)
